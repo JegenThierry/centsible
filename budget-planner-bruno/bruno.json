@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "budget-planner-bruno",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -1,0 +1,14 @@
+spring.application.name=budget-planner-rest
+
+#DB Configuration
+spring.datasource.url=jdbc:postgresql://<url>/budget-planner-db
+spring.datasource.username=<username>
+spring.datasource.password=<password>
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Jooq Configuration
+spring.jooq.sql-dialect=postgres
+
+#JWT you can use: https://jwtsecretkeygenerator.com/
+jwt.expirationMs=86400000
+jwt.secret=<Enter your token>

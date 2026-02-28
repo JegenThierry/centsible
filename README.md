@@ -1,3 +1,2 @@
 # budget-planner
-
-Nuxt and Spring based budget planner
+A small full-stack project for planning and managing expenses
