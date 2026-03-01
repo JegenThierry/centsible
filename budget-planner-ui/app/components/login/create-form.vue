@@ -19,10 +19,20 @@ const state = reactive({
   password: '',
   confirmPassword: '',
 })
+const usernameInput = ref<InstanceType<typeof BaseInput>>();
+const emailInput = ref<InstanceType<typeof BaseInput>>();
+const firstnameInput = ref<InstanceType<typeof BaseInput>>();
+const lastnameInput = ref<InstanceType<typeof BaseInput>>();
+const passwordsInput = ref<InstanceType<typeof RegisterPasswordInput>>();
+
 const loading = ref<boolean>(false);
 
 function onSubmit() {
+  if (!validate()) {
+    return;
+  }
   loading.value = true;
+
   useAuthService(api as AxiosInstance)
       .register(state)
       .then((res: AuthResponse) => {
@@ -42,32 +52,66 @@ function onSubmit() {
       })
       .finally(() => loading.value = false);
 }
+
+
+function validate(): boolean {
+  const inputs = [
+      usernameInput.value,
+      emailInput.value,
+      firstnameInput.value,
+      lastnameInput.value,
+      passwordsInput.value,
+  ]
+
+  let valid = true;
+  inputs.forEach((input) => {
+    valid = input?.validate() ?? false
+  });
+
+  if(!valid) {
+    error(
+        'Validation failed.',
+        'One or more validation errors occurred.'
+    )
+  }
+
+  return valid;
+}
 </script>
 
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
     <BaseInput v-model="state.username"
+               ref="usernameInput"
                label="Username"
+               placeholder="Username"
                type="text"
                required />
 
     <BaseInput v-model="state.email"
+               ref="emailInput"
                label="E-Mail"
+               placeholder="E-Mail"
                type="email"
                required />
 
     <BaseInput v-model="state.firstName"
+               ref="firstnameInput"
                label="Firstname"
+               placeholder="Firstname"
                type="text"
                required />
 
     <BaseInput v-model="state.lastName"
+               ref="lastnameInput"
                label="Lastname"
+               placeholder="Lastname"
                type="text"
                required />
 
     <RegisterPasswordInput v-model:password="state.password"
-                           v-model:confirm-password="state.confirmPassword" />
+                           v-model:confirm-password="state.confirmPassword"
+                           ref="passwordsInput" />
 
     <UButton class="ml-auto" :loading="loading" type="submit">
       Register

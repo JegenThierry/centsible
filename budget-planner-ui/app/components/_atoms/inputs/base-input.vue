@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type {AcceptableValue} from "@nuxt/ui/runtime/types";
-
 const props = defineProps<{
   label: string;
   description?: string;
@@ -11,7 +9,7 @@ const props = defineProps<{
   additionalValidator?: () => string;
 }>();
 
-const model = defineModel<AcceptableValue>();
+const model = defineModel<string | number>();
 const error = ref<string | undefined>(undefined);
 
 function resetValidation(): void {
@@ -21,7 +19,7 @@ function resetValidation(): void {
 function validate(): boolean {
   resetValidation();
 
-  if (props.required) {
+  if (props.required && !model.value) {
     error.value = `${props.label} is required.`;
     return false;
   }
@@ -39,7 +37,10 @@ defineExpose({
               :help="description"
               :error="error"
               :hint="hint">
-    <UInput v-model="model" :type="type" :placeholder="placeholder"/>
+    <UInput class="w-full"
+            v-model="model"
+            :type="type"
+            :placeholder="placeholder"/>
   </UFormField>
 </template>
 

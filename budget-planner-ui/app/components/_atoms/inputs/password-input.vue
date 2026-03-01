@@ -5,6 +5,7 @@ const props = defineProps<{
   placeholder?: string;
   description?: string;
   additionalValidation?: () => boolean;
+  additionalValidationMessage?: string;
 }>();
 
 const show = ref<boolean>(false)
@@ -18,10 +19,16 @@ function resetValidation(): void {
 function validate(): boolean {
   resetValidation();
 
-  if (props.required) {
+  if (props.required && !password.value) {
     error.value = `${props.label} is required.`;
     return false;
   }
+
+  if (props.additionalValidation && !props.additionalValidation()) {
+    error.value = props.additionalValidationMessage ?? 'Unknown error occurred.';
+    return false;
+  }
+
   return true;
 }
 
@@ -36,11 +43,12 @@ defineExpose({
 
 <template>
   <UFormField :required="required"
-              label="Pasword"
+              :label="label"
               :help="description"
               :error="error">
     <UInput
         v-model="password"
+        class="w-full"
         :placeholder="placeholder"
         :type="show ? 'text' : 'password'"
         :ui="{ trailing: 'pe-1' }"
