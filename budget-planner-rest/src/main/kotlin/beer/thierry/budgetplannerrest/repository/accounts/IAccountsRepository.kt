@@ -1,10 +1,10 @@
-package beer.thierry.budgetplannerrest.service.account
+package beer.thierry.budgetplannerrest.repository.accounts
 
 import beer.thierry.budgetplannerrest.model.account.AccountDTO
 import beer.thierry.budgetplannerrest.model.account.CreateAccountRequest
 import beer.thierry.budgetplannerrest.model.user.User
 
-interface IAccountService {
+interface IAccountsRepository {
+    fun fetchAllAccounts(authenticatedUser: User): List<AccountDTO>
     fun createAccount(authenticatedUser: User, createAccountRequest: CreateAccountRequest): AccountDTO
-    fun fetchAccounts(authenticatedUser: User): List<AccountDTO>
 }

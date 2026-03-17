@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/accounts")
 @RestController
 class AccountController(private val accountService: IAccountService) {
+
     @PostMapping("")
     fun createAccount(createAccountRequest: CreateAccountRequest): ResponseEntity<String> {
         accountService.createAccount(createAccountRequest)
         return ResponseEntity.ok("OK")
     }
+
 }

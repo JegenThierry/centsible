@@ -11,7 +11,7 @@ export function useAccountService(api: AxiosInstance) {
     }
 
     async function createAccount(createAccountForm: CreateAccountForm): Promise<Account> {
-        const response = await api.post<Account>('/auth/login', createAccountForm);
+        const response = await api.post<Account>('/accounts', createAccountForm);
         return validateRequest<Account>(response);
     }
 
