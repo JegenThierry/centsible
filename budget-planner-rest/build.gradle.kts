@@ -12,11 +12,14 @@ plugins {
 group = "beer.thierry"
 version = "0.0.1-SNAPSHOT"
 description = "budget-planner-rest"
+
 val props = Properties().apply {
     file("src/main/resources/application.properties")
         .inputStream()
         .use { load(it) }
 }
+
+val jooqGeneratedDir = layout.projectDirectory.dir("src/generated/jooq")
 
 java {
     toolchain {
@@ -27,6 +30,7 @@ java {
 repositories {
     mavenCentral()
 }
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
@@ -37,7 +41,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
@@ -76,7 +80,7 @@ jooq {
             }
             target {
                 packageName = "beer.thierry.jooq.generated"
-                directory = layout.buildDirectory.dir("generated/jooq").get().asFile.path
+                directory = jooqGeneratedDir.asFile.path
             }
         }
     }
@@ -89,7 +93,7 @@ tasks.withType<Test> {
 sourceSets {
     main {
         kotlin {
-            srcDirs(layout.buildDirectory.dir("generated/jooq"))
+            srcDir(jooqGeneratedDir)
         }
     }
 }

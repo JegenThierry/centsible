@@ -1,7 +1,7 @@
 spring.application.name=budget-planner-rest
 
 #DB Configuration
-spring.datasource.url=jdbc:postgresql://<url>/budget-planner
+spring.datasource.url=jdbc:postgresql://<url>/budget_planner
 spring.datasource.username=<username>
 spring.datasource.password=<password>
 spring.datasource.driver-class-name=org.postgresql.Driver

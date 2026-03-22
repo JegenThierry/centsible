@@ -3,9 +3,13 @@ import {useAuthStore} from "~/stores/auth";
 
 export default defineNuxtPlugin(() => {
     const config = useRuntimeConfig();
+    const baseURL = process.server ? config.apiBaseSsr : config.public.apiBase;
+
+console.log('apiBase:', config.public.apiBase)
+console.log('apiBaseSSR:', config.apiBaseSSR)
 
     const api = axios.create({
-        baseURL: config.public.apiBase as string,
+        baseURL: baseURL as string,
         headers: {
             common: {}
         }

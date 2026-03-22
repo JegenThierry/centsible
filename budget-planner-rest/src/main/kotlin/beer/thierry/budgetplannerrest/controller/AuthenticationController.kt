@@ -20,6 +20,11 @@ class AuthenticationController(private val authService: IAuthService) {
         return ResponseEntity.ok(response)
     }
 
+    @GetMapping("/test")
+    fun test(): ResponseEntity<String> {
+        return ResponseEntity.ok("ok")
+    }
+
     @PostMapping("/register")
     fun register(@RequestBody form: AuthRegisterRequest): ResponseEntity<AuthResponse> {
         val response = authService.register(form)

@@ -5,6 +5,7 @@ import type {AxiosInstance} from "axios";
 
 export function useAuthService(api: AxiosInstance) {
     async function login(authRequest: AuthRequest): Promise<AuthResponse> {
+        const test = await api.get<String>('/auth/test');
         const response = await api.post<AuthResponse>('/auth/login', authRequest);
 
         if (response.status === 200 && response.data) {

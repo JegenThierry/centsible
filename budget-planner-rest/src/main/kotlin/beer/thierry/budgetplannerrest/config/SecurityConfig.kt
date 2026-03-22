@@ -3,7 +3,6 @@ package beer.thierry.budgetplannerrest.config
 import beer.thierry.budgetplannerrest.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -21,27 +20,32 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthenticationFilter
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+    private val corsConfig: CorsConfig
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
+            cors {
+                configurationSource = corsConfig.corsConfigurationSource()
+            }
+
             csrf { disable() }
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS
             }
+
             authorizeHttpRequests {
-                authorize(HttpMethod.OPTIONS, "/**", permitAll)
                 authorize("/api/auth/**", permitAll)
                 authorize(anyRequest, authenticated)
             }
+
             exceptionHandling {
                 authenticationEntryPoint = HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
             }
+
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthFilter)
         }
-
-        print("someone passed here $http")
 
         return http.build()
     }
