@@ -29,11 +29,11 @@ class JwtAuthenticationFilter(
         if (header != null && header.startsWith("Bearer ")) {
             val token = header.substringAfter("Bearer ").trim()
             try {
-                val claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
+                val claims = Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(token)
-                    .body
+                    .parseSignedClaims(token)
+                    .payload
 
                 val userId = claims.subject
                 val username = claims["username"] as String
