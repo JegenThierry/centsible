@@ -27,7 +27,7 @@ class AuthService(
             ?: throw IllegalArgumentException("Invalid username or password")
 
         if (!passwordEncoder.matches(authRequest.password, user.passwordHash)) {
-            throw IllegalArgumentException("Invalid username or password ${authRequest.password}" )
+            throw IllegalArgumentException("Invalid username or password" )
         }
 
         val token = generateJwt(user.id, user.username)
@@ -35,9 +35,10 @@ class AuthService(
     }
 
     override fun register(authRequest: AuthRegisterRequest): AuthResponse {
-        val user = userRepository.findUserByUsername(authRequest.username)
+        assertPasswordMatchesSecuritySettings(authRequest.password)
+        val user = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
         if (user != null) {
-            throw IllegalArgumentException("User with username ${authRequest.username} already exists")
+            throw IllegalArgumentException("User with username ${authRequest.username} or ${authRequest.email} already exists")
         }
 
         val registeredUser = userRepository.createUser(authRequest)
@@ -60,5 +61,21 @@ class AuthService(
             .setExpiration(expiryDate)
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
+    }
+
+    /**
+     * The password needs to match the following criteria:
+     * - Needs to be at least 8 chars long
+     * - Needs to contain at least 1 uppercase letter
+     * - Needs to contain at least 1 lowercase letter
+     * - Needs to contain at least 1 number
+     * - Needs to contain at least 1 of the following special characters: @ $ ! % * ? &
+     * @throws IllegalArgumentException when the password does not match the above criteria.
+     */
+    private fun assertPasswordMatchesSecuritySettings(password: String) {
+        val passwordRegex = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
+        if(!password.matches(passwordRegex)) {
+            throw IllegalArgumentException("Password does not enforce security standards")
+        }
     }
 }

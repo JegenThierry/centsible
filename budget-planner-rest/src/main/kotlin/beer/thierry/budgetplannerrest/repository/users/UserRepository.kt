@@ -24,6 +24,18 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .fetchOneInto(User::class.java)
     }
 
+    override fun findUserByEmail(email: String): User? {
+        return dsl.selectFrom(USERS)
+            .where(USERS.EMAIL.eq(email))
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun findUserByEmailOrUsername(email: String, username: String): User? {
+        return dsl.selectFrom(USERS)
+            .where(USERS.EMAIL.eq(email).or(USERS.USERNAME.eq(username)))
+            .fetchOneInto(User::class.java)
+    }
+
     override fun findUserById(id: UUID): User? {
         return dsl.selectFrom(USERS)
             .where(USERS.ID.eq(id))
