@@ -14,12 +14,12 @@ The repository is divided into the following modules:
 
 ## Tech Stack
 
-| Component | Technology |
-| :--- | :--- |
-| **UI** | Nuxt |
-| **REST API** | Spring Boot |
-| **Database** | PostgreSQL |
-| **Orchestration** | Docker |
+| Component         | Technology  |
+|:------------------|:------------|
+| **UI**            | Nuxt        |
+| **REST API**      | Spring Boot |
+| **Database**      | PostgreSQL  |
+| **Orchestration** | Docker      |
 
 ## Getting Started
 
