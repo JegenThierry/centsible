@@ -9,6 +9,8 @@ The repository is divided into the following modules:
 * **`budget-planner-ui`**: Frontend application built with Nuxt.
 * **`budget-planner-rest`**: Backend REST API built with Spring Boot.
 * **`budget-planner-db`**: Database schema and initialization SQL scripts for PostgreSQL.
+* **`budget-planner-bruno`**: Contains API Request importable into Bruno.
+
 
 ## Tech Stack
 
