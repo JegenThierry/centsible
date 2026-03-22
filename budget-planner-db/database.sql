@@ -8,6 +8,3 @@ SELECT format(
        ) WHERE NOT EXISTS (
     SELECT FROM pg_database WHERE datname = 'budget_planner'
 )\gexec
-
-CREATE
-EXTENSION IF NOT EXISTS pgcrypto;
