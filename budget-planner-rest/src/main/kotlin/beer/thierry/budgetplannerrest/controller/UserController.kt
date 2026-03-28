@@ -18,7 +18,7 @@ class UserController(private val userService: IUserService) {
     }
 
     @GetMapping("/myself")
-    fun getUserByUsername(@AuthenticationPrincipal username: String): ResponseEntity<UserDTO> {
-        return ResponseEntity.ok(userService.fetchUserByUsername(username))
+    fun getUserByUsername(@AuthenticationPrincipal user: UserDTO): ResponseEntity<UserDTO> {
+        return ResponseEntity.ok(userService.fetchUserByUsername(user.username))
     }
 }

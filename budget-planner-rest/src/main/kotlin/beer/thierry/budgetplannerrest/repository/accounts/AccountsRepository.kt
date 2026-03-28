@@ -3,6 +3,7 @@ package beer.thierry.budgetplannerrest.repository.accounts
 import beer.thierry.budgetplannerrest.model.account.AccountDTO
 import beer.thierry.budgetplannerrest.model.account.CreateAccountRequest
 import beer.thierry.budgetplannerrest.model.user.User
+import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
@@ -11,7 +12,7 @@ import java.time.OffsetDateTime
 
 @Repository
 class AccountsRepository(private val dsl: DSLContext) : IAccountsRepository {
-    override fun fetchAllAccounts(authenticatedUser: User): List<AccountDTO> {
+    override fun fetchAllAccounts(authenticatedUser: UserDTO): List<AccountDTO> {
         return dsl.select(
             ACCOUNTS.ID,
             ACCOUNTS.NAME,
@@ -26,7 +27,7 @@ class AccountsRepository(private val dsl: DSLContext) : IAccountsRepository {
     }
 
     override fun createAccount(
-        authenticatedUser: User,
+        authenticatedUser: UserDTO,
         createAccountRequest: CreateAccountRequest
     ): AccountDTO {
         return dsl.insertInto(ACCOUNTS)

@@ -3,8 +3,10 @@ package beer.thierry.budgetplannerrest.controller
 import beer.thierry.budgetplannerrest.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplannerrest.model.auth.AuthRequest
 import beer.thierry.budgetplannerrest.model.auth.AuthResponse
+import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.budgetplannerrest.service.auth.IAuthService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -20,15 +22,15 @@ class AuthenticationController(private val authService: IAuthService) {
         return ResponseEntity.ok(response)
     }
 
-    @GetMapping("/test")
-    fun test(): ResponseEntity<String> {
-        return ResponseEntity.ok("ok")
-    }
-
     @PostMapping("/register")
     fun register(@RequestBody form: AuthRegisterRequest): ResponseEntity<AuthResponse> {
         val response = authService.register(form)
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/test")
+    fun register(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<UserDTO> {
+        return ResponseEntity.ok(authenticatedUser)
     }
 
     @GetMapping("/verify")

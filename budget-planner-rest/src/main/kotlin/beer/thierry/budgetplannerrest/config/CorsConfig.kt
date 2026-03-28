@@ -15,7 +15,8 @@ class CorsConfig {
 
         configuration.allowedOriginPatterns = listOf(
             "http://localhost:[*]",
-            "http://127.0.0.1:[*]"
+            "http://127.0.0.1:[*]",
+            "http://0.0.0.0:[*]",
         )
 
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")

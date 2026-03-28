@@ -1,5 +1,7 @@
 package beer.thierry.budgetplannerrest.security
 
+import beer.thierry.budgetplannerrest.model.user.UserDTO
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.FilterChain
@@ -9,9 +11,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.Base64
+import java.util.UUID
 
 @Component
 class JwtAuthenticationFilter(
@@ -24,29 +28,58 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        print("Request $request")
-        val header = request.getHeader("Authorization")
-        if (header != null && header.startsWith("Bearer ")) {
-            val token = header.substringAfter("Bearer ").trim()
-            try {
-                val claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .payload
+        extractToken(request)
+            ?.let { token -> parseUserDTO(token) }
+            ?.let { user -> buildAuthentication(user, request) }
+            ?.also { auth -> SecurityContextHolder.getContext().authentication = auth }
 
-                val userId = claims.subject
-                val username = claims["username"] as String
-
-                // TODO: Load roles from db
-                val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
-
-                val auth = UsernamePasswordAuthenticationToken(username, null, authorities)
-                SecurityContextHolder.getContext().authentication = auth
-            } catch (ex: Exception) {
-                // TODO: Handle Exception
-            }
-        }
         filterChain.doFilter(request, response)
+    }
+
+    private fun extractToken(request: HttpServletRequest): String? =
+        request.getHeader("Authorization")
+            ?.takeIf { it.startsWith("Bearer ") }
+            ?.substringAfter("Bearer ")
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+
+    private fun parseUserDTO(token: String): UserDTO? = try {
+        val claims = Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        val userId = claims.subject ?: throw JwtException("Missing subject claim")
+        val username = claims["username"] as? String ?: throw JwtException("Missing username claim")
+        val email = claims["email"] as? String ?: throw JwtException("Missing email claim")
+        val name = claims["name"] as? String ?: throw JwtException("Missing name claim")
+
+        UserDTO(
+            id = UUID.fromString(userId),
+            username = username,
+            email = email,
+            name = name,
+            image = null,
+        )
+    } catch (ex: JwtException) {
+        logger.warn("JWT validation failed: ${ex.message}")
+        null
+    } catch (ex: Exception) {
+        logger.error("Unexpected error during JWT parsing", ex)
+        null
+    }
+
+    private fun buildAuthentication(
+        user: UserDTO,
+        request: HttpServletRequest
+    ): UsernamePasswordAuthenticationToken {
+        return UsernamePasswordAuthenticationToken(
+            user,
+            null,
+            user.authorities
+        ).also {
+            it.details = WebAuthenticationDetailsSource().buildDetails(request)
+        }
     }
 }
