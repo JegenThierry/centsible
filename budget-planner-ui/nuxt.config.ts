@@ -16,5 +16,10 @@ export default defineNuxtConfig({
         public: {
             apiBase: "http://localhost:8080/api",
         }
+    },
+    app: {
+        head: {
+            title: 'Budget Planner',
+        }
     }
 })

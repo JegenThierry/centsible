@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import {Currency, currencyOptions} from "~/models/account/currency";
-import {useAccountService} from "~/services/account/account-service";
+import {Currency, currencyOptions} from "~/models/budget-account/currency";
+import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
 const api = useApi();
-const accountService = useAccountService(api);
+const accountService = useBudgetAccountService(api);
+const accountStore = useBudgetAccountsStore();
+
 const toast = useToasts();
 
 const isOpen = defineModel<boolean>({required: true})
@@ -18,7 +21,7 @@ const state = reactive({
 
 const activeIcon = computed(() => currencyOptions.find(item => item.value === state.currency)?.icon)
 
-function onSubmit() {
+async function onSubmit() {
   const { name, initialBalance, currency } = state;
 
   if (initialBalance == undefined || name == null) {
@@ -26,9 +29,16 @@ function onSubmit() {
     return;
   }
 
-  accountService.createAccount({name, initialBalance, currency})
-      .then((result) => toast.success("Account created successfully.", `Your account: ${result.name} has been created`))
-      .catch(() => toast.error("Account not created.", `Account could not be created, please try again.`));
+  try {
+    const createdAccount = await accountService.createAccount({name, initialBalance, currency})
+    toast.success("BudgetAccount created successfully.", `Your account: ${createdAccount.name} has been created`);
+
+    accountStore.activeAccount = createdAccount;
+    isOpen.value = false;
+  } catch (error) {
+    toast.error("BudgetAccount not created.", `Account could not be created, please try again.`)
+    console.error(error)
+  }
 }
 
 function onCloseModal() {
@@ -39,7 +49,7 @@ function onCloseModal() {
 <template>
   <UModal
       v-model:open="isOpen"
-      title="Create Account"
+      title="Create BudgetAccount"
       description="An account allows you to manage your budget."
       :close="{
         color: 'primary',
@@ -50,10 +60,10 @@ function onCloseModal() {
   >
     <template #body>
       <UForm id="account-form" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit">
-        <UFormField label="Account name" name="name">
+        <UFormField label="BudgetAccount name" name="name">
           <UInput v-model="state.name"
                   required
-                  placeholder="Account name"
+                  placeholder="BudgetAccount name"
                   class="w-full"/>
         </UFormField>
 
@@ -79,7 +89,7 @@ function onCloseModal() {
         Cancel
       </UButton>
       <UButton :loading="loading" type="submit" form="account-form">
-        Create Account
+        Create BudgetAccount
       </UButton>
     </template>
   </UModal>

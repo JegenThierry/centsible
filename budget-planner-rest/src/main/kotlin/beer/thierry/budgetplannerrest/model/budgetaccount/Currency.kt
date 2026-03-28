@@ -1,4 +1,4 @@
-package beer.thierry.budgetplannerrest.model.account
+package beer.thierry.budgetplannerrest.model.budgetaccount
 
 enum class Currency(val label: String) {
     EUR("EUR"),

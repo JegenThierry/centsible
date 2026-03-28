@@ -1,0 +1,24 @@
+meta {
+  name: Untitled
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/budget-accounts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "My Account",
+    "initialBalance": 10000,
+    "currency": "EUR"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

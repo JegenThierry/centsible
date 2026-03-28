@@ -1,18 +1,18 @@
-import type {Currency} from "~/models/account/currency";
+import type {Currency} from "~/models/budget-account/currency";
 
-export interface CreateAccountForm {
+export interface CreateBudgetAccountForm {
     name: string;
     initialBalance: number;
     currency: Currency;
 }
 
-export interface UpdateAccountForm {
+export interface UpdateBudgetAccountForm {
     name: string;
     initialBalance: number;
     currency: Currency;
 }
 
-export interface Account {
+export interface BudgetAccount {
     id: string;
     name: string;
     balance: number;

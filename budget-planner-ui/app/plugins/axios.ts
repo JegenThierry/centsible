@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {useAuthStore} from "~/stores/auth";
+import {useAuthStore} from "~/stores/authStore";
 
 export default defineNuxtPlugin(() => {
     const config = useRuntimeConfig();
@@ -26,9 +26,9 @@ console.log('apiBaseSSR:', config.apiBaseSSR)
     api.interceptors.response.use(
         (response) => response,
         (error) => {
-            if (error.response && error.response.status === 401) {
-                navigateTo("/login")
-            }
+            // if (error.response && error.response.status === 401) {
+            //     navigateTo("/auth")
+            // }
             return Promise.reject(error);
         }
     );

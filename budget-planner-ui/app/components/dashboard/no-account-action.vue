@@ -3,11 +3,11 @@ import type {ButtonProps} from "@nuxt/ui/components/Button.vue";
 
 const emit = defineEmits([
   'refresh-accounts',
-  'create-account',
+  'create-budget-budget-account',
 ])
 
 function onCreateAccount() {
-  emit('create-account');
+  emit('create-budget-budget-account');
 }
 
 function onRefreshAccounts() {
@@ -24,7 +24,7 @@ const actions: ButtonProps[] = [
   },
   {
     icon: 'i-lucide-plus',
-    label: 'Create account',
+    label: 'Create budget-budget-budget-account',
     onClick: onCreateAccount,
   }
 ]

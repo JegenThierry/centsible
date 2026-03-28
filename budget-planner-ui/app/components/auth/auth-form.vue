@@ -1,6 +1,6 @@
 <script setup lang="ts">
-
-import CreateForm from "~/components/login/create-form.vue";
+import CreateForm from "~/components/auth/create-form.vue";
+import LoginForm from "~/components/auth/login-form.vue";
 
 const tabs = [
   {
@@ -34,18 +34,15 @@ const activeHeader = computed(() => {
       <template #header>
         <h1>{{ activeHeader }}</h1>
       </template>
+
       <UTabs :items="tabs" v-model="activeTab">
         <template #login>
-          <LoginForm></LoginForm>
+          <LoginForm v-if="activeTab === 'login'"/>
         </template>
         <template #register>
-          <CreateForm></CreateForm>
+          <CreateForm v-if="activeTab === 'register'"/>
         </template>
       </UTabs>
     </UCard>
   </UContainer>
 </template>
-
-<style scoped>
-
-</style>
