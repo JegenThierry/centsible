@@ -1,7 +1,7 @@
 package beer.thierry.budgetplannerrest.controller
 
 import beer.thierry.budgetplannerrest.model.user.UserDTO
-import beer.thierry.budgetplannerrest.service.IUserService
+import beer.thierry.budgetplannerrest.service.users.IUserService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping

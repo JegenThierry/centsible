@@ -1,0 +1,20 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{kt,kts,java}]
+indent_size = 4
+
+[*.{vue,js,ts,jsx,tsx,json,scss,css}]
+indent_size = 2
+
+[*.{gradle,gradle.kts}]
+indent_size = 4
+
+[package.json]
+indent_size = 2

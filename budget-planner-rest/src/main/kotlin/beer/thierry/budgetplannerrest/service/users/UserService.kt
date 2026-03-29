@@ -1,4 +1,4 @@
-package beer.thierry.budgetplannerrest.service
+package beer.thierry.budgetplannerrest.service.users
 
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.budgetplannerrest.repository.users.IUserRepository
