@@ -37,7 +37,7 @@ function onSubmit() {
       .register(state)
       .then((res: AuthResponse) => {
         authStore.setToken(res.token);
-        navigateTo('/dashboard');
+        navigateTo('/accounts');
         success(
             'Registered successfully',
             'You have successfully registered, you will be redirected to the dashboard.'

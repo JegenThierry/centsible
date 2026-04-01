@@ -21,7 +21,7 @@ function onSubmit() {
       .login({username: state.username, password: state.password})
       .then((res: AuthResponse) => {
         authStore.setToken(res.token);
-        navigateTo('/dashboard');
+        navigateTo('/accounts');
         success(
             'Login successfully',
             'You have been logged in, redirecting to the dashboard.'

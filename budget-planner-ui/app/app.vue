@@ -7,14 +7,13 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 onMounted(async () => {
-  if(router.currentRoute.value.path !== '/') {
-    return;
-  }
   if (authStore.isAuthenticated) {
-    navigateTo('/dashboard');
-    return;
+    if (router.currentRoute.value.path === '/') {
+      navigateTo('/accounts');
+    }
+  } else if (router.currentRoute.value.path !== '/auth') {
+    navigateTo('/auth');
   }
-  navigateTo('/auth');
 })
 </script>
 

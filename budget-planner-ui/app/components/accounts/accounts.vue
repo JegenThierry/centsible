@@ -1,0 +1,71 @@
+<script lang="ts" setup>
+import CreateAccountModal from "~/components/budget-account/create-account-modal.vue";
+import NoAccountAction from "~/components/_organisms/no-account-action.vue";
+import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import CurrencyBadge from "~/components/_molecules/badges/currency-badge.vue";
+import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+
+const accountStore = useBudgetAccountsStore();
+const isCreateAccountModalVisible = ref(false);
+
+function onCreateAccount(): void {
+  isCreateAccountModalVisible.value = true;
+}
+
+function onRefresh(): void {
+  accountStore.updateAvailableAccounts();
+}
+
+onMounted(() => {
+  accountStore.clearActiveAccount();
+  accountStore.updateAvailableAccounts();
+});
+</script>
+
+<template>
+  <UContainer class="py-10">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight">Accounts</h1>
+        <p class="text-neutral-500 dark:text-neutral-400">Select an account to manage your budget</p>
+      </div>
+      <UButton icon="i-lucide-plus" @click="onCreateAccount">
+        Create Account
+      </UButton>
+    </div>
+
+    <div v-if="accountStore.availableAccounts.length === 0" class="flex justify-center py-20">
+      <NoAccountAction @create-budget-account="onCreateAccount"
+                       @refresh-accounts="onRefresh"/>
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <UCard v-for="account in accountStore.availableAccounts"
+             :key="account.id"
+             class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+             @click="navigateTo(`/${account.id}/dashboard`)">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <CurrencyBadge :currency="account.currency"/>
+              <span class="font-semibold text-lg">{{ account.name }}</span>
+            </div>
+            <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right"/>
+          </div>
+        </template>
+
+        <div class="space-y-1">
+          <p class="text-sm text-neutral-500 dark:text-neutral-400">Current Balance</p>
+          <p class="text-2xl font-bold">
+            <BalanceNumberFormat :balance="account.balance"
+                                 :currency="account.currency"
+                                 format="de-De"/>
+          </p>
+        </div>
+      </UCard>
+    </div>
+
+    <CreateAccountModal v-model="isCreateAccountModalVisible"
+                        @created="onRefresh"/>
+  </UContainer>
+</template>

@@ -36,8 +36,8 @@ async function onSubmit() {
     const createdAccount = await accountService.createAccount({name, initialBalance, currency})
     toast.success("BudgetAccount created successfully.", `Your account: ${createdAccount.name} has been created`);
 
-    accountStore.activeAccount = createdAccount;
     isOpen.value = false;
+    navigateTo(`/${createdAccount.id}/dashboard`);
     emit('created');
   } catch (error) {
     toast.error("BudgetAccount not created.", `Account could not be created, please try again.`)

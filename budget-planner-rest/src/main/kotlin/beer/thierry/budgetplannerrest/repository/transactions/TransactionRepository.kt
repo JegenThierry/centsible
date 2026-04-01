@@ -38,6 +38,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.ICON,
         ).from(TRANSACTIONS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
             .limit(pageSize)
@@ -80,7 +81,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.ICON,
         ).from(TRANSACTIONS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
-            .where(TRANSACTIONS.ID.eq(transactionId))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
             .fetchSingle { transactionRecord ->
                 val category = CategoryDTO(

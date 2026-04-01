@@ -22,10 +22,29 @@ export const useBudgetAccountsStore = defineStore(
             }
         }
 
+        async function loadActiveAccount(accountId: string) {
+            if (activeAccount.value?.id === accountId) {
+                return;
+            }
+
+            try {
+                activeAccount.value = await accountService.fetchAccount(accountId);
+            } catch (error) {
+                toasts.error("Failed to load account", "Account could not be loaded");
+                console.error(error);
+            }
+        }
+
+        function clearActiveAccount() {
+            activeAccount.value = undefined;
+        }
+
         return {
             activeAccount,
             availableAccounts,
             updateAvailableAccounts,
+            loadActiveAccount,
+            clearActiveAccount,
         }
     }
 );
