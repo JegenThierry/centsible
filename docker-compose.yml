@@ -18,6 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
       - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
+      - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
 
     ports:
       - "${DB_HOST_PORT}:5432"
