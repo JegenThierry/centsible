@@ -3,6 +3,7 @@ package beer.thierry.budgetplannerrest.repository.transactions
 import beer.thierry.budgetplannerrest.model.category.CategoryDTO
 import beer.thierry.budgetplannerrest.model.transaction.TransactionDTO
 import beer.thierry.budgetplannerrest.model.transaction.TransactionForm
+import beer.thierry.budgetplannerrest.model.transaction.TransactionType
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
@@ -27,64 +28,77 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return dsl.select(
             TRANSACTIONS.ID,
             TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.TYPE,
             TRANSACTIONS.DESCRIPTION,
             TRANSACTIONS.TRANSACTION_DATE,
             TRANSACTIONS.CREATED_AT,
             TRANSACTIONS.MODIFIED_AT,
             CATEGORIES.ID,
             CATEGORIES.NAME,
+            CATEGORIES.ICON,
         ).from(TRANSACTIONS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
             .limit(pageSize)
             .offset(offset)
-            .fetch { record ->
+            .fetch { transactionRecord ->
+                val category = CategoryDTO(
+                    id = transactionRecord[CATEGORIES.ID],
+                    name = transactionRecord[CATEGORIES.NAME],
+                    icon = transactionRecord[CATEGORIES.ICON]
+                )
+                val transactionType = transactionRecord[TRANSACTIONS.TYPE]?.let(TransactionType::valueOf)
+
                 TransactionDTO(
-                    id = record[TRANSACTIONS.ID],
-                    category = CategoryDTO(
-                        id = record[CATEGORIES.ID],
-                        name = record[CATEGORIES.NAME]
-                    ),
-                    amount = record[TRANSACTIONS.AMOUNT],
-                    description = record[TRANSACTIONS.DESCRIPTION],
-                    transactionDate = record[TRANSACTIONS.TRANSACTION_DATE],
-                    createdAt = record[TRANSACTIONS.CREATED_AT],
-                    updatedAt = record[TRANSACTIONS.CREATED_AT],
+                    id = transactionRecord[TRANSACTIONS.ID],
+                    category = category,
+                    amount = transactionRecord[TRANSACTIONS.AMOUNT],
+                    type = transactionType,
+                    description = transactionRecord[TRANSACTIONS.DESCRIPTION],
+                    transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
+                    createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
+                    updatedAt = transactionRecord[TRANSACTIONS.MODIFIED_AT],
                 )
             }
     }
 
     override fun fetchTransactionById(
         transactionId: UUID,
-        accountId: UUID,
         authenticatedUser: UserDTO
     ): TransactionDTO {
         return dsl.select(
             TRANSACTIONS.ID,
             TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.TYPE,
             TRANSACTIONS.DESCRIPTION,
             TRANSACTIONS.TRANSACTION_DATE,
             TRANSACTIONS.CREATED_AT,
             TRANSACTIONS.MODIFIED_AT,
             CATEGORIES.ID,
             CATEGORIES.NAME,
+            CATEGORIES.ICON,
         ).from(TRANSACTIONS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
-            .where(baseCondition(accountId, authenticatedUser))
+            .where(TRANSACTIONS.ID.eq(transactionId))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
-            .fetchSingle { record ->
+            .fetchSingle { transactionRecord ->
+                val category = CategoryDTO(
+                    id = transactionRecord[CATEGORIES.ID],
+                    name = transactionRecord[CATEGORIES.NAME],
+                    icon = transactionRecord[CATEGORIES.ICON]
+                )
+                val transactionType = transactionRecord[TRANSACTIONS.TYPE]?.let(TransactionType::valueOf)
+
                 TransactionDTO(
-                    id = record[TRANSACTIONS.ID],
-                    category = CategoryDTO(
-                        id = record[CATEGORIES.ID],
-                        name = record[CATEGORIES.NAME]
-                    ),
-                    amount = record[TRANSACTIONS.AMOUNT],
-                    description = record[TRANSACTIONS.DESCRIPTION],
-                    transactionDate = record[TRANSACTIONS.TRANSACTION_DATE],
-                    createdAt = record[TRANSACTIONS.CREATED_AT],
-                    updatedAt = record[TRANSACTIONS.CREATED_AT],
+                    id = transactionRecord[TRANSACTIONS.ID],
+                    category = category,
+                    amount = transactionRecord[TRANSACTIONS.AMOUNT],
+                    type = transactionType,
+                    description = transactionRecord[TRANSACTIONS.DESCRIPTION],
+                    transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
+                    createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
+                    updatedAt = transactionRecord[TRANSACTIONS.MODIFIED_AT],
                 )
             }
     }
@@ -98,14 +112,15 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .set(TRANSACTIONS.ACCOUNT_ID, accountId)
             .set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
             .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
+            .set(TRANSACTIONS.TYPE, transactionForm.type.name)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
-            .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate.toLocalDate())
+            .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
             .set(TRANSACTIONS.CREATED_AT, OffsetDateTime.now())
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .returning()
             .fetchOne() ?: throw IllegalStateException("Failed to create transaction")
 
-        return fetchTransactionById(record[TRANSACTIONS.ID]!!, accountId, authenticatedUser)
+        return fetchTransactionById(record[TRANSACTIONS.ID]!!, authenticatedUser)
     }
 
     override fun updateTransaction(
@@ -114,11 +129,30 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        TODO("Not yet implemented")
+        dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
+            .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
+            .set(TRANSACTIONS.TYPE, transactionForm.type.name)
+            .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
+            .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
+            .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
+            .where(
+                TRANSACTIONS.ID.eq(transactionId)
+                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+            )
+            .execute()
+
+        return fetchTransactionById(transactionId, authenticatedUser)
     }
 
     override fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO {
-        TODO("Not yet implemented")
+        val transaction = fetchTransactionById(transactionId, authenticatedUser)
+
+        dsl.deleteFrom(TRANSACTIONS)
+            .where(TRANSACTIONS.ID.eq(transactionId))
+            .execute()
+
+        return transaction
     }
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =

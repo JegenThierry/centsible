@@ -31,17 +31,13 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var type: String?
+    open var icon: String?
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var icon: String?
-        set(value): Unit = set(4, value)
-        get(): String? = get(4) as String?
-
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(5, value)
-        get(): OffsetDateTime? = get(5) as OffsetDateTime?
+        set(value): Unit = set(4, value)
+        get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -52,11 +48,10 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
     /**
      * Create a detached, initialised CategoriesRecord
      */
-    constructor(id: Long? = null, userId: UUID? = null, name: String? = null, type: String? = null, icon: String? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(id: Long? = null, userId: UUID? = null, name: String? = null, icon: String? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.userId = userId
         this.name = name
-        this.type = type
         this.icon = icon
         this.createdAt = createdAt
         resetChangedOnNotNull()
@@ -70,7 +65,6 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
             this.id = value.id
             this.userId = value.userId
             this.name = value.name
-            this.type = value.type
             this.icon = value.icon
             this.createdAt = value.createdAt
             resetChangedOnNotNull()

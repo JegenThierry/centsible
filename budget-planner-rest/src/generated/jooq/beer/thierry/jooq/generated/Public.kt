@@ -6,17 +6,12 @@ package beer.thierry.jooq.generated
 
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.PgpArmorHeaders
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
-import beer.thierry.jooq.generated.tables.records.PgpArmorHeadersRecord
 
 import kotlin.collections.List
 
 import org.jooq.Catalog
-import org.jooq.Configuration
-import org.jooq.Field
-import org.jooq.Result
 import org.jooq.Table
 import org.jooq.impl.SchemaImpl
 
@@ -45,39 +40,6 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val CATEGORIES: Categories get() = Categories.CATEGORIES
 
     /**
-     * The table <code>public.pgp_armor_headers</code>.
-     */
-    val PGP_ARMOR_HEADERS: PgpArmorHeaders get() = PgpArmorHeaders.PGP_ARMOR_HEADERS
-
-    /**
-     * Call <code>public.pgp_armor_headers</code>.
-     */
-    fun PGP_ARMOR_HEADERS(
-          configuration: Configuration
-        , __1: String?
-    ): Result<PgpArmorHeadersRecord> = configuration.dsl().selectFrom(beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-          __1
-    )).fetch()
-
-    /**
-     * Get <code>public.pgp_armor_headers</code> as a table.
-     */
-    fun PGP_ARMOR_HEADERS(
-          __1: String?
-    ): PgpArmorHeaders = beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-        __1
-    )
-
-    /**
-     * Get <code>public.pgp_armor_headers</code> as a table.
-     */
-    fun PGP_ARMOR_HEADERS(
-          __1: Field<String?>
-    ): PgpArmorHeaders = beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-        __1
-    )
-
-    /**
      * The table <code>public.transactions</code>.
      */
     val TRANSACTIONS: Transactions get() = Transactions.TRANSACTIONS
@@ -92,7 +54,6 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     override fun getTables(): List<Table<*>> = listOf(
         Accounts.ACCOUNTS,
         Categories.CATEGORIES,
-        PgpArmorHeaders.PGP_ARMOR_HEADERS,
         Transactions.TRANSACTIONS,
         Users.USERS
     )

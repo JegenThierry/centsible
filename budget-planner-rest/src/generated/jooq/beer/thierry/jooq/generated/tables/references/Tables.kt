@@ -6,14 +6,8 @@ package beer.thierry.jooq.generated.tables.references
 
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.PgpArmorHeaders
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
-import beer.thierry.jooq.generated.tables.records.PgpArmorHeadersRecord
-
-import org.jooq.Configuration
-import org.jooq.Field
-import org.jooq.Result
 
 
 
@@ -26,39 +20,6 @@ val ACCOUNTS: Accounts = Accounts.ACCOUNTS
  * The table <code>public.categories</code>.
  */
 val CATEGORIES: Categories = Categories.CATEGORIES
-
-/**
- * The table <code>public.pgp_armor_headers</code>.
- */
-val PGP_ARMOR_HEADERS: PgpArmorHeaders = PgpArmorHeaders.PGP_ARMOR_HEADERS
-
-/**
- * Call <code>public.pgp_armor_headers</code>.
- */
-fun PGP_ARMOR_HEADERS(
-      configuration: Configuration
-    , __1: String?
-): Result<PgpArmorHeadersRecord> = configuration.dsl().selectFrom(beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-      __1
-)).fetch()
-
-/**
- * Get <code>public.pgp_armor_headers</code> as a table.
- */
-fun PGP_ARMOR_HEADERS(
-      __1: String?
-): PgpArmorHeaders = beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-    __1
-)
-
-/**
- * Get <code>public.pgp_armor_headers</code> as a table.
- */
-fun PGP_ARMOR_HEADERS(
-      __1: Field<String?>
-): PgpArmorHeaders = beer.thierry.jooq.generated.tables.PgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-    __1
-)
 
 /**
  * The table <code>public.transactions</code>.

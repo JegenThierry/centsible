@@ -4,6 +4,9 @@ import {useBudgetAccountService} from "~/services/budget-account/budget-account-
 import {useToasts} from "~/services/toasts/toast-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
+const emit = defineEmits<{
+  (e: 'created'): void;
+}>();
 const api = useApi();
 const accountService = useBudgetAccountService(api);
 const accountStore = useBudgetAccountsStore();
@@ -35,6 +38,7 @@ async function onSubmit() {
 
     accountStore.activeAccount = createdAccount;
     isOpen.value = false;
+    emit('created');
   } catch (error) {
     toast.error("BudgetAccount not created.", `Account could not be created, please try again.`)
     console.error(error)

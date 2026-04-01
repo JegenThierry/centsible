@@ -26,6 +26,7 @@ import org.jooq.impl.Internal
 
 val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> = Internal.createUniqueKey(Accounts.ACCOUNTS, DSL.name("accounts_pkey"), arrayOf(Accounts.ACCOUNTS.ID), true)
 val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), arrayOf(Categories.CATEGORIES.ID), true)
+val UQ_CATEGORIES_NAME: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("uq_categories_name"), arrayOf(Categories.CATEGORIES.NAME), true)
 val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(Transactions.TRANSACTIONS, DSL.name("transactions_pkey"), arrayOf(Transactions.TRANSACTIONS.ID), true)
 val USERS_EMAIL_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
 val USERS_PKEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.ID), true)

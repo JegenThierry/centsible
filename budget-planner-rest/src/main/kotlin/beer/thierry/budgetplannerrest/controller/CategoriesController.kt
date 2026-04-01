@@ -1,35 +1,65 @@
 package beer.thierry.budgetplannerrest.controller
 
+import beer.thierry.budgetplannerrest.model.category.CategoryDTO
+import beer.thierry.budgetplannerrest.model.category.CategoryForm
+import beer.thierry.budgetplannerrest.model.user.UserDTO
+import beer.thierry.budgetplannerrest.service.categories.ICategoryService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/categories")
 @RestController
-class CategoriesController {
-//    @PostMapping
-//    fun create(@RequestBody category: CategoryForm): ResponseEntity<CategoryDTO> {
-//        return ResponseEntity.ok()
-//    }
-//
-    @GetMapping
-    fun getCategories(): ResponseEntity<String> {
-        return ResponseEntity.ok("hello you are authorized")
+class CategoriesController(private val categoryService: ICategoryService) {
+
+    @PostMapping
+    fun create(
+        @RequestBody category: CategoryForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO
+    ): ResponseEntity<CategoryDTO> {
+        val result = categoryService.createCategory(authenticatedUser, category)
+        return ResponseEntity.ok(result)
     }
-//
-//    @GetMapping("{id}")
-//    fun getCategory(@PathVariable id: Long): ResponseEntity<CategoryDTO> {
-//        return ResponseEntity.ok()
-//    }
-//
-//    @PutMapping("{id}")
-//    fun updateCategory(@PathVariable id: Long, @RequestBody category: CategoryForm): ResponseEntity<CategoryDTO> {
-//        return ResponseEntity.ok()
-//    }
-//
-//    @DeleteMapping("{id}")
-//    fun deleteCategory(@PathVariable id: Long): ResponseEntity<CategoryDTO> {
-//        return ResponseEntity.ok()
-//    }
+
+    @GetMapping
+    fun getCategories(
+        @AuthenticationPrincipal authenticatedUser: UserDTO
+    ): ResponseEntity<List<CategoryDTO>> {
+        val result = categoryService.fetchAllCategories(authenticatedUser)
+        return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/{id}")
+    fun getCategory(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal authenticatedUser: UserDTO
+    ): ResponseEntity<CategoryDTO> {
+        val result = categoryService.fetchCategoryById(authenticatedUser, id)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(result)
+    }
+
+    @PutMapping("/{id}")
+    fun updateCategory(
+        @PathVariable id: Long,
+        @RequestBody category: CategoryForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO
+    ): ResponseEntity<CategoryDTO> {
+        val result = categoryService.updateCategory(authenticatedUser, id, category)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(result)
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteCategory(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal authenticatedUser: UserDTO
+    ): ResponseEntity<Void> {
+        val deleted = categoryService.deleteCategory(authenticatedUser, id)
+        return if (deleted) {
+            ResponseEntity.ok().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 }

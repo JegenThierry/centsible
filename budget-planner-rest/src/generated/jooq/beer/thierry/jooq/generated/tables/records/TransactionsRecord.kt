@@ -45,13 +45,17 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         set(value): Unit = set(5, value)
         get(): LocalDate? = get(5) as LocalDate?
 
-    open var createdAt: OffsetDateTime?
+    open var type: String?
         set(value): Unit = set(6, value)
-        get(): OffsetDateTime? = get(6) as OffsetDateTime?
+        get(): String? = get(6) as String?
 
-    open var modifiedAt: OffsetDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(7, value)
         get(): OffsetDateTime? = get(7) as OffsetDateTime?
+
+    open var modifiedAt: OffsetDateTime?
+        set(value): Unit = set(8, value)
+        get(): OffsetDateTime? = get(8) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -62,13 +66,14 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, type: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
         this.amount = amount
         this.description = description
         this.transactionDate = transactionDate
+        this.type = type
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
         resetChangedOnNotNull()
@@ -85,6 +90,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
             this.amount = value.amount
             this.description = value.description
             this.transactionDate = value.transactionDate
+            this.type = value.type
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
             resetChangedOnNotNull()

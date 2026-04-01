@@ -9,6 +9,7 @@ import beer.thierry.jooq.generated.indexes.IDX_CATEGORIES_USER_LOOKUP
 import beer.thierry.jooq.generated.keys.CATEGORIES_PKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.UQ_CATEGORIES_NAME
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
@@ -19,7 +20,6 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -90,17 +90,12 @@ open class Categories(
     /**
      * The column <code>public.categories.user_id</code>.
      */
-    val USER_ID: TableField<CategoriesRecord, UUID?> = createField(DSL.name("user_id"), SQLDataType.UUID.nullable(false), this, "")
+    val USER_ID: TableField<CategoriesRecord, UUID?> = createField(DSL.name("user_id"), SQLDataType.UUID, this, "")
 
     /**
      * The column <code>public.categories.name</code>.
      */
     val NAME: TableField<CategoriesRecord, String?> = createField(DSL.name("name"), SQLDataType.VARCHAR(50).nullable(false), this, "")
-
-    /**
-     * The column <code>public.categories.type</code>.
-     */
-    val TYPE: TableField<CategoriesRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
 
     /**
      * The column <code>public.categories.icon</code>.
@@ -147,6 +142,7 @@ open class Categories(
     override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP)
     override fun getIdentity(): Identity<CategoriesRecord, Long?> = super.getIdentity() as Identity<CategoriesRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CategoriesRecord> = CATEGORIES_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<CategoriesRecord>> = listOf(UQ_CATEGORIES_NAME)
     override fun getReferences(): List<ForeignKey<CategoriesRecord, *>> = listOf(CATEGORIES__CATEGORIES_USER_ID_FKEY)
 
     private lateinit var _users: UsersPath
@@ -179,9 +175,6 @@ open class Categories(
 
     val transactions: TransactionsPath
         get(): TransactionsPath = transactions()
-    override fun getChecks(): List<Check<CategoriesRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("categories_type_check"), "(((type)::text = ANY ((ARRAY['income'::character varying, 'expense'::character varying])::text[])))", true)
-    )
     override fun `as`(alias: String): Categories = Categories(DSL.name(alias), this)
     override fun `as`(alias: Name): Categories = Categories(alias, this)
     override fun `as`(alias: Table<*>): Categories = Categories(alias.qualifiedName, this)

@@ -23,11 +23,11 @@ CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
 
 CREATE TABLE IF NOT EXISTS categories (
     id         BIGSERIAL    PRIMARY KEY,
-    user_id    UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id    UUID         REFERENCES users(id) ON DELETE CASCADE,
     name       VARCHAR(50)  NOT NULL,
-    type       VARCHAR(10)  NOT NULL CHECK (type IN ('income', 'expense')),
     icon       VARCHAR(50)  NOT NULL,
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT uq_categories_name UNIQUE (name)
 );
 
 CREATE INDEX IF NOT EXISTS idx_categories_user_lookup ON categories(user_id);
@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     amount           DECIMAL(15,2) NOT NULL,
     description      TEXT,
     transaction_date DATE          NOT NULL DEFAULT CURRENT_DATE,
+    type       VARCHAR(10)  NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     created_at       TIMESTAMPTZ   NOT NULL DEFAULT now(),
     modified_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );

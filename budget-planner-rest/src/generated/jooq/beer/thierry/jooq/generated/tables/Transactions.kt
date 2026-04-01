@@ -23,6 +23,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -115,6 +116,11 @@ open class Transactions(
     val TRANSACTION_DATE: TableField<TransactionsRecord, LocalDate?> = createField(DSL.name("transaction_date"), SQLDataType.LOCALDATE.nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_DATE"), SQLDataType.LOCALDATE)), this, "")
 
     /**
+     * The column <code>public.transactions.type</code>.
+     */
+    val TYPE: TableField<TransactionsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
+
+    /**
      * The column <code>public.transactions.created_at</code>.
      */
     val CREATED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
@@ -189,6 +195,9 @@ open class Transactions(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+    override fun getChecks(): List<Check<TransactionsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
+    )
     override fun `as`(alias: String): Transactions = Transactions(DSL.name(alias), this)
     override fun `as`(alias: Name): Transactions = Transactions(alias, this)
     override fun `as`(alias: Table<*>): Transactions = Transactions(alias.qualifiedName, this)

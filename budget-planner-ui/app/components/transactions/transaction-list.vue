@@ -1,73 +1,58 @@
 <script setup lang="ts">
 import {h, resolveComponent} from 'vue'
 import type {TableColumn} from '@nuxt/ui'
-import type {Row} from '@tanstack/vue-table'
-import {useClipboard} from '@vueuse/core'
+import {useIntersectionObserver} from '@vueuse/core'
+import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useTransactionService} from "~/services/transactions/transaction-service";
+import type {Transaction} from "~/models/transactions/transaction";
+import EditTransactionModal from "~/components/transactions/modals/edit-transaction-modal.vue";
+import DeleteTransactionModal from "~/components/transactions/modals/delete-transaction-modal.vue";
+import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
+import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
+import {useToasts} from "~/services/toasts/toast-service";
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
-const toast = useToast()
-const {copy} = useClipboard()
+const api = useApi();
+const toast = useToasts();
+const transactionService = useTransactionService(api);
+const budgetAccountsStore = useBudgetAccountsStore();
 
-type Payment = {
-  id: string
-  date: string
-  status: 'paid' | 'failed' | 'refunded'
-  email: string
-  amount: number
+const transactions = ref<Transaction[]>([])
+const page = ref(1);
+const pageSize = ref(25);
+const loading = ref(false)
+const loadingMore = ref(false)
+const hasMore = ref(true)
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+
+const isCreateModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
+const selectedTransaction = ref<Transaction | null>(null);
+
+function onOpenCreateModal() {
+  isCreateModalOpen.value = true;
 }
 
-const data = ref<Payment[]>([
-  {
-    id: '4600',
-    date: '2024-03-11T15:30:00',
-    status: 'paid',
-    email: 'james.anderson@example.com',
-    amount: 594
-  },
-  {
-    id: '4599',
-    date: '2024-03-11T10:10:00',
-    status: 'failed',
-    email: 'mia.white@example.com',
-    amount: 276
-  },
-  {
-    id: '4598',
-    date: '2024-03-11T08:50:00',
-    status: 'refunded',
-    email: 'william.brown@example.com',
-    amount: 315
-  },
-  {
-    id: '4597',
-    date: '2024-03-10T19:45:00',
-    status: 'paid',
-    email: 'emma.davis@example.com',
-    amount: 529
-  },
-  {
-    id: '4596',
-    date: '2024-03-10T15:55:00',
-    status: 'paid',
-    email: 'ethan.harris@example.com',
-    amount: 639
-  }
-])
+function openEditModal(transaction: Transaction) {
+  selectedTransaction.value = transaction;
+  isEditModalOpen.value = true;
+}
 
-const columns: TableColumn<Payment>[] = [
+function openDeleteModal(transaction: Transaction) {
+  selectedTransaction.value = transaction;
+  isDeleteModalOpen.value = true;
+}
+
+const columns: TableColumn<Transaction>[] = [
   {
-    accessorKey: 'id',
-    header: '#',
-    cell: ({row}) => `#${row.getValue('id')}`
-  },
-  {
-    accessorKey: 'date',
+    accessorKey: 'transactionDate',
     header: 'Date',
     cell: ({row}) => {
-      return new Date(row.getValue('date')).toLocaleString('en-US', {
+      return new Date(row.getValue('transactionDate')).toLocaleString('en-US', {
         day: 'numeric',
         month: 'short',
         hour: '2-digit',
@@ -77,23 +62,16 @@ const columns: TableColumn<Payment>[] = [
     }
   },
   {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({row}) => {
-      const color = {
-        paid: 'success' as const,
-        failed: 'error' as const,
-        refunded: 'neutral' as const
-      }[row.getValue('status') as string]
-
-      return h(UBadge, {class: 'capitalize', variant: 'subtle', color}, () =>
-          row.getValue('status')
-      )
-    }
+    accessorKey: 'description',
+    header: 'Description'
   },
   {
-    accessorKey: 'email',
-    header: 'Email'
+    accessorKey: 'category',
+    header: 'Category',
+    cell: ({row}) => {
+      const category = row.getValue('category') as any
+      return h(UBadge, {variant: 'subtle'}, () => category?.name || 'No category')
+    }
   },
   {
     accessorKey: 'amount',
@@ -106,10 +84,14 @@ const columns: TableColumn<Payment>[] = [
     },
     cell: ({row}) => {
       const amount = Number.parseFloat(row.getValue('amount'))
-      return new Intl.NumberFormat('en-US', {
+      const type = row.original.type
+      const formattedAmount = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'EUR'
       }).format(amount)
+      return h('span', {
+        class: type === 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+      }, formattedAmount)
     }
   },
   {
@@ -121,27 +103,115 @@ const columns: TableColumn<Payment>[] = [
     },
     cell: ({row}) => {
       return h(
-          UDropdownMenu,
-          {
-            content: {
-              align: 'end'
-            },
-            items: getRowItems(row),
-            'aria-label': 'Actions dropdown'
+        UDropdownMenu,
+        {
+          content: {
+            align: 'end'
           },
-          () =>
-              h(UButton, {
-                icon: 'i-lucide-ellipsis-vertical',
-                color: 'neutral',
-                variant: 'ghost',
-                'aria-label': 'Actions dropdown'
-              })
+          items: [
+            {
+              label: 'Edit',
+              icon: 'i-lucide-pencil',
+              onSelect: () => openEditModal(row.original)
+            },
+            {
+              label: 'Delete',
+              icon: 'i-lucide-trash',
+              color: 'error' as any,
+              onSelect: () => openDeleteModal(row.original)
+            }
+          ],
+          'aria-label': 'Actions dropdown'
+        },
+        () =>
+          h(UButton, {
+            icon: 'i-lucide-ellipsis-vertical',
+            color: 'neutral',
+            variant: 'ghost',
+            'aria-label': 'Actions dropdown'
+          })
       )
     }
   }
 ]
+
+async function loadTransactions(isInitial = false) {
+  if (!budgetAccountsStore.activeAccount?.id) return
+  if (isInitial) {
+    loading.value = true
+    page.value = 1
+    transactions.value = []
+    hasMore.value = true
+  } else {
+    loadingMore.value = true
+  }
+
+  try {
+    const data = await transactionService.fetchTransactions(
+      budgetAccountsStore.activeAccount.id,
+      page.value,
+      pageSize.value
+    )
+    if (data.length < pageSize.value) {
+      hasMore.value = false
+    }
+    transactions.value = [...transactions.value, ...data]
+    page.value++
+  } catch (error) {
+    console.error('Failed to fetch transactions:', error)
+  } finally {
+    loading.value = false
+    loadingMore.value = false
+  }
+}
+
+useIntersectionObserver(loadMoreTrigger, async (entries) => {
+  const entry = entries[0]
+  if (!entry?.isIntersecting) return
+  if (loading.value || loadingMore.value || !hasMore.value) return
+
+  await loadTransactions()
+})
+
+onMounted(() => {
+  if(budgetAccountsStore.activeAccount?.id == undefined){
+    toast.error('No active account selected', 'Please select an account to view transactions.')
+  }
+  loadTransactions(true)
+})
 </script>
 
 <template>
-  <UTable :data="data" :columns="columns" class="flex-1"/>
+  <div class="flex flex-col h-full overflow-hidden">
+    <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
+      <template #empty-state>
+        <div class="flex flex-col items-center justify-center py-10 gap-3">
+          <UIcon name="i-lucide-database-x" class="w-8 h-8 text-neutral-400"/>
+          <p class="text-sm text-neutral-500">No transactions found.</p>
+        </div>
+      </template>
+    </UTable>
+
+    <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
+      <UIcon v-if="loadingMore"
+             name="i-lucide-loader-2"
+             class="w-6 h-6 animate-spin text-neutral-400"/>
+    </div>
+
+    <CreateFab @click="onOpenCreateModal()"/>
+
+    <CreateTransactionModal v-if="isCreateModalOpen"
+                            v-model:open="isCreateModalOpen"
+                            @created="loadTransactions(true)"/>
+
+    <EditTransactionModal v-if="isEditModalOpen && selectedTransaction !== null"
+                          v-model:open="isEditModalOpen"
+                          :transaction="selectedTransaction"
+                          @updated="loadTransactions(true)"/>
+
+    <DeleteTransactionModal v-if="isDeleteModalOpen"
+                            v-model:open="isDeleteModalOpen"
+                            :transaction="selectedTransaction"
+                            @deleted="loadTransactions(true)"/>
+  </div>
 </template>

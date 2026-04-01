@@ -2,17 +2,25 @@
 import NoAccountAction from "~/components/dashboard/no-account-action.vue";
 import CreateAccountModal from "~/components/budget-account/create-account-modal.vue";
 import AccountBalance from "~/components/dashboard/cards/account-balance.vue";
+import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
+import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
 
 const accountStore = useBudgetAccountsStore();
 
 const isCreateAccountModalVisible = ref(false);
+const isCreateTransactionModalVisible = ref(false);
 
 function onCreateAccount(): void {
   isCreateAccountModalVisible.value = true;
 }
 
+function onOpenCreateTransactionModal(): void {
+  isCreateTransactionModalVisible.value = true;
+}
+
 function refreshAccountsAndSelectDefault(){
   accountStore.updateAvailableAccounts().then(() => {
+    console.log("Available accounts:", accountStore.availableAccounts);
     if (accountStore.availableAccounts.length === 0) {
       return;
     }
@@ -40,5 +48,12 @@ onMounted(() => refreshAccountsAndSelectDefault());
                     :currency="accountStore.activeAccount.currency" />
   </UContainer>
 
-  <CreateAccountModal v-model="isCreateAccountModalVisible"/>
+  <CreateAccountModal v-model="isCreateAccountModalVisible"
+                      @created="refreshAccountsAndSelectDefault"/>
+
+  <CreateFab @click="onOpenCreateTransactionModal" />
+
+  <CreateTransactionModal v-if="isCreateTransactionModalVisible"
+                          v-model:open="isCreateTransactionModalVisible" />
+
 </template>
