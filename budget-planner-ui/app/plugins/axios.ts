@@ -15,10 +15,15 @@ console.log('apiBaseSSR:', config.apiBaseSSR)
         }
     })
 
+    const authStore = useAuthStore();
     api.interceptors.request.use((config) => {
-        const {token} = useAuthStore();
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        try {
+            const token = authStore.token;
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (e) {
+            console.error('Failed to get token from authStore in interceptor', e);
         }
         return config;
     });

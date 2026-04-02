@@ -7,6 +7,7 @@ import type {AuthResponse} from "~/models/auth/auth-response";
 
 const api = useApi();
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const {success, error} = useToasts();
 
 const state = reactive({
@@ -21,6 +22,7 @@ function onSubmit() {
       .login({username: state.username, password: state.password})
       .then((res: AuthResponse) => {
         authStore.setToken(res.token);
+        userStore.fetchMyself();
         navigateTo('/accounts');
         success(
             'Login successfully',

@@ -1,15 +1,13 @@
 <script setup lang="ts">
 
 import Profile from "~/components/_organisms/profile.vue";
-import type {UserDto} from "~/models/user/user-dto";
-import {useUserService} from "~/services/user/user-service";
+import {useUserStore} from "~/stores/userStore";
 
-const api = useApi();
-const user = ref<UserDto>();
 const accountStore = useBudgetAccountsStore();
+const userStore = useUserStore();
 
 onMounted(async () => {
-  user.value = await useUserService(api).fetchMyself();
+  await userStore.fetchMyself();
 })
 
 const items = computed(() => {
@@ -47,7 +45,7 @@ const items = computed(() => {
 
     <template #right>
       <UColorModeButton />
-      <Profile v-if="user" :user="user" />
+      <Profile v-if="userStore.user" :user="userStore.user" />
     </template>
   </UHeader>
 </template>

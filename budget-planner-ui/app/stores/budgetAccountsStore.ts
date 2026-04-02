@@ -12,6 +12,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const availableAccounts = ref<BudgetAccount[]>([]);
 
   async function updateAvailableAccounts() {
+    const accountService = useBudgetAccountService(api);
     try {
       availableAccounts.value = await accountService.fetchAccounts();
     } catch (error) {
