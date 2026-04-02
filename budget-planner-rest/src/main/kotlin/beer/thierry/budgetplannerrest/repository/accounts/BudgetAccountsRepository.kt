@@ -17,6 +17,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.ID,
             ACCOUNTS.NAME,
             ACCOUNTS.BALANCE,
+            ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
         )
             .from(ACCOUNTS)
@@ -29,6 +30,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.ID,
             ACCOUNTS.NAME,
             ACCOUNTS.BALANCE,
+            ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
         )
             .from(ACCOUNTS)
@@ -47,8 +49,17 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.CURRENCY, createBudgetAccountRequest.currency.toString())
             .set(ACCOUNTS.CREATED_AT, OffsetDateTime.now())
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
-            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.CURRENCY)
+            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE ,ACCOUNTS.CURRENCY)
             .fetchOneInto(BudgetAccountDTO::class.java)
             ?: throw IllegalStateException("Failed to retrieve generated Account")
+    }
+
+    override fun fetchInitialBalance(accountId: UUID, authenticatedUser: UserDTO): BigDecimal {
+        val account = dsl.select(ACCOUNTS.ID, ACCOUNTS.field("initial_balance", BigDecimal::class.java))
+            .from(ACCOUNTS)
+            .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .fetchOne() ?: throw IllegalArgumentException("Account not found")
+
+        return account.get("initial_balance", BigDecimal::class.java) ?: BigDecimal.ZERO
     }
 }

@@ -48,6 +48,10 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
         set(value): Unit = set(6, value)
         get(): OffsetDateTime? = get(6) as OffsetDateTime?
 
+    open var initialBalance: BigDecimal?
+        set(value): Unit = set(7, value)
+        get(): BigDecimal? = get(7) as BigDecimal?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -57,7 +61,7 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
     /**
      * Create a detached, initialised AccountsRecord
      */
-    constructor(id: UUID? = null, userId: UUID? = null, name: String? = null, balance: BigDecimal? = null, currency: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, userId: UUID? = null, name: String? = null, balance: BigDecimal? = null, currency: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, initialBalance: BigDecimal? = null): this() {
         this.id = id
         this.userId = userId
         this.name = name
@@ -65,6 +69,7 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
         this.currency = currency
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.initialBalance = initialBalance
         resetChangedOnNotNull()
     }
 
@@ -80,6 +85,7 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
             this.currency = value.currency
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.initialBalance = value.initialBalance
             resetChangedOnNotNull()
         }
     }

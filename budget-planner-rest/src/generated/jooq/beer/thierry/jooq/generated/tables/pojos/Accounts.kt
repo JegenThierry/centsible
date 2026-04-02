@@ -21,7 +21,8 @@ data class Accounts(
     val balance: BigDecimal? = null,
     val currency: String? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val initialBalance: BigDecimal? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -74,6 +75,12 @@ data class Accounts(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.initialBalance == null) {
+            if (o.initialBalance != null)
+                return false
+        }
+        else if (this.initialBalance != o.initialBalance)
+            return false
         return true
     }
 
@@ -87,6 +94,7 @@ data class Accounts(
         result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.initialBalance == null) 0 else this.initialBalance.hashCode())
         return result
     }
 
@@ -100,6 +108,7 @@ data class Accounts(
         sb.append(", ").append(currency)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(initialBalance)
 
         sb.append(")")
         return sb.toString()

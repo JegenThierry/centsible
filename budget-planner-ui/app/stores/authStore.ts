@@ -2,30 +2,23 @@ import {defineStore} from 'pinia'
 
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
-export const useAuthStore = defineStore(
-    'auth',
-    () => {
-        const token = useCookie('auth_token', {
-            maxAge: ONE_WEEK,
-            watch: true
-        })
+export const useAuthStore = defineStore('authStore', () => {
+  const token = useCookie<string | null>('auth_token', {
+    maxAge: ONE_WEEK, watch: true
+  })
 
-        const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => !!token.value)
 
-        function setToken(newToken: string) {
-            token.value = newToken
-        }
+  const setToken = (newToken: string) => {
+    token.value = newToken
+  }
 
-        function logout() {
-            token.value = null;
-            navigateTo('/auth')
-        }
+  const logout = () => {
+    token.value = null;
+    return navigateTo('/auth')
+  }
 
-        return {
-            isAuthenticated,
-            token,
-            logout,
-            setToken,
-        }
-    }
-);
+  return {
+    isAuthenticated, token, logout, setToken,
+  }
+});

@@ -11,16 +11,23 @@ function onOpenCreateTransactionModal(): void {
   isCreateTransactionModalVisible.value = true;
 }
 
+function onCreated() {
+  accountStore.updateActiveAccount();
+}
+
 onMounted(() => {
-  if (accountStore.availableAccounts.length === 0) {
-    accountStore.updateAvailableAccounts();
+  if (!accountStore.activeAccount) {
+    return;
   }
+
+  accountStore.updateActiveAccount();
 });
 </script>
 
 <template>
   <UContainer v-if="accountStore.activeAccount != null" class="flex p-4 lg:p-10 gap-4 lg:gap-10 flex-wrap">
     <AccountBalance :balance="accountStore.activeAccount.balance"
+                    :initial-balance="accountStore.activeAccount.initialBalance"
                     :account-name="accountStore.activeAccount.name"
                     :currency="accountStore.activeAccount.currency" />
   </UContainer>
@@ -28,6 +35,7 @@ onMounted(() => {
   <CreateFab @click="onOpenCreateTransactionModal" />
 
   <CreateTransactionModal v-if="isCreateTransactionModalVisible"
-                          v-model:open="isCreateTransactionModalVisible" />
+                          v-model:open="isCreateTransactionModalVisible"
+                          @created="onCreated()" />
 
 </template>

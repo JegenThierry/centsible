@@ -3,48 +3,56 @@ import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
 
-export const useBudgetAccountsStore = defineStore(
-    'budgetAccountsStore',
-    () => {
-        const api = useApi();
-        const toasts = useToasts();
-        const accountService = useBudgetAccountService(api);
+export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
+  const api = useApi();
+  const toasts = useToasts();
+  const accountService = useBudgetAccountService(api);
 
-        const activeAccount = ref<BudgetAccount>();
-        const availableAccounts = ref<BudgetAccount[]>([]);
+  const activeAccount = ref<BudgetAccount>();
+  const availableAccounts = ref<BudgetAccount[]>([]);
 
-        async function updateAvailableAccounts() {
-            try {
-                availableAccounts.value = await accountService.fetchAccounts();
-            } catch (error) {
-                toasts.error("Failed to update accounts", "Accounts could not be updated")
-                console.error(error);
-            }
-        }
-
-        async function loadActiveAccount(accountId: string) {
-            if (activeAccount.value?.id === accountId) {
-                return;
-            }
-
-            try {
-                activeAccount.value = await accountService.fetchAccount(accountId);
-            } catch (error) {
-                toasts.error("Failed to load account", "Account could not be loaded");
-                console.error(error);
-            }
-        }
-
-        function clearActiveAccount() {
-            activeAccount.value = undefined;
-        }
-
-        return {
-            activeAccount,
-            availableAccounts,
-            updateAvailableAccounts,
-            loadActiveAccount,
-            clearActiveAccount,
-        }
+  async function updateAvailableAccounts() {
+    try {
+      availableAccounts.value = await accountService.fetchAccounts();
+    } catch (error) {
+      toasts.error("Failed to update accounts", "Accounts could not be updated")
+      console.error(error);
     }
-);
+  }
+
+  async function updateActiveAccount() {
+    if (activeAccount.value == undefined) return;
+
+    try {
+      activeAccount.value = await accountService.fetchAccount(activeAccount.value.id)
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function loadActiveAccount(accountId: string) {
+    if (activeAccount.value?.id === accountId) {
+      return;
+    }
+
+    try {
+      activeAccount.value = await accountService.fetchAccount(accountId);
+    } catch (error) {
+      toasts.error("Failed to load account", "Account could not be loaded");
+      console.error(error);
+    }
+  }
+
+  function clearActiveAccount() {
+    activeAccount.value = undefined;
+  }
+
+  return {
+    activeAccount,
+    availableAccounts,
+    updateAvailableAccounts,
+    updateActiveAccount,
+    loadActiveAccount,
+    clearActiveAccount,
+  }
+});

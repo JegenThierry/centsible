@@ -6,5 +6,6 @@ data class BudgetAccountDTO(
     val id: String,
     val name: String,
     val balance: BigDecimal,
+    val initialBalance: BigDecimal,
     val currency: Currency,
 )

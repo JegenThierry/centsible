@@ -10,6 +10,7 @@ import DeleteTransactionModal from "~/components/transactions/modals/delete-tran
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useTransactionList} from "~/components/transactions/utils/use-transaction-list";
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -20,12 +21,14 @@ const toast = useToasts();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
 
-const transactions = ref<Transaction[]>([])
-const page = ref(1);
-const pageSize = ref(25);
-const loading = ref(false)
-const loadingMore = ref(false)
-const hasMore = ref(true)
+const {
+  transactions,
+  loading,
+  loadingMore,
+  hasMore,
+  loadTransactions
+} = useTransactionList(transactionService, budgetAccountsStore);
+
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 const isCreateModalOpen = ref(false);
@@ -135,36 +138,6 @@ const columns: TableColumn<Transaction>[] = [
   }
 ]
 
-async function loadTransactions(isInitial = false) {
-  if (!budgetAccountsStore.activeAccount?.id) return
-  if (isInitial) {
-    loading.value = true
-    page.value = 1
-    transactions.value = []
-    hasMore.value = true
-  } else {
-    loadingMore.value = true
-  }
-
-  try {
-    const data = await transactionService.fetchTransactions(
-      budgetAccountsStore.activeAccount.id,
-      page.value,
-      pageSize.value
-    )
-    if (data.length < pageSize.value) {
-      hasMore.value = false
-    }
-    transactions.value = [...transactions.value, ...data]
-    page.value++
-  } catch (error) {
-    console.error('Failed to fetch transactions:', error)
-  } finally {
-    loading.value = false
-    loadingMore.value = false
-  }
-}
-
 useIntersectionObserver(loadMoreTrigger, async (entries) => {
   const entry = entries[0]
   if (!entry?.isIntersecting) return
@@ -174,9 +147,10 @@ useIntersectionObserver(loadMoreTrigger, async (entries) => {
 })
 
 onMounted(() => {
-  if(budgetAccountsStore.activeAccount?.id == undefined){
+  if (budgetAccountsStore.activeAccount?.id == undefined) {
     toast.error('No active account selected', 'Please select an account to view transactions.')
   }
+
   loadTransactions(true)
 })
 </script>
@@ -193,7 +167,7 @@ onMounted(() => {
     </UTable>
 
     <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-      <UIcon v-if="loadingMore"
+      <UIcon v-if="loadingMore || loading"
              name="i-lucide-loader-2"
              class="w-6 h-6 animate-spin text-neutral-400"/>
     </div>

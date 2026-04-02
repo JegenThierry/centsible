@@ -16,5 +16,6 @@ export interface BudgetAccount {
     id: string;
     name: string;
     balance: number;
+    initialBalance: number;
     currency: Currency;
 }

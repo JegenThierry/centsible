@@ -1,27 +1,19 @@
 <script setup lang="ts">
 import type {Currency} from "~/models/budget-account/currency";
+import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-badge.vue";
 
-const props = defineProps<{
+defineProps<{
   accountName: string,
   balance: number,
+  initialBalance: number,
   currency: Currency,
 }>();
-
-const formattedBalance = computed(() => {
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: props.currency.toString(),
-    minimumFractionDigits: 2,
-  }).format(props.balance)
-})
-
-const [whole, cents] = formattedBalance.value.split(/(?<=\d)(?=\D*$)/)
 </script>
 
 <template>
   <UCard>
     <div class="relative z-10 p-7 space-y-6">
-
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           <h2 class="text-lg font-semibold text-white leading-tight tracking-tight">
@@ -29,18 +21,9 @@ const [whole, cents] = formattedBalance.value.split(/(?<=\d)(?=\D*$)/)
           </h2>
         </div>
 
-        <UBadge
-            :color="balance > 0 ? 'success' : 'error'"
-            variant="subtle"
-            size="sm"
-            class="mt-0.5 font-mono font-semibold"
-        >
-          <UIcon
-              :name="balance > 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-              class="mr-1 size-3.5"
-          />
-          {{balance}}
-        </UBadge>
+        <BalanceChangeBadge :current-balance="balance"
+                            :previous-balance="initialBalance"
+                            :currency="currency"/>
       </div>
 
       <div class="space-y-1">
@@ -49,15 +32,12 @@ const [whole, cents] = formattedBalance.value.split(/(?<=\d)(?=\D*$)/)
         </p>
         <div class="flex items-end gap-1">
           <span class="text-5xl font-bold tracking-tight text-white tabular-nums leading-none">
-            {{ whole }}
-          </span>
-          <span class="text-2xl font-semibold text-neutral-400 mb-0.5 tabular-nums leading-none">
-            {{ cents }}
+            <BalanceNumberFormat :currency="currency"
+                                 :balance="balance"
+                                 format="de-De"/>
           </span>
         </div>
       </div>
-
-      <USeparator class="border-white/10"/>
     </div>
   </UCard>
 </template>
