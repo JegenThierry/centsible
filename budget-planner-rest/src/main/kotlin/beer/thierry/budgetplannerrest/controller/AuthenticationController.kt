@@ -28,13 +28,8 @@ class AuthenticationController(private val authService: IAuthService) {
         return ResponseEntity.ok(response)
     }
 
-    @GetMapping("/test")
-    fun register(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<UserDTO> {
-        return ResponseEntity.ok(authenticatedUser)
-    }
-
     @GetMapping("/verify")
-    fun verify(): ResponseEntity<String> {
+    fun verify(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<String> {
         return ResponseEntity.ok("ok")
     }
 }

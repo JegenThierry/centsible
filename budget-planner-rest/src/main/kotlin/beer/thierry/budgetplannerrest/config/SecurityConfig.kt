@@ -36,7 +36,8 @@ class SecurityConfig(
             }
 
             authorizeHttpRequests {
-                authorize("/api/auth/**", permitAll)
+                authorize("/api/auth/register", permitAll)
+                authorize("/api/auth/login", permitAll)
                 authorize(anyRequest, authenticated)
             }
 
