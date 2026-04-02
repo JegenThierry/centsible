@@ -53,7 +53,7 @@ function onCloseModal() {
 <template>
   <UModal
       v-model:open="isOpen"
-      title="Create BudgetAccount"
+      title="Create Budget Account"
       description="An account allows you to manage your budget."
       :close="{
         color: 'primary',
@@ -64,10 +64,10 @@ function onCloseModal() {
   >
     <template #body>
       <UForm id="account-form" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit">
-        <UFormField label="BudgetAccount name" name="name">
+        <UFormField label="Account name" name="name">
           <UInput v-model="state.name"
                   required
-                  placeholder="BudgetAccount name"
+                  placeholder="Account name"
                   class="w-full"/>
         </UFormField>
 
