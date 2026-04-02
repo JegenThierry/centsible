@@ -3,18 +3,8 @@ import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue";
 
 const items: NavigationMenuItem[] = [
   {
-    label: 'Figma Kit',
-    to: 'https://go.nuxt.com/figma-ui',
-    target: '_blank'
-  },
-  {
-    label: 'Playground',
-    to: 'https://stackblitz.com/edit/nuxt-ui',
-    target: '_blank'
-  },
-  {
-    label: 'Releases',
-    to: 'https://github.com/nuxt/ui/releases',
+    label: 'Activity',
+    to: 'https://codeberg.org/thierryjegen/budget-planner/activity',
     target: '_blank'
   }
 ]
@@ -30,33 +20,29 @@ const items: NavigationMenuItem[] = [
 
     <template #right>
       <UButton
-          icon="i-simple-icons-discord"
+          icon="i-simple-icons-instagram"
           color="neutral"
           variant="ghost"
-          to="https://go.nuxt.com/discord"
+          to="https://www.instagram.com/thierryjegen/"
           target="_blank"
-          aria-label="Discord"
+          aria-label="Instagram"
       />
       <UButton
           icon="i-simple-icons-x"
           color="neutral"
           variant="ghost"
-          to="https://go.nuxt.com/x"
+          to="https://x.com/ThierryJegen1"
           target="_blank"
           aria-label="X"
       />
       <UButton
-          icon="i-simple-icons-github"
+          icon="i-simple-icons-codeberg"
           color="neutral"
           variant="ghost"
-          to="https://github.com/nuxt/nuxt"
+          to="https://codeberg.org/thierryjegen"
           target="_blank"
-          aria-label="GitHub"
+          aria-label="Codeberg"
       />
     </template>
   </UFooter>
 </template>
-
-<style scoped>
-
-</style>
