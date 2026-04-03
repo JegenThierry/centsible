@@ -84,7 +84,6 @@ Managed with Gradle (Kotlin DSL).
 - `./gradlew bootRun`: Run the Spring Boot application.
 - `./gradlew build`: Build the project and run tests.
 - `./gradlew jooqCodegen`: Generate jOOQ classes from the database schema.
-- TODO: Add more specific backend scripts if applicable.
 
 ## Tests
 
