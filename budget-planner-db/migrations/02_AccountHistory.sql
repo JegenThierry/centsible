@@ -20,7 +20,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_account_history
-    AFTER UPDATE ON accounts
+    AFTER UPDATE OR INSERT ON accounts
     FOR EACH ROW
     WHEN (OLD.* IS DISTINCT FROM NEW.*)
 EXECUTE FUNCTION log_account_history();
