@@ -1,6 +1,3 @@
-ALTER TABLE accounts
-    ADD COLUMN initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00;
-
 UPDATE accounts
 SET initial_balance = balance
 WHERE initial_balance = 0.00
