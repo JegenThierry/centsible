@@ -1,0 +1,29 @@
+meta {
+  name: create_transaction
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/transactions/:accountId
+  body: json
+  auth: none
+}
+
+params:path {
+  accountId: <uuid>
+}
+
+body:json {
+  {
+    "description": "Groceries",
+    "amount": -50.25,
+    "date": "2024-04-03",
+    "categoryId": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

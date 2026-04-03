@@ -1,0 +1,25 @@
+meta {
+  name: fetch_transactions
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/transactions/:accountId?page=1&size=25
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  size: 25
+}
+
+params:path {
+  accountId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

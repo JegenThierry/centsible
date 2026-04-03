@@ -1,0 +1,30 @@
+meta {
+  name: update_transaction
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8080/api/transactions/:accountId/:transactionId
+  body: json
+  auth: none
+}
+
+params:path {
+  accountId: <uuid>
+  transactionId: <uuid>
+}
+
+body:json {
+  {
+    "description": "Updated description",
+    "amount": -60.0,
+    "date": "2024-04-03",
+    "categoryId": 2
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

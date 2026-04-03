@@ -1,5 +1,5 @@
 meta {
-  name: Untitled
+  name: create_account
   type: http
   seq: 1
 }
@@ -7,13 +7,13 @@ meta {
 post {
   url: http://localhost:8080/api/budget-accounts
   body: json
-  auth: inherit
+  auth: none
 }
 
 body:json {
   {
-    "name": "My Account",
-    "initialBalance": 10000,
+    "name": "Savings",
+    "initialBalance": 1000.0,
     "currency": "EUR"
   }
 }

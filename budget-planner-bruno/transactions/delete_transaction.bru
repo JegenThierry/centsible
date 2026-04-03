@@ -1,0 +1,21 @@
+meta {
+  name: delete_transaction
+  type: http
+  seq: 4
+}
+
+delete {
+  url: http://localhost:8080/api/transactions/:accountId/:transactionId
+  body: none
+  auth: none
+}
+
+params:path {
+  accountId: <uuid>
+  transactionId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

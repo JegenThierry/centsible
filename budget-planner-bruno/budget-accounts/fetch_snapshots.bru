@@ -1,0 +1,25 @@
+meta {
+  name: fetch_snapshots
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/api/budget-accounts/:id/snapshots?startDate=2024-01-01&endDate=2024-12-31
+  body: none
+  auth: none
+}
+
+params:query {
+  startDate: 2024-01-01
+  endDate: 2024-12-31
+}
+
+params:path {
+  id: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
