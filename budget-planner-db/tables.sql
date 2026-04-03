@@ -31,10 +31,8 @@ CREATE TABLE IF NOT EXISTS account_history
     user_id         UUID           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     name            VARCHAR(100)   NOT NULL,
     balance         DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     currency        VARCHAR(3)     NOT NULL DEFAULT 'EUR',
-    created_at      TIMESTAMPTZ    NOT NULL,
-    modified_at     TIMESTAMPTZ    NOT NULL
+    created_at      TIMESTAMPTZ    NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_account_history_user_id ON account_history (user_id);

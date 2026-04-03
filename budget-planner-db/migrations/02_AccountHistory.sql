@@ -6,18 +6,14 @@ BEGIN
                                  user_id,
                                  name,
                                  balance,
-                                 initial_balance,
                                  currency,
-                                 created_at,
-                                 modified_at)
+                                 created_at)
     VALUES (OLD.id,
             OLD.user_id,
             OLD.name,
             OLD.balance,
-            OLD.initial_balance,
             OLD.currency,
-            OLD.created_at,
-            OLD.modified_at);
+            now());
 
     RETURN NEW;
 END;

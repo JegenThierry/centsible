@@ -10,7 +10,6 @@ import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -56,41 +55,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                     updatedAt = transactionRecord[TRANSACTIONS.MODIFIED_AT],
                 )
             }
-    }
-
-    override fun fetchTransactionsUntilDate(
-        accountId: UUID, endDate: LocalDate, authenticatedUser: UserDTO
-    ): List<TransactionDTO> {
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.TYPE,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).where(
-            TRANSACTIONS.ACCOUNT_ID.eq(accountId)
-        ).and(
-            TRANSACTIONS.TRANSACTION_DATE.le(endDate)
-        ).orderBy(TRANSACTIONS.TRANSACTION_DATE.asc()).fetch { r ->
-            val category = CategoryDTO(
-                id = r[CATEGORIES.ID], name = r[CATEGORIES.NAME], icon = r[CATEGORIES.ICON]
-            )
-            TransactionDTO(
-                id = r[TRANSACTIONS.ID],
-                category = category,
-                amount = r[TRANSACTIONS.AMOUNT],
-                type = r[TRANSACTIONS.TYPE]?.let(TransactionType::valueOf),
-                description = r[TRANSACTIONS.DESCRIPTION],
-                transactionDate = r[TRANSACTIONS.TRANSACTION_DATE],
-                createdAt = r[TRANSACTIONS.CREATED_AT],
-                updatedAt = r[TRANSACTIONS.MODIFIED_AT]
-            )
-        }
     }
 
     override fun fetchTransactionById(

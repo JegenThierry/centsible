@@ -3,7 +3,6 @@ package beer.thierry.budgetplannerrest.repository.transactions
 import beer.thierry.budgetplannerrest.model.transaction.TransactionDTO
 import beer.thierry.budgetplannerrest.model.transaction.TransactionForm
 import beer.thierry.budgetplannerrest.model.user.UserDTO
-import java.time.LocalDate
 import java.util.*
 
 interface ITransactionRepository {
@@ -18,9 +17,4 @@ interface ITransactionRepository {
     ): TransactionDTO
 
     fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO
-    fun fetchTransactionsUntilDate(
-        accountId: UUID,
-        endDate: LocalDate,
-        authenticatedUser: UserDTO
-    ): List<TransactionDTO>
 }

@@ -102,6 +102,11 @@ open class Accounts(
     val BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(DSL.name("balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
 
     /**
+     * The column <code>public.accounts.initial_balance</code>.
+     */
+    val INITIAL_BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(DSL.name("initial_balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
+
+    /**
      * The column <code>public.accounts.currency</code>.
      */
     val CURRENCY: TableField<AccountsRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
@@ -115,11 +120,6 @@ open class Accounts(
      * The column <code>public.accounts.modified_at</code>.
      */
     val MODIFIED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
-
-    /**
-     * The column <code>public.accounts.initial_balance</code>.
-     */
-    val INITIAL_BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(DSL.name("initial_balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
 
     private constructor(alias: Name, aliased: Table<AccountsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AccountsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)

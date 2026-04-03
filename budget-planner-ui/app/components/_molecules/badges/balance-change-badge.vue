@@ -8,7 +8,7 @@ const props = defineProps<{
   currency: Currency;
 }>();
 
-const balanceChange = computed(() => props.previousBalance - props.currentBalance);
+const balanceChange = computed(() => props.currentBalance - props.previousBalance);
 </script>
 
 <template>

@@ -46,6 +46,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.USER_ID, authenticatedUser.id)
             .set(ACCOUNTS.NAME, createBudgetAccountRequest.name)
             .set(ACCOUNTS.BALANCE, createBudgetAccountRequest.initialBalance)
+            .set(ACCOUNTS.INITIAL_BALANCE, createBudgetAccountRequest.initialBalance)
             .set(ACCOUNTS.CURRENCY, createBudgetAccountRequest.currency.toString())
             .set(ACCOUNTS.CREATED_AT, OffsetDateTime.now())
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())

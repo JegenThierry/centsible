@@ -4,6 +4,7 @@
 package beer.thierry.jooq.generated
 
 
+import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Transactions
@@ -30,6 +31,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     }
 
     /**
+     * The table <code>public.account_history</code>.
+     */
+    val ACCOUNT_HISTORY: AccountHistory get() = AccountHistory.ACCOUNT_HISTORY
+
+    /**
      * The table <code>public.accounts</code>.
      */
     val ACCOUNTS: Accounts get() = Accounts.ACCOUNTS
@@ -52,6 +58,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
+        AccountHistory.ACCOUNT_HISTORY,
         Accounts.ACCOUNTS,
         Categories.CATEGORIES,
         Transactions.TRANSACTIONS,

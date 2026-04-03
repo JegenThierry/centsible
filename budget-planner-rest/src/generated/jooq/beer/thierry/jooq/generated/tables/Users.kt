@@ -6,10 +6,12 @@ package beer.thierry.jooq.generated.tables
 
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
 import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
+import beer.thierry.jooq.generated.tables.AccountHistory.AccountHistoryPath
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
@@ -154,6 +156,22 @@ open class Users(
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getPrimaryKey(): UniqueKey<UsersRecord> = USERS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<UsersRecord>> = listOf(USERS_EMAIL_KEY, USERS_USERNAME_KEY)
+
+    private lateinit var _accountHistory: AccountHistoryPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.account_history</code> table
+     */
+    fun accountHistory(): AccountHistoryPath {
+        if (!this::_accountHistory.isInitialized)
+            _accountHistory = AccountHistoryPath(this, null, ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY.inverseKey)
+
+        return _accountHistory;
+    }
+
+    val accountHistory: AccountHistoryPath
+        get(): AccountHistoryPath = accountHistory()
 
     private lateinit var _accounts: AccountsPath
 

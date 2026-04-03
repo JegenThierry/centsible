@@ -3,19 +3,20 @@ package beer.thierry.budgetplannerrest.service.account
 import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.budgetplannerrest.model.budgetaccount.CreateBudgetAccountRequest
-import beer.thierry.budgetplannerrest.model.transaction.TransactionType
 import beer.thierry.budgetplannerrest.model.user.UserDTO
+import beer.thierry.budgetplannerrest.repository.accounthistory.IBudgetAccountHistoryRepository
 import beer.thierry.budgetplannerrest.repository.accounts.IBudgetAccountsRepository
-import beer.thierry.budgetplannerrest.repository.transactions.ITransactionRepository
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Service
 class BudgetBudgetAccountService(
     private val accountRepository: IBudgetAccountsRepository,
-    private val transactionRepository: ITransactionRepository
+    private val accountHistoryRepository: IBudgetAccountHistoryRepository
 ) : IBudgetAccountService {
 
     override fun createAccount(
@@ -40,42 +41,11 @@ class BudgetBudgetAccountService(
         authenticatedUser: UserDTO
     ): List<BudgetAccountSnapshotDTO> {
         val uuid = UUID.fromString(accountId)
-        val initialBalance = accountRepository.fetchInitialBalance(uuid, authenticatedUser)
-        val transactions = transactionRepository.fetchTransactionsUntilDate(uuid, endDate, authenticatedUser)
+        val startDateOffset = OffsetDateTime.of(startDate, LocalTime.MIN, ZoneOffset.UTC)
+        val endDateOffset = OffsetDateTime.of(endDate, LocalTime.MAX, ZoneOffset.UTC)
 
-        val snapshots = mutableListOf<BudgetAccountSnapshotDTO>()
-        var currentBalance = initialBalance
+        require(startDateOffset.isBefore(endDateOffset)) { "Start date must be before end date" }
 
-        val transactionsBeforeStart = transactions.filter { it.transactionDate!!.isBefore(startDate) }
-        transactionsBeforeStart.forEach { t ->
-            when (t.type) {
-                TransactionType.INCOME -> currentBalance = currentBalance.add(t.amount ?: BigDecimal.ZERO)
-                TransactionType.EXPENSE -> currentBalance = currentBalance.subtract(t.amount ?: BigDecimal.ZERO)
-                else -> throw IllegalStateException("Invalid transaction type: ${t.type}")
-            }
-        }
-
-        var currentDate = startDate
-        while (!currentDate.isAfter(endDate)) {
-            val dailyTransactions = transactions.filter { it.transactionDate == currentDate }
-            dailyTransactions.forEach { t ->
-                when (t.type) {
-                    TransactionType.INCOME -> currentBalance = currentBalance.add(t.amount ?: BigDecimal.ZERO)
-                    TransactionType.EXPENSE -> currentBalance = currentBalance.subtract(t.amount ?: BigDecimal.ZERO)
-                    else -> throw IllegalStateException("Invalid transaction type: ${t.type}")
-                }
-            }
-
-            snapshots.add(
-                BudgetAccountSnapshotDTO(
-                    date = currentDate,
-                    balance = currentBalance,
-                    transactions = dailyTransactions
-                )
-            )
-            currentDate = currentDate.plusDays(1)
-        }
-
-        return snapshots
+        return accountHistoryRepository.fetchAccountHistory(uuid, startDateOffset, endDateOffset, authenticatedUser)
     }
 }

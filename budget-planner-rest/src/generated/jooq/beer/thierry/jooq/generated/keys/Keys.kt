@@ -4,10 +4,12 @@
 package beer.thierry.jooq.generated.keys
 
 
+import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
+import beer.thierry.jooq.generated.tables.records.AccountHistoryRecord
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
@@ -24,6 +26,7 @@ import org.jooq.impl.Internal
 // UNIQUE and PRIMARY KEY definitions
 // -------------------------------------------------------------------------
 
+val ACCOUNT_HISTORY_PKEY: UniqueKey<AccountHistoryRecord> = Internal.createUniqueKey(AccountHistory.ACCOUNT_HISTORY, DSL.name("account_history_pkey"), arrayOf(AccountHistory.ACCOUNT_HISTORY.ID), true)
 val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> = Internal.createUniqueKey(Accounts.ACCOUNTS, DSL.name("accounts_pkey"), arrayOf(Accounts.ACCOUNTS.ID), true)
 val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), arrayOf(Categories.CATEGORIES.ID), true)
 val UQ_CATEGORIES_NAME: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("uq_categories_name"), arrayOf(Categories.CATEGORIES.NAME), true)
@@ -36,6 +39,7 @@ val USERS_USERNAME_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.
 // FOREIGN KEY definitions
 // -------------------------------------------------------------------------
 
+val ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY: ForeignKey<AccountHistoryRecord, UsersRecord> = Internal.createForeignKey(AccountHistory.ACCOUNT_HISTORY, DSL.name("account_history_user_id_fkey"), arrayOf(AccountHistory.ACCOUNT_HISTORY.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val ACCOUNTS__ACCOUNTS_USER_ID_FKEY: ForeignKey<AccountsRecord, UsersRecord> = Internal.createForeignKey(Accounts.ACCOUNTS, DSL.name("accounts_user_id_fkey"), arrayOf(Accounts.ACCOUNTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecord> = Internal.createForeignKey(Categories.CATEGORIES, DSL.name("categories_user_id_fkey"), arrayOf(Categories.CATEGORIES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY: ForeignKey<TransactionsRecord, AccountsRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_account_id_fkey"), arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY, arrayOf(Accounts.ACCOUNTS.ID), true)

@@ -4,6 +4,7 @@
 package beer.thierry.jooq.generated.indexes
 
 
+import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Transactions
@@ -18,6 +19,7 @@ import org.jooq.impl.Internal
 // INDEX definitions
 // -------------------------------------------------------------------------
 
+val IDX_ACCOUNT_HISTORY_USER_ID: Index = Internal.createIndex(DSL.name("idx_account_history_user_id"), AccountHistory.ACCOUNT_HISTORY, arrayOf(AccountHistory.ACCOUNT_HISTORY.USER_ID), false)
 val IDX_ACCOUNTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
 val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
 val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_transactions_account_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), false)
