@@ -8,6 +8,7 @@ import {useTransactionService} from "~/services/transactions/transaction-service
 import {useCategoryService} from "~/services/category/category-service";
 import {useValidator} from "~/composables/use-validator";
 import {useToasts} from "~/services/toasts/toast-service";
+import {format} from 'date-fns';
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -26,7 +27,7 @@ const form = ref<TransactionForm>({
   type: TransactionType.EXPENSE,
   description: '',
   category: undefined as Category | undefined,
-  transactionDate: new Date().toISOString().split('T')[0],
+  transactionDate: format(new Date(), 'yyyy-MM-dd'),
 });
 
 const categories = ref<Category[]>([]);
@@ -52,7 +53,7 @@ function resetForm() {
     type: TransactionType.EXPENSE,
     description: '',
     category: undefined,
-    transactionDate: new Date().toISOString().split('T')[0],
+    transactionDate: format(new Date(), 'yyyy-MM-dd'),
   };
 }
 

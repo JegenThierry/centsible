@@ -19,3 +19,8 @@ export interface BudgetAccount {
     initialBalance: number;
     currency: Currency;
 }
+
+export interface BudgetAccountSnapshot {
+    createdAt: string;
+    balance: number;
+}

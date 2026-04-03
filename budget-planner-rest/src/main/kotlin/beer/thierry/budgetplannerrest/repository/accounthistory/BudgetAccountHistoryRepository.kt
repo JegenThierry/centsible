@@ -9,7 +9,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Repository
-class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountHistoryRepository {
+class BudgetAccountHistoryRepository(private val dsl: DSLContext) : IBudgetAccountHistoryRepository {
 
     override fun fetchCompleteAccountHistory(
         accountId: UUID, authenticatedUser: UserDTO

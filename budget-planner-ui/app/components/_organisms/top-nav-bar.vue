@@ -2,12 +2,16 @@
 
 import Profile from "~/components/_organisms/profile.vue";
 import {useUserStore} from "~/stores/userStore";
+import {useAuthStore} from "~/stores/authStore";
 
 const accountStore = useBudgetAccountsStore();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 
 onMounted(async () => {
-  await userStore.fetchMyself();
+  if (authStore.isAuthenticated) {
+    await userStore.fetchMyself();
+  }
 })
 
 const items = computed(() => {

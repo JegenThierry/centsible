@@ -7,8 +7,11 @@ import type {AuthResponse} from "~/models/auth/auth-response";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import RegisterPasswordInput from "~/components/_organisms/inputs/register-password-input.vue";
 
+import {useUserStore} from "~/stores/userStore";
+
 const api = useApi();
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const {success, error} = useToasts();
 
 const state = reactive({
@@ -37,6 +40,7 @@ function onSubmit() {
       .register(state)
       .then((res: AuthResponse) => {
         authStore.setToken(res.token);
+        userStore.fetchMyself();
         navigateTo('/accounts');
         success(
             'Registered successfully',

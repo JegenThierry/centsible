@@ -9,7 +9,12 @@ export const useUserStore = defineStore('userStore', () => {
   const user = ref<UserDto | null>(null);
 
   async function fetchMyself() {
-    user.value = await userService.fetchMyself();
+    try {
+      user.value = await userService.fetchMyself();
+    } catch (e) {
+      console.error("Failed to fetch user data", e);
+      user.value = null;
+    }
   }
 
   return {
