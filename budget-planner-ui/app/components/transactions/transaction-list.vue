@@ -11,6 +11,7 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useTransactionList} from "~/components/transactions/utils/use-transaction-list";
+import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -156,7 +157,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <UCard class="my-8 mx-4" variant="outline">
+    <template #header>
+      <div>Transactions</div>
+    </template>
     <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
       <template #empty-state>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
@@ -165,27 +169,25 @@ onMounted(() => {
         </div>
       </template>
     </UTable>
+  </UCard>
 
-    <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-      <UIcon v-if="loadingMore || loading"
-             name="i-lucide-loader-2"
-             class="w-6 h-6 animate-spin text-neutral-400"/>
-    </div>
-
-    <CreateFab @click="onOpenCreateModal()"/>
-
-    <CreateTransactionModal v-if="isCreateModalOpen"
-                            v-model:open="isCreateModalOpen"
-                            @created="loadTransactions(true)"/>
-
-    <EditTransactionModal v-if="isEditModalOpen && selectedTransaction !== null"
-                          v-model:open="isEditModalOpen"
-                          :transaction="selectedTransaction"
-                          @updated="loadTransactions(true)"/>
-
-    <DeleteTransactionModal v-if="isDeleteModalOpen"
-                            v-model:open="isDeleteModalOpen"
-                            :transaction="selectedTransaction"
-                            @deleted="loadTransactions(true)"/>
+  <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
+    <LoadingAnimation v-if="loadingMore || loading" />
   </div>
+
+  <CreateFab @click="onOpenCreateModal()"/>
+
+  <CreateTransactionModal v-if="isCreateModalOpen"
+                          v-model:open="isCreateModalOpen"
+                          @created="loadTransactions(true)"/>
+
+  <EditTransactionModal v-if="isEditModalOpen && selectedTransaction !== null"
+                        v-model:open="isEditModalOpen"
+                        :transaction="selectedTransaction"
+                        @updated="loadTransactions(true)"/>
+
+  <DeleteTransactionModal v-if="isDeleteModalOpen"
+                          v-model:open="isDeleteModalOpen"
+                          :transaction="selectedTransaction"
+                          @deleted="loadTransactions(true)"/>
 </template>

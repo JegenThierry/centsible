@@ -4,7 +4,6 @@ import Profile from "~/components/_organisms/profile.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 
-const accountStore = useBudgetAccountsStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
@@ -14,38 +13,10 @@ onMounted(async () => {
   }
 })
 
-const items = computed(() => {
-  const accountId = accountStore.activeAccount?.id;
-  const menuItems = [];
-
-  if (accountId) {
-    menuItems.push(
-      {
-        label: 'Dashboard',
-        to: `/${accountId}/dashboard`,
-        icon: 'i-lucide-layout-dashboard'
-      },
-      {
-        label: 'Transactions',
-        to: `/${accountId}/transactions`,
-        icon: 'i-lucide-arrow-right-left'
-      }
-    );
-  }
-
-  menuItems.push({
-    label: 'Accounts',
-    to: '/accounts',
-    icon: 'i-lucide-wallet'
-  });
-
-  return menuItems;
-})
 </script>
 
 <template>
   <UHeader title="Budget Planner">
-    <UNavigationMenu :items="items" class="justify-center" />
 
     <template #right>
       <UColorModeButton />
