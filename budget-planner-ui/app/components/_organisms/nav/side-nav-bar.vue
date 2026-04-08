@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import {computed} from 'vue';
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useSidebar} from "~/composables/use-sidebar";
 
 const accountStore = useBudgetAccountsStore();
-const open = ref(true)
+const {open} = useSidebar()
 
 const items = computed(() => {
   const accountId = accountStore.activeAccount?.id;
-  const menuItems = [];
+  const menuItems = [
+    {
+      label: 'Accounts',
+      to: '/accounts',
+      icon: 'i-lucide-wallet'
+    }
+  ];
 
   if (accountId) {
     menuItems.push(
@@ -24,32 +31,28 @@ const items = computed(() => {
     );
   }
 
-  menuItems.push({
-    label: 'Accounts',
-    to: '/accounts',
-    icon: 'i-lucide-wallet'
-  });
 
   return menuItems;
 })
 </script>
 
 <template>
-    <USidebar v-model:open="open"
-              variant="sidebar"
-              collapsible="icon"
-              side="left"
-              :ui="{ container: 'h-full' }">
-      <template #header>
-        <UIcon name="i-logos-nuxt-icon" class="size-8"/>
-        Budget Planner
-      </template>
+  <USidebar
+    v-model:open="open"
+    variant="inset"
+    collapsible="icon"
+    side="left"
+    :ui="{ container: 'h-full' }"
+  >
+    <template #header>
+      <UIcon name="i-logos-nuxt-icon" class="size-8" />
+    </template>
 
-      <UNavigationMenu
-        :items="items"
-        orientation="vertical"
-        :ui="{ link: 'p-1.5 overflow-hidden' }"
-      />
-    </USidebar>
+    <UNavigationMenu
+      :items="items"
+      orientation="vertical"
+      :ui="{ link: 'p-1.5 overflow-hidden' }"
+    />
+  </USidebar>
 </template>
 

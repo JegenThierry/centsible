@@ -1,5 +1,6 @@
 import axios from 'axios'
 import {useAuthStore} from "~/stores/authStore";
+import {unref} from "vue";
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
@@ -15,7 +16,10 @@ export default defineNuxtPlugin(() => {
   const authStore = useAuthStore();
   api.interceptors.request.use((config) => {
     try {
-      const token = authStore.token;
+      // In Pinia setup stores, state is unwrapped.
+      // But we can use unref to be safe across different environments.
+      const token = unref(authStore.token);
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

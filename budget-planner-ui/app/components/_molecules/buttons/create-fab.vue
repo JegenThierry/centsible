@@ -12,5 +12,5 @@ function onCreate() {
   <UButton icon="i-lucide-plus"
            size="xl"
            color="primary"
-           class="fixed bottom-8 right-8 rounded-full shadow-lg z-50"/>
+           class="fixed bottom-12 right-12 rounded-full shadow-lg z-50"/>
 </template>
