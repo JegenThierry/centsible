@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const props = defineProps<{
   label: string;
   description?: string;
@@ -7,6 +7,7 @@ const props = defineProps<{
   required?: boolean;
   placeholder?: string;
   additionalValidator?: () => string;
+  autofocus?: boolean;
 }>();
 
 const model = defineModel<string | number>();
@@ -32,15 +33,16 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :required="required"
-              :label="label"
-              :help="description"
+  <UFormField :autofocus="autofocus"
               :error="error"
-              :hint="hint">
-    <UInput class="w-full"
-            v-model="model"
+              :help="description"
+              :hint="hint"
+              :label="label"
+              :required="required">
+    <UInput v-model="model"
+            :placeholder="placeholder"
             :type="type"
-            :placeholder="placeholder"/>
+            class="w-full"/>
   </UFormField>
 </template>
 

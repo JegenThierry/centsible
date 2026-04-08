@@ -42,7 +42,7 @@ function onSubmit() {
 
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-    <UFormField label="Username" name="username">
+    <UFormField label="Username" name="username" autofocus>
       <UInput class="w-full" v-model="state.username"/>
     </UFormField>
 

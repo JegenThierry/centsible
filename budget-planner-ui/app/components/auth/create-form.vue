@@ -86,6 +86,7 @@ function validate(): boolean {
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
     <BaseInput v-model="state.username"
+               autofocus
                ref="usernameInput"
                label="Username"
                placeholder="Username"

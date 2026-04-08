@@ -110,6 +110,7 @@ onMounted(() => {
       <div class="space-y-4">
         <URadioGroup v-model="form.type"
                      :items="transactionTypes"
+                     autofocus
                      legend="Transaction Type"
                      orientation="horizontal"/>
 
