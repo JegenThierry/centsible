@@ -21,7 +21,9 @@ data class Users(
     val lastName: String? = null,
     val passwordHash: String? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val registered: Boolean? = null,
+    val registrationToken: UUID? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -80,6 +82,18 @@ data class Users(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.registered == null) {
+            if (o.registered != null)
+                return false
+        }
+        else if (this.registered != o.registered)
+            return false
+        if (this.registrationToken == null) {
+            if (o.registrationToken != null)
+                return false
+        }
+        else if (this.registrationToken != o.registrationToken)
+            return false
         return true
     }
 
@@ -94,6 +108,8 @@ data class Users(
         result = prime * result + (if (this.passwordHash == null) 0 else this.passwordHash.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.registered == null) 0 else this.registered.hashCode())
+        result = prime * result + (if (this.registrationToken == null) 0 else this.registrationToken.hashCode())
         return result
     }
 
@@ -108,6 +124,8 @@ data class Users(
         sb.append(", ").append(passwordHash)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(registered)
+        sb.append(", ").append(registrationToken)
 
         sb.append(")")
         return sb.toString()

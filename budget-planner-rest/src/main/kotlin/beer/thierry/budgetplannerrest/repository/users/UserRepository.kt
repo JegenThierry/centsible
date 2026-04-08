@@ -5,6 +5,7 @@ import beer.thierry.budgetplannerrest.model.user.User
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.jooq.generated.tables.references.USERS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.field
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
@@ -42,7 +43,13 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .fetchOneInto(User::class.java)
     }
 
-    override fun createUser(user: AuthRegisterRequest): User? {
+    override fun findUserByTokenAndUsername(token: UUID, username: String): User? {
+        return dsl.selectFrom(USERS)
+            .where(field("registration_token", UUID::class.java).eq(token).and(USERS.USERNAME.eq(username)))
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun createUser(user: AuthRegisterRequest, registrationToken: UUID): User? {
         val encoder = BCryptPasswordEncoder()
 
         return dsl.insertInto(USERS)
@@ -51,9 +58,20 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.FIRST_NAME, user.firstName)
             .set(USERS.LAST_NAME, user.lastName)
             .set(USERS.PASSWORD_HASH, encoder.encode(user.password))
+            .set(field("registered", Boolean::class.java), false)
+            .set(field("registration_token", UUID::class.java), registrationToken)
             .set(USERS.CREATED_AT, OffsetDateTime.now())
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .returning()
             .fetchOneInto(User::class.java)
+    }
+
+    override fun confirmUser(id: UUID): Boolean {
+        return dsl.update(USERS)
+            .set(field("registered", Boolean::class.java), true)
+            .set(field("registration_token", UUID::class.java), null as UUID?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
     }
 }

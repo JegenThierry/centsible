@@ -51,6 +51,14 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         set(value): Unit = set(7, value)
         get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
+    open var registered: Boolean?
+        set(value): Unit = set(8, value)
+        get(): Boolean? = get(8) as Boolean?
+
+    open var registrationToken: UUID?
+        set(value): Unit = set(9, value)
+        get(): UUID? = get(9) as UUID?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -60,7 +68,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null): this() {
         this.id = id
         this.username = username
         this.email = email
@@ -69,6 +77,8 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         this.passwordHash = passwordHash
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.registered = registered
+        this.registrationToken = registrationToken
         resetChangedOnNotNull()
     }
 
@@ -85,6 +95,8 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
             this.passwordHash = value.passwordHash
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.registered = value.registered
+            this.registrationToken = value.registrationToken
             resetChangedOnNotNull()
         }
     }

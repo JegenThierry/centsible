@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN registered BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN registration_token UUID;
