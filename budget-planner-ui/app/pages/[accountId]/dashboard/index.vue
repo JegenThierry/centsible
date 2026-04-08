@@ -2,7 +2,7 @@
 import Dashboard from "~/components/dashboard/dashboard.vue";
 
 definePageMeta({
-  middleware: ['account-loader']
+  middleware: ['auth-guard', 'account-loader']
 })
 
 useHead({

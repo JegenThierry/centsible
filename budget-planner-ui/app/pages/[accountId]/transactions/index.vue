@@ -2,7 +2,7 @@
 import TransactionList from "~/components/transactions/transaction-list.vue";
 
 definePageMeta({
-  middleware: ['account-loader']
+  middleware: ['auth-guard', 'account-loader']
 })
 
 useHead({

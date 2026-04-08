@@ -1,32 +1,55 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useAuthStore} from "~/stores/authStore";
 import TopNavBar from "~/components/_organisms/top-nav-bar.vue";
 import Footer from "~/components/_organisms/footer.vue";
+import SideNavBar from "~/components/_organisms/nav/side-nav-bar.vue";
+import MainContentWrapper from "~/components/_wrapper/main-content-wrapper.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
 
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
-    if (router.currentRoute.value.path === '/') {
-      navigateTo('/accounts');
-    }
-  } else if (router.currentRoute.value.path !== '/auth') {
-    navigateTo('/auth');
+  if (router.currentRoute.value.path !== '/') {
+    return;
   }
+
+  if (authStore.isAuthenticated) {
+    navigateTo('/accounts');
+    return;
+  }
+
+  navigateTo('/auth');
 })
 </script>
 
 <template>
   <UApp>
-    <TopNavBar/>
+    <div
+      v-if="authStore.isAuthenticated"
+      class="flex flex-1 h-screen overflow-hidden"
+    >
+      <SideNavBar/>
 
-    <UMain>
-      <NuxtLayout>
-        <NuxtPage/>
-      </NuxtLayout>
-    </UMain>
+      <MainContentWrapper>
+        <TopNavBar/>
 
-    <Footer/>
+        <div class="flex-1 overflow-y-auto">
+          <UMain>
+            <NuxtLayout>
+              <NuxtPage/>
+            </NuxtLayout>
+          </UMain>
+          <Footer/>
+        </div>
+      </MainContentWrapper>
+    </div>
+
+    <div v-else class="flex flex-col h-screen overflow-hidden">
+      <UMain>
+        <NuxtLayout>
+          <NuxtPage/>
+        </NuxtLayout>
+      </UMain>
+    </div>
   </UApp>
 </template>
