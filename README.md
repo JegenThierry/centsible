@@ -2,6 +2,16 @@
 
 A full-stack application for comprehensive budget management.
 
+## Donate
+
+Feel free to buy me a ☕.
+
+<p>
+  <a href="https://ko-fi.com/thierryjegen">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" />
+  </a>
+</p>
+
 ## Project Structure
 
 The repository is divided into the following modules:
