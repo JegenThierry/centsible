@@ -1,8 +1,9 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {Currency, currencyOptions} from "~/models/budget-account/currency";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 
 const emit = defineEmits<{
   (e: 'created'): void;
@@ -25,7 +26,7 @@ const state = reactive({
 const activeIcon = computed(() => currencyOptions.find(item => item.value === state.currency)?.icon)
 
 async function onSubmit() {
-  const { name, initialBalance, currency } = state;
+  const {name, initialBalance, currency} = state;
 
   if (initialBalance == undefined || name == null) {
     toast.error("Validation errors", "Not all fields are set");
@@ -52,47 +53,46 @@ function onCloseModal() {
 
 <template>
   <UModal
-      v-model:open="isOpen"
-      title="Create Budget Account"
-      description="An account allows you to manage your budget."
-      :close="{
+    v-model:open="isOpen"
+    :close="{
         color: 'primary',
         variant: 'outline',
         class: 'rounded-full',
         onClick: onCloseModal,
       }"
+    description="An account allows you to manage your budget."
+    title="Create Budget Account"
   >
     <template #body>
       <UForm id="account-form" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit">
-        <UFormField label="Account name" name="name">
-          <UInput v-model="state.name"
-                  required
-                  placeholder="Account name"
-                  class="w-full"/>
-        </UFormField>
+        <BaseInput v-model="state.name"
+                   autofocus
+                   label="Budget Account Name"
+                   placeholder="Budget Account Name"
+                   required
+                   type="text"/>
 
-        <UFormField label="Balance" name="initialBalance">
-          <UInputNumber v-model="state.initialBalance"
-                        required
-                        placeholder="Balance"
-                        class="w-full"/>
-        </UFormField>
+        <BaseInput v-model="state.initialBalance"
+                   label="Balance"
+                   placeholder="Balance"
+                   required
+                   type="number"/>
 
         <UFormField label="Currency" name="currency">
           <USelect v-model="state.currency"
-                   :items="currencyOptions"
                    :icon="activeIcon"
-                   required
+                   :items="currencyOptions"
+                   class="w-full"
                    placeholder="Currency"
-                   class="w-full"/>
+                   required/>
         </UFormField>
       </UForm>
     </template>
     <template #footer>
-      <UButton class="ml-auto" color="neutral" variant="subtle" type="button" @click="onCloseModal()">
+      <UButton class="ml-auto" color="neutral" type="button" variant="subtle" @click="onCloseModal()">
         Cancel
       </UButton>
-      <UButton :loading="loading" type="submit" form="account-form">
+      <UButton :loading="loading" form="account-form" type="submit">
         Create BudgetAccount
       </UButton>
     </template>

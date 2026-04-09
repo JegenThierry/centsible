@@ -1,6 +1,16 @@
 # Budget Planner
 
-A full-stack application for comprehensive budget management.
+A full-stack application for comprehensive budget management. **NOTE: This project is in its early development stages, and bugs may occur. If you find any issues, please feel free to create an issue.**
+
+## Donate
+
+Feel free to buy me a ☕.
+
+<p>
+  <a href="https://ko-fi.com/thierryjegen">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" />
+  </a>
+</p>
 
 ## Project Structure
 
