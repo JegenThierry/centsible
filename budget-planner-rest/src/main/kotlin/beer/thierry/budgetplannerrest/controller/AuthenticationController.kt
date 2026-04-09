@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/api/auth")
@@ -26,6 +27,16 @@ class AuthenticationController(private val authService: IAuthService) {
     fun register(@RequestBody form: AuthRegisterRequest): ResponseEntity<AuthResponse> {
         val response = authService.register(form)
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/confirm")
+    fun confirm(@RequestParam token: String, @RequestParam username: String): ResponseEntity<String> {
+        val confirmed = authService.confirmRegistration(token, username)
+        return if (confirmed) {
+            ResponseEntity.ok("Account confirmed successfully")
+        } else {
+            ResponseEntity.badRequest().body("Invalid confirmation token")
+        }
     }
 
     @GetMapping("/verify")

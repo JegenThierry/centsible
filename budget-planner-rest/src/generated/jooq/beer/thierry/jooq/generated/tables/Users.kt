@@ -122,6 +122,16 @@ open class Users(
      */
     val MODIFIED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    /**
+     * The column <code>public.users.registered</code>.
+     */
+    val REGISTERED: TableField<UsersRecord, Boolean?> = createField(DSL.name("registered"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
+    /**
+     * The column <code>public.users.registration_token</code>.
+     */
+    val REGISTRATION_TOKEN: TableField<UsersRecord, UUID?> = createField(DSL.name("registration_token"), SQLDataType.UUID, this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

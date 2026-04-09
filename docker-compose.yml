@@ -21,6 +21,7 @@ services:
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
       - ./budget-planner-db/migrations/01_AddInitalBalanceToAccounts.sql:/docker-entrypoint-initdb.d/03_01_AddInitalBalanceToAccounts.sql:ro,z
       - ./budget-planner-db/migrations/02_AccountHistory.sql:/docker-entrypoint-initdb.d/04_02_AccountHistory.sql:ro,z
+      - ./budget-planner-db/migrations/03_AddRegistrationToUsers.sql:/docker-entrypoint-initdb.d/05_03_AddRegistrationToUsers.sql:ro,z
 
     ports:
       - "${DB_HOST_PORT}:5432"
@@ -66,6 +67,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
       JAVA_OPTS: "-Xms128m -Xmx384m"
       TZ: UTC
 

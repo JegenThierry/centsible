@@ -4,26 +4,23 @@ import beer.thierry.budgetplannerrest.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplannerrest.model.auth.AuthRequest
 import beer.thierry.budgetplannerrest.model.auth.AuthResponse
 import beer.thierry.budgetplannerrest.model.user.User
-import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.budgetplannerrest.repository.users.IUserRepository
+import beer.thierry.budgetplannerrest.service.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.Base64
-import java.util.Date
-import java.util.UUID
+import java.util.*
 import javax.crypto.SecretKey
 
 @Service
 class AuthService(
     private val userRepository: IUserRepository,
     private val passwordEncoder: PasswordEncoder,
-    @Value($$"${jwt.secret}") private val jwtSecret: String,
-    @Value($$"${jwt.expirationMs}") private val jwtExpirationMs: Long
+    private val registerEmailService: IRegisterEmailService,
+    @Value("\${jwt.secret}") private val jwtSecret: String,
+    @Value("\${jwt.expirationMs}") private val jwtExpirationMs: Long
 ) : IAuthService {
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
@@ -37,6 +34,10 @@ class AuthService(
             throw IllegalArgumentException("Invalid username or password" )
         }
 
+        if (!user.registered) {
+            throw IllegalArgumentException("Please confirm your email address")
+        }
+
         return AuthResponse(generateJwt(user))
     }
 
@@ -47,10 +48,18 @@ class AuthService(
             throw IllegalArgumentException("An account with these credentials already exists")
         }
 
-        val registeredUser = userRepository.createUser(authRequest)
+        val token = UUID.randomUUID()
+        val registeredUser = userRepository.createUser(authRequest, token)
             ?: throw IllegalArgumentException("User could not be created")
 
-        return AuthResponse(generateJwt(registeredUser))
+        registerEmailService.sendRegistrationEmail(registeredUser, token.toString())
+
+        return AuthResponse("")
+    }
+
+    override fun confirmRegistration(token: String, username: String): Boolean {
+        val user = userRepository.findUserByTokenAndUsername(UUID.fromString(token), username) ?: return false
+        return userRepository.confirmUser(user.id)
     }
 
     private fun generateJwt(user: User): String {

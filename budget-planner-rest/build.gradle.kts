@@ -19,6 +19,18 @@ val props = Properties().apply {
         .use { load(it) }
 }
 
+fun resolveProperty(key: String): String? {
+    val rawValue = props.getProperty(key) ?: return null
+    val match = Regex("""\$\{([^:]+)(?::([^}]*))?\}""").find(rawValue)
+    return if (match != null) {
+        val envVar = match.groupValues[1]
+        val defaultValue = match.groupValues[2]
+        System.getenv(envVar) ?: defaultValue
+    } else {
+        rawValue
+    }
+}
+
 val jooqGeneratedDir = layout.projectDirectory.dir("src/generated/jooq")
 
 java {
@@ -61,10 +73,10 @@ kotlin {
 jooq {
     configuration {
         jdbc {
-            driver = props.getProperty("spring.datasource.driver-class-name") ?: "org.postgresql.Driver"
-            url = props.getProperty("spring.datasource.url")
-            user = props.getProperty("spring.datasource.username")
-            password = props.getProperty("spring.datasource.password")
+            driver = resolveProperty("spring.datasource.driver-class-name") ?: "org.postgresql.Driver"
+            url = resolveProperty("spring.datasource.url")
+            user = resolveProperty("spring.datasource.username")
+            password = resolveProperty("spring.datasource.password")
         }
         generator {
             name = "org.jooq.codegen.KotlinGenerator"
