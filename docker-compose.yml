@@ -20,8 +20,7 @@ services:
       - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
       - ./budget-planner-db/migrations/01_AddInitalBalanceToAccounts.sql:/docker-entrypoint-initdb.d/03_01_AddInitalBalanceToAccounts.sql:ro,z
-      - ./budget-planner-db/migrations/02_AccountHistory.sql:/docker-entrypoint-initdb.d/04_02_AccountHistory.sql:ro,z
-      - ./budget-planner-db/migrations/03_AddRegistrationToUsers.sql:/docker-entrypoint-initdb.d/05_03_AddRegistrationToUsers.sql:ro,z
+      - ./budget-planner-db/migrations/02_AddRegistrationToUsers.sql:/docker-entrypoint-initdb.d/04_02_AddRegistrationToUsers.sql:ro,z
 
     ports:
       - "${DB_HOST_PORT}:5432"

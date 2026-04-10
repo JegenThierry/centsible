@@ -7,6 +7,7 @@ import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.budgetplannerrest.repository.accounthistory.IBudgetAccountHistoryRepository
 import beer.thierry.budgetplannerrest.repository.accounts.IBudgetAccountsRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
@@ -14,16 +15,19 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @Service
-class BudgetBudgetAccountService(
+class BudgetAccountService(
     private val accountRepository: IBudgetAccountsRepository,
     private val accountHistoryRepository: IBudgetAccountHistoryRepository
 ) : IBudgetAccountService {
 
+    @Transactional
     override fun createAccount(
         createBudgetAccountRequest: CreateBudgetAccountRequest,
         authenticatedUser: UserDTO,
     ): BudgetAccountDTO {
-        return accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
+        val account = accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
+        accountHistoryRepository.logAccountHistory(account, authenticatedUser)
+        return account
     }
 
     override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> {

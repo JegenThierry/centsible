@@ -63,4 +63,12 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
 
         return account.get("initial_balance", BigDecimal::class.java) ?: BigDecimal.ZERO
     }
+
+    override fun updateBalance(accountId: UUID, amount: BigDecimal) {
+        dsl.update(ACCOUNTS)
+            .set(ACCOUNTS.BALANCE, ACCOUNTS.BALANCE.plus(amount))
+            .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
+            .where(ACCOUNTS.ID.eq(accountId))
+            .execute()
+    }
 }

@@ -1,0 +1,233 @@
+package beer.thierry.budgetplannerrest.service.transactions
+
+import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountDTO
+import beer.thierry.budgetplannerrest.model.budgetaccount.Currency
+import beer.thierry.budgetplannerrest.model.category.CategoryDTO
+import beer.thierry.budgetplannerrest.model.transaction.TransactionDTO
+import beer.thierry.budgetplannerrest.model.transaction.TransactionForm
+import beer.thierry.budgetplannerrest.model.transaction.TransactionType
+import beer.thierry.budgetplannerrest.model.user.UserDTO
+import beer.thierry.budgetplannerrest.repository.accounts.IBudgetAccountsRepository
+import beer.thierry.budgetplannerrest.repository.accounthistory.IBudgetAccountHistoryRepository
+import beer.thierry.budgetplannerrest.repository.transactions.ITransactionRepository
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
+import org.mockito.junit.jupiter.MockitoExtension
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.UUID
+
+@ExtendWith(MockitoExtension::class)
+class TransactionServiceTest {
+
+    @Mock
+    private lateinit var transactionRepository: ITransactionRepository
+
+    @Mock
+    private lateinit var accountRepository: IBudgetAccountsRepository
+
+    @Mock
+    private lateinit var accountHistoryRepository: IBudgetAccountHistoryRepository
+
+    @InjectMocks
+    private lateinit var service: TransactionService
+
+    private val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User Name", null)
+    private val accountId = UUID.randomUUID()
+    private val category = CategoryDTO(1L, "Category", "icon")
+
+    @Test
+    fun `createTransaction should update balance and log history for INCOME`() {
+        val form = TransactionForm(BigDecimal("50.00"), TransactionType.INCOME, 1L, "Income", LocalDate.now())
+        val transaction = TransactionDTO(
+            UUID.randomUUID(),
+            category,
+            BigDecimal("50.00"),
+            TransactionType.INCOME,
+            "Income",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("150.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.createTransaction(accountId, form, user)).thenReturn(transaction)
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.createTransaction(accountId, form, user)
+
+        assertEquals(transaction, result)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("50.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+
+    @Test
+    fun `createTransaction should update balance and log history for EXPENSE`() {
+        val form = TransactionForm(BigDecimal("30.00"), TransactionType.EXPENSE, 1L, "Expense", LocalDate.now())
+        val transaction = TransactionDTO(
+            UUID.randomUUID(),
+            category,
+            BigDecimal("30.00"),
+            TransactionType.EXPENSE,
+            "Expense",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("70.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.createTransaction(accountId, form, user)).thenReturn(transaction)
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.createTransaction(accountId, form, user)
+
+        assertEquals(transaction, result)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-30.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+
+    @Test
+    fun `updateTransaction should reverse old and apply new transaction`() {
+        val transactionId = UUID.randomUUID()
+        val form = TransactionForm(BigDecimal("100.00"), TransactionType.INCOME, 1L, "New Income", LocalDate.now())
+
+        val oldTransaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("50.00"),
+            TransactionType.EXPENSE,
+            "Old Expense",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val updatedTransaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("100.00"),
+            TransactionType.INCOME,
+            "New Income",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("250.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(oldTransaction)
+        `when`(transactionRepository.updateTransaction(transactionId, accountId, form, user)).thenReturn(
+            updatedTransaction
+        )
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.updateTransaction(transactionId, accountId, form, user)
+
+        assertEquals(updatedTransaction, result)
+        // Combined adjustment: reverse old expense (+50) + apply new income (+100) = +150
+        verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+
+    @Test
+    fun `deleteTransaction should reverse transaction and log history`() {
+        val transactionId = UUID.randomUUID()
+        val transaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("40.00"),
+            TransactionType.INCOME,
+            "Income",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("60.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.deleteTransaction(transactionId, accountId, user)
+
+        assertEquals(transaction, result)
+        // Reverse income: -40
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-40.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+
+    @Test
+    fun `deleteTransaction should reverse EXPENSE and log history`() {
+        val transactionId = UUID.randomUUID()
+        val transaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("25.00"),
+            TransactionType.EXPENSE,
+            "Expense",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("125.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.deleteTransaction(transactionId, accountId, user)
+
+        assertEquals(transaction, result)
+        // Reverse expense: +25
+        verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+
+    @Test
+    fun `updateTransaction should reverse old INCOME and apply new EXPENSE`() {
+        val transactionId = UUID.randomUUID()
+        val form = TransactionForm(BigDecimal("80.00"), TransactionType.EXPENSE, 1L, "New Expense", LocalDate.now())
+
+        val oldTransaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("120.00"),
+            TransactionType.INCOME,
+            "Old Income",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val updatedTransaction = TransactionDTO(
+            transactionId,
+            category,
+            BigDecimal("80.00"),
+            TransactionType.EXPENSE,
+            "New Expense",
+            LocalDate.now(),
+            null,
+            null
+        )
+        val account =
+            BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("0.00"), BigDecimal("100.00"), Currency.EUR)
+
+        `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(oldTransaction)
+        `when`(transactionRepository.updateTransaction(transactionId, accountId, form, user)).thenReturn(
+            updatedTransaction
+        )
+        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
+
+        val result = service.updateTransaction(transactionId, accountId, form, user)
+
+        assertEquals(updatedTransaction, result)
+        // Combined adjustment: reverse old income (-120) + apply new expense (-80) = -200
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"))
+        verify(accountHistoryRepository).logAccountHistory(account, user)
+    }
+}
