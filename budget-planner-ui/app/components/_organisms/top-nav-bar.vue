@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import Profile from "~/components/_organisms/profile.vue";
+import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 import {useSidebar} from "~/composables/use-sidebar";
@@ -37,10 +38,7 @@ onMounted(async () => {
     <div class="flex items-center gap-2">
       <UColorModeButton />
       <Profile v-if="userStore.user" :user="userStore.user" />
+      <ProfileSkeleton v-else-if="authStore.isAuthenticated" />
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>

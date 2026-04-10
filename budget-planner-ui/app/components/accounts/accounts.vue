@@ -4,6 +4,8 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import CurrencyBadge from "~/components/_molecules/badges/currency-badge.vue";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-budget-account-button.vue";
+import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
+import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 
 const accountStore = useBudgetAccountsStore();
 
@@ -11,10 +13,8 @@ function onRefresh(): void {
   accountStore.updateAvailableAccounts();
 }
 
-onMounted(() => {
-  accountStore.clearActiveAccount();
-  accountStore.updateAvailableAccounts();
-});
+accountStore.clearActiveAccount();
+accountStore.updateAvailableAccounts();
 </script>
 
 <template>
@@ -27,9 +27,19 @@ onMounted(() => {
       <CreateBudgetAccountButton />
     </div>
 
-    <div v-if="accountStore.availableAccounts.length === 0" class="flex justify-center py-20">
-      <NoAccountAction @refresh-accounts="onRefresh"/>
+    <div v-if="accountStore.pending && accountStore.availableAccounts.length > 0" class="flex justify-center mb-6">
+      <LoadingAnimation />
     </div>
+
+    <template v-if="accountStore.availableAccounts.length === 0">
+      <div v-if="accountStore.pending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <CardSkeleton v-for="i in 3" :key="i" />
+      </div>
+
+      <div v-else class="flex justify-center py-20">
+        <NoAccountAction @refresh-accounts="onRefresh"/>
+      </div>
+    </template>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <UCard v-for="account in accountStore.availableAccounts"

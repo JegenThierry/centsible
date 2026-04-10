@@ -19,6 +19,7 @@ const props = defineProps<{
   currency: Currency
 }>();
 
+const colorMode = useColorMode();
 const {getCategoryColor} = useColorCalculator();
 
 const expensesByCategory = computed(() => {
@@ -64,35 +65,40 @@ const chartData = computed<ChartData<'doughnut'>>(() => {
   };
 });
 
-const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'bottom',
-      labels: {
-        color: '#a3a3a3',
-        padding: 20,
-        usePointStyle: true,
-        font: {
-          size: 11
+const chartOptions = computed<ChartOptions<'doughnut'>>(() => {
+  const isDark = colorMode.value === 'dark';
+  const labelColor = isDark ? '#a3a3a3' : '#737373';
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: labelColor,
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 11
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed;
+            return new Intl.NumberFormat('de-DE', {
+              style: 'currency',
+              currency: props.currency
+            }).format(value);
+          }
         }
       }
     },
-    tooltip: {
-      callbacks: {
-        label: (context) => {
-          const value = context.parsed;
-          return new Intl.NumberFormat('de-DE', {
-            style: 'currency',
-            currency: props.currency
-          }).format(value);
-        }
-      }
-    }
-  },
-  cutout: '70%'
-}));
+    cutout: '70%'
+  };
+});
 
 const totalExpenses = computed(() => {
   return Math.abs(Object.values(expensesByCategory.value).reduce((sum, current) => sum + current.total, 0));
@@ -102,7 +108,7 @@ const totalExpenses = computed(() => {
 <template>
   <UCard>
     <template #header>
-      <h3 class="text-base font-semibold text-white">
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white">
         Expenses by Category
       </h3>
     </template>
@@ -111,8 +117,8 @@ const totalExpenses = computed(() => {
       <Doughnut :data="chartData" :options="chartOptions"/>
 
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10">
-        <span class="text-xs text-neutral-500 uppercase tracking-widest font-medium">Total</span>
-        <span class="text-lg font-bold text-white">
+        <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium">Total</span>
+        <span class="text-lg font-bold text-gray-900 dark:text-white">
           <BalanceNumberFormat :balance="totalExpenses"
                                :currency="currency"
                                format="de-De"/>

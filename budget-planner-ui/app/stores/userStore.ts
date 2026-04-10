@@ -7,18 +7,23 @@ export const useUserStore = defineStore('userStore', () => {
   const userService = useUserService(api);
 
   const user = ref<UserDto | null>(null);
+  const pending = ref(false);
 
   async function fetchMyself() {
+    pending.value = true;
     try {
       user.value = await userService.fetchMyself();
     } catch (e) {
       console.error("Failed to fetch user data", e);
       user.value = null;
+    } finally {
+      pending.value = false;
     }
   }
 
   return {
     user,
+    pending,
     fetchMyself,
   }
 });

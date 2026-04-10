@@ -10,24 +10,31 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
 
   const activeAccount = ref<BudgetAccount>();
   const availableAccounts = ref<BudgetAccount[]>([]);
+  const pending = ref(false);
 
   async function updateAvailableAccounts() {
     const accountService = useBudgetAccountService(api);
+    pending.value = true;
     try {
       availableAccounts.value = await accountService.fetchAccounts();
     } catch (error) {
       toasts.error("Failed to update accounts", "Accounts could not be updated")
       console.error(error);
+    } finally {
+      pending.value = false;
     }
   }
 
   async function updateActiveAccount() {
     if (activeAccount.value == undefined) return;
 
+    pending.value = true;
     try {
       activeAccount.value = await accountService.fetchAccount(activeAccount.value.id)
     } catch (error) {
       console.error(error);
+    } finally {
+      pending.value = false;
     }
   }
 
@@ -36,11 +43,14 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
       return;
     }
 
+    pending.value = true;
     try {
       activeAccount.value = await accountService.fetchAccount(accountId);
     } catch (error) {
       toasts.error("Failed to load account", "Account could not be loaded");
       console.error(error);
+    } finally {
+      pending.value = false;
     }
   }
 
@@ -51,6 +61,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   return {
     activeAccount,
     availableAccounts,
+    pending,
     updateAvailableAccounts,
     updateActiveAccount,
     loadActiveAccount,

@@ -162,7 +162,13 @@ onMounted(() => {
       <div>Transactions</div>
     </template>
     <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
-      <template #empty-state>
+      <template #loading>
+        <div class="flex flex-col items-center justify-center py-10 gap-3">
+          <LoadingAnimation />
+          <p class="text-sm text-neutral-500">Loading transactions...</p>
+        </div>
+      </template>
+      <template #empty>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
           <UIcon name="i-lucide-database-x" class="w-8 h-8 text-neutral-400"/>
           <p class="text-sm text-neutral-500">No transactions found.</p>

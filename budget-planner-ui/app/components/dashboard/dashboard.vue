@@ -5,6 +5,9 @@ import AccountHistoryList from "~/components/dashboard/cards/account-history-lis
 import TransactionsByCategory from "~/components/dashboard/cards/transactions-by-category.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
+import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
+import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
+import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skeleton.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
@@ -49,7 +52,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="accountStore.activeAccount" class="p-4 lg:p-10 space-y-6">
+  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="p-4 lg:p-10 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <CardSkeleton />
+      <div class="md:col-span-2">
+        <ChartCardSkeleton />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <ChartCardSkeleton />
+      <ListCardSkeleton />
+    </div>
+  </div>
+
+  <div v-else-if="accountStore.activeAccount" class="p-4 lg:p-10 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <AccountBalance :balance="accountStore.activeAccount.balance"
                       :initial-balance="accountStore.activeAccount.initialBalance"

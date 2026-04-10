@@ -24,21 +24,21 @@ const formatDate = (dateString: string) => {
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-white">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           Account History
         </h3>
       </div>
     </template>
 
     <div class="overflow-y-auto max-h-64">
-      <ul class="divide-y divide-neutral-800">
+      <ul class="divide-y divide-neutral-200 dark:divide-neutral-800">
         <li v-for="snapshot in accountHistoryStore.snapshots"
             :key="snapshot.createdAt"
             class="py-3 flex justify-between items-center">
-          <span class="text-sm text-neutral-400">
+          <span class="text-sm text-neutral-500 dark:text-neutral-400">
             {{ formatDate(snapshot.createdAt) }}
           </span>
-          <span class="text-sm font-medium text-white">
+          <span class="text-sm font-medium text-gray-900 dark:text-white">
             <BalanceNumberFormat :balance="snapshot.balance"
                                  :currency="currency"
                                  format="de-De"/>
