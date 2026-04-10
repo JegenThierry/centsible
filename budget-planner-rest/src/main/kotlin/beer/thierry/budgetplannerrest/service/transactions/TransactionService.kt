@@ -38,7 +38,7 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val transaction = transactionRepository.createTransaction(accountId, transactionForm, authenticatedUser)
-        val adjustment = calculateAdjustment(transaction.type, transaction.amount, isReversal = false)
+        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         updateAccountBalanceAndLogHistory(accountId, adjustment, authenticatedUser)
 
         return transaction
@@ -52,11 +52,11 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
-        val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount, isReversal = true)
+        val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
 
         val updatedTransaction =
             transactionRepository.updateTransaction(transactionId, accountId, transactionForm, authenticatedUser)
-        val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount, isReversal = false)
+        val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
         updateAccountBalanceAndLogHistory(accountId, oldAdjustment.add(newAdjustment), authenticatedUser)
 
@@ -70,15 +70,19 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
-        val adjustment = calculateAdjustment(transaction.type, transaction.amount, isReversal = true)
+        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         updateAccountBalanceAndLogHistory(accountId, adjustment, authenticatedUser)
 
         return transaction
     }
 
-    private fun calculateAdjustment(type: TransactionType?, amount: BigDecimal?, isReversal: Boolean): BigDecimal {
+    private fun calculateAdjustment(type: TransactionType?, amount: BigDecimal?): BigDecimal {
         val value = amount ?: BigDecimal.ZERO
-        return if ((type == TransactionType.INCOME) != isReversal) value else value.negate()
+        return when (type) {
+            TransactionType.INCOME -> value
+            TransactionType.EXPENSE -> value.negate()
+            else -> throw IllegalArgumentException("Invalid transaction type: $type")
+        }
     }
 
     private fun updateAccountBalanceAndLogHistory(accountId: UUID, adjustment: BigDecimal, authenticatedUser: UserDTO) {
