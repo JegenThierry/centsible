@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class RegisterEmailService(
     private val emailService: IEmailService,
-    @Value("\${app.base-url}") private val baseUrl: String
+    @Value($$"${app.base-url}") private val baseUrl: String
 ) : IRegisterEmailService {
     override fun sendRegistrationEmail(user: User, token: String) {
         val confirmationUrl = "$baseUrl/api/auth/confirm?token=$token&username=${user.username}"
