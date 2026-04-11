@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS categories
     user_id    UUID REFERENCES users (id) ON DELETE CASCADE,
     name       VARCHAR(50) NOT NULL,
     icon       VARCHAR(50) NOT NULL,
+    color      VARCHAR(7)  NOT NULL DEFAULT '#3b82f6',
     type       VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_categories_name UNIQUE (name)

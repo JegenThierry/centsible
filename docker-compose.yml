@@ -21,6 +21,8 @@ services:
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
       - ./budget-planner-db/migrations/01_AddInitalBalanceToAccounts.sql:/docker-entrypoint-initdb.d/03_01_AddInitalBalanceToAccounts.sql:ro,z
       - ./budget-planner-db/migrations/02_AddRegistrationToUsers.sql:/docker-entrypoint-initdb.d/04_02_AddRegistrationToUsers.sql:ro,z
+      - ./budget-planner-db/migrations/03_CategoryTypeAndTransactionRefactor.sql:/docker-entrypoint-initdb.d/05_03_CategoryTypeAndTransactionRefactor.sql:ro,z
+      - ./budget-planner-db/migrations/04_AddColorToCategories.sql:/docker-entrypoint-initdb.d/06_04_AddColorToCategories.sql:ro,z
 
     ports:
       - "${DB_HOST_PORT}:5432"

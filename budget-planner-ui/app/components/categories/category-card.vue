@@ -24,12 +24,8 @@ const emit = defineEmits<{
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div
-          :class="[
-            'flex p-2 rounded-lg my-auto',
-            category.system
-              ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'
-              : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-          ]"
+          class="flex p-2 rounded-lg my-auto"
+          :style="{ backgroundColor: `${category.color}20`, color: category.color }"
         >
           <UIcon :name="category.icon" class="w-6 h-6"/>
         </div>

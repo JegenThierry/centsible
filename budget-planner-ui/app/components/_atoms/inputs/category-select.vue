@@ -42,14 +42,14 @@ defineExpose({
     >
       <template #label>
         <div v-if="model" class="flex items-center gap-2">
-          <UIcon :name="model.icon" class="w-4 h-4" />
+          <UIcon :name="model.icon" class="w-4 h-4" :style="{ color: model.color }"/>
           <span>{{ model.name }}</span>
         </div>
         <span v-else>Select a category</span>
       </template>
 
       <template #item-leading="{ item: category }">
-        <UIcon :name="category.icon" class="w-4 h-4" />
+        <UIcon :name="category.icon" class="w-4 h-4" :style="{ color: category.color }"/>
       </template>
     </USelectMenu>
   </UFormField>

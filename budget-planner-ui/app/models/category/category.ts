@@ -7,6 +7,7 @@ export interface Category {
   id: number;
   name: string;
   icon: string;
+  color: string;
   type: CategoryType;
   system: boolean;
 }
@@ -14,5 +15,6 @@ export interface Category {
 export interface CategoryForm {
   name: string;
   icon: string;
+  color: string;
   type: CategoryType;
 }

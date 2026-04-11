@@ -21,7 +21,6 @@ const props = defineProps<{
 }>();
 
 const colorMode = useColorMode();
-const {getCategoryColor} = useColorCalculator();
 
 const expensesByCategory = computed(() => {
   const categories: Record<string, { total: number, color: string }> = {};
@@ -31,16 +30,12 @@ const expensesByCategory = computed(() => {
   const expenseTransactions = props.transactions
     .filter(transaction => transaction && transaction.category && transaction.category.type === CategoryType.EXPENSE);
 
-  const distinctCategories = Array.from(new Set(expenseTransactions.map(t => t.category.id)));
-
   expenseTransactions.forEach(transaction => {
     const categoryName = transaction.category.name || 'Unknown';
-    const categoryId = transaction.category.id;
+    const categoryColor = transaction.category.color || '#a3a3a3';
 
     if (!categories[categoryName]) {
-      const categoryIndex = distinctCategories.indexOf(categoryId);
-      const color = getCategoryColor(categoryIndex, distinctCategories.length);
-      categories[categoryName] = {total: 0, color};
+      categories[categoryName] = {total: 0, color: categoryColor};
     }
     categories[categoryName].total += transaction.amount || 0;
   });

@@ -16,6 +16,7 @@ import LoadingAnimation from "~/components/_atoms/animations/loading-animation.v
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
+const UIcon = resolveComponent('UIcon')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const api = useApi();
@@ -75,7 +76,19 @@ const columns: TableColumn<Transaction>[] = [
     header: 'Category',
     cell: ({row}) => {
       const category = row.getValue('category') as any
-      return h(UBadge, {variant: 'subtle'}, () => category?.name || 'No category')
+      if (!category) return h(UBadge, {variant: 'subtle', color: 'neutral'}, () => 'No category')
+
+      return h(UBadge, {
+        style: {
+          backgroundColor: `${category.color}15`,
+          color: category.color,
+          border: `1px solid ${category.color}30`,
+        },
+        class: 'flex items-center gap-1.5 w-fit'
+      }, () => [
+        h(UIcon, {name: category.icon, class: 'w-3.5 h-3.5'}),
+        h('span', category.name)
+      ])
     }
   },
   {

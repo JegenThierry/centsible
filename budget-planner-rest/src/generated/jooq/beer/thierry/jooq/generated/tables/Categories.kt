@@ -113,6 +113,11 @@ open class Categories(
      */
     val TYPE: TableField<CategoriesRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
 
+    /**
+     * The column <code>public.categories.color</code>.
+     */
+    val COLOR: TableField<CategoriesRecord, String?> = createField(DSL.name("color"), SQLDataType.VARCHAR(7).nullable(false).defaultValue(DSL.field(DSL.raw("'#3b82f6'::character varying"), SQLDataType.VARCHAR)), this, "")
+
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

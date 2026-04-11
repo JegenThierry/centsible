@@ -33,6 +33,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.NAME,
             CATEGORIES.ICON,
             CATEGORIES.TYPE,
+            CATEGORIES.COLOR
         ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
             .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).limit(pageSize).offset(offset)
@@ -41,7 +42,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                     id = transactionRecord[CATEGORIES.ID],
                     name = transactionRecord[CATEGORIES.NAME],
                     icon = transactionRecord[CATEGORIES.ICON],
-                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!)
+                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!),
+                    color = transactionRecord[CATEGORIES.COLOR]
                 )
 
                 TransactionDTO(
@@ -70,6 +72,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.NAME,
             CATEGORIES.ICON,
             CATEGORIES.TYPE,
+            CATEGORIES.COLOR
         ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
             .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
@@ -78,7 +81,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                     id = transactionRecord[CATEGORIES.ID],
                     name = transactionRecord[CATEGORIES.NAME],
                     icon = transactionRecord[CATEGORIES.ICON],
-                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!)
+                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!),
+                    color = transactionRecord[CATEGORIES.COLOR]
                 )
 
                 TransactionDTO(
