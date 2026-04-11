@@ -49,7 +49,7 @@ defineExpose({
       </template>
 
       <template #item-leading="{ item: category }">
-        <UIcon :name="category.icon" class="w-4 h-4" :style="{ color: category.color }"/>
+        <UIcon :name="category.icon" class="w-4 h-4 flex my-auto" :style="{ color: category.color }"/>
       </template>
     </USelectMenu>
   </UFormField>

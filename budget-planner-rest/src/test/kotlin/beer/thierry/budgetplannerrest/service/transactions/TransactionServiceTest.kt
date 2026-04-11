@@ -39,8 +39,8 @@ class TransactionServiceTest {
 
     private val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User Name", null)
     private val accountId = UUID.randomUUID()
-    private val category = CategoryDTO(1L, "Category", "icon", CategoryType.EXPENSE)
-    private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", CategoryType.INCOME)
+    private val category = CategoryDTO(1L, "Category", "icon", "#FF0000", CategoryType.EXPENSE)
+    private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", "#00FF00", CategoryType.INCOME)
 
     @Test
     fun `createTransaction should update balance for INCOME`() {

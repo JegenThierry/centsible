@@ -1,0 +1,18 @@
+<script setup lang="ts">
+import { CategoryType } from "~/models/category/category";
+import type { Currency } from "~/models/budget-account/currency";
+import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+
+defineProps<{
+  amount: number;
+  type?: CategoryType;
+  currency: Currency;
+}>();
+</script>
+
+<template>
+  <div class="text-sm font-semibold"
+       :class="type === CategoryType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+    <BalanceNumberFormat :balance="amount" :currency="currency" format="de-De"/>
+  </div>
+</template>

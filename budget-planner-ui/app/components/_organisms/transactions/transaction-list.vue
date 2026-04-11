@@ -5,7 +5,8 @@ import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {Transaction} from "~/models/transactions/transaction";
-import { CategoryType } from "~/models/category/category";
+import {Currency} from "~/models/budget-account/currency";
+import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
 import EditTransactionModal from "~/components/_organisms/transactions/modals/edit-transaction-modal.vue";
 import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
@@ -101,15 +102,11 @@ const columns: TableColumn<Transaction>[] = [
       }
     },
     cell: ({row}) => {
-      const amount = Number.parseFloat(row.getValue('amount'))
-      const type = row.original.category.type
-      const formattedAmount = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(amount)
-      return h('span', {
-        class: type === CategoryType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      }, formattedAmount)
+      return h(TransactionAmount, {
+        amount: Number.parseFloat(row.getValue('amount')),
+        type: row.original.category?.type,
+        currency: budgetAccountsStore.activeAccount?.currency || Currency.EUR
+      })
     }
   },
   {

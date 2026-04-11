@@ -3,6 +3,8 @@ import AccountBalance from "~/components/_organisms/dashboard/account-balance.vu
 import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
 import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
 import TransactionsByCategory from "~/components/_organisms/dashboard/transactions-by-category.vue";
+import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
+import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -60,7 +62,11 @@ onMounted(() => {
       :description="`Overview for account: ${accountStore.activeAccount.name}`"
     />
 
-    <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="space-y-4 sm:space-y-6">
+  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="space-y-4 sm:space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <CardSkeleton v-for="i in 3" :key="i" />
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <CardSkeleton />
       <div class="md:col-span-2">
@@ -69,12 +75,18 @@ onMounted(() => {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <ChartCardSkeleton />
       <ListCardSkeleton />
+      <ChartCardSkeleton />
     </div>
+
+    <ListCardSkeleton />
   </div>
 
   <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
+    <!-- Monthly summary stats -->
+    <DashboardStats :transactions="transactionStore.transactions"
+                    :currency="accountStore.activeAccount.currency" />
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <AccountBalance :balance="accountStore.activeAccount.balance"
                       :initial-balance="accountStore.activeAccount.initialBalance"
@@ -88,12 +100,15 @@ onMounted(() => {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <RecentTransactions :transactions="transactionStore.transactions"
+                          :currency="accountStore.activeAccount.currency" />
+
       <TransactionsByCategory :transactions="transactionStore.transactions"
                               :currency="accountStore.activeAccount.currency" />
-
-      <AccountHistoryList :snapshots="historyStore.snapshots"
-                          :currency="accountStore.activeAccount.currency" />
     </div>
+
+    <AccountHistoryList :snapshots="historyStore.snapshots"
+                        :currency="accountStore.activeAccount.currency" />
   </div>
 
   <CreateFab @click="onOpenCreateTransactionModal" />
