@@ -18,7 +18,8 @@ data class Categories(
     val userId: UUID? = null,
     val name: String? = null,
     val icon: String? = null,
-    val createdAt: OffsetDateTime? = null
+    val createdAt: OffsetDateTime? = null,
+    val type: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -59,6 +60,12 @@ data class Categories(
         }
         else if (this.createdAt != o.createdAt)
             return false
+        if (this.type == null) {
+            if (o.type != null)
+                return false
+        }
+        else if (this.type != o.type)
+            return false
         return true
     }
 
@@ -70,6 +77,7 @@ data class Categories(
         result = prime * result + (if (this.name == null) 0 else this.name.hashCode())
         result = prime * result + (if (this.icon == null) 0 else this.icon.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
+        result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         return result
     }
 
@@ -81,6 +89,7 @@ data class Categories(
         sb.append(", ").append(name)
         sb.append(", ").append(icon)
         sb.append(", ").append(createdAt)
+        sb.append(", ").append(type)
 
         sb.append(")")
         return sb.toString()

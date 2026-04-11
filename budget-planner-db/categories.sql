@@ -1,7 +1,7 @@
-INSERT INTO categories (name, icon)
-VALUES ( 'Food', 'i-lucide-utensils'),
-       ( 'Transport', 'i-lucide-bus'),
-       ( 'Housing', 'i-lucide-home'),
-       ( 'Entertainment', 'i-lucide-clapperboard'),
-       ( 'Salary', 'i-lucide-banknote')
+INSERT INTO categories (name, icon, type)
+VALUES ( 'Food', 'i-lucide-utensils', 'EXPENSE'),
+       ( 'Transport', 'i-lucide-bus', 'EXPENSE'),
+       ( 'Housing', 'i-lucide-home', 'EXPENSE'),
+       ( 'Entertainment', 'i-lucide-clapperboard', 'EXPENSE'),
+       ( 'Salary', 'i-lucide-banknote', 'INCOME')
 ON CONFLICT (name) DO NOTHING;

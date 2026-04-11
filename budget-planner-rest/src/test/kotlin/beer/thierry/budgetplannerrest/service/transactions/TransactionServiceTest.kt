@@ -3,9 +3,9 @@ package beer.thierry.budgetplannerrest.service.transactions
 import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplannerrest.model.budgetaccount.Currency
 import beer.thierry.budgetplannerrest.model.category.CategoryDTO
+import beer.thierry.budgetplannerrest.model.category.CategoryType
 import beer.thierry.budgetplannerrest.model.transaction.TransactionDTO
 import beer.thierry.budgetplannerrest.model.transaction.TransactionForm
-import beer.thierry.budgetplannerrest.model.transaction.TransactionType
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.budgetplannerrest.repository.accounts.IBudgetAccountsRepository
 import beer.thierry.budgetplannerrest.repository.accounthistory.IBudgetAccountHistoryRepository
@@ -39,16 +39,16 @@ class TransactionServiceTest {
 
     private val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User Name", null)
     private val accountId = UUID.randomUUID()
-    private val category = CategoryDTO(1L, "Category", "icon")
+    private val category = CategoryDTO(1L, "Category", "icon", CategoryType.EXPENSE)
+    private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", CategoryType.INCOME)
 
     @Test
     fun `createTransaction should update balance for INCOME`() {
-        val form = TransactionForm(BigDecimal("50.00"), TransactionType.INCOME, 1L, "Income", LocalDate.now())
+        val form = TransactionForm(BigDecimal("50.00"), 2L, "Income", LocalDate.now())
         val transaction = TransactionDTO(
             UUID.randomUUID(),
-            category,
+            incomeCategory,
             BigDecimal("50.00"),
-            TransactionType.INCOME,
             "Income",
             LocalDate.now(),
             null,
@@ -67,12 +67,11 @@ class TransactionServiceTest {
 
     @Test
     fun `createTransaction should update balance for EXPENSE`() {
-        val form = TransactionForm(BigDecimal("30.00"), TransactionType.EXPENSE, 1L, "Expense", LocalDate.now())
+        val form = TransactionForm(BigDecimal("30.00"), 1L, "Expense", LocalDate.now())
         val transaction = TransactionDTO(
             UUID.randomUUID(),
             category,
             BigDecimal("30.00"),
-            TransactionType.EXPENSE,
             "Expense",
             LocalDate.now(),
             null,
@@ -92,13 +91,12 @@ class TransactionServiceTest {
     @Test
     fun `updateTransaction should reverse old and apply new transaction`() {
         val transactionId = UUID.randomUUID()
-        val form = TransactionForm(BigDecimal("100.00"), TransactionType.INCOME, 1L, "New Income", LocalDate.now())
+        val form = TransactionForm(BigDecimal("100.00"), 2L, "New Income", LocalDate.now())
 
         val oldTransaction = TransactionDTO(
             transactionId,
             category,
             BigDecimal("50.00"),
-            TransactionType.EXPENSE,
             "Old Expense",
             LocalDate.now(),
             null,
@@ -106,9 +104,8 @@ class TransactionServiceTest {
         )
         val updatedTransaction = TransactionDTO(
             transactionId,
-            category,
+            incomeCategory,
             BigDecimal("100.00"),
-            TransactionType.INCOME,
             "New Income",
             LocalDate.now(),
             null,
@@ -134,9 +131,8 @@ class TransactionServiceTest {
         val transactionId = UUID.randomUUID()
         val transaction = TransactionDTO(
             transactionId,
-            category,
+            incomeCategory,
             BigDecimal("40.00"),
-            TransactionType.INCOME,
             "Income",
             LocalDate.now(),
             null,
@@ -161,7 +157,6 @@ class TransactionServiceTest {
             transactionId,
             category,
             BigDecimal("25.00"),
-            TransactionType.EXPENSE,
             "Expense",
             LocalDate.now(),
             null,
@@ -182,13 +177,12 @@ class TransactionServiceTest {
     @Test
     fun `updateTransaction should reverse old INCOME and apply new EXPENSE`() {
         val transactionId = UUID.randomUUID()
-        val form = TransactionForm(BigDecimal("80.00"), TransactionType.EXPENSE, 1L, "New Expense", LocalDate.now())
+        val form = TransactionForm(BigDecimal("80.00"), 1L, "New Expense", LocalDate.now())
 
         val oldTransaction = TransactionDTO(
             transactionId,
-            category,
+            incomeCategory,
             BigDecimal("120.00"),
-            TransactionType.INCOME,
             "Old Income",
             LocalDate.now(),
             null,
@@ -198,7 +192,6 @@ class TransactionServiceTest {
             transactionId,
             category,
             BigDecimal("80.00"),
-            TransactionType.EXPENSE,
             "New Expense",
             LocalDate.now(),
             null,

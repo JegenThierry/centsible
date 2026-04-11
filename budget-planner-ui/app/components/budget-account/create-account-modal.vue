@@ -4,6 +4,7 @@ import {useBudgetAccountService} from "~/services/budget-account/budget-account-
 import {useToasts} from "~/services/toasts/toast-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
+import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 
 const emit = defineEmits<{
   (e: 'created'): void;
@@ -89,9 +90,7 @@ function onCloseModal() {
       </UForm>
     </template>
     <template #footer>
-      <UButton class="ml-auto" color="neutral" type="button" variant="subtle" @click="onCloseModal()">
-        Cancel
-      </UButton>
+      <CancelButton class="ml-auto" type="button" variant="subtle" @click="onCloseModal()" />
       <UButton :loading="loading" form="account-form" type="submit">
         Create BudgetAccount
       </UButton>

@@ -1,9 +1,9 @@
 package beer.thierry.budgetplannerrest.repository.transactions
 
 import beer.thierry.budgetplannerrest.model.category.CategoryDTO
+import beer.thierry.budgetplannerrest.model.category.CategoryType
 import beer.thierry.budgetplannerrest.model.transaction.TransactionDTO
 import beer.thierry.budgetplannerrest.model.transaction.TransactionForm
-import beer.thierry.budgetplannerrest.model.transaction.TransactionType
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
@@ -25,7 +25,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return dsl.select(
             TRANSACTIONS.ID,
             TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.TYPE,
             TRANSACTIONS.DESCRIPTION,
             TRANSACTIONS.TRANSACTION_DATE,
             TRANSACTIONS.CREATED_AT,
@@ -33,6 +32,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.ID,
             CATEGORIES.NAME,
             CATEGORIES.ICON,
+            CATEGORIES.TYPE,
         ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
             .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).limit(pageSize).offset(offset)
@@ -40,15 +40,14 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                 val category = CategoryDTO(
                     id = transactionRecord[CATEGORIES.ID],
                     name = transactionRecord[CATEGORIES.NAME],
-                    icon = transactionRecord[CATEGORIES.ICON]
+                    icon = transactionRecord[CATEGORIES.ICON],
+                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!)
                 )
-                val transactionType = transactionRecord[TRANSACTIONS.TYPE]?.let(TransactionType::valueOf)
 
                 TransactionDTO(
                     id = transactionRecord[TRANSACTIONS.ID],
                     category = category,
                     amount = transactionRecord[TRANSACTIONS.AMOUNT],
-                    type = transactionType,
                     description = transactionRecord[TRANSACTIONS.DESCRIPTION],
                     transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
                     createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
@@ -63,7 +62,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return dsl.select(
             TRANSACTIONS.ID,
             TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.TYPE,
             TRANSACTIONS.DESCRIPTION,
             TRANSACTIONS.TRANSACTION_DATE,
             TRANSACTIONS.CREATED_AT,
@@ -71,6 +69,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.ID,
             CATEGORIES.NAME,
             CATEGORIES.ICON,
+            CATEGORIES.TYPE,
         ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
             .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
@@ -78,15 +77,14 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                 val category = CategoryDTO(
                     id = transactionRecord[CATEGORIES.ID],
                     name = transactionRecord[CATEGORIES.NAME],
-                    icon = transactionRecord[CATEGORIES.ICON]
+                    icon = transactionRecord[CATEGORIES.ICON],
+                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!)
                 )
-                val transactionType = transactionRecord[TRANSACTIONS.TYPE]?.let(TransactionType::valueOf)
 
                 TransactionDTO(
                     id = transactionRecord[TRANSACTIONS.ID],
                     category = category,
                     amount = transactionRecord[TRANSACTIONS.AMOUNT],
-                    type = transactionType,
                     description = transactionRecord[TRANSACTIONS.DESCRIPTION],
                     transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
                     createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
@@ -100,7 +98,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     ): TransactionDTO {
         val record = dsl.insertInto(TRANSACTIONS).set(TRANSACTIONS.ACCOUNT_ID, accountId)
             .set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId).set(TRANSACTIONS.AMOUNT, transactionForm.amount)
-            .set(TRANSACTIONS.TYPE, transactionForm.type.name)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
             .set(TRANSACTIONS.CREATED_AT, OffsetDateTime.now()).set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
@@ -113,7 +110,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
     ): TransactionDTO {
         dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
-            .set(TRANSACTIONS.AMOUNT, transactionForm.amount).set(TRANSACTIONS.TYPE, transactionForm.type.name)
+            .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now()).where(

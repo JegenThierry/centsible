@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {type Category} from "~/models/category/category";
-import {type TransactionForm, TransactionType, transactionTypes} from "~/models/transactions/transaction";
+import {type TransactionForm} from "~/models/transactions/transaction";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
+import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useCategoryService} from "~/services/category/category-service";
@@ -24,7 +26,6 @@ const budgetAccountsStore = useBudgetAccountsStore();
 
 const form = ref<TransactionForm>({
   amount: 0,
-  type: TransactionType.EXPENSE,
   description: '',
   category: undefined as Category | undefined,
   transactionDate: format(new Date(), 'yyyy-MM-dd'),
@@ -50,7 +51,6 @@ async function loadCategories() {
 function resetForm() {
   form.value = {
     amount: 0,
-    type: TransactionType.EXPENSE,
     description: '',
     category: undefined,
     transactionDate: format(new Date(), 'yyyy-MM-dd'),
@@ -64,12 +64,12 @@ onMounted(() => {
 
 async function handleSave() {
   const inputs = [amountInput, descriptionInput, categoryInput, dateInput];
-  console.log(useValidator().validateInputs(inputs), budgetAccountsStore.activeAccount?.id)
   if (!useValidator().validateInputs(inputs)) {
     return;
   }
 
   if (!budgetAccountsStore.activeAccount?.id) return;
+  if (!form.value.category?.id) return;
 
   loading.value = true;
   try {
@@ -77,9 +77,8 @@ async function handleSave() {
       budgetAccountsStore.activeAccount.id,
       {
         amount: form.value.amount,
-        type: form.value.type,
         description: form.value.description,
-        categoryId: form.value.category?.id,
+        categoryId: form.value.category.id,
         transactionDate: form.value.transactionDate
       }
     );
@@ -101,10 +100,16 @@ async function handleSave() {
           description="Create a new transaction for your active account.">
     <template #body>
       <div class="space-y-4">
-        <URadioGroup v-model="form.type"
-                     :items="transactionTypes"
-                     legend="Transaction Type"
-                     orientation="horizontal" />
+        <CategorySelect ref="categoryInput"
+                        v-model="form.category"
+                        label="Category"
+                        :options="categories"
+                        required />
+
+        <div v-if="form.category" class="flex items-center gap-2 text-sm">
+          <span class="text-neutral-500">Transaction Type:</span>
+          <CategoryTypeBadge :type="form.category.type" />
+        </div>
 
         <BaseInput ref="amountInput"
                    v-model="form.amount"
@@ -112,12 +117,6 @@ async function handleSave() {
                    type="number"
                    required
                    placeholder="0.00" />
-
-        <CategorySelect ref="categoryInput"
-                        v-model="form.category"
-                        label="Category"
-                        :options="categories"
-                        required />
 
         <BaseInput ref="descriptionInput"
                    v-model="form.description"
@@ -135,7 +134,7 @@ async function handleSave() {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancel</UButton>
+        <CancelButton @click="isOpen = false"/>
         <UButton :loading="loading" @click="handleSave"> Create</UButton>
       </div>
     </template>

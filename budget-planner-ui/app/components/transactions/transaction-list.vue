@@ -5,6 +5,7 @@ import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {Transaction} from "~/models/transactions/transaction";
+import { CategoryType } from "~/models/category/category";
 import EditTransactionModal from "~/components/transactions/modals/edit-transaction-modal.vue";
 import DeleteTransactionModal from "~/components/transactions/modals/delete-transaction-modal.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
@@ -88,13 +89,13 @@ const columns: TableColumn<Transaction>[] = [
     },
     cell: ({row}) => {
       const amount = Number.parseFloat(row.getValue('amount'))
-      const type = row.original.type
+      const type = row.original.category.type
       const formattedAmount = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'EUR'
       }).format(amount)
       return h('span', {
-        class: type === 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+        class: type === CategoryType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
       }, formattedAmount)
     }
   },

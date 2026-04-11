@@ -10,10 +10,6 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<Category | undefined>();
-const items = computed(() => props.options.map(option => ({
-  ...option,
-  type: undefined as any
-})));
 const error = ref<string | undefined>(undefined);
 
 function validate(): boolean {
@@ -38,7 +34,7 @@ defineExpose({
               :hint="hint">
     <USelectMenu
         v-model="model"
-        :items="items"
+        :items="options"
         label-key="name"
         searchable
         placeholder="Select a category"

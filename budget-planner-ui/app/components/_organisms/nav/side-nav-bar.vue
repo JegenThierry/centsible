@@ -13,6 +13,11 @@ const items = computed(() => {
       label: 'Accounts',
       to: '/accounts',
       icon: 'i-lucide-wallet'
+    },
+    {
+      label: 'Categories',
+      to: '/categories',
+      icon: 'i-lucide-tag'
     }
   ];
 

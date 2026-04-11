@@ -5,7 +5,6 @@ import java.time.LocalDate
 
 data class TransactionForm(
     val amount: BigDecimal,
-    val type: TransactionType,
     val categoryId: Long,
     val description: String,
     val transactionDate: LocalDate,

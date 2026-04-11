@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS categories
     user_id    UUID REFERENCES users (id) ON DELETE CASCADE,
     name       VARCHAR(50) NOT NULL,
     icon       VARCHAR(50) NOT NULL,
+    type       VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_categories_name UNIQUE (name)
 );
@@ -45,7 +46,6 @@ CREATE TABLE IF NOT EXISTS transactions
     amount           DECIMAL(15, 2) NOT NULL,
     description      TEXT,
     transaction_date DATE           NOT NULL DEFAULT CURRENT_DATE,
-    type             VARCHAR(10)    NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     created_at       TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at      TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
@@ -65,12 +65,13 @@ WITH history AS (SELECT a.id                                         AS account_
                  UNION ALL
                  SELECT t.account_id,
                         a.user_id,
-                        a.initial_balance + SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE -t.amount END)
+                        a.initial_balance + SUM(CASE WHEN c.type = 'INCOME' THEN t.amount ELSE -t.amount END)
                                             OVER (PARTITION BY t.account_id ORDER BY t.transaction_date, t.created_at) AS balance,
                         t.created_at,
                         t.id                                                                                           AS transaction_id
                  FROM transactions t
-                          JOIN accounts a ON t.account_id = a.id)
+                          JOIN accounts a ON t.account_id = a.id
+                          JOIN categories c ON t.category_id = c.id)
 SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
        account_id,
        user_id,

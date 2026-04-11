@@ -5,9 +5,6 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
-import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_ACCOUNT_ID
-import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_UNIQUE
-import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_USER_ID
 import beer.thierry.jooq.generated.tables.records.AccountHistoryRecord
 
 import java.math.BigDecimal
@@ -15,12 +12,10 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 import kotlin.collections.Collection
-import kotlin.collections.List
 
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
-import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.PlainSQL
@@ -59,7 +54,36 @@ open class AccountHistory(
     aliased,
     parameters,
     DSL.comment(""),
-    TableOptions.materializedView(),
+    TableOptions.view("""
+    create view "account_history" as  WITH history AS (
+            SELECT a.id AS account_id,
+               a.user_id,
+               a.initial_balance AS balance,
+               a.created_at,
+               '00000000-0000-0000-0000-000000000000'::uuid AS transaction_id
+              FROM accounts a
+           UNION ALL
+            SELECT t.account_id,
+               a.user_id,
+               (a.initial_balance + sum(
+                   CASE
+                       WHEN ((c.type)::text = 'INCOME'::text) THEN t.amount
+                       ELSE (- t.amount)
+                   END) OVER (PARTITION BY t.account_id ORDER BY t.transaction_date, t.created_at)) AS balance,
+               t.created_at,
+               t.id AS transaction_id
+              FROM ((transactions t
+                JOIN accounts a ON ((t.account_id = a.id)))
+                JOIN categories c ON ((t.category_id = c.id)))
+           )
+    SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
+       account_id,
+       user_id,
+       balance,
+       created_at,
+       transaction_id
+      FROM history;
+    """),
     where,
 ) {
     companion object {
@@ -98,7 +122,7 @@ open class AccountHistory(
     /**
      * The column <code>public.account_history.created_at</code>.
      */
-    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "")
+    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     /**
      * The column <code>public.account_history.transaction_id</code>.
@@ -124,7 +148,6 @@ open class AccountHistory(
      */
     constructor(): this(DSL.name("account_history"), null)
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_ACCOUNT_HISTORY_ACCOUNT_ID, IDX_ACCOUNT_HISTORY_UNIQUE, IDX_ACCOUNT_HISTORY_USER_ID)
     override fun `as`(alias: String): AccountHistory = AccountHistory(DSL.name(alias), this)
     override fun `as`(alias: Name): AccountHistory = AccountHistory(alias, this)
     override fun `as`(alias: Table<*>): AccountHistory = AccountHistory(alias.qualifiedName, this)

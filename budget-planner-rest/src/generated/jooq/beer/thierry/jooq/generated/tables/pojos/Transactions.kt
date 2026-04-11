@@ -22,7 +22,6 @@ data class Transactions(
     val amount: BigDecimal? = null,
     val description: String? = null,
     val transactionDate: LocalDate? = null,
-    val type: String? = null,
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null
 ): Serializable {
@@ -71,12 +70,6 @@ data class Transactions(
         }
         else if (this.transactionDate != o.transactionDate)
             return false
-        if (this.type == null) {
-            if (o.type != null)
-                return false
-        }
-        else if (this.type != o.type)
-            return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
@@ -101,7 +94,6 @@ data class Transactions(
         result = prime * result + (if (this.amount == null) 0 else this.amount.hashCode())
         result = prime * result + (if (this.description == null) 0 else this.description.hashCode())
         result = prime * result + (if (this.transactionDate == null) 0 else this.transactionDate.hashCode())
-        result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
         return result
@@ -116,7 +108,6 @@ data class Transactions(
         sb.append(", ").append(amount)
         sb.append(", ").append(description)
         sb.append(", ").append(transactionDate)
-        sb.append(", ").append(type)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
 

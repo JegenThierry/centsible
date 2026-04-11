@@ -8,7 +8,8 @@ import {
   type ChartData
 } from 'chart.js';
 import {Doughnut} from 'vue-chartjs';
-import {type Transaction, TransactionType} from "~/models/transactions/transaction";
+import {type Transaction} from "~/models/transactions/transaction";
+import { CategoryType } from "~/models/category/category";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 
@@ -28,7 +29,7 @@ const expensesByCategory = computed(() => {
   if (!props.transactions) return categories;
 
   const expenseTransactions = props.transactions
-    .filter(transaction => transaction && transaction.type === TransactionType.EXPENSE && transaction.category);
+    .filter(transaction => transaction && transaction.category && transaction.category.type === CategoryType.EXPENSE);
 
   const distinctCategories = Array.from(new Set(expenseTransactions.map(t => t.category.id)));
 

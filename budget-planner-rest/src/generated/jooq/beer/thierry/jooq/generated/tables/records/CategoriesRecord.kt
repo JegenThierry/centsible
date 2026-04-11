@@ -39,6 +39,10 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
         set(value): Unit = set(4, value)
         get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
+    open var type: String?
+        set(value): Unit = set(5, value)
+        get(): String? = get(5) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -48,12 +52,13 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
     /**
      * Create a detached, initialised CategoriesRecord
      */
-    constructor(id: Long? = null, userId: UUID? = null, name: String? = null, icon: String? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(id: Long? = null, userId: UUID? = null, name: String? = null, icon: String? = null, createdAt: OffsetDateTime? = null, type: String? = null): this() {
         this.id = id
         this.userId = userId
         this.name = name
         this.icon = icon
         this.createdAt = createdAt
+        this.type = type
         resetChangedOnNotNull()
     }
 
@@ -67,6 +72,7 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
             this.name = value.name
             this.icon = value.icon
             this.createdAt = value.createdAt
+            this.type = value.type
             resetChangedOnNotNull()
         }
     }
