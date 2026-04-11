@@ -47,8 +47,8 @@ const items = computed(() => {
     variant="inset"
     collapsible="icon"
     side="left"
-    :ui="{ 
-      container: 'h-full m-0 sm:m-4',
+    :ui="{
+      container: 'h-full m-0',
       content: 'rounded-none sm:rounded-xl'
     }"
   >
