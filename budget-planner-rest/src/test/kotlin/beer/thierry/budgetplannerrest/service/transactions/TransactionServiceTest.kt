@@ -42,7 +42,7 @@ class TransactionServiceTest {
     private val category = CategoryDTO(1L, "Category", "icon")
 
     @Test
-    fun `createTransaction should update balance and log history for INCOME`() {
+    fun `createTransaction should update balance for INCOME`() {
         val form = TransactionForm(BigDecimal("50.00"), TransactionType.INCOME, 1L, "Income", LocalDate.now())
         val transaction = TransactionDTO(
             UUID.randomUUID(),
@@ -58,17 +58,15 @@ class TransactionServiceTest {
             BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("150.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(transactionRepository.createTransaction(accountId, form, user)).thenReturn(transaction)
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.createTransaction(accountId, form, user)
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("50.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 
     @Test
-    fun `createTransaction should update balance and log history for EXPENSE`() {
+    fun `createTransaction should update balance for EXPENSE`() {
         val form = TransactionForm(BigDecimal("30.00"), TransactionType.EXPENSE, 1L, "Expense", LocalDate.now())
         val transaction = TransactionDTO(
             UUID.randomUUID(),
@@ -84,13 +82,11 @@ class TransactionServiceTest {
             BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("70.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(transactionRepository.createTransaction(accountId, form, user)).thenReturn(transaction)
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.createTransaction(accountId, form, user)
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-30.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 
     @Test
@@ -125,18 +121,16 @@ class TransactionServiceTest {
         `when`(transactionRepository.updateTransaction(transactionId, accountId, form, user)).thenReturn(
             updatedTransaction
         )
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
         // Combined adjustment: reverse old expense (+50) + apply new income (+100) = +150
         verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 
     @Test
-    fun `deleteTransaction should reverse transaction and log history`() {
+    fun `deleteTransaction should reverse transaction`() {
         val transactionId = UUID.randomUUID()
         val transaction = TransactionDTO(
             transactionId,
@@ -152,18 +146,16 @@ class TransactionServiceTest {
             BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("60.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
         assertEquals(transaction, result)
         // Reverse income: -40
         verify(accountRepository).updateBalance(accountId, BigDecimal("-40.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 
     @Test
-    fun `deleteTransaction should reverse EXPENSE and log history`() {
+    fun `deleteTransaction should reverse EXPENSE`() {
         val transactionId = UUID.randomUUID()
         val transaction = TransactionDTO(
             transactionId,
@@ -179,14 +171,12 @@ class TransactionServiceTest {
             BudgetAccountDTO(accountId.toString(), "Account", BigDecimal("125.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
         assertEquals(transaction, result)
         // Reverse expense: +25
         verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 
     @Test
@@ -221,13 +211,11 @@ class TransactionServiceTest {
         `when`(transactionRepository.updateTransaction(transactionId, accountId, form, user)).thenReturn(
             updatedTransaction
         )
-        `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
         // Combined adjustment: reverse old income (-120) + apply new expense (-80) = -200
         verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"))
-        verify(accountHistoryRepository).logAccountHistory(account, user)
     }
 }

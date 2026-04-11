@@ -49,7 +49,7 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .fetchOneInto(User::class.java)
     }
 
-    override fun createUser(user: AuthRegisterRequest, registrationToken: UUID): User? {
+    override fun createUser(user: AuthRegisterRequest): User? {
         val encoder = BCryptPasswordEncoder()
 
         return dsl.insertInto(USERS)
@@ -59,7 +59,7 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.LAST_NAME, user.lastName)
             .set(USERS.PASSWORD_HASH, encoder.encode(user.password))
             .set(field("registered", Boolean::class.java), false)
-            .set(field("registration_token", UUID::class.java), registrationToken)
+            .set(field("registration_token", UUID::class.java), UUID.randomUUID())
             .set(USERS.CREATED_AT, OffsetDateTime.now())
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .returning()

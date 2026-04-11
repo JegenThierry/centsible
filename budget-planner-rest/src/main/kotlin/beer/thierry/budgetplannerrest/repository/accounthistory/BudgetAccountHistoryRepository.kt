@@ -1,6 +1,5 @@
 package beer.thierry.budgetplannerrest.repository.accounthistory
 
-import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplannerrest.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.budgetplannerrest.model.user.UserDTO
 import beer.thierry.jooq.generated.tables.references.ACCOUNT_HISTORY
@@ -32,16 +31,5 @@ class BudgetAccountHistoryRepository(private val dsl: DSLContext) : IBudgetAccou
                     .and(ACCOUNT_HISTORY.CREATED_AT.between(startDate, endDate))
             )
             .fetchInto(BudgetAccountSnapshotDTO::class.java)
-
-    override fun logAccountHistory(account: BudgetAccountDTO, authenticatedUser: UserDTO) {
-        dsl.insertInto(ACCOUNT_HISTORY)
-            .set(ACCOUNT_HISTORY.ACCOUNT_ID, UUID.fromString(account.id))
-            .set(ACCOUNT_HISTORY.USER_ID, authenticatedUser.id)
-            .set(ACCOUNT_HISTORY.NAME, account.name)
-            .set(ACCOUNT_HISTORY.BALANCE, account.balance)
-            .set(ACCOUNT_HISTORY.CURRENCY, account.currency.toString())
-            .set(ACCOUNT_HISTORY.CREATED_AT, OffsetDateTime.now())
-            .execute()
-    }
 
 }

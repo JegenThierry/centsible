@@ -24,18 +24,6 @@ CREATE TABLE IF NOT EXISTS accounts
 
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts (user_id);
 
-CREATE TABLE IF NOT EXISTS account_history
-(
-    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    account_id      UUID           NOT NULL,
-    user_id         UUID           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    name            VARCHAR(100)   NOT NULL,
-    balance         DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    currency        VARCHAR(3)     NOT NULL DEFAULT 'EUR',
-    created_at      TIMESTAMPTZ    NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_account_history_user_id ON account_history (user_id);
 
 CREATE TABLE IF NOT EXISTS categories
 (
@@ -65,3 +53,28 @@ CREATE TABLE IF NOT EXISTS transactions
 CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions (account_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions (category_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (transaction_date);
+
+CREATE OR REPLACE VIEW account_history
+AS
+WITH history AS (SELECT a.id                                         AS account_id,
+                        a.user_id,
+                        a.initial_balance                            AS balance,
+                        a.created_at                                 AS created_at,
+                        '00000000-0000-0000-0000-000000000000'::uuid AS transaction_id
+                 FROM accounts a
+                 UNION ALL
+                 SELECT t.account_id,
+                        a.user_id,
+                        a.initial_balance + SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE -t.amount END)
+                                            OVER (PARTITION BY t.account_id ORDER BY t.transaction_date, t.created_at) AS balance,
+                        t.created_at,
+                        t.id                                                                                           AS transaction_id
+                 FROM transactions t
+                          JOIN accounts a ON t.account_id = a.id)
+SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
+       account_id,
+       user_id,
+       balance,
+       created_at,
+       transaction_id
+FROM history;

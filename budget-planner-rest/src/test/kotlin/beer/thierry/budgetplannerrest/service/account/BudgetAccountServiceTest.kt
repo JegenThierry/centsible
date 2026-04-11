@@ -36,7 +36,7 @@ class BudgetAccountServiceTest {
     private lateinit var service: BudgetAccountService
 
     @Test
-    fun `createAccount should create account and log history`() {
+    fun `createAccount should create account`() {
         val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User Name", null)
         val request = CreateBudgetAccountRequest("Main Account", BigDecimal("100.00"), Currency.EUR)
         val accountId = UUID.randomUUID()
@@ -48,10 +48,6 @@ class BudgetAccountServiceTest {
 
         assertEquals(account, result)
         verify(accountRepository).createAccount(user, request)
-        verify(accountHistoryRepository).logAccountHistory(
-            account,
-            user
-        )
     }
 
     @Test

@@ -48,11 +48,10 @@ class AuthService(
             throw IllegalArgumentException("An account with these credentials already exists")
         }
 
-        val token = UUID.randomUUID()
-        val registeredUser = userRepository.createUser(authRequest, token)
+        val registeredUser = userRepository.createUser(authRequest)
             ?: throw IllegalArgumentException("User could not be created")
 
-        registerEmailService.sendRegistrationEmail(registeredUser, token.toString())
+        registerEmailService.sendRegistrationEmail(registeredUser, registeredUser.registrationToken.toString())
 
         return AuthResponse("")
     }

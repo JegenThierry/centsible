@@ -5,10 +5,9 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
+import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_ACCOUNT_ID
+import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_UNIQUE
 import beer.thierry.jooq.generated.indexes.IDX_ACCOUNT_HISTORY_USER_ID
-import beer.thierry.jooq.generated.keys.ACCOUNT_HISTORY_PKEY
-import beer.thierry.jooq.generated.keys.ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY
-import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.AccountHistoryRecord
 
 import java.math.BigDecimal
@@ -21,11 +20,9 @@ import kotlin.collections.List
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
-import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -36,9 +33,7 @@ import org.jooq.Stringly
 import org.jooq.Table
 import org.jooq.TableField
 import org.jooq.TableOptions
-import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -64,7 +59,7 @@ open class AccountHistory(
     aliased,
     parameters,
     DSL.comment(""),
-    TableOptions.table(),
+    TableOptions.materializedView(),
     where,
 ) {
     companion object {
@@ -83,37 +78,32 @@ open class AccountHistory(
     /**
      * The column <code>public.account_history.id</code>.
      */
-    val ID: TableField<AccountHistoryRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
+    val ID: TableField<AccountHistoryRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT, this, "")
 
     /**
      * The column <code>public.account_history.account_id</code>.
      */
-    val ACCOUNT_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("account_id"), SQLDataType.UUID.nullable(false), this, "")
+    val ACCOUNT_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("account_id"), SQLDataType.UUID, this, "")
 
     /**
      * The column <code>public.account_history.user_id</code>.
      */
-    val USER_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("user_id"), SQLDataType.UUID.nullable(false), this, "")
-
-    /**
-     * The column <code>public.account_history.name</code>.
-     */
-    val NAME: TableField<AccountHistoryRecord, String?> = createField(DSL.name("name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
+    val USER_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("user_id"), SQLDataType.UUID, this, "")
 
     /**
      * The column <code>public.account_history.balance</code>.
      */
-    val BALANCE: TableField<AccountHistoryRecord, BigDecimal?> = createField(DSL.name("balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
-
-    /**
-     * The column <code>public.account_history.currency</code>.
-     */
-    val CURRENCY: TableField<AccountHistoryRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+    val BALANCE: TableField<AccountHistoryRecord, BigDecimal?> = createField(DSL.name("balance"), SQLDataType.NUMERIC, this, "")
 
     /**
      * The column <code>public.account_history.created_at</code>.
      */
-    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "")
+
+    /**
+     * The column <code>public.account_history.transaction_id</code>.
+     */
+    val TRANSACTION_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("transaction_id"), SQLDataType.UUID, this, "")
 
     private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -133,39 +123,8 @@ open class AccountHistory(
      * Create a <code>public.account_history</code> table reference
      */
     constructor(): this(DSL.name("account_history"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AccountHistoryRecord>?, parentPath: InverseForeignKey<out Record, AccountHistoryRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ACCOUNT_HISTORY, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class AccountHistoryPath : AccountHistory, Path<AccountHistoryRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AccountHistoryRecord>?, parentPath: InverseForeignKey<out Record, AccountHistoryRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<AccountHistoryRecord>): super(alias, aliased)
-        override fun `as`(alias: String): AccountHistoryPath = AccountHistoryPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): AccountHistoryPath = AccountHistoryPath(alias, this)
-        override fun `as`(alias: Table<*>): AccountHistoryPath = AccountHistoryPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_ACCOUNT_HISTORY_USER_ID)
-    override fun getIdentity(): Identity<AccountHistoryRecord, Long?> = super.getIdentity() as Identity<AccountHistoryRecord, Long?>
-    override fun getPrimaryKey(): UniqueKey<AccountHistoryRecord> = ACCOUNT_HISTORY_PKEY
-    override fun getReferences(): List<ForeignKey<AccountHistoryRecord, *>> = listOf(ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY)
-
-    private lateinit var _users: UsersPath
-
-    /**
-     * Get the implicit join path to the <code>public.users</code> table.
-     */
-    fun users(): UsersPath {
-        if (!this::_users.isInitialized)
-            _users = UsersPath(this, ACCOUNT_HISTORY__ACCOUNT_HISTORY_USER_ID_FKEY, null)
-
-        return _users;
-    }
-
-    val users: UsersPath
-        get(): UsersPath = users()
+    override fun getIndexes(): List<Index> = listOf(IDX_ACCOUNT_HISTORY_ACCOUNT_ID, IDX_ACCOUNT_HISTORY_UNIQUE, IDX_ACCOUNT_HISTORY_USER_ID)
     override fun `as`(alias: String): AccountHistory = AccountHistory(DSL.name(alias), this)
     override fun `as`(alias: Name): AccountHistory = AccountHistory(alias, this)
     override fun `as`(alias: Table<*>): AccountHistory = AccountHistory(alias.qualifiedName, this)

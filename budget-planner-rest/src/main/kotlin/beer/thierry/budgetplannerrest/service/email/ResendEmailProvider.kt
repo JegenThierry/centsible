@@ -9,8 +9,8 @@ import org.springframework.web.client.RestTemplate
 
 @Service
 class ResendEmailProvider(
-    @Value("\${resend.api.key}") private val apiKey: String,
-    @Value("\${resend.from.email}") private val fromEmail: String
+    @Value("\${resend.api.key:dummy}") private val apiKey: String,
+    @Value("\${resend.from.email:dummy@example.com}") private val fromEmail: String
 ) : IEmailProvider {
     private val restTemplate = RestTemplate()
     private val apiUrl = "https://api.resend.com/emails"

@@ -12,6 +12,6 @@ interface IUserRepository {
     fun findUserByEmailOrUsername(email: String, username: String): User?
     fun findUserById(id: UUID): User?
     fun findUserByTokenAndUsername(token: UUID, username: String): User?
-    fun createUser(user: AuthRegisterRequest, registrationToken: UUID): User?
+    fun createUser(user: AuthRegisterRequest): User?
     fun confirmUser(id: UUID): Boolean
 }

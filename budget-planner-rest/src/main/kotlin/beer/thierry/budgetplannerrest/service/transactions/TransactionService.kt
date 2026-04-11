@@ -16,7 +16,6 @@ import java.util.UUID
 class TransactionService(
     private val transactionRepository: ITransactionRepository,
     private val accountRepository: IBudgetAccountsRepository,
-    private val accountHistoryRepository: IBudgetAccountHistoryRepository
 ) : ITransactionService {
 
     override fun fetchTransactions(
@@ -58,7 +57,7 @@ class TransactionService(
             transactionRepository.updateTransaction(transactionId, accountId, transactionForm, authenticatedUser)
         val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
-        updateAccountBalanceAndLogHistory(accountId, oldAdjustment.add(newAdjustment), authenticatedUser)
+        updateAccountBalanceAndLogHistory(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
 
         return updatedTransaction
     }
@@ -71,7 +70,7 @@ class TransactionService(
     ): TransactionDTO {
         val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
-        updateAccountBalanceAndLogHistory(accountId, adjustment, authenticatedUser)
+        updateAccountBalanceAndLogHistory(accountId, adjustment.negate(), authenticatedUser)
 
         return transaction
     }
@@ -87,7 +86,5 @@ class TransactionService(
 
     private fun updateAccountBalanceAndLogHistory(accountId: UUID, adjustment: BigDecimal, authenticatedUser: UserDTO) {
         accountRepository.updateBalance(accountId, adjustment)
-        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        accountHistoryRepository.logAccountHistory(account, authenticatedUser)
     }
 }

@@ -18,10 +18,9 @@ data class AccountHistory(
     val id: Long? = null,
     val accountId: UUID? = null,
     val userId: UUID? = null,
-    val name: String? = null,
     val balance: BigDecimal? = null,
-    val currency: String? = null,
-    val createdAt: OffsetDateTime? = null
+    val createdAt: OffsetDateTime? = null,
+    val transactionId: UUID? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -50,29 +49,23 @@ data class AccountHistory(
         }
         else if (this.userId != o.userId)
             return false
-        if (this.name == null) {
-            if (o.name != null)
-                return false
-        }
-        else if (this.name != o.name)
-            return false
         if (this.balance == null) {
             if (o.balance != null)
                 return false
         }
         else if (this.balance != o.balance)
             return false
-        if (this.currency == null) {
-            if (o.currency != null)
-                return false
-        }
-        else if (this.currency != o.currency)
-            return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
         }
         else if (this.createdAt != o.createdAt)
+            return false
+        if (this.transactionId == null) {
+            if (o.transactionId != null)
+                return false
+        }
+        else if (this.transactionId != o.transactionId)
             return false
         return true
     }
@@ -83,10 +76,9 @@ data class AccountHistory(
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
         result = prime * result + (if (this.accountId == null) 0 else this.accountId.hashCode())
         result = prime * result + (if (this.userId == null) 0 else this.userId.hashCode())
-        result = prime * result + (if (this.name == null) 0 else this.name.hashCode())
         result = prime * result + (if (this.balance == null) 0 else this.balance.hashCode())
-        result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
+        result = prime * result + (if (this.transactionId == null) 0 else this.transactionId.hashCode())
         return result
     }
 
@@ -96,10 +88,9 @@ data class AccountHistory(
         sb.append(id)
         sb.append(", ").append(accountId)
         sb.append(", ").append(userId)
-        sb.append(", ").append(name)
         sb.append(", ").append(balance)
-        sb.append(", ").append(currency)
         sb.append(", ").append(createdAt)
+        sb.append(", ").append(transactionId)
 
         sb.append(")")
         return sb.toString()

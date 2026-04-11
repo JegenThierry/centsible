@@ -25,9 +25,7 @@ class BudgetAccountService(
         createBudgetAccountRequest: CreateBudgetAccountRequest,
         authenticatedUser: UserDTO,
     ): BudgetAccountDTO {
-        val account = accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
-        accountHistoryRepository.logAccountHistory(account, authenticatedUser)
-        return account
+        return accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
     }
 
     override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> {
