@@ -34,29 +34,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <UContainer class="py-10">
-    <div class="flex items-center justify-between mb-8">
+  <UContainer class="py-6 sm:py-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight">Categories</h1>
-        <p class="text-neutral-500 dark:text-neutral-400">Manage your income and expense categories</p>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Categories</h1>
+        <p class="text-sm sm:text-base text-neutral-500 dark:text-neutral-400">Manage your income and expense categories</p>
       </div>
-      <UButton icon="i-lucide-plus" @click="isCreateModalOpen = true">Create Category</UButton>
+      <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
     </div>
 
     <div v-if="categoriesStore.pending && categoriesStore.categories.length > 0" class="flex justify-center mb-6">
       <LoadingAnimation />
     </div>
 
-    <div v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending" class="flex flex-col items-center justify-center py-20 text-center">
+    <div v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending" class="flex flex-col items-center justify-center py-10 sm:py-20 text-center">
       <UIcon name="i-lucide-tag" class="w-12 h-12 text-neutral-400 mb-4" />
       <h3 class="text-lg font-medium">No categories found</h3>
       <p class="text-neutral-500 mb-6">Create your first category to start tracking your budget.</p>
-      <UButton @click="isCreateModalOpen = true">Create Category</UButton>
+      <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
     </div>
 
     <div v-else class="space-y-12">
       <template v-if="categoriesStore.pending && categoriesStore.categories.length === 0">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CardSkeleton v-for="i in 6" :key="i" />
         </div>
       </template>
@@ -66,7 +66,7 @@ onMounted(() => {
           <UIcon name="i-lucide-user" class="w-5 h-5 text-primary-500" />
           Your Categories
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in userCategories"
                         :key="category.id"
                         :category="category"
@@ -80,7 +80,7 @@ onMounted(() => {
           <UIcon name="i-lucide-settings" class="w-5 h-5" />
           System Categories
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in systemCategories"
                         :key="category.id"
                         :category="category" />

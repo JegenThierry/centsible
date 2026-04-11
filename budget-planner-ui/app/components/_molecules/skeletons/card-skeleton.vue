@@ -4,7 +4,7 @@ import SkeletonLoader from "~/components/_atoms/animations/skeleton-loader.vue";
 
 <template>
   <UCard>
-    <div class="p-7 space-y-6">
+    <div class="p-4 sm:p-7 space-y-4 sm:space-y-6">
       <div class="flex items-start justify-between">
         <div class="space-y-2 w-1/2">
           <SkeletonLoader class="h-6 w-full" />
@@ -14,7 +14,7 @@ import SkeletonLoader from "~/components/_atoms/animations/skeleton-loader.vue";
 
       <div class="space-y-2">
         <SkeletonLoader class="h-3 w-24" />
-        <SkeletonLoader class="h-12 w-48" />
+        <SkeletonLoader class="h-10 sm:h-12 w-48" />
       </div>
     </div>
   </UCard>

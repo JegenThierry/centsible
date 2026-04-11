@@ -15,7 +15,7 @@ function onRefresh(): void {
 </script>
 
 <template>
-  <UButton icon="i-lucide-plus" @click="onCreateAccount()">
+  <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="onCreateAccount()">
     Create Budget Account
   </UButton>
 

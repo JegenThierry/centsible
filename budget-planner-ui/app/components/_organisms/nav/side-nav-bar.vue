@@ -47,10 +47,23 @@ const items = computed(() => {
     variant="inset"
     collapsible="icon"
     side="left"
-    :ui="{ container: 'h-full' }"
+    :ui="{ 
+      container: 'h-full m-0 sm:m-4',
+      content: 'rounded-none sm:rounded-xl'
+    }"
   >
     <template #header>
-      <UIcon name="i-logos-nuxt-icon" class="size-8" />
+      <div class="flex items-center justify-between w-full">
+        <UIcon name="i-logos-nuxt-icon" class="size-8" />
+        <UButton
+          icon="i-lucide-x"
+          variant="ghost"
+          color="neutral"
+          class="lg:hidden"
+          aria-label="Close sidebar"
+          @click="open = false"
+        />
+      </div>
     </template>
 
     <UNavigationMenu

@@ -52,22 +52,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="p-4 lg:p-10 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="p-4 sm:p-6 lg:p-10 space-y-4 sm:space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <CardSkeleton />
       <div class="md:col-span-2">
         <ChartCardSkeleton />
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
       <ChartCardSkeleton />
       <ListCardSkeleton />
     </div>
   </div>
 
-  <div v-else-if="accountStore.activeAccount" class="p-4 lg:p-10 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div v-else-if="accountStore.activeAccount" class="p-4 sm:p-6 lg:p-10 space-y-4 sm:space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <AccountBalance :balance="accountStore.activeAccount.balance"
                       :initial-balance="accountStore.activeAccount.initialBalance"
                       :account-name="accountStore.activeAccount.name"
@@ -79,7 +79,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
       <TransactionsByCategory :transactions="transactionStore.transactions"
                               :currency="accountStore.activeAccount.currency" />
 

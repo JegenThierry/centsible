@@ -13,10 +13,10 @@ defineProps<{
 
 <template>
   <UCard>
-    <div class="relative z-10 p-7 space-y-6">
+    <div class="relative z-10 p-4 sm:p-7 space-y-4 sm:space-y-6">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight tracking-tight">
+          <h2 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white leading-tight tracking-tight">
             {{ accountName }}
           </h2>
         </div>
@@ -31,7 +31,7 @@ defineProps<{
           Available Balance
         </p>
         <div class="flex items-end gap-1">
-          <span class="text-5xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums leading-none">
+          <span class="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums leading-none">
             <BalanceNumberFormat :currency="currency"
                                  :balance="balance"
                                  format="de-De"/>

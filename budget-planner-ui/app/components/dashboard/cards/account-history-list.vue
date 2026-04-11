@@ -34,7 +34,7 @@ const formatDate = (dateString: string) => {
       <ul class="divide-y divide-neutral-200 dark:divide-neutral-800">
         <li v-for="snapshot in accountHistoryStore.snapshots"
             :key="snapshot.createdAt"
-            class="py-3 flex justify-between items-center">
+            class="py-2 sm:py-3 flex justify-between items-center">
           <span class="text-sm text-neutral-500 dark:text-neutral-400">
             {{ formatDate(snapshot.createdAt) }}
           </span>
