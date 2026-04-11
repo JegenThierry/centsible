@@ -23,7 +23,8 @@ data class Users(
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null,
     val registered: Boolean? = null,
-    val registrationToken: UUID? = null
+    val registrationToken: UUID? = null,
+    val profilePicture: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -94,6 +95,12 @@ data class Users(
         }
         else if (this.registrationToken != o.registrationToken)
             return false
+        if (this.profilePicture == null) {
+            if (o.profilePicture != null)
+                return false
+        }
+        else if (this.profilePicture != o.profilePicture)
+            return false
         return true
     }
 
@@ -110,6 +117,7 @@ data class Users(
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
         result = prime * result + (if (this.registered == null) 0 else this.registered.hashCode())
         result = prime * result + (if (this.registrationToken == null) 0 else this.registrationToken.hashCode())
+        result = prime * result + (if (this.profilePicture == null) 0 else this.profilePicture.hashCode())
         return result
     }
 
@@ -126,6 +134,7 @@ data class Users(
         sb.append(", ").append(modifiedAt)
         sb.append(", ").append(registered)
         sb.append(", ").append(registrationToken)
+        sb.append(", ").append(profilePicture)
 
         sb.append(")")
         return sb.toString()

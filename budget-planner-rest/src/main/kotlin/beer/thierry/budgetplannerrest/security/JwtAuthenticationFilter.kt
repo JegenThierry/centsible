@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
@@ -53,14 +52,19 @@ class JwtAuthenticationFilter(
         val userId = claims.subject ?: throw JwtException("Missing subject claim")
         val username = claims["username"] as? String ?: throw JwtException("Missing username claim")
         val email = claims["email"] as? String ?: throw JwtException("Missing email claim")
-        val name = claims["name"] as? String ?: throw JwtException("Missing name claim")
+        val firstName = claims["firstName"] as? String ?: ""
+        val lastName = claims["lastName"] as? String ?: ""
+        val name = claims["name"] as? String ?: ""
+        val profilePicture = claims["profilePicture"] as? String
 
         UserDTO(
             id = UUID.fromString(userId),
             username = username,
             email = email,
+            firstName = firstName,
+            lastName = lastName,
             name = name,
-            image = null,
+            profilePicture = profilePicture,
         )
     } catch (ex: JwtException) {
         logger.warn("JWT validation failed: ${ex.message}")

@@ -44,7 +44,8 @@ const items = computed(() => [
     <UButton color="neutral" variant="ghost" class="h-auto cursor-pointer">
       <UUser
         :avatar="{
-            src: 'https://i.pravatar.cc/150?u=john-doe'
+            src: user.profilePicture || undefined,
+            icon: user.profilePicture ? undefined : 'i-heroicons-user'
           }"
         :description="user.email"
         :name="user.name"

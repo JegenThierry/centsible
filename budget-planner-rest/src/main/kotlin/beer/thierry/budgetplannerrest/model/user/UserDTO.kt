@@ -10,8 +10,10 @@ data class UserDTO(
     @get:JvmName("getUsernameValue")
     val username: String,
     val email: String,
+    val firstName: String,
+    val lastName: String,
     val name: String,
-    val image: String?,
+    val profilePicture: String?,
     private val authorities: Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
 ) : UserDetails {

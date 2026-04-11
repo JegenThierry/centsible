@@ -130,6 +130,11 @@ open class Users(
      */
     val REGISTRATION_TOKEN: TableField<UsersRecord, UUID?> = createField(DSL.name("registration_token"), SQLDataType.UUID, this, "")
 
+    /**
+     * The column <code>public.users.profile_picture</code>.
+     */
+    val PROFILE_PICTURE: TableField<UsersRecord, String?> = createField(DSL.name("profile_picture"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

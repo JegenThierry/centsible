@@ -14,7 +14,15 @@ import java.util.UUID
 @Repository
 class UserRepository(private val dsl: DSLContext) : IUserRepository {
     override fun findAllUsers(): List<UserDTO> {
-        return dsl.select(USERS.ID, USERS.USERNAME, USERS.EMAIL)
+        return dsl.select(
+            USERS.ID,
+            USERS.USERNAME,
+            USERS.EMAIL,
+            USERS.FIRST_NAME,
+            USERS.LAST_NAME,
+            USERS.FIRST_NAME.concat(" ").concat(USERS.LAST_NAME).`as`("name"),
+            USERS.PROFILE_PICTURE
+        )
             .from(USERS)
             .fetchInto(UserDTO::class.java)
     }
@@ -73,5 +81,23 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0
+    }
+
+    override fun updateUserProfile(
+        id: UUID,
+        firstName: String,
+        lastName: String,
+        email: String,
+        profilePicture: String?
+    ): User? {
+        return dsl.update(USERS)
+            .set(USERS.FIRST_NAME, firstName)
+            .set(USERS.LAST_NAME, lastName)
+            .set(USERS.EMAIL, email)
+            .set(USERS.PROFILE_PICTURE, profilePicture)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .returning()
+            .fetchOneInto(User::class.java)
     }
 }

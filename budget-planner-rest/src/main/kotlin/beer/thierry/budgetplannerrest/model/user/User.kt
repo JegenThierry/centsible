@@ -9,6 +9,7 @@ data class User(
     val firstName: String,
     val lastName: String,
     val passwordHash: String,
+    val profilePicture: String?,
     val registered: Boolean,
     val registrationToken: UUID?,
     val createdAt: java.time.OffsetDateTime,

@@ -21,9 +21,35 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  async function updateProfile(profile: { firstName: string, lastName: string, email: string }) {
+    pending.value = true;
+    try {
+      user.value = await userService.updateProfile(profile);
+    } catch (e) {
+      console.error("Failed to update profile", e);
+      throw e;
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  async function updateProfilePicture(file: File) {
+    pending.value = true;
+    try {
+      user.value = await userService.updateProfilePicture(file);
+    } catch (e) {
+      console.error("Failed to update profile picture", e);
+      throw e;
+    } finally {
+      pending.value = false;
+    }
+  }
+
   return {
     user,
     pending,
     fetchMyself,
+    updateProfile,
+    updateProfilePicture,
   }
 });

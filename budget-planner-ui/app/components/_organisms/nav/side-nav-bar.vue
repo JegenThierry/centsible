@@ -12,12 +12,20 @@ const items = computed(() => {
     {
       label: 'Accounts',
       to: '/accounts',
-      icon: 'i-lucide-wallet'
+      icon: 'i-lucide-wallet',
+      target: '_self'
     },
     {
       label: 'Categories',
       to: '/categories',
-      icon: 'i-lucide-tag'
+      icon: 'i-lucide-tag',
+      target: '_self'
+    },
+    {
+      label: 'Profile',
+      to: '/profile',
+      icon: 'i-lucide-user',
+      target: '_self'
     }
   ];
 
@@ -26,12 +34,14 @@ const items = computed(() => {
       {
         label: 'Dashboard',
         to: `/${accountId}/dashboard`,
-        icon: 'i-lucide-layout-dashboard'
+        icon: 'i-lucide-layout-dashboard',
+        target: '_self'
       },
       {
         label: 'Transactions',
         to: `/${accountId}/transactions`,
-        icon: 'i-lucide-arrow-right-left'
+        icon: 'i-lucide-arrow-right-left',
+        target: '_self'
       }
     );
   }

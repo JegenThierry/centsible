@@ -14,4 +14,5 @@ interface IUserRepository {
     fun findUserByTokenAndUsername(token: UUID, username: String): User?
     fun createUser(user: AuthRegisterRequest): User?
     fun confirmUser(id: UUID): Boolean
+    fun updateUserProfile(id: UUID, firstName: String, lastName: String, email: String, profilePicture: String?): User?
 }
