@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import Profile from "~/components/_organisms/profile.vue";
+import Profile from "~/components/_organisms/nav/profile.vue";
 import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";

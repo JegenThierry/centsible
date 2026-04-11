@@ -6,12 +6,12 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {Transaction} from "~/models/transactions/transaction";
 import { CategoryType } from "~/models/category/category";
-import EditTransactionModal from "~/components/transactions/modals/edit-transaction-modal.vue";
-import DeleteTransactionModal from "~/components/transactions/modals/delete-transaction-modal.vue";
+import EditTransactionModal from "~/components/_organisms/transactions/modals/edit-transaction-modal.vue";
+import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
-import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
+import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import {useToasts} from "~/services/toasts/toast-service";
-import {useTransactionList} from "~/components/transactions/utils/use-transaction-list";
+import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 
 const UButton = resolveComponent('UButton')
@@ -171,10 +171,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UCard class="my-8 mx-4" variant="outline">
-    <template #header>
-      <div>Transactions</div>
-    </template>
+  <UCard variant="outline">
     <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
       <template #loading>
         <div class="flex flex-col items-center justify-center py-10 gap-3">

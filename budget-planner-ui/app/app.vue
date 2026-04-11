@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {useAuthStore} from "~/stores/authStore";
-import TopNavBar from "~/components/_organisms/top-nav-bar.vue";
-import Footer from "~/components/_organisms/footer.vue";
+import TopNavBar from "~/components/_organisms/nav/top-nav-bar.vue";
+import Footer from "~/components/_organisms/layout/footer.vue";
 import SideNavBar from "~/components/_organisms/nav/side-nav-bar.vue";
 import MainContentWrapper from "~/components/_wrapper/main-content-wrapper.vue";
 

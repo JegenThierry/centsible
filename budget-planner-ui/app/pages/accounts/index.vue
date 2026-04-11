@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Accounts from "~/components/accounts/accounts.vue";
+import Accounts from "~/components/_organisms/accounts/accounts.vue";
 
 definePageMeta({
   middleware: ['auth-guard']

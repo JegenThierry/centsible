@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CreateAccountModal from "~/components/budget-account/create-account-modal.vue";
+import CreateAccountModal from "~/components/_organisms/accounts/modals/create-account-modal.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
 const accountStore = useBudgetAccountsStore();

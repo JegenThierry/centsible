@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import AccountBalance from "~/components/dashboard/cards/account-balance.vue";
-import AccountHistoryGraph from "~/components/dashboard/cards/account-history-graph.vue";
-import AccountHistoryList from "~/components/dashboard/cards/account-history-list.vue";
-import TransactionsByCategory from "~/components/dashboard/cards/transactions-by-category.vue";
+import AccountBalance from "~/components/_organisms/dashboard/account-balance.vue";
+import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
+import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
+import TransactionsByCategory from "~/components/_organisms/dashboard/transactions-by-category.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
-import CreateTransactionModal from "~/components/transactions/modals/create-transaction-modal.vue";
+import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
 import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skeleton.vue";
+import PageHeader from "~/components/_molecules/page/page-header.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
@@ -52,7 +53,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="p-4 sm:p-6 lg:p-10 space-y-4 sm:space-y-6">
+  <UContainer class="py-6 sm:py-10 space-y-4 sm:space-y-6">
+    <PageHeader
+      v-if="accountStore.activeAccount"
+      title="Dashboard"
+      :description="`Overview for account: ${accountStore.activeAccount.name}`"
+    />
+
+    <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="space-y-4 sm:space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <CardSkeleton />
       <div class="md:col-span-2">
@@ -66,7 +74,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <div v-else-if="accountStore.activeAccount" class="p-4 sm:p-6 lg:p-10 space-y-4 sm:space-y-6">
+  <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <AccountBalance :balance="accountStore.activeAccount.balance"
                       :initial-balance="accountStore.activeAccount.initialBalance"
@@ -93,4 +101,5 @@ onMounted(() => {
   <CreateTransactionModal v-if="isCreateTransactionModalVisible"
                           v-model:open="isCreateTransactionModalVisible"
                           @created="onCreated()" />
+  </UContainer>
 </template>

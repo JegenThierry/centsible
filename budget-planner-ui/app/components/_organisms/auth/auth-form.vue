@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CreateForm from "~/components/auth/create-form.vue";
-import LoginForm from "~/components/auth/login-form.vue";
+import CreateForm from "~/components/_organisms/auth/create-form.vue";
+import LoginForm from "~/components/_organisms/auth/login-form.vue";
 
 const tabs = [
   {

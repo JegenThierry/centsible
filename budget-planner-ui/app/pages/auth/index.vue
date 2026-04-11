@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AuthForm from "~/components/auth/auth-form.vue";
+import AuthForm from "~/components/_organisms/auth/auth-form.vue";
 import {useAuthStore} from "~/stores/authStore";
 
 definePageMeta({

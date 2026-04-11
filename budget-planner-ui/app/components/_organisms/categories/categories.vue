@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
-import CreateCategoryModal from "~/components/categories/modals/create-category-modal.vue";
-import EditCategoryModal from "~/components/categories/modals/edit-category-modal.vue";
-import DeleteCategoryModal from "~/components/categories/modals/delete-category-modal.vue";
-import CategoryCard from "~/components/categories/category-card.vue";
+import CreateCategoryModal from "~/components/_organisms/categories/modals/create-category-modal.vue";
+import EditCategoryModal from "~/components/_organisms/categories/modals/edit-category-modal.vue";
+import DeleteCategoryModal from "~/components/_organisms/categories/modals/delete-category-modal.vue";
+import CategoryCard from "~/components/_organisms/cards/category-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
+import PageHeader from "~/components/_molecules/page/page-header.vue";
+import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import type {Category} from "~/models/category/category";
 
 const categoriesStore = useCategoriesStore();
@@ -35,24 +37,29 @@ onMounted(() => {
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Categories</h1>
-        <p class="text-sm sm:text-base text-neutral-500 dark:text-neutral-400">Manage your income and expense categories</p>
-      </div>
-      <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
-    </div>
+    <PageHeader
+      title="Categories"
+      description="Manage your income and expense categories"
+    >
+      <template #actions>
+        <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
+      </template>
+    </PageHeader>
 
     <div v-if="categoriesStore.pending && categoriesStore.categories.length > 0" class="flex justify-center mb-6">
       <LoadingAnimation />
     </div>
 
-    <div v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending" class="flex flex-col items-center justify-center py-10 sm:py-20 text-center">
-      <UIcon name="i-lucide-tag" class="w-12 h-12 text-neutral-400 mb-4" />
-      <h3 class="text-lg font-medium">No categories found</h3>
-      <p class="text-neutral-500 mb-6">Create your first category to start tracking your budget.</p>
-      <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
-    </div>
+    <AppEmptyState
+      v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending"
+      icon="i-lucide-tag"
+      title="No categories found"
+      description="Create your first category to start tracking your budget."
+    >
+      <template #actions>
+        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
+      </template>
+    </AppEmptyState>
 
     <div v-else class="space-y-12">
       <template v-if="categoriesStore.pending && categoriesStore.categories.length === 0">

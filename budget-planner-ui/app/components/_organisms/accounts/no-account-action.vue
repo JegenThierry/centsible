@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import RefreshButton from "~/components/_molecules/buttons/refresh-button.vue";
 import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-budget-account-button.vue";
+import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 
 const emit = defineEmits([
   'refresh-accounts',
@@ -12,14 +13,15 @@ function onRefreshAccounts() {
 </script>
 
 <template>
-  <UEmpty class="max-w-2xl"
-          icon="i-lucide-bar-chart-big"
-          title="No accounts found"
-          description="It looks like you haven't created any account yet. Create one to get started."
+  <AppEmptyState
+    class="max-w-2xl"
+    icon="i-lucide-bar-chart-big"
+    title="No accounts found"
+    description="It looks like you haven't created any account yet. Create one to get started."
   >
     <template #actions>
       <RefreshButton @refresh="onRefreshAccounts"/>
       <CreateBudgetAccountButton />
     </template>
-  </UEmpty>
+  </AppEmptyState>
 </template>
