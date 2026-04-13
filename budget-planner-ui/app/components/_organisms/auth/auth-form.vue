@@ -26,23 +26,40 @@ const activeHeader = computed(() => {
       return 'Register!';
   }
 })
+
+const activeDescription = computed(() => {
+  return activeTab.value === 'login'
+      ? 'Login to your account to manage your budget.'
+      : 'Create a new account to start planning your finances.';
+})
+
+const activeIcon = computed(() => {
+  return activeTab.value === 'login' ? 'i-lucide-log-in' : 'i-lucide-user-plus';
+})
 </script>
 
 <template>
   <UContainer class="py-12">
-    <UCard variant="subtle" class="max-w-xl mx-auto">
-      <template #header>
-        <h1>{{ activeHeader }}</h1>
-      </template>
-
-      <UTabs :items="tabs" v-model="activeTab">
+    <UPageCard
+      :title="activeHeader"
+      :description="activeDescription"
+      :icon="activeIcon"
+      spotlight
+      spotlight-color="primary"
+      class="max-w-xl mx-auto bg-white dark:bg-neutral-600"
+    >
+      <UTabs :items="tabs" v-model="activeTab" class="w-full">
         <template #login>
-          <LoginForm v-if="activeTab === 'login'"/>
+          <div class="pt-4">
+            <LoginForm v-if="activeTab === 'login'"/>
+          </div>
         </template>
         <template #register>
-          <CreateForm v-if="activeTab === 'register'"/>
+          <div class="pt-4">
+            <CreateForm v-if="activeTab === 'register'"/>
+          </div>
         </template>
       </UTabs>
-    </UCard>
+    </UPageCard>
   </UContainer>
 </template>

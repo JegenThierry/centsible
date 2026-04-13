@@ -44,7 +44,7 @@ onMounted(async () => {
       </MainContentWrapper>
     </div>
 
-    <div v-else class="flex flex-col h-screen overflow-hidden">
+    <div v-else class="flex flex-col h-screen overflow-hidden bg-neutral-50/50 dark:bg-neutral-900">
       <UMain>
         <NuxtLayout>
           <NuxtPage/>
