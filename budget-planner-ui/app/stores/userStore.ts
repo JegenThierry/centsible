@@ -1,23 +1,40 @@
 import {defineStore} from 'pinia'
 import type {UserDto} from "~/models/user/user-dto";
 import {useUserService} from "~/services/user/user-service";
+import type {ProfileForm} from "~/models/user/profile-form";
 
 export const useUserStore = defineStore('userStore', () => {
   const api = useApi();
   const userService = useUserService(api);
 
   const user = ref<UserDto | null>(null);
+  const pending = ref(false);
 
   async function fetchMyself() {
-    user.value = await userService.fetchMyself();
+    pending.value = true;
+    try {
+      user.value = await userService.fetchMyself();
+    } finally {
+      pending.value = false;
+    }
   }
 
-  async function updateProfile(profile: { firstName: string, lastName: string, email: string }) {
+  async function updateProfile(profile: ProfileForm) {
+    pending.value = true;
+    try {
       user.value = await userService.updateProfile(profile);
+    } finally {
+      pending.value = false;
+    }
   }
 
   async function updateProfilePicture(file: File) {
+    pending.value = true;
+    try {
       user.value = await userService.updateProfilePicture(file);
+    } finally {
+      pending.value = false;
+    }
   }
 
   return {

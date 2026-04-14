@@ -3,11 +3,9 @@ import PageHeader from "~/components/_molecules/page/page-header.vue";
 import {useUserStore} from '~/stores/userStore';
 import UserAvatar from '~/components/_atoms/user/user-avatar.vue';
 import ProfileForm from '~/components/_organisms/user/profile-form.vue';
-import {useToasts} from '~/services/toasts/toast-service';
 import {useUserNotifications} from "~/components/_organisms/user/notifcations";
 
 const userStore = useUserStore();
-const {success, error: showError} = useToasts();
 const {
   onAvatarUpdateSuccess,
   onAvatarUpdateError,
@@ -31,8 +29,6 @@ async function onSaveProfile(data: any) {
     onProfileUpdateSuccess();
   } catch (error: any) {
     onProfileUpdateError(error.message);
-  } finally {
-    pending.value = false;
   }
 }
 
@@ -45,14 +41,11 @@ async function onFileChange(event: Event) {
   const file = target.files?.[0];
   if (!file) return;
 
-  pending.value = true;
   try {
     await userStore.updateProfilePicture(file);
     onAvatarUpdateSuccess();
   } catch (error: any) {
     onAvatarUpdateError(error.message);
-  } finally {
-    pending.value = false;
   }
 }
 </script>
