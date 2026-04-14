@@ -24,32 +24,24 @@ onMounted(async () => {
 
 <template>
   <UApp>
-    <div
-      v-if="authStore.isAuthenticated"
-      class="flex flex-1 h-screen overflow-hidden"
-    >
-      <SideNavBar/>
+    <div class="flex flex-1 h-screen overflow-hidden">
+      <SideNavBar v-if="authStore.isAuthenticated"/>
 
       <MainContentWrapper>
-        <TopNavBar/>
+        <template #header>
+          <TopNavBar/>
+        </template>
 
-        <div class="flex-1 overflow-y-auto">
-          <UMain>
-            <NuxtLayout>
-              <NuxtPage/>
-            </NuxtLayout>
-          </UMain>
+        <UMain>
+          <NuxtLayout>
+            <NuxtPage/>
+          </NuxtLayout>
+        </UMain>
+
+        <template #footer>
           <Footer/>
-        </div>
+        </template>
       </MainContentWrapper>
-    </div>
-
-    <div v-else class="flex flex-col h-screen overflow-hidden bg-neutral-50/50 dark:bg-neutral-900">
-      <UMain>
-        <NuxtLayout>
-          <NuxtPage/>
-        </NuxtLayout>
-      </UMain>
     </div>
   </UApp>
 </template>

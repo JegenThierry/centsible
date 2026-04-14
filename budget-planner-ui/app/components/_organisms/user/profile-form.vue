@@ -54,11 +54,6 @@ const emailInput = ref<InstanceType<typeof BaseInput>>();
 
 const state = reactive({ ...props.initialValues });
 
-// Watch for changes in initialValues if they change after mounting
-watch(() => props.initialValues, (newValues) => {
-  Object.assign(state, newValues);
-}, { deep: true });
-
 function validate(): boolean {
   const inputs = [
     firstNameInput.value,
