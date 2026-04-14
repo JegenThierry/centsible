@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import type {UserDto} from "~/models/user/user-dto";
 import {useUserService} from "~/services/user/user-service";
-import type {ProfileForm} from "~/models/user/profile-form";
+import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 export const useUserStore = defineStore('userStore', () => {
   const api = useApi();
@@ -19,7 +19,7 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
-  async function updateProfile(profile: ProfileForm) {
+  async function updateProfile(profile: UserProfileForm) {
     pending.value = true;
     try {
       user.value = await userService.updateProfile(profile);

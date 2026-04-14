@@ -35,13 +35,10 @@
 
 <script setup lang="ts">
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
+import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 interface Props {
-  initialValues: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
+  initialValues: UserProfileForm;
   loading?: boolean;
 }
 

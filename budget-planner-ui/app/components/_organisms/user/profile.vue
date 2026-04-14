@@ -4,6 +4,7 @@ import {useUserStore} from '~/stores/userStore';
 import UserAvatar from '~/components/_atoms/user/user-avatar.vue';
 import ProfileForm from '~/components/_organisms/user/profile-form.vue';
 import {useUserNotifications} from "~/components/_organisms/user/notifcations";
+import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 const userStore = useUserStore();
 const {
@@ -15,11 +16,22 @@ const {
 } = useUserNotifications();
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const initialFormValues = ref<UserProfileForm>();
 const pending = ref(false);
 
-onMounted(() => {
+onMounted(async () => {
   if (userStore.user) return;
-  userStore.fetchMyself();
+
+  const user = userStore.user;
+  if(!user) return;
+
+  const { firstName, lastName, email } = user;
+
+  initialFormValues.value = {
+    firstName,
+    lastName,
+    email,
+  };
 });
 
 async function onSaveProfile(data: any) {
@@ -90,11 +102,7 @@ async function onFileChange(event: Event) {
         </div>
 
         <div class="max-w-2xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-2">
-          <ProfileForm :initial-values="{
-                         firstName: userStore.user.firstName,
-                         lastName: userStore.user.lastName,
-                         email: userStore.user.email
-                       }"
+          <ProfileForm :initial-values="initialFormValues"
                        :loading="userStore.pending"
                        @save="onSaveProfile"
                        @validation-failed="onValidationError"/>
