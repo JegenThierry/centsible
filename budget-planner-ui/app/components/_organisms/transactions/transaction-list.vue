@@ -19,6 +19,8 @@ const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UIcon = resolveComponent('UIcon')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
+const CategoryBadge = resolveComponent('CategoryBadge')
+const FormattedDate = resolveComponent('FormattedDate')
 
 const api = useApi();
 const toast = useToasts();
@@ -59,12 +61,9 @@ const columns: TableColumn<Transaction>[] = [
     accessorKey: 'transactionDate',
     header: 'Date',
     cell: ({row}) => {
-      return new Date(row.getValue('transactionDate')).toLocaleString('en-US', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+      return h(FormattedDate, {
+        date: row.getValue('transactionDate'),
+        format: 'full'
       })
     }
   },
@@ -77,19 +76,11 @@ const columns: TableColumn<Transaction>[] = [
     header: 'Category',
     cell: ({row}) => {
       const category = row.getValue('category') as any
-      if (!category) return h(UBadge, {variant: 'subtle', color: 'neutral'}, () => 'No category')
-
-      return h(UBadge, {
-        style: {
-          backgroundColor: `${category.color}15`,
-          color: category.color,
-          border: `1px solid ${category.color}30`,
-        },
-        class: 'flex items-center gap-1.5 w-fit'
-      }, () => [
-        h(UIcon, {name: category.icon, class: 'w-3.5 h-3.5'}),
-        h('span', category.name)
-      ])
+      return h(CategoryBadge, {
+        name: category?.name,
+        icon: category?.icon,
+        color: category?.color
+      })
     }
   },
   {

@@ -12,27 +12,23 @@ import java.util.UUID
 
 @Repository
 class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRepository {
+    private val accountSelect = dsl.select(
+        ACCOUNTS.ID,
+        ACCOUNTS.NAME,
+        ACCOUNTS.BALANCE,
+        ACCOUNTS.INITIAL_BALANCE,
+        ACCOUNTS.CURRENCY,
+    )
+
     override fun fetchAllAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> {
-        return dsl.select(
-            ACCOUNTS.ID,
-            ACCOUNTS.NAME,
-            ACCOUNTS.BALANCE,
-            ACCOUNTS.INITIAL_BALANCE,
-            ACCOUNTS.CURRENCY,
-        )
+        return accountSelect
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
             .fetchInto(BudgetAccountDTO::class.java)
     }
 
     override fun fetchAccountById(id: UUID, authenticatedUser: UserDTO): BudgetAccountDTO {
-        return dsl.select(
-            ACCOUNTS.ID,
-            ACCOUNTS.NAME,
-            ACCOUNTS.BALANCE,
-            ACCOUNTS.INITIAL_BALANCE,
-            ACCOUNTS.CURRENCY,
-        )
+        return accountSelect
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id).and(ACCOUNTS.ID.eq(id)))
             .fetchSingleInto(BudgetAccountDTO::class.java)

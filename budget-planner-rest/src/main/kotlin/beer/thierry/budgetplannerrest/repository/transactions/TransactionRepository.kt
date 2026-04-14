@@ -15,6 +15,20 @@ import java.util.*
 
 @Repository
 class TransactionRepository(private val dsl: DSLContext) : ITransactionRepository {
+    private val transactionSelect = dsl.select(
+        TRANSACTIONS.ID,
+        TRANSACTIONS.AMOUNT,
+        TRANSACTIONS.DESCRIPTION,
+        TRANSACTIONS.TRANSACTION_DATE,
+        TRANSACTIONS.CREATED_AT,
+        TRANSACTIONS.MODIFIED_AT,
+        CATEGORIES.ID,
+        CATEGORIES.NAME,
+        CATEGORIES.ICON,
+        CATEGORIES.TYPE,
+        CATEGORIES.COLOR
+    )
+
     override fun fetchTransactions(
         accountId: UUID, authenticatedUser: UserDTO, page: Int, pageSize: Int
     ): List<TransactionDTO> {
@@ -22,79 +36,40 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         require(pageSize in 1..100) { "pageSize must be between 1 and 100" }
         val offset = (page - 1).toLong() * pageSize
 
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
-            .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
+        return transactionSelect.from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).limit(pageSize).offset(offset)
-            .fetch { transactionRecord ->
-                val category = CategoryDTO(
-                    id = transactionRecord[CATEGORIES.ID],
-                    name = transactionRecord[CATEGORIES.NAME],
-                    icon = transactionRecord[CATEGORIES.ICON],
-                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!),
-                    color = transactionRecord[CATEGORIES.COLOR]
-                )
-
-                TransactionDTO(
-                    id = transactionRecord[TRANSACTIONS.ID],
-                    category = category,
-                    amount = transactionRecord[TRANSACTIONS.AMOUNT],
-                    description = transactionRecord[TRANSACTIONS.DESCRIPTION],
-                    transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
-                    createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
-                    updatedAt = transactionRecord[TRANSACTIONS.MODIFIED_AT],
-                )
-            }
+            .fetch { mapToTransactionDTO(it) }
     }
 
     override fun fetchTransactionById(
         transactionId: UUID, authenticatedUser: UserDTO
     ): TransactionDTO {
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID)).join(ACCOUNTS)
-            .on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+        return transactionSelect.from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
-            .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).fetchSingle { transactionRecord ->
-                val category = CategoryDTO(
-                    id = transactionRecord[CATEGORIES.ID],
-                    name = transactionRecord[CATEGORIES.NAME],
-                    icon = transactionRecord[CATEGORIES.ICON],
-                    type = CategoryType.fromValue(transactionRecord[CATEGORIES.TYPE]!!),
-                    color = transactionRecord[CATEGORIES.COLOR]
-                )
+            .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
+            .fetchSingle { mapToTransactionDTO(it) }
+    }
 
-                TransactionDTO(
-                    id = transactionRecord[TRANSACTIONS.ID],
-                    category = category,
-                    amount = transactionRecord[TRANSACTIONS.AMOUNT],
-                    description = transactionRecord[TRANSACTIONS.DESCRIPTION],
-                    transactionDate = transactionRecord[TRANSACTIONS.TRANSACTION_DATE],
-                    createdAt = transactionRecord[TRANSACTIONS.CREATED_AT],
-                    updatedAt = transactionRecord[TRANSACTIONS.MODIFIED_AT],
-                )
-            }
+    private fun mapToTransactionDTO(record: org.jooq.Record): TransactionDTO {
+        val category = CategoryDTO(
+            id = record[CATEGORIES.ID]!!,
+            name = record[CATEGORIES.NAME]!!,
+            icon = record[CATEGORIES.ICON]!!,
+            type = CategoryType.fromValue(record[CATEGORIES.TYPE]!!),
+            color = record[CATEGORIES.COLOR]
+        )
+
+        return TransactionDTO(
+            id = record[TRANSACTIONS.ID]!!,
+            category = category,
+            amount = record[TRANSACTIONS.AMOUNT]!!,
+            description = record[TRANSACTIONS.DESCRIPTION],
+            transactionDate = record[TRANSACTIONS.TRANSACTION_DATE]!!,
+            createdAt = record[TRANSACTIONS.CREATED_AT]!!,
+            updatedAt = record[TRANSACTIONS.MODIFIED_AT]!!,
+        )
     }
 
     override fun createTransaction(

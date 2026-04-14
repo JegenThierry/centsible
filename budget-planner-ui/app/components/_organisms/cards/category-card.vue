@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {Category} from "~/models/category/category";
 import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
+import CategoryIcon from "~/components/_atoms/categories/category-icon.vue";
 
 defineProps<{
   category: Category;
@@ -23,12 +24,7 @@ const emit = defineEmits<{
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div
-          class="flex p-2 rounded-lg my-auto"
-          :style="{ backgroundColor: `${category.color}20`, color: category.color }"
-        >
-          <UIcon :name="category.icon" class="w-6 h-6"/>
-        </div>
+        <CategoryIcon :icon="category.icon" :color="category.color" size="lg" />
         <div>
           <p class="font-semibold">{{ category.name }}</p>
           <div class="flex gap-2">
