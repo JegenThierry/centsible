@@ -69,8 +69,8 @@ services:
 
   budget_planner_rest:
     build:
-      context: ./budget-planner-rest
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: budget-planner-rest/Dockerfile
     container_name: budget_planner_rest
 
     develop:
@@ -78,7 +78,13 @@ services:
         - action: rebuild
           path: ./budget-planner-rest/src
         - action: rebuild
-          path: ./budget-planner-rest/build.gradle.kts
+          path: ./budget-planner-core/src
+        - action: rebuild
+          path: ./budget-planner-api/src
+        - action: rebuild
+          path: ./budget-planner-jooq/src
+        - action: rebuild
+          path: ./build.gradle.kts
 
     restart: unless-stopped
 

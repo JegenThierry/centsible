@@ -1,6 +1,6 @@
 package beer.thierry.budgetplannerrest.security
 
-import beer.thierry.budgetplannerrest.model.user.UserDTO
+import beer.thierry.budgetplanner.api.model.user.UserDTO
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Category } from "~/models/category/category";
+import { CategoryType, type Category } from "~/models/category/category";
 import { type TransactionForm } from "~/models/transactions/transaction";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
@@ -9,6 +9,7 @@ import { useCategoryService } from "~/services/category/category-service";
 
 const props = defineProps<{
   modelValue: TransactionForm;
+  filterType?: CategoryType;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -24,7 +25,12 @@ const dateInput = ref();
 
 async function loadCategories() {
   try {
-    categories.value = await categoryService.fetchCategories();
+    const allCategories = await categoryService.fetchCategories();
+    if (props.filterType) {
+      categories.value = allCategories.filter(c => c.type === props.filterType);
+    } else {
+      categories.value = allCategories;
+    }
   } catch (error) {
     console.error('Failed to load categories:', error);
   }
@@ -41,7 +47,12 @@ onMounted(() => {
 
 defineExpose({
   validate: () => {
-    const inputs = [amountInput, descriptionInput, categoryInput, dateInput];
+    const inputs = [
+      amountInput,
+      descriptionInput,
+      categoryInput,
+      dateInput
+    ];
     return useValidator().validateInputs(inputs);
   }
 });

@@ -13,6 +13,7 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
+import { CategoryType } from "~/models/category/category";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 
 const UButton = resolveComponent('UButton')
@@ -160,6 +161,12 @@ onMounted(() => {
 
 <template>
   <UCard variant="outline">
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900 dark:text-white">Transactions</h3>
+      </div>
+    </template>
+
     <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
       <template #loading>
         <div class="flex flex-col items-center justify-center py-10 gap-3">

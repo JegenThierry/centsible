@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <UBadge :color="type === CategoryType.INCOME ? 'success' : 'neutral'" variant="subtle" size="xs">
+  <UBadge :color="type === CategoryType.INCOME ? 'success' : 'error'" variant="subtle" size="xs">
     {{ type }}
   </UBadge>
 </template>

@@ -1,0 +1,90 @@
+package beer.thierry.budgetplanner.core.service
+
+import beer.thierry.budgetplanner.api.service.transactions.ITransactionService
+import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
+import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
+import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.IBudgetAccountsRepository
+import beer.thierry.budgetplanner.api.repository.ITransactionRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.util.UUID
+
+@Service
+class TransactionService(
+    private val transactionRepository: ITransactionRepository,
+    private val accountRepository: IBudgetAccountsRepository,
+) : ITransactionService {
+
+    override fun fetchTransactions(
+        accountId: UUID,
+        authenticatedUser: UserDTO,
+        page: Int,
+        size: Int
+    ): List<TransactionDTO> {
+        require(page > 0) { "page must be > 0" }
+        require(size > 0) { "size must be > 0" }
+
+        return transactionRepository.fetchTransactions(accountId, authenticatedUser, page, size)
+    }
+
+    @Transactional
+    override fun createTransaction(
+        accountId: UUID,
+        transactionForm: TransactionForm,
+        authenticatedUser: UserDTO
+    ): TransactionDTO {
+        val transaction = transactionRepository.createTransaction(accountId, transactionForm, authenticatedUser)
+        val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
+        updateAccountBalanceAndLogHistory(accountId, adjustment, authenticatedUser)
+
+        return transaction
+    }
+
+    @Transactional
+    override fun updateTransaction(
+        transactionId: UUID,
+        accountId: UUID,
+        transactionForm: TransactionForm,
+        authenticatedUser: UserDTO
+    ): TransactionDTO {
+        val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+        val oldAdjustment = calculateAdjustment(oldTransaction.category.type, oldTransaction.amount)
+
+        val updatedTransaction =
+            transactionRepository.updateTransaction(transactionId, accountId, transactionForm, authenticatedUser)
+        val newAdjustment = calculateAdjustment(updatedTransaction.category.type, updatedTransaction.amount)
+
+        updateAccountBalanceAndLogHistory(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
+
+        return updatedTransaction
+    }
+
+    @Transactional
+    override fun deleteTransaction(
+        transactionId: UUID,
+        accountId: UUID,
+        authenticatedUser: UserDTO
+    ): TransactionDTO {
+        val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
+        val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
+        updateAccountBalanceAndLogHistory(accountId, adjustment.negate(), authenticatedUser)
+
+        return transaction
+    }
+
+    private fun calculateAdjustment(type: CategoryType?, amount: BigDecimal?): BigDecimal {
+        val value = amount ?: BigDecimal.ZERO
+        return when (type) {
+            CategoryType.INCOME -> value
+            CategoryType.EXPENSE -> value.negate()
+            else -> throw IllegalArgumentException("Invalid transaction type: $type")
+        }
+    }
+
+    private fun updateAccountBalanceAndLogHistory(accountId: UUID, adjustment: BigDecimal, authenticatedUser: UserDTO) {
+        accountRepository.updateBalance(accountId, adjustment)
+    }
+}

@@ -3,7 +3,7 @@ import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-badge.vue";
 
-defineProps<{
+const props = defineProps<{
   accountName: string,
   balance: number,
   initialBalance: number,
@@ -21,9 +21,11 @@ defineProps<{
           </h2>
         </div>
 
-        <BalanceChangeBadge :current-balance="balance"
-                            :previous-balance="initialBalance"
-                            :currency="currency"/>
+        <div class="flex flex-col items-end gap-2">
+          <BalanceChangeBadge :current-balance="balance"
+                              :previous-balance="initialBalance"
+                              :currency="currency"/>
+        </div>
       </div>
 
       <div class="space-y-1">
