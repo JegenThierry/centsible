@@ -1,6 +1,7 @@
 package beer.thierry.budgetplannerrest.config
 
 import beer.thierry.budgetplannerrest.security.JwtAuthenticationFilter
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -39,6 +40,7 @@ class SecurityConfig(
                 authorize("/api/auth/register", permitAll)
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/auth/confirm", permitAll)
+                authorize(EndpointRequest.to("health"), permitAll)
                 authorize(anyRequest, authenticated)
             }
 

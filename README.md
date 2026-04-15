@@ -70,6 +70,14 @@ To run the entire stack using Docker Compose:
 docker compose up --build
 ```
 
+For **development with auto-rebuild on file changes**, use watch mode:
+
+```bash
+docker compose up --watch
+```
+
+This monitors your source files and automatically rebuilds or syncs containers when changes are detected.
+
 This will start:
 
 - PostgreSQL on port `5432` (or as configured in `DB_HOST_PORT`)

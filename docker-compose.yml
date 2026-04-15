@@ -19,11 +19,8 @@ services:
       - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
       - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
-      - ./budget-planner-db/migrations/01_AddInitalBalanceToAccounts.sql:/docker-entrypoint-initdb.d/03_01_AddInitalBalanceToAccounts.sql:ro,z
-      - ./budget-planner-db/migrations/02_AddRegistrationToUsers.sql:/docker-entrypoint-initdb.d/04_02_AddRegistrationToUsers.sql:ro,z
-      - ./budget-planner-db/migrations/03_CategoryTypeAndTransactionRefactor.sql:/docker-entrypoint-initdb.d/05_03_CategoryTypeAndTransactionRefactor.sql:ro,z
-      - ./budget-planner-db/migrations/04_AddColorToCategories.sql:/docker-entrypoint-initdb.d/06_04_AddColorToCategories.sql:ro,z
-      - ./budget-planner-db/migrations/05_AddProfilePictureToUsers.sql:/docker-entrypoint-initdb.d/07_05_AddProfilePictureToUsers.sql:ro,z
+      - ./budget-planner-db/migrations:/migrations:ro,z
+      - ./budget-planner-db/run-migrations.sh:/docker-entrypoint-initdb.d/03_run-migrations.sh:ro,z
 
     ports:
       - "${DB_HOST_PORT}:5432"
@@ -51,17 +48,43 @@ services:
     networks:
       - budget_planner_net
 
+  budget_planner_migrations:
+    image: postgres:18.3-alpine
+    container_name: budget_planner_migrations
+    depends_on:
+      budget_planner_db:
+        condition: service_healthy
+    volumes:
+      - ./budget-planner-db/migrations:/migrations:ro,z
+      - ./budget-planner-db/run-migrations.sh:/run-migrations.sh:ro,z
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGHOST: budget_planner_db
+    entrypoint: ["/bin/bash", "/run-migrations.sh"]
+    networks:
+      - budget_planner_net
+
   budget_planner_rest:
     build:
       context: ./budget-planner-rest
       dockerfile: Dockerfile
     container_name: budget_planner_rest
 
+    develop:
+      watch:
+        - action: rebuild
+          path: ./budget-planner-rest/src
+        - action: rebuild
+          path: ./budget-planner-rest/build.gradle.kts
+
     restart: unless-stopped
 
     depends_on:
-      budget_planner_db:
-        condition: service_healthy
+      budget_planner_migrations:
+        condition: service_completed_successfully
 
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://budget_planner_db:5432/${POSTGRES_DB}
@@ -77,6 +100,13 @@ services:
 
     ports:
       - "${REST_HOST_PORT:-8080}:8080"
+
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
     deploy:
       resources:
@@ -101,21 +131,30 @@ services:
       target: dev
     container_name: budget_planner_ui
 
+    develop:
+      watch:
+        - action: sync
+          path: ./budget-planner-ui/app
+          target: /app/app
+        - action: rebuild
+          path: ./budget-planner-ui/package.json
+
     restart: unless-stopped
 
     depends_on:
-      - budget_planner_rest
+      budget_planner_rest:
+        condition: service_healthy
 
     environment:
       NUXT_PUBLIC_API_BASE: "http://localhost:${REST_HOST_PORT:-8080}/api"
-      NUXT_API_BASE_SSR: "http://budget_planner_rest:${REST_HOST_PORT:-8080}/api"
+      NUXT_API_BASE_SSR: "http://budget_planner_rest:8080/api"
 
     ports:
       - "${UI_HOST_PORT:-3000}:3000"
 
     volumes:
       - ./budget-planner-ui:/app:z
-      - ./budget-planner-ui/node_modules:/app/node_modules:z
+      - node_modules_ui:/app/node_modules
 
     logging:
       driver: json-file
@@ -132,4 +171,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  node_modules_ui:
     driver: local

@@ -15,20 +15,6 @@ import java.util.*
 
 @Repository
 class TransactionRepository(private val dsl: DSLContext) : ITransactionRepository {
-    private val transactionSelect = dsl.select(
-        TRANSACTIONS.ID,
-        TRANSACTIONS.AMOUNT,
-        TRANSACTIONS.DESCRIPTION,
-        TRANSACTIONS.TRANSACTION_DATE,
-        TRANSACTIONS.CREATED_AT,
-        TRANSACTIONS.MODIFIED_AT,
-        CATEGORIES.ID,
-        CATEGORIES.NAME,
-        CATEGORIES.ICON,
-        CATEGORIES.TYPE,
-        CATEGORIES.COLOR
-    )
-
     override fun fetchTransactions(
         accountId: UUID, authenticatedUser: UserDTO, page: Int, pageSize: Int
     ): List<TransactionDTO> {
@@ -36,7 +22,19 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         require(pageSize in 1..100) { "pageSize must be between 1 and 100" }
         val offset = (page - 1).toLong() * pageSize
 
-        return transactionSelect.from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+        return dsl.select(
+            TRANSACTIONS.ID,
+            TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.DESCRIPTION,
+            TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.CREATED_AT,
+            TRANSACTIONS.MODIFIED_AT,
+            CATEGORIES.ID,
+            CATEGORIES.NAME,
+            CATEGORIES.ICON,
+            CATEGORIES.TYPE,
+            CATEGORIES.COLOR
+        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).limit(pageSize).offset(offset)
             .fetch { mapToTransactionDTO(it) }
@@ -45,7 +43,19 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun fetchTransactionById(
         transactionId: UUID, authenticatedUser: UserDTO
     ): TransactionDTO {
-        return transactionSelect.from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+        return dsl.select(
+            TRANSACTIONS.ID,
+            TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.DESCRIPTION,
+            TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.CREATED_AT,
+            TRANSACTIONS.MODIFIED_AT,
+            CATEGORIES.ID,
+            CATEGORIES.NAME,
+            CATEGORIES.ICON,
+            CATEGORIES.TYPE,
+            CATEGORIES.COLOR
+        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())

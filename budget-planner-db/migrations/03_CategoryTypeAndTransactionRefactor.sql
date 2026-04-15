@@ -1,19 +1,28 @@
--- Add type column to categories
-ALTER TABLE categories ADD COLUMN type VARCHAR(10) CHECK (type IN ('INCOME', 'EXPENSE'));
+-- Add type column to categories (if not already present)
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS type VARCHAR(10) CHECK (type IN ('INCOME', 'EXPENSE'));
 
 -- Update existing categories to have a default type based on current transactions
-UPDATE categories c
-SET type = (
-    SELECT t.type
-    FROM transactions t
-    WHERE t.category_id = c.id
-    LIMIT 1
-)
-WHERE EXISTS (
-    SELECT 1
-    FROM transactions t
-    WHERE t.category_id = c.id
-);
+-- (Only runs if transactions table still has a type column)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'transactions' AND column_name = 'type'
+    ) THEN
+        UPDATE categories c
+        SET type = (
+            SELECT t.type
+            FROM transactions t
+            WHERE t.category_id = c.id
+            LIMIT 1
+        )
+        WHERE EXISTS (
+            SELECT 1
+            FROM transactions t
+            WHERE t.category_id = c.id
+        );
+    END IF;
+END $$;
 
 -- Default categories (Salary as income, others as expense)
 UPDATE categories SET type = 'INCOME' WHERE name = 'Salary' AND type IS NULL;
@@ -49,5 +58,5 @@ SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
        transaction_id
 FROM history;
 
--- Remove type column from transactions
-ALTER TABLE transactions DROP COLUMN type;
+-- Remove type column from transactions (if it exists)
+ALTER TABLE transactions DROP COLUMN IF EXISTS type;
