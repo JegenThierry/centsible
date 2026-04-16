@@ -20,6 +20,7 @@ class AuthService(
     private val userRepository: IUserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
+    @Value("\${skip.email.verification}") private val skipEmailVerification: Boolean,
     @Value("\${jwt.secret}") private val jwtSecret: String,
     @Value("\${jwt.expirationMs}") private val jwtExpirationMs: Long
 ) : IAuthService {
@@ -52,8 +53,11 @@ class AuthService(
         val registeredUser = userRepository.createUser(authRequest)
             ?: throw IllegalArgumentException("User could not be created")
 
-        registerEmailService.sendRegistrationEmail(registeredUser, registeredUser.registrationToken.toString())
+        if(skipEmailVerification) {
+            return AuthResponse(generateJwt(registeredUser))
+        }
 
+        registerEmailService.sendRegistrationEmail(registeredUser, registeredUser.registrationToken.toString())
         return AuthResponse("")
     }
 

@@ -12,3 +12,10 @@ spring.jooq.sql-dialect=postgres
 #JWT you can use: https://jwtsecretkeygenerator.com/
 jwt.expirationMs=86400000
 jwt.secret=<Enter your token>
+
+# Actuator
+management.endpoints.web.exposure.include=health
+management.endpoint.health.show-details=never
+
+#Application Configuration
+skip.email.verification=true
