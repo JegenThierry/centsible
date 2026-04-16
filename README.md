@@ -13,32 +13,52 @@ Feel free to buy me a ☕.
   </a>
 </p>
 
-## Project Structure
+## Project Structure & Architecture
 
-The repository follows an N-Layer architecture and is divided into the following modules:
+The project is organized as a monorepo containing both frontend and backend modules. It follows a modular **N-Layer Architecture** (also known as Onion or Hexagonal-lite architecture) to ensure a clean separation of concerns, maintainability, and testability.
 
-### Frontend
+### Folder Overview
 
-- **`budget-planner-ui`**: Nuxt 4 application (Vue 3, Pinia, Tailwind CSS, Nuxt UI).
+- **`budget-planner-api`**: Shared domain models, DTOs, and interfaces.
+- **`budget-planner-bruno`**: API request collections for the [Bruno](https://www.usebruno.com/) API client.
+- **`budget-planner-core`**: Core business logic and service implementations.
+- **`budget-planner-db`**: Database schema, migrations, and initialization scripts.
+- **`budget-planner-jooq`**: Data access layer powered by jOOQ.
+- **`budget-planner-rest`**: Spring Boot entry point and REST API controllers.
+- **`budget-planner-ui`**: Nuxt.js frontend application.
 
-### Backend (N-Layer Architecture)
+### N-Layer Architecture (Backend)
 
-- **`budget-planner-rest`** (Presentation Layer): REST Controllers, Security Config, and API entry point.
-- **`budget-planner-core`** (Business Layer): Services and Facades orchestrating business logic and transactions.
-- **`budget-planner-jooq`** (Data Access Layer): jOOQ generated classes, repositories, and DB configurations.
-- **`budget-planner-api`** (Shared Layer): DTOs, interfaces, enums, and domain models used across all layers.
+The backend is decomposed into several modules, each representing a specific layer in the architecture. Dependency flow is strictly unidirectional (from outer layers to inner layers):
 
-### Infrastructure & Tooling
+1.  **Presentation Layer (`budget-planner-rest`)**:
+    - The entry point of the application.
+    - Contains Spring Boot configuration, Security setup, and REST Controllers.
+    - Responsible for handling HTTP requests, input validation, and mapping to/from DTOs.
+    - **Depends on**: `budget-planner-core`, `budget-planner-api`.
 
-- **`budget-planner-db`**: PostgreSQL schema, migrations, and initialization scripts.
-- **`budget-planner-bruno`**: API Request collections for the [Bruno](https://www.usebruno.com/) API client.
+2.  **Business Layer (`budget-planner-core`)**:
+    - Contains the "heart" of the application: services, facades, and business rules.
+    - Orchestrates transactions and coordinates data flow between the API and Persistence layers.
+    - **Depends on**: `budget-planner-jooq`, `budget-planner-api`.
+
+3.  **Data Access Layer (`budget-planner-jooq`)**:
+    - Handles all database interactions.
+    - Includes jOOQ-generated classes and custom repository implementations.
+    - Encapsulates SQL logic and provides a clean interface for the Business layer.
+    - **Depends on**: `budget-planner-api`.
+
+4.  **Shared Layer (`budget-planner-api`)**:
+    - A lightweight module containing common DTOs, interfaces, constants, and exceptions.
+    - Used as a bridge for communication between all other modules.
+    - **Depends on**: None.
 
 ## Tech Stack
 
 | Component         | Technology                                  |
 |:------------------|:--------------------------------------------|
 | **Frontend**      | Nuxt 4, Vue 3, Pinia, Tailwind CSS, Nuxt UI |
-| **Backend**       | Spring Boot 4, Kotlin, JDK 21               |
+| **Backend**       | Spring Boot 4.0.1, Kotlin, JDK 21           |
 | **Database**      | PostgreSQL 18.3, jOOQ                       |
 | **Orchestration** | Docker, Docker Compose                      |
 | **API Testing**   | Bruno                                       |
@@ -53,25 +73,34 @@ The repository follows an N-Layer architecture and is divided into the following
 
 ### Configuration
 
-The project uses an `.env` file at the root for configuration. A sample `.env` file is expected with the following
-variables:
+The project uses an `.env` file at the root for configuration. Copy `.env.example` to `.env` and update the values as needed.
 
 ```env
 # Database
-POSTGRES_USER=<pg_user>
-POSTGRES_PASSWORD=<pg_password>
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=change_me_super_strong_password
 POSTGRES_DB=budget_planner
 DB_HOST_PORT=5432
 
 # Rest
-JWT_SECRET=your_jwt_secret_here
+JWT_SECRET=your-secret-here
 JWT_EXPIRATION_MS=86400000
 REST_HOST_PORT=8080
+
+# Resend
+RESEND_API_KEY=re_123456789
+RESEND_FROM_EMAIL=onboarding@resend.dev
+
+# App
+APP_BASE_URL=http://localhost:8080
 
 # Ui
 UI_HOST_PORT=3000
 NUXT_PUBLIC_API_BASE=http://localhost:8080/api
 NUXT_API_BASE_SSR=http://budget_planner_rest:8080/api
+
+# Application Configuration
+SKIP_EMAIL_VERIFICATION=true
 ```
 
 ### Installation and Deployment
@@ -124,14 +153,22 @@ for dependency management.
 
 ## Environment Variables
 
-| Variable               | Description                     | Default                     |
-|:-----------------------|:--------------------------------|:----------------------------|
-| `POSTGRES_USER`        | Database username               | -                           |
-| `POSTGRES_PASSWORD`    | Database password               | -                           |
-| `POSTGRES_DB`          | Database name                   | `budget_planner`            |
-| `JWT_SECRET`           | Secret key for JWT signing      | -                           |
-| `JWT_EXPIRATION_MS`    | JWT token expiration in ms      | `86400000` (24h)            |
-| `NUXT_PUBLIC_API_BASE` | Public API URL for the frontend | `http://localhost:8080/api` |
+| Variable                  | Description                          | Default                      |
+|:--------------------------|:-------------------------------------|:-----------------------------|
+| `POSTGRES_USER`           | Database username                    | -                            |
+| `POSTGRES_PASSWORD`       | Database password                    | -                            |
+| `POSTGRES_DB`             | Database name                        | `budget_planner`             |
+| `DB_HOST_PORT`            | Port for PostgreSQL                  | `5432`                       |
+| `JWT_SECRET`              | Secret key for JWT signing           | -                            |
+| `JWT_EXPIRATION_MS`       | JWT token expiration in ms           | `86400000` (24h)             |
+| `REST_HOST_PORT`          | Port for REST API                    | `8080`                       |
+| `RESEND_API_KEY`          | API key for Resend email service     | -                            |
+| `RESEND_FROM_EMAIL`       | Email address to send emails from    | -                            |
+| `APP_BASE_URL`            | Base URL for the application         | `http://localhost:8080`      |
+| `UI_HOST_PORT`            | Port for UI                          | `3000`                       |
+| `NUXT_PUBLIC_API_BASE`    | Public API URL for the frontend      | `http://localhost:8080/api`  |
+| `NUXT_API_BASE_SSR`       | API URL for SSR in Nuxt              | -                            |
+| `SKIP_EMAIL_VERIFICATION` | Skip email verification during reg.  | `false`                      |
 
 ## License
 
