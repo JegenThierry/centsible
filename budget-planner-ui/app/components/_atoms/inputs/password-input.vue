@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const props = defineProps<{
   required?: boolean;
   label?: string;
@@ -42,27 +42,27 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :required="required"
-              :label="label"
+  <UFormField :error="error"
               :help="description"
-              :error="error">
+              :label="label"
+              :required="required">
     <UInput
-        v-model="password"
-        class="w-full"
-        :placeholder="placeholder"
-        :type="show ? 'text' : 'password'"
-        :ui="{ trailing: 'pe-1' }"
+      v-model="password"
+      :placeholder="placeholder"
+      :type="show ? 'text' : 'password'"
+      :ui="{ trailing: 'pe-1' }"
+      class="w-full"
     >
       <template #trailing>
         <UButton
-            color="neutral"
-            variant="link"
-            size="sm"
-            :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-            :aria-label="show ? 'Hide password' : 'Show password'"
-            :aria-pressed="show"
-            aria-controls="password"
-            @click="onToggleShow()"
+          :aria-label="show ? 'Hide password' : 'Show password'"
+          :aria-pressed="show"
+          :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+          aria-controls="password"
+          color="neutral"
+          size="sm"
+          variant="link"
+          @click="onToggleShow()"
         />
       </template>
     </UInput>

@@ -1,6 +1,6 @@
 package beer.thierry.budgetplannerrest.security
 
-import beer.thierry.budgetplannerrest.model.user.UserDTO
+import beer.thierry.budgetplanner.api.model.user.UserDTO
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -13,8 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.util.Base64
-import java.util.UUID
+import java.util.*
 
 @Component
 class JwtAuthenticationFilter(

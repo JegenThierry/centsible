@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useToasts} from "~/services/toasts/toast-service";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import DeleteButton from "~/components/_molecules/buttons/delete-button.vue";
@@ -43,8 +43,8 @@ function onCancel() {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <CancelButton @click="onCancel" />
-        <DeleteButton :loading="loading" @click="onDelete" />
+        <CancelButton @click="onCancel"/>
+        <DeleteButton :loading="loading" @click="onDelete"/>
       </div>
     </template>
   </UModal>

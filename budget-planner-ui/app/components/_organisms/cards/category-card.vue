@@ -24,28 +24,28 @@ const emit = defineEmits<{
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <CategoryIcon :icon="category.icon" :color="category.color" size="lg" />
+        <CategoryIcon :color="category.color" :icon="category.icon" size="lg"/>
         <div>
           <p class="font-semibold">{{ category.name }}</p>
           <div class="flex gap-2">
-            <CategoryTypeBadge :type="category.type" />
-            <UBadge v-if="category.system" color="neutral" variant="outline" size="xs">System</UBadge>
+            <CategoryTypeBadge :type="category.type"/>
+            <UBadge v-if="category.system" color="neutral" size="xs" variant="outline">System</UBadge>
           </div>
         </div>
       </div>
       <div v-if="!category.system" class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <UButton
-          icon="i-lucide-pencil"
-          variant="ghost"
           color="neutral"
+          icon="i-lucide-pencil"
           size="sm"
+          variant="ghost"
           @click="emit('edit', category)"
         />
         <UButton
-          icon="i-lucide-trash"
-          variant="ghost"
           color="error"
+          icon="i-lucide-trash"
           size="sm"
+          variant="ghost"
           @click="emit('delete', category)"
         />
       </div>

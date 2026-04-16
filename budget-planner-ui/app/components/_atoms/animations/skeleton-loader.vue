@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 </script>
 
 <template>
-  <USkeleton v-bind="$attrs" />
+  <USkeleton v-bind="$attrs"/>
 </template>

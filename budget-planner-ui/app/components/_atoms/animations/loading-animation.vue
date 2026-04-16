@@ -1,10 +1,10 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 
 </script>
 
 <template>
-  <UIcon name="i-lucide-loader-2"
-         class="w-6 h-6 animate-spin text-neutral-400"/>
+  <UIcon class="w-6 h-6 animate-spin text-neutral-400"
+         name="i-lucide-loader-2"/>
 </template>
 
 <style scoped>

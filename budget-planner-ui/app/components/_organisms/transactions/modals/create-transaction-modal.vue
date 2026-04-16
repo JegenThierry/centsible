@@ -1,10 +1,20 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {type TransactionForm} from "~/models/transactions/transaction";
+import {CategoryType} from "~/models/category/category";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {format} from 'date-fns';
+
+const props = withDefaults(defineProps<{
+  title?: string;
+  description?: string;
+  filterType?: CategoryType;
+}>(), {
+  title: 'Create Transaction',
+  description: 'Create a new transaction for your active account.'
+});
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -73,10 +83,10 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          title="Create Transaction"
-          description="Create a new transaction for your active account.">
+          :description="description"
+          :title="title">
     <template #body>
-      <TransactionFormFields ref="formRef" v-model="form" />
+      <TransactionFormFields ref="formRef" v-model="form" :filter-type="filterType"/>
     </template>
 
     <template #footer>

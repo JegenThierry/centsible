@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import Categories from "~/components/_organisms/categories/categories.vue";
 
 definePageMeta({
@@ -11,5 +11,5 @@ useHead({
 </script>
 
 <template>
-  <Categories />
+  <Categories/>
 </template>

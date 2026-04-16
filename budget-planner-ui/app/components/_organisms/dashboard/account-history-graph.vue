@@ -1,16 +1,16 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
   CategoryScale,
-  Filler,
+  Chart as ChartJS,
+  type ChartData,
   type ChartOptions,
-  type ChartData
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip
 } from 'chart.js';
 import {Line} from 'vue-chartjs';
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
@@ -112,7 +112,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
         ticks: {
           color: tickColor,
           callback: (value) => {
-             return new Intl.NumberFormat('de-DE', {
+            return new Intl.NumberFormat('de-DE', {
               style: 'currency',
               currency: props.currency,
               maximumFractionDigits: 0
@@ -144,7 +144,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
     </template>
 
     <div class="h-64">
-      <Line :data="chartData" :options="chartOptions" />
+      <Line :data="chartData" :options="chartOptions"/>
     </div>
   </UCard>
 </template>

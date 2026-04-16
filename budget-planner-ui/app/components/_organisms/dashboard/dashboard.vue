@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import AccountBalance from "~/components/_organisms/dashboard/account-balance.vue";
 import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
 import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
@@ -58,63 +58,65 @@ onMounted(() => {
   <UContainer class="py-6 sm:py-10 space-y-4 sm:space-y-6">
     <PageHeader
       v-if="accountStore.activeAccount"
-      title="Dashboard"
       :description="`Overview for account: ${accountStore.activeAccount.name}`"
+      title="Dashboard"
     />
 
-  <div v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))" class="space-y-4 sm:space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-      <CardSkeleton v-for="i in 3" :key="i" />
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-      <CardSkeleton />
-      <div class="md:col-span-2">
-        <ChartCardSkeleton />
+    <div
+      v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))"
+      class="space-y-4 sm:space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <CardSkeleton v-for="i in 3" :key="i"/>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <ListCardSkeleton />
-      <ChartCardSkeleton />
-    </div>
-
-    <ListCardSkeleton />
-  </div>
-
-  <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
-    <!-- Monthly summary stats -->
-    <DashboardStats :transactions="transactionStore.transactions"
-                    :currency="accountStore.activeAccount.currency" />
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-      <AccountBalance :balance="accountStore.activeAccount.balance"
-                      :initial-balance="accountStore.activeAccount.initialBalance"
-                      :account-name="accountStore.activeAccount.name"
-                      :currency="accountStore.activeAccount.currency" />
-
-      <div class="md:col-span-2">
-         <AccountHistoryGraph :snapshots="historyStore.snapshots"
-                             :currency="accountStore.activeAccount.currency" />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <CardSkeleton/>
+        <div class="md:col-span-2">
+          <ChartCardSkeleton/>
+        </div>
       </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ListCardSkeleton/>
+        <ChartCardSkeleton/>
+      </div>
+
+      <ListCardSkeleton/>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <RecentTransactions :transactions="transactionStore.transactions"
-                          :currency="accountStore.activeAccount.currency" />
+    <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
+      <!-- Monthly summary stats -->
+      <DashboardStats :currency="accountStore.activeAccount.currency"
+                      :transactions="transactionStore.transactions"/>
 
-      <TransactionsByCategory :transactions="transactionStore.transactions"
-                              :currency="accountStore.activeAccount.currency" />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <AccountBalance :account-name="accountStore.activeAccount.name"
+                        :balance="accountStore.activeAccount.balance"
+                        :currency="accountStore.activeAccount.currency"
+                        :initial-balance="accountStore.activeAccount.initialBalance"/>
+
+        <div class="md:col-span-2">
+          <AccountHistoryGraph :currency="accountStore.activeAccount.currency"
+                               :snapshots="historyStore.snapshots"/>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <RecentTransactions :currency="accountStore.activeAccount.currency"
+                            :transactions="transactionStore.transactions"/>
+
+        <TransactionsByCategory :currency="accountStore.activeAccount.currency"
+                                :transactions="transactionStore.transactions"/>
+      </div>
+
+      <AccountHistoryList :currency="accountStore.activeAccount.currency"
+                          :snapshots="historyStore.snapshots"/>
     </div>
 
-    <AccountHistoryList :snapshots="historyStore.snapshots"
-                        :currency="accountStore.activeAccount.currency" />
-  </div>
+    <CreateFab @click="onOpenCreateTransactionModal"/>
 
-  <CreateFab @click="onOpenCreateTransactionModal" />
-
-  <CreateTransactionModal v-if="isCreateTransactionModalVisible"
-                          v-model:open="isCreateTransactionModalVisible"
-                          @created="onCreated()" />
+    <CreateTransactionModal v-if="isCreateTransactionModalVisible"
+                            v-model:open="isCreateTransactionModalVisible"
+                            @created="onCreated()"/>
   </UContainer>
 </template>

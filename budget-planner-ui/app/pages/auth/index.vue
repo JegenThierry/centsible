@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import AuthForm from "~/components/_organisms/auth/auth-form.vue";
 import {useAuthStore} from "~/stores/authStore";
 

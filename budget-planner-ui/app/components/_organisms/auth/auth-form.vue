@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import CreateForm from "~/components/_organisms/auth/create-form.vue";
 import LoginForm from "~/components/_organisms/auth/login-form.vue";
 
@@ -29,8 +29,8 @@ const activeHeader = computed(() => {
 
 const activeDescription = computed(() => {
   return activeTab.value === 'login'
-      ? 'Login to your account to manage your budget.'
-      : 'Create a new account to start planning your finances.';
+    ? 'Login to your account to manage your budget.'
+    : 'Create a new account to start planning your finances.';
 })
 
 const activeIcon = computed(() => {
@@ -41,14 +41,14 @@ const activeIcon = computed(() => {
 <template>
   <UContainer class="py-12">
     <UPageCard
-      :title="activeHeader"
       :description="activeDescription"
       :icon="activeIcon"
+      :title="activeHeader"
+      class="max-w-xl mx-auto bg-white dark:bg-neutral-600"
       spotlight
       spotlight-color="primary"
-      class="max-w-xl mx-auto bg-white dark:bg-neutral-600"
     >
-      <UTabs :items="tabs" v-model="activeTab" class="w-full">
+      <UTabs v-model="activeTab" :items="tabs" class="w-full">
         <template #login>
           <div class="pt-4">
             <LoginForm v-if="activeTab === 'login'"/>

@@ -1,112 +1,30 @@
-import org.gradle.kotlin.dsl.jooq
-import java.util.Properties
-
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.1"
-    id("io.spring.dependency-management") version "1.1.7"
-    id("org.jooq.jooq-codegen-gradle") version "3.19.29"
-}
-
-group = "beer.thierry"
-version = "0.0.1-SNAPSHOT"
-description = "budget-planner-rest"
-
-val props = Properties().apply {
-    file("src/main/resources/application.properties")
-        .inputStream()
-        .use { load(it) }
-}
-
-fun resolveProperty(key: String): String? {
-    val rawValue = props.getProperty(key) ?: return null
-    val match = Regex("""\$\{([^:]+)(?::([^}]*))?\}""").find(rawValue)
-    return if (match != null) {
-        val envVar = match.groupValues[1]
-        val defaultValue = match.groupValues[2]
-        System.getenv(envVar) ?: defaultValue
-    } else {
-        rawValue
-    }
-}
-
-val jooqGeneratedDir = layout.projectDirectory.dir("src/generated/jooq")
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.dependency.management)
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(project(":budget-planner-core"))
+    implementation(project(":budget-planner-api"))
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("org.postgresql:postgresql")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.jooq)
 
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation(libs.kotlin.reflect)
+    implementation(libs.jackson.module.kotlin)
+    runtimeOnly(libs.postgresql)
 
-    testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    implementation(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    jooqCodegen("org.postgresql:postgresql")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-    }
-}
-
-jooq {
-    configuration {
-        jdbc {
-            driver = resolveProperty("spring.datasource.driver-class-name") ?: "org.postgresql.Driver"
-            url = resolveProperty("spring.datasource.url")
-            user = resolveProperty("spring.datasource.username")
-            password = resolveProperty("spring.datasource.password")
-        }
-        generator {
-            name = "org.jooq.codegen.KotlinGenerator"
-            database {
-                name = "org.jooq.meta.postgres.PostgresDatabase"
-                inputSchema = "public"
-            }
-            generate {
-                isDeprecated = false
-                isRecords = true
-                isImmutablePojos = true
-                isFluentSetters = true
-            }
-            target {
-                packageName = "beer.thierry.jooq.generated"
-                directory = jooqGeneratedDir.asFile.path
-            }
-        }
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-sourceSets {
-    main {
-        kotlin {
-            srcDir(jooqGeneratedDir)
-        }
-    }
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation(libs.spring.boot.starter.jooq.test)
+    testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.kotlin.test.junit5)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

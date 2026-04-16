@@ -21,6 +21,6 @@ export interface TransactionForm {
   amount: number,
   description: string,
   category: Category | undefined,
-  transactionDate: string | undefined
+  transactionDate: string | undefined,
 }
 

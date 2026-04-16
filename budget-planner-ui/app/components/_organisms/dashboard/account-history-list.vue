@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import {format, parseISO} from 'date-fns';

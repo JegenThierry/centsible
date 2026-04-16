@@ -1,15 +1,8 @@
-<script setup lang="ts">
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  type ChartOptions,
-  type ChartData
-} from 'chart.js';
+<script lang="ts" setup>
+import {ArcElement, Chart as ChartJS, type ChartData, type ChartOptions, Legend, Tooltip} from 'chart.js';
 import {Doughnut} from 'vue-chartjs';
 import {type Transaction} from "~/models/transactions/transaction";
-import { CategoryType } from "~/models/category/category";
+import {CategoryType} from "~/models/category/category";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 

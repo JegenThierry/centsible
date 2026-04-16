@@ -20,21 +20,21 @@ accountStore.updateAvailableAccounts();
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      title="Accounts"
       description="Select an account to manage your budget"
+      title="Accounts"
     >
       <template #actions>
-        <CreateBudgetAccountButton />
+        <CreateBudgetAccountButton/>
       </template>
     </PageHeader>
 
     <div v-if="accountStore.pending && accountStore.availableAccounts.length > 0" class="flex justify-center mb-6">
-      <LoadingAnimation />
+      <LoadingAnimation/>
     </div>
 
     <template v-if="accountStore.availableAccounts.length === 0">
       <div v-if="accountStore.pending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <CardSkeleton v-for="i in 3" :key="i" />
+        <CardSkeleton v-for="i in 3" :key="i"/>
       </div>
 
       <div v-else class="flex justify-center py-10 sm:py-20">

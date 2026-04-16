@@ -1,8 +1,5 @@
-<script setup lang="ts">
-import {
-  type Transaction,
-  type TransactionForm
-} from "~/models/transactions/transaction";
+<script lang="ts" setup>
+import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -79,10 +76,10 @@ onMounted(() => {
 
 <template>
   <UModal v-model:open="isOpen"
-          title="Edit Transaction"
-          description="Edit your transaction for your active account.">
+          description="Edit your transaction for your active account."
+          title="Edit Transaction">
     <template #body>
-      <TransactionFormFields ref="formRef" v-model="form" />
+      <TransactionFormFields ref="formRef" v-model="form"/>
     </template>
 
     <template #footer>

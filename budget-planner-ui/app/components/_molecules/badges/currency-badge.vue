@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {type Currency, currencyOptions} from "~/models/budget-account/currency";
 
 const props = defineProps<{

@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 </script>
 
 <template>
-  <UButton color="neutral" variant="ghost" v-bind="$attrs">
+  <UButton color="neutral" v-bind="$attrs" variant="ghost">
     <slot>Cancel</slot>
   </UButton>
 </template>

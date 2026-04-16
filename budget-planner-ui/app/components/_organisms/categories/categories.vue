@@ -38,23 +38,25 @@ onMounted(() => {
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      title="Categories"
       description="Manage your income and expense categories"
+      title="Categories"
     >
       <template #actions>
-        <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
+        <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">Create
+          Category
+        </UButton>
       </template>
     </PageHeader>
 
     <div v-if="categoriesStore.pending && categoriesStore.categories.length > 0" class="flex justify-center mb-6">
-      <LoadingAnimation />
+      <LoadingAnimation/>
     </div>
 
     <AppEmptyState
       v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending"
+      description="Create your first category to start tracking your budget."
       icon="i-lucide-tag"
       title="No categories found"
-      description="Create your first category to start tracking your budget."
     >
       <template #actions>
         <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
@@ -64,39 +66,39 @@ onMounted(() => {
     <div v-else class="space-y-12">
       <template v-if="categoriesStore.pending && categoriesStore.categories.length === 0">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <CardSkeleton v-for="i in 6" :key="i" />
+          <CardSkeleton v-for="i in 6" :key="i"/>
         </div>
       </template>
 
       <section v-if="userCategories.length > 0">
         <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-          <UIcon name="i-lucide-user" class="w-5 h-5 text-primary-500" />
+          <UIcon class="w-5 h-5 text-primary-500" name="i-lucide-user"/>
           Your Categories
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in userCategories"
                         :key="category.id"
                         :category="category"
-                        @edit="openEditModal"
-                        @delete="openDeleteModal" />
+                        @delete="openDeleteModal"
+                        @edit="openEditModal"/>
         </div>
       </section>
 
       <section v-if="systemCategories.length > 0">
         <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-          <UIcon name="i-lucide-settings" class="w-5 h-5" />
+          <UIcon class="w-5 h-5" name="i-lucide-settings"/>
           System Categories
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in systemCategories"
                         :key="category.id"
-                        :category="category" />
+                        :category="category"/>
         </div>
       </section>
     </div>
 
-    <CreateCategoryModal v-model:open="isCreateModalOpen" />
-    <EditCategoryModal v-model:open="isEditModalOpen" :category="selectedCategory" />
-    <DeleteCategoryModal v-model:open="isDeleteModalOpen" :category="selectedCategory" />
+    <CreateCategoryModal v-model:open="isCreateModalOpen"/>
+    <EditCategoryModal v-model:open="isEditModalOpen" :category="selectedCategory"/>
+    <DeleteCategoryModal v-model:open="isDeleteModalOpen" :category="selectedCategory"/>
   </UContainer>
 </template>

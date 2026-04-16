@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Category} from "~/models/category/category";
 
 const props = defineProps<{
@@ -27,29 +27,29 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :required="required"
-              :label="label"
+  <UFormField :error="error"
               :help="description"
-              :error="error"
-              :hint="hint">
+              :hint="hint"
+              :label="label"
+              :required="required">
     <USelectMenu
-        v-model="model"
-        :items="options"
-        label-key="name"
-        searchable
-        placeholder="Select a category"
-        class="w-full"
+      v-model="model"
+      :items="options"
+      class="w-full"
+      label-key="name"
+      placeholder="Select a category"
+      searchable
     >
       <template #label>
         <div v-if="model" class="flex items-center gap-2">
-          <UIcon :name="model.icon" class="w-4 h-4" :style="{ color: model.color }"/>
+          <UIcon :name="model.icon" :style="{ color: model.color }" class="w-4 h-4"/>
           <span>{{ model.name }}</span>
         </div>
         <span v-else>Select a category</span>
       </template>
 
       <template #item-leading="{ item: category }">
-        <UIcon :name="category.icon" class="w-4 h-4 flex my-auto" :style="{ color: category.color }"/>
+        <UIcon :name="category.icon" :style="{ color: category.color }" class="w-4 h-4 flex my-auto"/>
       </template>
     </USelectMenu>
   </UFormField>

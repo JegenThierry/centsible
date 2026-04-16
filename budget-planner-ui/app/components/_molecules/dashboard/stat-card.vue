@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 
@@ -16,14 +16,14 @@ defineProps<{
   <UCard>
     <div class="flex items-center gap-4">
       <div :class="['p-3 rounded-full shrink-0', iconColorClass]">
-        <UIcon :name="icon" class="w-6 h-6 flex my-auto" />
+        <UIcon :name="icon" class="w-6 h-6 flex my-auto"/>
       </div>
       <div class="flex flex-col overflow-hidden">
         <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium truncate">
           {{ label }}
         </span>
         <span :class="['text-xl font-bold mt-1 truncate', amountColorClass]">
-          <BalanceNumberFormat :balance="amount" :currency="currency" format="de-De" />
+          <BalanceNumberFormat :balance="amount" :currency="currency" format="de-De"/>
         </span>
       </div>
     </div>

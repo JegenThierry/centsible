@@ -2,36 +2,36 @@
   <div class="relative inline-block" v-bind="$attrs">
     <UAvatar
       v-if="src"
-      :src="src"
       :alt="alt"
       :size="size"
+      :src="src"
       :ui="ui"
       class="cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-primary/20"
       @click="editable && $emit('edit')"
     />
     <UAvatar
       v-else
-      icon="i-heroicons-user"
       :alt="alt"
       :size="size"
       :ui="ui"
       class="cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ring-2 ring-primary/20"
+      icon="i-heroicons-user"
       @click="editable && $emit('edit')"
     />
     <div v-if="editable" class="absolute bottom-1 right-1">
       <UButton
+        class="rounded-full shadow-md"
+        color="white"
         icon="i-heroicons-camera"
         size="sm"
-        color="white"
         square
-        class="rounded-full shadow-md"
         @click="$emit('edit')"
       />
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 interface Props {
   src?: string | null;
   alt?: string;

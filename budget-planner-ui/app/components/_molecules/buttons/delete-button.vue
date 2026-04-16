@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 defineProps<{
   loading?: boolean;
 }>();
 </script>
 
 <template>
-  <UButton color="error" :loading="loading" v-bind="$attrs">
+  <UButton :loading="loading" color="error" v-bind="$attrs">
     <slot>Delete</slot>
   </UButton>
 </template>

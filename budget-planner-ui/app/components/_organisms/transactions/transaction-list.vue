@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {h, resolveComponent} from 'vue'
 import type {TableColumn} from '@nuxt/ui'
 import {useIntersectionObserver} from '@vueuse/core'
@@ -160,16 +160,22 @@ onMounted(() => {
 
 <template>
   <UCard variant="outline">
-    <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900 dark:text-white">Transactions</h3>
+      </div>
+    </template>
+
+    <UTable :columns="columns" :data="transactions" :loading="loading" class="flex-1 overflow-y-auto">
       <template #loading>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <LoadingAnimation />
+          <LoadingAnimation/>
           <p class="text-sm text-neutral-500">Loading transactions...</p>
         </div>
       </template>
       <template #empty>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <UIcon name="i-lucide-database-x" class="w-8 h-8 text-neutral-400"/>
+          <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-database-x"/>
           <p class="text-sm text-neutral-500">No transactions found.</p>
         </div>
       </template>
@@ -177,7 +183,7 @@ onMounted(() => {
   </UCard>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-    <LoadingAnimation v-if="loadingMore || loading" />
+    <LoadingAnimation v-if="loadingMore || loading"/>
   </div>
 
   <CreateFab @click="onOpenCreateModal()"/>

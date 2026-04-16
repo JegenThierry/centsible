@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import CreateAccountModal from "~/components/_organisms/accounts/modals/create-account-modal.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
@@ -15,7 +15,7 @@ function onRefresh(): void {
 </script>
 
 <template>
-  <UButton icon="i-lucide-plus" class="w-full sm:w-auto justify-center" @click="onCreateAccount()">
+  <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="onCreateAccount()">
     Create Budget Account
   </UButton>
 

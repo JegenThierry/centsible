@@ -1,9 +1,9 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-badge.vue";
 
-defineProps<{
+const props = defineProps<{
   accountName: string,
   balance: number,
   initialBalance: number,
@@ -21,9 +21,11 @@ defineProps<{
           </h2>
         </div>
 
-        <BalanceChangeBadge :current-balance="balance"
-                            :previous-balance="initialBalance"
-                            :currency="currency"/>
+        <div class="flex flex-col items-end gap-2">
+          <BalanceChangeBadge :currency="currency"
+                              :current-balance="balance"
+                              :previous-balance="initialBalance"/>
+        </div>
       </div>
 
       <div class="space-y-1">
@@ -31,9 +33,10 @@ defineProps<{
           Available Balance
         </p>
         <div class="flex items-end gap-1">
-          <span class="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums leading-none">
-            <BalanceNumberFormat :currency="currency"
-                                 :balance="balance"
+          <span
+            class="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums leading-none">
+            <BalanceNumberFormat :balance="balance"
+                                 :currency="currency"
                                  format="de-De"/>
           </span>
         </div>

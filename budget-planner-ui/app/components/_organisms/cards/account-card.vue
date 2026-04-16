@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import type { BudgetAccount } from '~/models/budget-account/budget-account'
+<script lang="ts" setup>
+import type {BudgetAccount} from '~/models/budget-account/budget-account'
 import CurrencyBadge from "~/components/_molecules/badges/currency-badge.vue";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 
@@ -20,10 +20,10 @@ defineEmits<{
     <template #header>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <CurrencyBadge :currency="account.currency" />
+          <CurrencyBadge :currency="account.currency"/>
           <span class="font-semibold text-base sm:text-lg">{{ account.name }}</span>
         </div>
-        <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right" />
+        <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right"/>
       </div>
     </template>
 

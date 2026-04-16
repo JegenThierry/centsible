@@ -1,39 +1,39 @@
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
     <BaseInput
-      v-model="state.firstName"
       ref="firstNameInput"
+      v-model="state.firstName"
       label="First Name"
       placeholder="First Name"
-      type="text"
       required
+      type="text"
     />
 
     <BaseInput
-      v-model="state.lastName"
       ref="lastNameInput"
+      v-model="state.lastName"
       label="Last Name"
       placeholder="Last Name"
-      type="text"
       required
+      type="text"
     />
 
     <BaseInput
-      v-model="state.email"
       ref="emailInput"
+      v-model="state.email"
       label="Email"
       placeholder="Email"
-      type="email"
       required
+      type="email"
     />
 
-    <UButton class="ml-auto" :loading="loading" type="submit">
+    <UButton :loading="loading" class="ml-auto" type="submit">
       Save Changes
     </UButton>
   </UForm>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 
@@ -49,7 +49,7 @@ const firstNameInput = ref<InstanceType<typeof BaseInput>>();
 const lastNameInput = ref<InstanceType<typeof BaseInput>>();
 const emailInput = ref<InstanceType<typeof BaseInput>>();
 
-const state = reactive({ ...props.initialValues });
+const state = reactive({...props.initialValues});
 
 function validate(): boolean {
   const inputs = [

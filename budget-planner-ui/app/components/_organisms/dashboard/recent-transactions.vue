@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {type Transaction} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import RecentTransactionItem from "~/components/_molecules/dashboard/recent-transaction-item.vue";
@@ -26,7 +26,7 @@ const recentTransactions = computed(() => {
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           Recent Transactions
         </h3>
-        <UButton :to="`/${accountId}/transactions`" variant="ghost" color="neutral" size="xs">
+        <UButton :to="`/${accountId}/transactions`" color="neutral" size="xs" variant="ghost">
           View All
         </UButton>
       </div>
@@ -36,8 +36,8 @@ const recentTransactions = computed(() => {
       <RecentTransactionItem
         v-for="transaction in recentTransactions"
         :key="transaction.id"
-        :transaction="transaction"
         :currency="currency"
+        :transaction="transaction"
       />
       <div v-if="recentTransactions.length === 0" class="text-center py-4 text-sm text-neutral-500">
         No recent transactions

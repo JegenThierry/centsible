@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 
 const model = defineModel<string>({required: true});
@@ -28,9 +28,9 @@ defineExpose({
           ref="iconInputRef"
           v-model="model"
           :label="label || 'Icon (Lucide name)'"
-          type="text"
-          :required="required"
           :placeholder="placeholder || 'i-lucide-tag'"
+          :required="required"
+          type="text"
         />
       </div>
       <div
@@ -42,8 +42,8 @@ defineExpose({
       </div>
     </div>
     <p class="text-xs text-neutral-500">
-      Find icons at <a href="https://lucide.dev/icons" target="_blank"
-                       class="text-primary-500 underline">lucide.dev</a>. Use <code>i-lucide-[name]</code> format.
+      Find icons at <a class="text-primary-500 underline" href="https://lucide.dev/icons"
+                       target="_blank">lucide.dev</a>. Use <code>i-lucide-[name]</code> format.
     </p>
   </div>
 </template>

@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { CategoryType } from "~/models/category/category";
+<script lang="ts" setup>
+import {CategoryType} from "~/models/category/category";
 
 defineProps<{
   type: CategoryType;
@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <UBadge :color="type === CategoryType.INCOME ? 'success' : 'neutral'" variant="subtle" size="xs">
+  <UBadge :color="type === CategoryType.INCOME ? 'success' : 'error'" size="xs" variant="subtle">
     {{ type }}
   </UBadge>
 </template>

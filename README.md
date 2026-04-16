@@ -1,6 +1,7 @@
 # Budget Planner
 
-A full-stack application for comprehensive budget management. **NOTE: This project is in its early development stages, and bugs may occur. If you find any issues, please feel free to create an issue.**
+A full-stack application for comprehensive budget management. **NOTE: This project is in its early development stages,
+and bugs may occur. If you find any issues, please feel free to create an issue.**
 
 ## Donate
 
@@ -14,11 +15,22 @@ Feel free to buy me a ☕.
 
 ## Project Structure
 
-The repository is divided into the following modules:
+The repository follows an N-Layer architecture and is divided into the following modules:
 
-- **`budget-planner-ui`**: Frontend application built with Nuxt 4 (Vue 3, Pinia, Tailwind CSS).
-- **`budget-planner-rest`**: Backend REST API built with Spring Boot 4 and Kotlin, using jOOQ for database interactions.
-- **`budget-planner-db`**: Database schema, migrations, and initialization SQL scripts for PostgreSQL.
+### Frontend
+
+- **`budget-planner-ui`**: Nuxt 4 application (Vue 3, Pinia, Tailwind CSS, Nuxt UI).
+
+### Backend (N-Layer Architecture)
+
+- **`budget-planner-rest`** (Presentation Layer): REST Controllers, Security Config, and API entry point.
+- **`budget-planner-core`** (Business Layer): Services and Facades orchestrating business logic and transactions.
+- **`budget-planner-jooq`** (Data Access Layer): jOOQ generated classes, repositories, and DB configurations.
+- **`budget-planner-api`** (Shared Layer): DTOs, interfaces, enums, and domain models used across all layers.
+
+### Infrastructure & Tooling
+
+- **`budget-planner-db`**: PostgreSQL schema, migrations, and initialization scripts.
 - **`budget-planner-bruno`**: API Request collections for the [Bruno](https://www.usebruno.com/) API client.
 
 ## Tech Stack
@@ -97,11 +109,12 @@ Managed with `npm`.
 
 ### Backend (`budget-planner-rest`)
 
-Managed with Gradle (Kotlin DSL).
+Managed with Gradle (Kotlin DSL) using a multi-module setup and **Gradle Version Catalog** (`gradle/libs.versions.toml`)
+for dependency management.
 
-- `./gradlew bootRun`: Run the Spring Boot application.
-- `./gradlew build`: Build the project and run tests.
-- `./gradlew jooqCodegen`: Generate jOOQ classes from the database schema.
+- `./gradlew :budget-planner-rest:bootRun`: Run the Spring Boot application.
+- `./gradlew build`: Build all modules and run tests.
+- `./gradlew :budget-planner-jooq:jooqCodegen`: Generate jOOQ classes from the database schema.
 
 ## Tests
 

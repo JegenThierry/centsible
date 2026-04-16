@@ -1,7 +1,7 @@
-import { ref} from 'vue'
-import type { Transaction } from '~/models/transactions/transaction'
-import type { useBudgetAccountsStore } from '~/stores/budgetAccountsStore'
-import type { useTransactionService } from '~/services/transactions/transaction-service'
+import {ref} from 'vue'
+import type {Transaction} from '~/models/transactions/transaction'
+import type {useBudgetAccountsStore} from '~/stores/budgetAccountsStore'
+import type {useTransactionService} from '~/services/transactions/transaction-service'
 
 type TransactionService = ReturnType<typeof useTransactionService>
 type BudgetAccountsStore = ReturnType<typeof useBudgetAccountsStore>

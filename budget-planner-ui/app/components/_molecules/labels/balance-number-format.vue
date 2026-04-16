@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
 
 withDefaults(

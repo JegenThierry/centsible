@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed} from 'vue';
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useSidebar} from "~/composables/use-sidebar";
@@ -54,23 +54,23 @@ const items = computed(() => {
 <template>
   <USidebar
     v-model:open="open"
-    variant="inset"
-    collapsible="icon"
-    side="left"
     :ui="{
       container: 'h-full m-0',
       content: 'rounded-none sm:rounded-xl'
     }"
+    collapsible="icon"
+    side="left"
+    variant="inset"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <UIcon name="i-logos-nuxt-icon" class="size-8" />
+        <UIcon class="size-8" name="i-logos-nuxt-icon"/>
         <UButton
+          aria-label="Close sidebar"
+          class="lg:hidden"
+          color="neutral"
           icon="i-lucide-x"
           variant="ghost"
-          color="neutral"
-          class="lg:hidden"
-          aria-label="Close sidebar"
           @click="open = false"
         />
       </div>
@@ -78,8 +78,8 @@ const items = computed(() => {
 
     <UNavigationMenu
       :items="items"
-      orientation="vertical"
       :ui="{ link: 'p-1.5 overflow-hidden' }"
+      orientation="vertical"
     />
   </USidebar>
 </template>

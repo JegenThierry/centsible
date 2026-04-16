@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import ConfirmationModal from "~/components/_organisms/modals/confirmation-modal.vue";
 import type {Transaction} from "~/models/transactions/transaction";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -9,7 +9,7 @@ const props = defineProps<{
   transaction: Transaction | null;
 }>();
 
-const isOpen = defineModel<boolean>('open', { required: true });
+const isOpen = defineModel<boolean>('open', {required: true});
 
 const emit = defineEmits<{
   (e: 'deleted'): void;
@@ -25,8 +25,8 @@ async function deleteTransaction() {
   }
 
   await transactionService.deleteTransaction(
-      budgetAccountsStore.activeAccount.id,
-      props.transaction.id
+    budgetAccountsStore.activeAccount.id,
+    props.transaction.id
   );
   emit('deleted');
 }
@@ -34,6 +34,6 @@ async function deleteTransaction() {
 
 <template>
   <ConfirmationModal v-model:open="isOpen"
-                     entity="transaction"
-                     :delete-callback="deleteTransaction" />
+                     :delete-callback="deleteTransaction"
+                     entity="transaction"/>
 </template>
