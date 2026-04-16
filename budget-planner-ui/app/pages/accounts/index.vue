@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import Accounts from "~/components/_organisms/accounts/accounts.vue";
 
 definePageMeta({
@@ -11,5 +11,5 @@ useHead({
 </script>
 
 <template>
-  <Accounts />
+  <Accounts/>
 </template>

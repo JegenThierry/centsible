@@ -2,7 +2,7 @@ package beer.thierry.budgetplannerrest.resources
 
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import beer.thierry.budgetplanner.api.service.users.IUserService
+import beer.thierry.budgetplanner.api.services.users.IUserService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*

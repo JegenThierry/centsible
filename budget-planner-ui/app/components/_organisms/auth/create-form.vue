@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -37,34 +37,34 @@ function onSubmit() {
   loading.value = true;
 
   useAuthService(api as AxiosInstance)
-      .register(state)
-      .then((res: AuthResponse) => {
-        authStore.setToken(res.token);
-        userStore.fetchMyself();
-        navigateTo('/accounts');
-        success(
-            'Registered successfully',
-            'You have successfully registered, you will be redirected to the dashboard.'
-        );
-      })
-      .catch((err) => {
-        console.error(err);
-        error(
-            'Registration failed',
-            'Please try again later.'
-        );
-      })
-      .finally(() => loading.value = false);
+    .register(state)
+    .then((res: AuthResponse) => {
+      authStore.setToken(res.token);
+      userStore.fetchMyself();
+      navigateTo('/accounts');
+      success(
+        'Registered successfully',
+        'You have successfully registered, you will be redirected to the dashboard.'
+      );
+    })
+    .catch((err) => {
+      console.error(err);
+      error(
+        'Registration failed',
+        'Please try again later.'
+      );
+    })
+    .finally(() => loading.value = false);
 }
 
 
 function validate(): boolean {
   const inputs = [
-      usernameInput.value,
-      emailInput.value,
-      firstnameInput.value,
-      lastnameInput.value,
-      passwordsInput.value,
+    usernameInput.value,
+    emailInput.value,
+    firstnameInput.value,
+    lastnameInput.value,
+    passwordsInput.value,
   ]
 
   let valid = true;
@@ -72,10 +72,10 @@ function validate(): boolean {
     valid = input?.validate() ?? false
   });
 
-  if(!valid) {
+  if (!valid) {
     error(
-        'Validation failed.',
-        'One or more validation errors occurred.'
+      'Validation failed.',
+      'One or more validation errors occurred.'
     )
   }
 
@@ -85,40 +85,40 @@ function validate(): boolean {
 
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-    <BaseInput v-model="state.username"
+    <BaseInput ref="usernameInput"
+               v-model="state.username"
                autofocus
-               ref="usernameInput"
                label="Username"
                placeholder="Username"
-               type="text"
-               required />
+               required
+               type="text"/>
 
-    <BaseInput v-model="state.email"
-               ref="emailInput"
+    <BaseInput ref="emailInput"
+               v-model="state.email"
                label="E-Mail"
                placeholder="E-Mail"
-               type="email"
-               required />
+               required
+               type="email"/>
 
-    <BaseInput v-model="state.firstName"
-               ref="firstnameInput"
+    <BaseInput ref="firstnameInput"
+               v-model="state.firstName"
                label="Firstname"
                placeholder="Firstname"
-               type="text"
-               required />
+               required
+               type="text"/>
 
-    <BaseInput v-model="state.lastName"
-               ref="lastnameInput"
+    <BaseInput ref="lastnameInput"
+               v-model="state.lastName"
                label="Lastname"
                placeholder="Lastname"
-               type="text"
-               required />
+               required
+               type="text"/>
 
-    <RegisterPasswordInput v-model:password="state.password"
+    <RegisterPasswordInput ref="passwordsInput"
                            v-model:confirm-password="state.confirmPassword"
-                           ref="passwordsInput" />
+                           v-model:password="state.password"/>
 
-    <UButton class="ml-auto" :loading="loading" type="submit">
+    <UButton :loading="loading" class="ml-auto" type="submit">
       Register
     </UButton>
   </UForm>

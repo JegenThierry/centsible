@@ -4,14 +4,7 @@
 package beer.thierry.jooq.generated
 
 
-import beer.thierry.jooq.generated.tables.AccountHistory
-import beer.thierry.jooq.generated.tables.Accounts
-import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.Transactions
-import beer.thierry.jooq.generated.tables.Users
-
-import kotlin.collections.List
-
+import beer.thierry.jooq.generated.tables.*
 import org.jooq.Catalog
 import org.jooq.Table
 import org.jooq.impl.SchemaImpl

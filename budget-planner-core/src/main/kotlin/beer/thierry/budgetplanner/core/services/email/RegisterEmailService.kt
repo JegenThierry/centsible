@@ -1,8 +1,8 @@
-package beer.thierry.budgetplanner.core.service
+package beer.thierry.budgetplanner.core.services.email
 
-import beer.thierry.budgetplanner.api.service.email.IEmailService
-import beer.thierry.budgetplanner.api.service.email.IRegisterEmailService
 import beer.thierry.budgetplanner.api.model.user.User
+import beer.thierry.budgetplanner.api.services.email.IEmailService
+import beer.thierry.budgetplanner.api.services.email.IRegisterEmailService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 

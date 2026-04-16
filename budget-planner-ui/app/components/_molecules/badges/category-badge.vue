@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const props = withDefaults(defineProps<{
   name?: string | null;
   icon?: string | null;
@@ -19,19 +19,19 @@ const iconSize = computed(() => {
 <template>
   <UBadge
     v-if="name"
+    :size="size"
     :style="{
       backgroundColor: `${color || defaultColor}15`,
       color: color || defaultColor,
       border: `1px solid ${color || defaultColor}30`,
     }"
-    :size="size"
     class="flex items-center gap-1.5 w-fit font-medium"
     variant="subtle"
   >
-    <UIcon v-if="icon" :name="icon" :class="iconSize"/>
+    <UIcon v-if="icon" :class="iconSize" :name="icon"/>
     <span>{{ name }}</span>
   </UBadge>
-  <UBadge v-else variant="subtle" color="neutral" :size="size">
+  <UBadge v-else :size="size" color="neutral" variant="subtle">
     No category
   </UBadge>
 </template>

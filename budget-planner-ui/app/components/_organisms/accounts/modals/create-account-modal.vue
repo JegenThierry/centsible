@@ -90,7 +90,7 @@ function onCloseModal() {
       </UForm>
     </template>
     <template #footer>
-      <CancelButton class="ml-auto" type="button" variant="subtle" @click="onCloseModal()" />
+      <CancelButton class="ml-auto" type="button" variant="subtle" @click="onCloseModal()"/>
       <UButton :loading="loading" form="account-form" type="submit">
         Create BudgetAccount
       </UButton>

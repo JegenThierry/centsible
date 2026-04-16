@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const emit = defineEmits<{
   (e: 'create'): void;
 }>()
@@ -9,8 +9,8 @@ function onCreate() {
 </script>
 
 <template>
-  <UButton icon="i-lucide-plus"
-           size="xl"
+  <UButton class="fixed bottom-12 right-12 rounded-full shadow-lg z-50"
            color="primary"
-           class="fixed bottom-12 right-12 rounded-full shadow-lg z-50"/>
+           icon="i-lucide-plus"
+           size="xl"/>
 </template>

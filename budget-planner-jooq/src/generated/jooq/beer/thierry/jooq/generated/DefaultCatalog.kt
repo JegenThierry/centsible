@@ -4,8 +4,6 @@
 package beer.thierry.jooq.generated
 
 
-import kotlin.collections.List
-
 import org.jooq.Constants
 import org.jooq.Schema
 import org.jooq.impl.CatalogImpl

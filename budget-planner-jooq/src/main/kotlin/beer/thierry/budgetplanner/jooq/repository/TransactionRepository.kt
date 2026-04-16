@@ -1,11 +1,11 @@
 package beer.thierry.budgetplanner.jooq.repository
 
-import beer.thierry.budgetplanner.api.repository.ITransactionRepository
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryType
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.ITransactionRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
@@ -36,7 +36,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             CATEGORIES.TYPE,
             CATEGORIES.COLOR
         ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
-            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID)).where(baseCondition(accountId, authenticatedUser))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(baseCondition(accountId, authenticatedUser))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc()).limit(pageSize).offset(offset)
             .fetch { mapToTransactionDTO(it) }
     }

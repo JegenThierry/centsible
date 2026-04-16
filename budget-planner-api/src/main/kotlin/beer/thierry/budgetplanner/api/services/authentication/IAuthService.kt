@@ -1,4 +1,4 @@
-package beer.thierry.budgetplanner.api.service.auth
+package beer.thierry.budgetplanner.api.services.authentication
 
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthRequest

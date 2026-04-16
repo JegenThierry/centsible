@@ -13,8 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.util.Base64
-import java.util.UUID
+import java.util.*
 
 @Component
 class JwtAuthenticationFilter(

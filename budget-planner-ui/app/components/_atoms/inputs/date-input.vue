@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const props = defineProps<{
   label: string;
   description?: string;
@@ -24,13 +24,13 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :required="required"
-              :label="label"
+  <UFormField :error="error"
               :help="description"
-              :error="error"
-              :hint="hint">
-    <UInput class="w-full"
-            v-model="model"
+              :hint="hint"
+              :label="label"
+              :required="required">
+    <UInput v-model="model"
+            class="w-full"
             type="date"/>
   </UFormField>
 </template>

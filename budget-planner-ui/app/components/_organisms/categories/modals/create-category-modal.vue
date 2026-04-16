@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
-import {CategoryType, type CategoryForm} from "~/models/category/category";
+import {type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
@@ -63,8 +63,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          title="Create Category"
-          description="Create a new category for your transactions.">
+          description="Create a new category for your transactions."
+          title="Create Category">
     <template #body>
       <div class="space-y-4">
         <URadioGroup v-model="form.type"
@@ -75,9 +75,9 @@ async function handleSave() {
         <BaseInput ref="nameInput"
                    v-model="form.name"
                    label="Name"
-                   type="text"
+                   placeholder="e.g. Food, Salary"
                    required
-                   placeholder="e.g. Food, Salary"/>
+                   type="text"/>
 
         <IconInput ref="iconInput"
                    v-model="form.icon"

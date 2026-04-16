@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import Profile from "~/components/_organisms/user/profile.vue";
 
 definePageMeta({
@@ -11,5 +11,5 @@ useHead({
 </script>
 
 <template>
-  <Profile />
+  <Profile/>
 </template>

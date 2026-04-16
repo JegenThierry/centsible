@@ -1,11 +1,11 @@
-<script setup lang="ts">
-import { CategoryType, type Category } from "~/models/category/category";
-import { type TransactionForm } from "~/models/transactions/transaction";
+<script lang="ts" setup>
+import {type Category, CategoryType} from "~/models/category/category";
+import {type TransactionForm} from "~/models/transactions/transaction";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
-import { useCategoryService } from "~/services/category/category-service";
+import {useCategoryService} from "~/services/category/category-service";
 
 const props = defineProps<{
   modelValue: TransactionForm;
@@ -62,32 +62,32 @@ defineExpose({
   <div class="space-y-4">
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
-                    label="Category"
                     :options="categories"
-                    required />
+                    label="Category"
+                    required/>
 
     <div v-if="form.category" class="flex items-center gap-2 text-sm">
       <span class="text-neutral-500">Transaction Type:</span>
-      <CategoryTypeBadge :type="form.category.type" />
+      <CategoryTypeBadge :type="form.category.type"/>
     </div>
 
     <BaseInput ref="amountInput"
                v-model="form.amount"
                label="Amount"
-               type="number"
+               placeholder="0.00"
                required
-               placeholder="0.00" />
+               type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                label="Description"
-               type="text"
+               placeholder="Lunch, Groceries, etc."
                required
-               placeholder="Lunch, Groceries, etc." />
+               type="text"/>
 
     <DateInput ref="dateInput"
                v-model="form.transactionDate"
                label="Date"
-               required />
+               required/>
   </div>
 </template>

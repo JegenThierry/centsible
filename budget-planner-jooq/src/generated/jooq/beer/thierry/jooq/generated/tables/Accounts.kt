@@ -12,36 +12,14 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FK
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
-
-import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.util.UUID
-
-import kotlin.collections.Collection
-import kotlin.collections.List
-
-import org.jooq.Condition
-import org.jooq.Field
-import org.jooq.ForeignKey
-import org.jooq.Index
-import org.jooq.InverseForeignKey
-import org.jooq.Name
-import org.jooq.Path
-import org.jooq.PlainSQL
-import org.jooq.QueryPart
-import org.jooq.Record
-import org.jooq.SQL
-import org.jooq.Schema
-import org.jooq.Select
-import org.jooq.Stringly
-import org.jooq.Table
-import org.jooq.TableField
-import org.jooq.TableOptions
-import org.jooq.UniqueKey
+import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
+import java.math.BigDecimal
+import java.time.OffsetDateTime
+import java.util.*
 
 
 /**
@@ -56,7 +34,7 @@ open class Accounts(
     aliased: Table<AccountsRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-): TableImpl<AccountsRecord>(
+) : TableImpl<AccountsRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -84,74 +62,146 @@ open class Accounts(
     /**
      * The column <code>public.accounts.id</code>.
      */
-    val ID: TableField<AccountsRecord, UUID?> = createField(DSL.name("id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)), this, "")
+    val ID: TableField<AccountsRecord, UUID?> = createField(
+        DSL.name("id"),
+        SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.accounts.user_id</code>.
      */
-    val USER_ID: TableField<AccountsRecord, UUID?> = createField(DSL.name("user_id"), SQLDataType.UUID.nullable(false), this, "")
+    val USER_ID: TableField<AccountsRecord, UUID?> =
+        createField(DSL.name("user_id"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
      * The column <code>public.accounts.name</code>.
      */
-    val NAME: TableField<AccountsRecord, String?> = createField(DSL.name("name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
+    val NAME: TableField<AccountsRecord, String?> =
+        createField(DSL.name("name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
      * The column <code>public.accounts.balance</code>.
      */
-    val BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(DSL.name("balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
+    val BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(
+        DSL.name("balance"),
+        SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.accounts.initial_balance</code>.
      */
-    val INITIAL_BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(DSL.name("initial_balance"), SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)), this, "")
+    val INITIAL_BALANCE: TableField<AccountsRecord, BigDecimal?> = createField(
+        DSL.name("initial_balance"),
+        SQLDataType.NUMERIC(15, 2).nullable(false).defaultValue(DSL.field(DSL.raw("0.00"), SQLDataType.NUMERIC)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.accounts.currency</code>.
      */
-    val CURRENCY: TableField<AccountsRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+    val CURRENCY: TableField<AccountsRecord, String?> = createField(
+        DSL.name("currency"),
+        SQLDataType.VARCHAR(3).nullable(false)
+            .defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.accounts.created_at</code>.
      */
-    val CREATED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+    val CREATED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(
+        DSL.name("created_at"),
+        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
+            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.accounts.modified_at</code>.
      */
-    val MODIFIED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+    val MODIFIED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(
+        DSL.name("modified_at"),
+        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
+            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
+        this,
+        ""
+    )
 
-    private constructor(alias: Name, aliased: Table<AccountsRecord>?): this(alias, null, null, null, aliased, null, null)
-    private constructor(alias: Name, aliased: Table<AccountsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
-    private constructor(alias: Name, aliased: Table<AccountsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
+    private constructor(alias: Name, aliased: Table<AccountsRecord>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<AccountsRecord>?, parameters: Array<Field<*>?>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        parameters,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<AccountsRecord>?, where: Condition?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        where
+    )
 
     /**
      * Create an aliased <code>public.accounts</code> table reference
      */
-    constructor(alias: String): this(DSL.name(alias))
+    constructor(alias: String) : this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.accounts</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name) : this(alias, null)
 
     /**
      * Create a <code>public.accounts</code> table reference
      */
-    constructor(): this(DSL.name("accounts"), null)
+    constructor() : this(DSL.name("accounts"), null)
 
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AccountsRecord>?, parentPath: InverseForeignKey<out Record, AccountsRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ACCOUNTS, null, null)
+    constructor(
+        path: Table<out Record>,
+        childPath: ForeignKey<out Record, AccountsRecord>?,
+        parentPath: InverseForeignKey<out Record, AccountsRecord>?
+    ) : this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ACCOUNTS, null, null)
 
     /**
      * A subtype implementing {@link Path} for simplified path-based joins.
      */
     open class AccountsPath : Accounts, Path<AccountsRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AccountsRecord>?, parentPath: InverseForeignKey<out Record, AccountsRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<AccountsRecord>): super(alias, aliased)
+        constructor(
+            path: Table<out Record>,
+            childPath: ForeignKey<out Record, AccountsRecord>?,
+            parentPath: InverseForeignKey<out Record, AccountsRecord>?
+        ) : super(path, childPath, parentPath)
+
+        private constructor(alias: Name, aliased: Table<AccountsRecord>) : super(alias, aliased)
+
         override fun `as`(alias: String): AccountsPath = AccountsPath(DSL.name(alias), this)
         override fun `as`(alias: Name): AccountsPath = AccountsPath(alias, this)
         override fun `as`(alias: Table<*>): AccountsPath = AccountsPath(alias.qualifiedName, this)
     }
+
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getIndexes(): List<Index> = listOf(IDX_ACCOUNTS_USER_ID)
     override fun getPrimaryKey(): UniqueKey<AccountsRecord> = ACCOUNTS_PKEY
@@ -187,6 +237,7 @@ open class Accounts(
 
     val transactions: TransactionsPath
         get(): TransactionsPath = transactions()
+
     override fun `as`(alias: String): Accounts = Accounts(DSL.name(alias), this)
     override fun `as`(alias: Name): Accounts = Accounts(alias, this)
     override fun `as`(alias: Table<*>): Accounts = Accounts(alias.qualifiedName, this)
@@ -209,7 +260,8 @@ open class Accounts(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): Accounts = Accounts(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): Accounts =
+        Accounts(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -229,22 +281,28 @@ open class Accounts(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(condition: SQL): Accounts = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(condition: SQL): Accounts = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String): Accounts = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String): Accounts = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Accounts = where(DSL.condition(condition, *binds))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Accounts =
+        where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Accounts = where(DSL.condition(condition, *parts))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Accounts =
+        where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

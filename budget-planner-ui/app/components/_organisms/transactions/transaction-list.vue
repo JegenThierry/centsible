@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {h, resolveComponent} from 'vue'
 import type {TableColumn} from '@nuxt/ui'
 import {useIntersectionObserver} from '@vueuse/core'
@@ -13,7 +13,6 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
-import { CategoryType } from "~/models/category/category";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 
 const UButton = resolveComponent('UButton')
@@ -167,16 +166,16 @@ onMounted(() => {
       </div>
     </template>
 
-    <UTable :data="transactions" :columns="columns" :loading="loading" class="flex-1 overflow-y-auto">
+    <UTable :columns="columns" :data="transactions" :loading="loading" class="flex-1 overflow-y-auto">
       <template #loading>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <LoadingAnimation />
+          <LoadingAnimation/>
           <p class="text-sm text-neutral-500">Loading transactions...</p>
         </div>
       </template>
       <template #empty>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <UIcon name="i-lucide-database-x" class="w-8 h-8 text-neutral-400"/>
+          <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-database-x"/>
           <p class="text-sm text-neutral-500">No transactions found.</p>
         </div>
       </template>
@@ -184,7 +183,7 @@ onMounted(() => {
   </UCard>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-    <LoadingAnimation v-if="loadingMore || loading" />
+    <LoadingAnimation v-if="loadingMore || loading"/>
   </div>
 
   <CreateFab @click="onOpenCreateModal()"/>

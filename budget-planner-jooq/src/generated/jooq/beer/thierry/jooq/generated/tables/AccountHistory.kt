@@ -6,31 +6,13 @@ package beer.thierry.jooq.generated.tables
 
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.tables.records.AccountHistoryRecord
-
-import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.util.UUID
-
-import kotlin.collections.Collection
-
-import org.jooq.Condition
-import org.jooq.Field
-import org.jooq.ForeignKey
-import org.jooq.InverseForeignKey
-import org.jooq.Name
-import org.jooq.PlainSQL
-import org.jooq.QueryPart
-import org.jooq.Record
-import org.jooq.SQL
-import org.jooq.Schema
-import org.jooq.Select
-import org.jooq.Stringly
-import org.jooq.Table
-import org.jooq.TableField
-import org.jooq.TableOptions
+import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
+import java.math.BigDecimal
+import java.time.OffsetDateTime
+import java.util.*
 
 
 /**
@@ -45,7 +27,7 @@ open class AccountHistory(
     aliased: Table<AccountHistoryRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-): TableImpl<AccountHistoryRecord>(
+) : TableImpl<AccountHistoryRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -54,7 +36,8 @@ open class AccountHistory(
     aliased,
     parameters,
     DSL.comment(""),
-    TableOptions.view("""
+    TableOptions.view(
+        """
     create view "account_history" as  WITH history AS (
             SELECT a.id AS account_id,
                a.user_id,
@@ -83,7 +66,8 @@ open class AccountHistory(
        created_at,
        transaction_id
       FROM history;
-    """),
+    """
+    ),
     where,
 ) {
     companion object {
@@ -107,7 +91,8 @@ open class AccountHistory(
     /**
      * The column <code>public.account_history.account_id</code>.
      */
-    val ACCOUNT_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("account_id"), SQLDataType.UUID, this, "")
+    val ACCOUNT_ID: TableField<AccountHistoryRecord, UUID?> =
+        createField(DSL.name("account_id"), SQLDataType.UUID, this, "")
 
     /**
      * The column <code>public.account_history.user_id</code>.
@@ -117,36 +102,66 @@ open class AccountHistory(
     /**
      * The column <code>public.account_history.balance</code>.
      */
-    val BALANCE: TableField<AccountHistoryRecord, BigDecimal?> = createField(DSL.name("balance"), SQLDataType.NUMERIC, this, "")
+    val BALANCE: TableField<AccountHistoryRecord, BigDecimal?> =
+        createField(DSL.name("balance"), SQLDataType.NUMERIC, this, "")
 
     /**
      * The column <code>public.account_history.created_at</code>.
      */
-    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+    val CREATED_AT: TableField<AccountHistoryRecord, OffsetDateTime?> =
+        createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     /**
      * The column <code>public.account_history.transaction_id</code>.
      */
-    val TRANSACTION_ID: TableField<AccountHistoryRecord, UUID?> = createField(DSL.name("transaction_id"), SQLDataType.UUID, this, "")
+    val TRANSACTION_ID: TableField<AccountHistoryRecord, UUID?> =
+        createField(DSL.name("transaction_id"), SQLDataType.UUID, this, "")
 
-    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?): this(alias, null, null, null, aliased, null, null)
-    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
-    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
+    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?, parameters: Array<Field<*>?>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        parameters,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<AccountHistoryRecord>?, where: Condition?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        where
+    )
 
     /**
      * Create an aliased <code>public.account_history</code> table reference
      */
-    constructor(alias: String): this(DSL.name(alias))
+    constructor(alias: String) : this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.account_history</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name) : this(alias, null)
 
     /**
      * Create a <code>public.account_history</code> table reference
      */
-    constructor(): this(DSL.name("account_history"), null)
+    constructor() : this(DSL.name("account_history"), null)
+
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun `as`(alias: String): AccountHistory = AccountHistory(DSL.name(alias), this)
     override fun `as`(alias: Name): AccountHistory = AccountHistory(alias, this)
@@ -170,7 +185,8 @@ open class AccountHistory(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): AccountHistory = AccountHistory(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): AccountHistory =
+        AccountHistory(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -190,22 +206,28 @@ open class AccountHistory(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(condition: SQL): AccountHistory = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(condition: SQL): AccountHistory = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String): AccountHistory = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String): AccountHistory = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AccountHistory = where(DSL.condition(condition, *binds))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AccountHistory =
+        where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AccountHistory = where(DSL.condition(condition, *parts))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AccountHistory =
+        where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

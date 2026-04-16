@@ -4,7 +4,7 @@ import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.budgetplanner.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import beer.thierry.budgetplanner.api.service.account.IBudgetAccountService
+import beer.thierry.budgetplanner.api.services.account.IBudgetAccountService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal

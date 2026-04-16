@@ -5,12 +5,10 @@ package beer.thierry.jooq.generated.tables.records
 
 
 import beer.thierry.jooq.generated.tables.Categories
-
-import java.time.OffsetDateTime
-import java.util.UUID
-
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
+import java.time.OffsetDateTime
+import java.util.*
 
 
 /**
@@ -56,7 +54,15 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
     /**
      * Create a detached, initialised CategoriesRecord
      */
-    constructor(id: Long? = null, userId: UUID? = null, name: String? = null, icon: String? = null, createdAt: OffsetDateTime? = null, type: String? = null, color: String? = null): this() {
+    constructor(
+        id: Long? = null,
+        userId: UUID? = null,
+        name: String? = null,
+        icon: String? = null,
+        createdAt: OffsetDateTime? = null,
+        type: String? = null,
+        color: String? = null
+    ) : this() {
         this.id = id
         this.userId = userId
         this.name = name
@@ -70,7 +76,7 @@ open class CategoriesRecord() : UpdatableRecordImpl<CategoriesRecord>(Categories
     /**
      * Create a detached, initialised CategoriesRecord
      */
-    constructor(value: beer.thierry.jooq.generated.tables.pojos.Categories?): this() {
+    constructor(value: beer.thierry.jooq.generated.tables.pojos.Categories?) : this() {
         if (value != null) {
             this.id = value.id
             this.userId = value.userId

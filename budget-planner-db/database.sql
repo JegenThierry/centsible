@@ -5,6 +5,8 @@ SELECT format(
                          LC_CTYPE   = ''en_US.UTF-8''
                          TEMPLATE   = template0',
                'budget_planner'
-       ) WHERE NOT EXISTS (
-    SELECT FROM pg_database WHERE datname = 'budget_planner'
-)\gexec
+       )
+WHERE NOT EXISTS (SELECT
+                  FROM pg_database
+                  WHERE datname = 'budget_planner')
+\gexec

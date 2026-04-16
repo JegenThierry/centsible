@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 defineProps<{
   title: string
   description?: string
@@ -14,7 +14,7 @@ defineProps<{
       </p>
     </div>
     <div v-if="$slots.actions" class="flex flex-col sm:flex-row gap-3">
-      <slot name="actions" />
+      <slot name="actions"/>
     </div>
   </div>
 </template>

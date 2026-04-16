@@ -4,15 +4,10 @@ import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthResponse
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import beer.thierry.budgetplanner.api.service.auth.IAuthService
+import beer.thierry.budgetplanner.api.services.authentication.IAuthService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/auth")
 @RestController

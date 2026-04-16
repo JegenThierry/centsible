@@ -1,19 +1,19 @@
-package beer.thierry.budgetplanner.core.service
+package beer.thierry.budgetplanner.core.services.account
 
-import beer.thierry.budgetplanner.api.service.account.IBudgetAccountService
 import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.budgetplanner.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.budgetplanner.api.repository.IBudgetAccountsRepository
+import beer.thierry.budgetplanner.api.services.account.IBudgetAccountService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.util.UUID
+import java.util.*
 
 @Service
 class BudgetAccountService(

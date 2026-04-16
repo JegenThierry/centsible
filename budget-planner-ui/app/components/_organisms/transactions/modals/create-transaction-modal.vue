@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {type TransactionForm} from "~/models/transactions/transaction";
-import { CategoryType } from "~/models/category/category";
+import {CategoryType} from "~/models/category/category";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -83,10 +83,10 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :title="title"
-          :description="description">
+          :description="description"
+          :title="title">
     <template #body>
-      <TransactionFormFields ref="formRef" v-model="form" :filter-type="filterType" />
+      <TransactionFormFields ref="formRef" v-model="form" :filter-type="filterType"/>
     </template>
 
     <template #footer>

@@ -2,7 +2,7 @@ package beer.thierry.budgetplanner.api.model.budgetaccount
 
 import java.math.BigDecimal
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 data class BudgetAccountDTO(
     var id: UUID = UUID.randomUUID(),

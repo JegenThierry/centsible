@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 
@@ -63,32 +63,32 @@ defineExpose({
 </script>
 
 <template>
-  <password-input v-model="password"
-                  ref="passwordInput"
-                  label="Password"
-                  required
-                  placeholder="Enter a password"
+  <password-input ref="passwordInput"
+                  v-model="password"
+                  :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
-                  :additional-validation="validatePasswordData"/>
+                  label="Password"
+                  placeholder="Enter a password"
+                  required/>
 
   <div class="grid grid-cols-2 gap-2">
     <div v-for="rule in passwordRules"
          :key="rule.label"
-         class="flex items-center gap-2 text-xs transition-colors duration-200"
-         :class="rule.met ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'">
+         :class="rule.met ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'"
+         class="flex items-center gap-2 text-xs transition-colors duration-200">
       <UIcon :name="rule.met ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-minus-circle'"
              class="w-4 h-4"/>
       {{ rule.label }}
     </div>
   </div>
 
-  <password-input v-model="confirmPassword"
-                  ref="confirmPasswordInput"
-                  label="Confirm Password"
-                  required
-                  placeholder="Confirm your password"
+  <password-input ref="confirmPasswordInput"
+                  v-model="confirmPassword"
+                  :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
-                  :additional-validation="validatePasswordData"/>
+                  label="Confirm Password"
+                  placeholder="Confirm your password"
+                  required/>
 </template>
 
 <style scoped>

@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
-import {subDays, format} from 'date-fns';
+import {format, subDays} from 'date-fns';
 
 export const useAccountHistoryStore = defineStore('accountHistoryStore', () => {
   const accountService = useBudgetAccountService(useApi());

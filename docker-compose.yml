@@ -63,7 +63,7 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       PGHOST: budget_planner_db
-    entrypoint: ["/bin/bash", "/run-migrations.sh"]
+    entrypoint: [ "/bin/bash", "/run-migrations.sh" ]
     networks:
       - budget_planner_net
 

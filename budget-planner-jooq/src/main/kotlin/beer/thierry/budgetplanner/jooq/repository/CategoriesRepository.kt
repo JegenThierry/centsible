@@ -1,10 +1,10 @@
 package beer.thierry.budgetplanner.jooq.repository
 
-import beer.thierry.budgetplanner.api.repository.ICategoriesRepository
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryForm
 import beer.thierry.budgetplanner.api.model.category.CategoryType
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.ICategoriesRepository
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
@@ -14,7 +14,14 @@ import java.time.OffsetDateTime
 @Repository
 class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository {
     override fun fetchAllCategories(authenticatedUser: UserDTO): List<CategoryDTO> {
-        return dsl.select(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.COLOR, CATEGORIES.TYPE, CATEGORIES.USER_ID)
+        return dsl.select(
+            CATEGORIES.ID,
+            CATEGORIES.NAME,
+            CATEGORIES.ICON,
+            CATEGORIES.COLOR,
+            CATEGORIES.TYPE,
+            CATEGORIES.USER_ID
+        )
             .from(CATEGORIES)
             .where(CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull))
             .fetch { record ->
@@ -30,9 +37,18 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
     }
 
     override fun fetchCategoryById(authenticatedUser: UserDTO, id: Long): CategoryDTO? {
-        return dsl.select(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.COLOR, CATEGORIES.TYPE, CATEGORIES.USER_ID)
+        return dsl.select(
+            CATEGORIES.ID,
+            CATEGORIES.NAME,
+            CATEGORIES.ICON,
+            CATEGORIES.COLOR,
+            CATEGORIES.TYPE,
+            CATEGORIES.USER_ID
+        )
             .from(CATEGORIES)
-            .where((CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull)).and(CATEGORIES.ID.eq(id)))
+            .where(
+                (CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull)).and(CATEGORIES.ID.eq(id))
+            )
             .fetchOne { record ->
                 CategoryDTO(
                     id = record[CATEGORIES.ID],
@@ -53,7 +69,14 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
             .set(CATEGORIES.TYPE, category.type.value)
             .set(CATEGORIES.USER_ID, authenticatedUser.id)
             .set(CATEGORIES.CREATED_AT, OffsetDateTime.now())
-            .returning(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.COLOR, CATEGORIES.TYPE, CATEGORIES.USER_ID)
+            .returning(
+                CATEGORIES.ID,
+                CATEGORIES.NAME,
+                CATEGORIES.ICON,
+                CATEGORIES.COLOR,
+                CATEGORIES.TYPE,
+                CATEGORIES.USER_ID
+            )
             .fetchOne() ?: throw IllegalStateException("Failed to retrieve generated Category")
 
         return CategoryDTO(
@@ -73,7 +96,14 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
             .set(CATEGORIES.COLOR, category.color)
             .set(CATEGORIES.TYPE, category.type.value)
             .where(CATEGORIES.USER_ID.eq(authenticatedUser.id).and(CATEGORIES.ID.eq(id)))
-            .returning(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.COLOR, CATEGORIES.TYPE, CATEGORIES.USER_ID)
+            .returning(
+                CATEGORIES.ID,
+                CATEGORIES.NAME,
+                CATEGORIES.ICON,
+                CATEGORIES.COLOR,
+                CATEGORIES.TYPE,
+                CATEGORIES.USER_ID
+            )
             .fetchOne()
 
         return record?.let {

@@ -6,7 +6,7 @@ package beer.thierry.jooq.generated.tables.pojos
 
 import java.io.Serializable
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 
 /**
@@ -25,7 +25,7 @@ data class Users(
     val registered: Boolean? = null,
     val registrationToken: UUID? = null,
     val profilePicture: String? = null
-): Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other)
@@ -38,68 +38,57 @@ data class Users(
         if (this.id == null) {
             if (o.id != null)
                 return false
-        }
-        else if (this.id != o.id)
+        } else if (this.id != o.id)
             return false
         if (this.username == null) {
             if (o.username != null)
                 return false
-        }
-        else if (this.username != o.username)
+        } else if (this.username != o.username)
             return false
         if (this.email == null) {
             if (o.email != null)
                 return false
-        }
-        else if (this.email != o.email)
+        } else if (this.email != o.email)
             return false
         if (this.firstName == null) {
             if (o.firstName != null)
                 return false
-        }
-        else if (this.firstName != o.firstName)
+        } else if (this.firstName != o.firstName)
             return false
         if (this.lastName == null) {
             if (o.lastName != null)
                 return false
-        }
-        else if (this.lastName != o.lastName)
+        } else if (this.lastName != o.lastName)
             return false
         if (this.passwordHash == null) {
             if (o.passwordHash != null)
                 return false
-        }
-        else if (this.passwordHash != o.passwordHash)
+        } else if (this.passwordHash != o.passwordHash)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
-        }
-        else if (this.createdAt != o.createdAt)
+        } else if (this.createdAt != o.createdAt)
             return false
         if (this.modifiedAt == null) {
             if (o.modifiedAt != null)
                 return false
-        }
-        else if (this.modifiedAt != o.modifiedAt)
+        } else if (this.modifiedAt != o.modifiedAt)
             return false
         if (this.registered == null) {
             if (o.registered != null)
                 return false
-        }
-        else if (this.registered != o.registered)
+        } else if (this.registered != o.registered)
             return false
         if (this.registrationToken == null) {
             if (o.registrationToken != null)
                 return false
-        }
-        else if (this.registrationToken != o.registrationToken)
+        } else if (this.registrationToken != o.registrationToken)
             return false
         if (this.profilePicture == null) {
             if (o.profilePicture != null)
                 return false
-        }
-        else if (this.profilePicture != o.profilePicture)
+        } else if (this.profilePicture != o.profilePicture)
             return false
         return true
     }

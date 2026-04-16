@@ -6,7 +6,7 @@ package beer.thierry.jooq.generated.tables.pojos
 
 import java.io.Serializable
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 
 /**
@@ -21,7 +21,7 @@ data class Categories(
     val createdAt: OffsetDateTime? = null,
     val type: String? = null,
     val color: String? = null
-): Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other)
@@ -34,44 +34,37 @@ data class Categories(
         if (this.id == null) {
             if (o.id != null)
                 return false
-        }
-        else if (this.id != o.id)
+        } else if (this.id != o.id)
             return false
         if (this.userId == null) {
             if (o.userId != null)
                 return false
-        }
-        else if (this.userId != o.userId)
+        } else if (this.userId != o.userId)
             return false
         if (this.name == null) {
             if (o.name != null)
                 return false
-        }
-        else if (this.name != o.name)
+        } else if (this.name != o.name)
             return false
         if (this.icon == null) {
             if (o.icon != null)
                 return false
-        }
-        else if (this.icon != o.icon)
+        } else if (this.icon != o.icon)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
-        }
-        else if (this.createdAt != o.createdAt)
+        } else if (this.createdAt != o.createdAt)
             return false
         if (this.type == null) {
             if (o.type != null)
                 return false
-        }
-        else if (this.type != o.type)
+        } else if (this.type != o.type)
             return false
         if (this.color == null) {
             if (o.color != null)
                 return false
-        }
-        else if (this.color != o.color)
+        } else if (this.color != o.color)
             return false
         return true
     }

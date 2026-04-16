@@ -3,7 +3,7 @@ package beer.thierry.budgetplanner.api.repository
 import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 interface IBudgetAccountHistoryRepository {
     fun fetchCompleteAccountHistory(accountId: UUID, authenticatedUser: UserDTO): List<BudgetAccountSnapshotDTO>

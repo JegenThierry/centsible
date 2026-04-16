@@ -3,7 +3,7 @@ package beer.thierry.budgetplannerrest.resources
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import beer.thierry.budgetplanner.api.service.categories.ICategoryService
+import beer.thierry.budgetplanner.api.services.categories.ICategoryService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*

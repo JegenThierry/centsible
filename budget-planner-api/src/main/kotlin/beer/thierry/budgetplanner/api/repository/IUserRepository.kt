@@ -3,7 +3,7 @@ package beer.thierry.budgetplanner.api.repository
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import java.util.UUID
+import java.util.*
 
 interface IUserRepository {
     fun findAllUsers(): List<UserDTO>

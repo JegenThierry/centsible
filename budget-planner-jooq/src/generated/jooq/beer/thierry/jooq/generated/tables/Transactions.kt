@@ -14,37 +14,15 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_F
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
-
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.util.UUID
-
-import kotlin.collections.Collection
-import kotlin.collections.List
-
-import org.jooq.Condition
-import org.jooq.Field
-import org.jooq.ForeignKey
-import org.jooq.Index
-import org.jooq.InverseForeignKey
-import org.jooq.Name
-import org.jooq.Path
-import org.jooq.PlainSQL
-import org.jooq.QueryPart
-import org.jooq.Record
-import org.jooq.SQL
-import org.jooq.Schema
-import org.jooq.Select
-import org.jooq.Stringly
-import org.jooq.Table
-import org.jooq.TableField
-import org.jooq.TableOptions
-import org.jooq.UniqueKey
+import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.util.*
 
 
 /**
@@ -59,7 +37,7 @@ open class Transactions(
     aliased: Table<TransactionsRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-): TableImpl<TransactionsRecord>(
+) : TableImpl<TransactionsRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -87,78 +65,152 @@ open class Transactions(
     /**
      * The column <code>public.transactions.id</code>.
      */
-    val ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)), this, "")
+    val ID: TableField<TransactionsRecord, UUID?> = createField(
+        DSL.name("id"),
+        SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.transactions.category_id</code>.
      */
-    val CATEGORY_ID: TableField<TransactionsRecord, Long?> = createField(DSL.name("category_id"), SQLDataType.BIGINT.nullable(false), this, "")
+    val CATEGORY_ID: TableField<TransactionsRecord, Long?> =
+        createField(DSL.name("category_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
      * The column <code>public.transactions.account_id</code>.
      */
-    val ACCOUNT_ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("account_id"), SQLDataType.UUID.nullable(false), this, "")
+    val ACCOUNT_ID: TableField<TransactionsRecord, UUID?> =
+        createField(DSL.name("account_id"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
      * The column <code>public.transactions.amount</code>.
      */
-    val AMOUNT: TableField<TransactionsRecord, BigDecimal?> = createField(DSL.name("amount"), SQLDataType.NUMERIC(15, 2).nullable(false), this, "")
+    val AMOUNT: TableField<TransactionsRecord, BigDecimal?> =
+        createField(DSL.name("amount"), SQLDataType.NUMERIC(15, 2).nullable(false), this, "")
 
     /**
      * The column <code>public.transactions.description</code>.
      */
-    val DESCRIPTION: TableField<TransactionsRecord, String?> = createField(DSL.name("description"), SQLDataType.CLOB, this, "")
+    val DESCRIPTION: TableField<TransactionsRecord, String?> =
+        createField(DSL.name("description"), SQLDataType.CLOB, this, "")
 
     /**
      * The column <code>public.transactions.transaction_date</code>.
      */
-    val TRANSACTION_DATE: TableField<TransactionsRecord, LocalDate?> = createField(DSL.name("transaction_date"), SQLDataType.LOCALDATE.nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_DATE"), SQLDataType.LOCALDATE)), this, "")
+    val TRANSACTION_DATE: TableField<TransactionsRecord, LocalDate?> = createField(
+        DSL.name("transaction_date"),
+        SQLDataType.LOCALDATE.nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_DATE"), SQLDataType.LOCALDATE)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.transactions.created_at</code>.
      */
-    val CREATED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+    val CREATED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(
+        DSL.name("created_at"),
+        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
+            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
+        this,
+        ""
+    )
 
     /**
      * The column <code>public.transactions.modified_at</code>.
      */
-    val MODIFIED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+    val MODIFIED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(
+        DSL.name("modified_at"),
+        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
+            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
+        this,
+        ""
+    )
 
-    private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
-    private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
-    private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
+    private constructor(alias: Name, aliased: Table<TransactionsRecord>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        parameters,
+        null
+    )
+
+    private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?) : this(
+        alias,
+        null,
+        null,
+        null,
+        aliased,
+        null,
+        where
+    )
 
     /**
      * Create an aliased <code>public.transactions</code> table reference
      */
-    constructor(alias: String): this(DSL.name(alias))
+    constructor(alias: String) : this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.transactions</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name) : this(alias, null)
 
     /**
      * Create a <code>public.transactions</code> table reference
      */
-    constructor(): this(DSL.name("transactions"), null)
+    constructor() : this(DSL.name("transactions"), null)
 
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, TransactionsRecord>?, parentPath: InverseForeignKey<out Record, TransactionsRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, TRANSACTIONS, null, null)
+    constructor(
+        path: Table<out Record>,
+        childPath: ForeignKey<out Record, TransactionsRecord>?,
+        parentPath: InverseForeignKey<out Record, TransactionsRecord>?
+    ) : this(
+        Internal.createPathAlias(path, childPath, parentPath),
+        path,
+        childPath,
+        parentPath,
+        TRANSACTIONS,
+        null,
+        null
+    )
 
     /**
      * A subtype implementing {@link Path} for simplified path-based joins.
      */
     open class TransactionsPath : Transactions, Path<TransactionsRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, TransactionsRecord>?, parentPath: InverseForeignKey<out Record, TransactionsRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<TransactionsRecord>): super(alias, aliased)
+        constructor(
+            path: Table<out Record>,
+            childPath: ForeignKey<out Record, TransactionsRecord>?,
+            parentPath: InverseForeignKey<out Record, TransactionsRecord>?
+        ) : super(path, childPath, parentPath)
+
+        private constructor(alias: Name, aliased: Table<TransactionsRecord>) : super(alias, aliased)
+
         override fun `as`(alias: String): TransactionsPath = TransactionsPath(DSL.name(alias), this)
         override fun `as`(alias: Name): TransactionsPath = TransactionsPath(alias, this)
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
+
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE)
+    override fun getIndexes(): List<Index> =
+        listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE)
+
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
-    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> =
+        listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY)
 
     private lateinit var _accounts: AccountsPath
 
@@ -189,6 +241,7 @@ open class Transactions(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+
     override fun `as`(alias: String): Transactions = Transactions(DSL.name(alias), this)
     override fun `as`(alias: Name): Transactions = Transactions(alias, this)
     override fun `as`(alias: Table<*>): Transactions = Transactions(alias.qualifiedName, this)
@@ -211,7 +264,8 @@ open class Transactions(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): Transactions = Transactions(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): Transactions =
+        Transactions(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -231,22 +285,28 @@ open class Transactions(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(condition: SQL): Transactions = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(condition: SQL): Transactions = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String): Transactions = where(DSL.condition(condition))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String): Transactions = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Transactions = where(DSL.condition(condition, *binds))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Transactions =
+        where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Transactions = where(DSL.condition(condition, *parts))
+    @PlainSQL
+    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Transactions =
+        where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

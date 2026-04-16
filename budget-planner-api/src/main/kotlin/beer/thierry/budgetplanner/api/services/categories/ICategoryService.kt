@@ -1,4 +1,4 @@
-package beer.thierry.budgetplanner.api.service.categories
+package beer.thierry.budgetplanner.api.services.categories
 
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryForm

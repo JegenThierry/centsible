@@ -1,12 +1,12 @@
-package beer.thierry.budgetplanner.core.service
+package beer.thierry.budgetplanner.core.services.users
 
-import beer.thierry.budgetplanner.api.service.users.IUserService
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.IUserRepository
+import beer.thierry.budgetplanner.api.services.users.IUserService
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
 class UserService(private val userRepository: IUserRepository) : IUserService {

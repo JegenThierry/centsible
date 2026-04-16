@@ -7,18 +7,19 @@ import beer.thierry.budgetplanner.api.model.budgetaccount.Currency
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.budgetplanner.api.repository.IBudgetAccountsRepository
+import beer.thierry.budgetplanner.core.services.account.BudgetAccountService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class BudgetAccountServiceTest {
@@ -40,7 +41,8 @@ class BudgetAccountServiceTest {
         val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User", "Name", "User Name", null)
         val request = CreateBudgetAccountRequest("Main Account", BigDecimal("100.00"), Currency.EUR)
         val accountId = UUID.randomUUID()
-        val account = BudgetAccountDTO(accountId, "Main Account", BigDecimal("100.00"), BigDecimal("100.00"), Currency.EUR)
+        val account =
+            BudgetAccountDTO(accountId, "Main Account", BigDecimal("100.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(accountRepository.createAccount(user, request)).thenReturn(account)
 
@@ -70,7 +72,8 @@ class BudgetAccountServiceTest {
     fun `fetchAccountById should return account by id`() {
         val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User", "Name", "User Name", null)
         val accountId = UUID.randomUUID()
-        val account = BudgetAccountDTO(accountId, "Main Account", BigDecimal("100.00"), BigDecimal("100.00"), Currency.EUR)
+        val account =
+            BudgetAccountDTO(accountId, "Main Account", BigDecimal("100.00"), BigDecimal("100.00"), Currency.EUR)
 
         `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
@@ -90,7 +93,14 @@ class BudgetAccountServiceTest {
             BudgetAccountSnapshotDTO(1, accountId, BigDecimal("100.00"), OffsetDateTime.now())
         )
 
-        `when`(accountHistoryRepository.fetchAccountHistory(eq(accountId), any(), any(), eq(user))).thenReturn(snapshots)
+        `when`(
+            accountHistoryRepository.fetchAccountHistory(
+                eq(accountId),
+                any(),
+                any(),
+                eq(user)
+            )
+        ).thenReturn(snapshots)
 
         val result = service.fetchAccountSnapshots(accountId.toString(), startDate, endDate, user)
 

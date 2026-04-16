@@ -1,12 +1,12 @@
-package beer.thierry.budgetplanner.core.service
+package beer.thierry.budgetplanner.core.services.authentication
 
-import beer.thierry.budgetplanner.api.service.auth.IAuthService
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthResponse
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.repository.IUserRepository
-import beer.thierry.budgetplanner.api.service.email.IRegisterEmailService
+import beer.thierry.budgetplanner.api.services.authentication.IAuthService
+import beer.thierry.budgetplanner.api.services.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -16,7 +16,7 @@ import java.util.*
 import javax.crypto.SecretKey
 
 @Service
-class AuthService(
+class AuthenticationService(
     private val userRepository: IUserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
@@ -33,7 +33,7 @@ class AuthService(
             ?: throw IllegalArgumentException("Invalid username or password")
 
         if (!passwordEncoder.matches(authRequest.password, user.passwordHash)) {
-            throw IllegalArgumentException("Invalid username or password" )
+            throw IllegalArgumentException("Invalid username or password")
         }
 
         if (!user.registered) {
@@ -53,7 +53,7 @@ class AuthService(
         val registeredUser = userRepository.createUser(authRequest)
             ?: throw IllegalArgumentException("User could not be created")
 
-        if(skipEmailVerification) {
+        if (skipEmailVerification) {
             return AuthResponse(generateJwt(registeredUser))
         }
 
@@ -95,7 +95,7 @@ class AuthService(
      */
     private fun assertPasswordMatchesSecuritySettings(password: String) {
         val passwordRegex = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
-        if(!password.matches(passwordRegex)) {
+        if (!password.matches(passwordRegex)) {
             throw IllegalArgumentException("Password does not meet security requirements")
         }
     }

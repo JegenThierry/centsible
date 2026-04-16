@@ -1,4 +1,4 @@
-package beer.thierry.budgetplanner.api.service.email
+package beer.thierry.budgetplanner.api.services.email
 
 import beer.thierry.budgetplanner.api.model.user.User
 

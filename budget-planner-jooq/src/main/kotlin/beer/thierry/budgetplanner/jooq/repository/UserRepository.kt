@@ -1,16 +1,16 @@
 package beer.thierry.budgetplanner.jooq.repository
 
-import beer.thierry.budgetplanner.api.repository.IUserRepository
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.IUserRepository
 import beer.thierry.jooq.generated.tables.references.USERS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 @Repository
 class UserRepository(private val dsl: DSLContext) : IUserRepository {

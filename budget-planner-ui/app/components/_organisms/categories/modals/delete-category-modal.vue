@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import type {Category} from "~/models/category/category";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
@@ -30,8 +30,8 @@ async function handleDelete() {
 
 <template>
   <UModal v-model:open="isOpen"
-          title="Delete Category"
-          :description="`Are you sure you want to delete the category '${category?.name}'? This action cannot be undone.`">
+          :description="`Are you sure you want to delete the category '${category?.name}'? This action cannot be undone.`"
+          title="Delete Category">
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>

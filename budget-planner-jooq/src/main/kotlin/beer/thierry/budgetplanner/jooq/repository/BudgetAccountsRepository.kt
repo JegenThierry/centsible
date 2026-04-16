@@ -1,15 +1,15 @@
 package beer.thierry.budgetplanner.jooq.repository
 
-import beer.thierry.budgetplanner.api.repository.IBudgetAccountsRepository
 import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.budgetplanner.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.IBudgetAccountsRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 @Repository
 class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRepository {
@@ -51,7 +51,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.CURRENCY, createBudgetAccountRequest.currency.toString())
             .set(ACCOUNTS.CREATED_AT, OffsetDateTime.now())
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
-            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE ,ACCOUNTS.CURRENCY)
+            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY)
             .fetchOneInto(BudgetAccountDTO::class.java)
             ?: throw IllegalStateException("Failed to retrieve generated Account")
     }

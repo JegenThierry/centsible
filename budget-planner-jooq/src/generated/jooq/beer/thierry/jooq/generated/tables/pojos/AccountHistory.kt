@@ -7,7 +7,7 @@ package beer.thierry.jooq.generated.tables.pojos
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 
 /**
@@ -21,7 +21,7 @@ data class AccountHistory(
     val balance: BigDecimal? = null,
     val createdAt: OffsetDateTime? = null,
     val transactionId: UUID? = null
-): Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other)
@@ -34,38 +34,32 @@ data class AccountHistory(
         if (this.id == null) {
             if (o.id != null)
                 return false
-        }
-        else if (this.id != o.id)
+        } else if (this.id != o.id)
             return false
         if (this.accountId == null) {
             if (o.accountId != null)
                 return false
-        }
-        else if (this.accountId != o.accountId)
+        } else if (this.accountId != o.accountId)
             return false
         if (this.userId == null) {
             if (o.userId != null)
                 return false
-        }
-        else if (this.userId != o.userId)
+        } else if (this.userId != o.userId)
             return false
         if (this.balance == null) {
             if (o.balance != null)
                 return false
-        }
-        else if (this.balance != o.balance)
+        } else if (this.balance != o.balance)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
-        }
-        else if (this.createdAt != o.createdAt)
+        } else if (this.createdAt != o.createdAt)
             return false
         if (this.transactionId == null) {
             if (o.transactionId != null)
                 return false
-        }
-        else if (this.transactionId != o.transactionId)
+        } else if (this.transactionId != o.transactionId)
             return false
         return true
     }

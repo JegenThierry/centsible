@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import {useUserStore} from '~/stores/userStore';
 import UserAvatar from '~/components/_atoms/user/user-avatar.vue';
@@ -23,9 +23,9 @@ onMounted(async () => {
   if (userStore.user) return;
 
   const user = userStore.user;
-  if(!user) return;
+  if (!user) return;
 
-  const { firstName, lastName, email } = user;
+  const {firstName, lastName, email} = user;
 
   initialFormValues.value = {
     firstName,
@@ -64,21 +64,21 @@ async function onFileChange(event: Event) {
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <PageHeader title="Profile"
-                description="Manage your account settings and profile information"/>
+    <PageHeader description="Manage your account settings and profile information"
+                title="Profile"/>
 
     <div v-if="userStore.pending && !userStore.user" class="flex justify-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary"/>
+      <UIcon class="w-8 h-8 animate-spin text-primary" name="i-heroicons-arrow-path"/>
     </div>
 
-    <UCard v-else-if="userStore.user" variant="soft" class="max-w-2xl mx-auto">
+    <UCard v-else-if="userStore.user" class="max-w-2xl mx-auto" variant="soft">
       <div class="space-y-12 mt-8">
         <div class="flex flex-col items-center gap-6">
           <div class="relative">
-            <UserAvatar :src="userStore.user.profilePicture"
-                        :alt="userStore.user.name"
-                        size="3xl"
+            <UserAvatar :alt="userStore.user.name"
+                        :src="userStore.user.profilePicture"
                         editable
+                        size="3xl"
                         @edit="onEditAvatar"/>
           </div>
 
@@ -88,16 +88,16 @@ async function onFileChange(event: Event) {
               <p class="text-gray-500">@{{ userStore.user.username }}</p>
             </div>
 
-            <UButton label="Change Picture"
+            <UButton icon="i-heroicons-camera"
+                     label="Change Picture"
                      variant="soft"
-                     icon="i-heroicons-camera"
                      @click="onEditAvatar"/>
           </div>
 
           <input ref="fileInput"
-                 type="file"
                  accept="image/*"
                  class="hidden"
+                 type="file"
                  @change="onFileChange"/>
         </div>
 

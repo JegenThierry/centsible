@@ -4,12 +4,7 @@
 package beer.thierry.jooq.generated.tables.references
 
 
-import beer.thierry.jooq.generated.tables.AccountHistory
-import beer.thierry.jooq.generated.tables.Accounts
-import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.Transactions
-import beer.thierry.jooq.generated.tables.Users
-
+import beer.thierry.jooq.generated.tables.*
 
 
 /**

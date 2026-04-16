@@ -1,8 +1,8 @@
-<script setup lang="ts">
-import { isSameMonth, parseISO } from 'date-fns';
-import { type Transaction } from "~/models/transactions/transaction";
-import { CategoryType } from "~/models/category/category";
-import type { Currency } from "~/models/budget-account/currency";
+<script lang="ts" setup>
+import {isSameMonth, parseISO} from 'date-fns';
+import {type Transaction} from "~/models/transactions/transaction";
+import {CategoryType} from "~/models/category/category";
+import type {Currency} from "~/models/budget-account/currency";
 import StatCard from "~/components/_molecules/dashboard/stat-card.vue";
 
 const props = defineProps<{
@@ -32,30 +32,30 @@ const netSavings = computed(() => {
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
     <StatCard
-      label="Monthly Income"
       :amount="monthlyIncome"
       :currency="currency"
+      amount-color-class="text-green-600 dark:text-green-400"
       icon="i-lucide-trending-up"
       icon-color-class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-      amount-color-class="text-green-600 dark:text-green-400"
+      label="Monthly Income"
     />
 
     <StatCard
-      label="Monthly Expenses"
       :amount="monthlyExpenses"
       :currency="currency"
+      amount-color-class="text-red-600 dark:text-red-400"
       icon="i-lucide-trending-down"
       icon-color-class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-      amount-color-class="text-red-600 dark:text-red-400"
+      label="Monthly Expenses"
     />
 
     <StatCard
-      label="Net Savings"
       :amount="netSavings"
+      :amount-color-class="netSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
       :currency="currency"
       icon="i-lucide-piggy-bank"
       icon-color-class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-      :amount-color-class="netSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+      label="Net Savings"
     />
   </div>
 </template>

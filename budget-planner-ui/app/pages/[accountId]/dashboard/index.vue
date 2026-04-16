@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import Dashboard from "~/components/_organisms/dashboard/dashboard.vue";
 
 definePageMeta({

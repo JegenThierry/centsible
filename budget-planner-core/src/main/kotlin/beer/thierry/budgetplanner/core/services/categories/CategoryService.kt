@@ -1,10 +1,10 @@
-package beer.thierry.budgetplanner.core.service
+package beer.thierry.budgetplanner.core.services.categories
 
-import beer.thierry.budgetplanner.api.service.categories.ICategoryService
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.ICategoriesRepository
+import beer.thierry.budgetplanner.api.services.categories.ICategoryService
 import org.springframework.stereotype.Service
 
 @Service

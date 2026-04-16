@@ -7,7 +7,7 @@ package beer.thierry.jooq.generated.tables.pojos
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 
 /**
@@ -23,7 +23,7 @@ data class Accounts(
     val currency: String? = null,
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null
-): Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other)
@@ -36,50 +36,42 @@ data class Accounts(
         if (this.id == null) {
             if (o.id != null)
                 return false
-        }
-        else if (this.id != o.id)
+        } else if (this.id != o.id)
             return false
         if (this.userId == null) {
             if (o.userId != null)
                 return false
-        }
-        else if (this.userId != o.userId)
+        } else if (this.userId != o.userId)
             return false
         if (this.name == null) {
             if (o.name != null)
                 return false
-        }
-        else if (this.name != o.name)
+        } else if (this.name != o.name)
             return false
         if (this.balance == null) {
             if (o.balance != null)
                 return false
-        }
-        else if (this.balance != o.balance)
+        } else if (this.balance != o.balance)
             return false
         if (this.initialBalance == null) {
             if (o.initialBalance != null)
                 return false
-        }
-        else if (this.initialBalance != o.initialBalance)
+        } else if (this.initialBalance != o.initialBalance)
             return false
         if (this.currency == null) {
             if (o.currency != null)
                 return false
-        }
-        else if (this.currency != o.currency)
+        } else if (this.currency != o.currency)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
-        }
-        else if (this.createdAt != o.createdAt)
+        } else if (this.createdAt != o.createdAt)
             return false
         if (this.modifiedAt == null) {
             if (o.modifiedAt != null)
                 return false
-        }
-        else if (this.modifiedAt != o.modifiedAt)
+        } else if (this.modifiedAt != o.modifiedAt)
             return false
         return true
     }

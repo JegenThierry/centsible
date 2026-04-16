@@ -1,8 +1,8 @@
-package beer.thierry.budgetplanner.api.service.users
+package beer.thierry.budgetplanner.api.services.users
 
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.UserDTO
-import java.util.UUID
+import java.util.*
 
 interface IUserService {
     fun fetchAllUsers(): List<UserDTO>

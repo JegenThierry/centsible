@@ -41,7 +41,7 @@ const items = computed(() => [
 
 <template>
   <UDropdownMenu :content="{ align: 'end' }" :items="items">
-    <UButton color="neutral" variant="ghost" class="h-auto cursor-pointer">
+    <UButton class="h-auto cursor-pointer" color="neutral" variant="ghost">
       <UUser
         :avatar="{
             src: user.profilePicture || undefined,
@@ -50,7 +50,7 @@ const items = computed(() => [
         :description="user.email"
         :name="user.name"
       />
-      <UIcon name="i-lucide-chevron-down" class="text-xl ml-1" />
+      <UIcon class="text-xl ml-1" name="i-lucide-chevron-down"/>
     </UButton>
   </UDropdownMenu>
 </template>
