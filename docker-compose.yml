@@ -15,7 +15,7 @@ services:
       PGTZ: UTC
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
       - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
@@ -153,7 +153,9 @@ services:
 
     environment:
       NUXT_PUBLIC_API_BASE: "http://localhost:${REST_HOST_PORT:-8080}/api"
-      NUXT_API_BASE_SSR: "http://budget_planner_rest:8080/api"
+      NUXT_API_BASE_SSR: "http://budget_planner_rest:8080/apvolumes:
+      - postgres_data:/var/lib/postgresql  # Change this from /var/lib/postgresql/data
+      - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,zi"
 
     ports:
       - "${UI_HOST_PORT:-3000}:3000"
