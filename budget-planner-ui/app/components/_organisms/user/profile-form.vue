@@ -36,36 +36,38 @@
 <script lang="ts" setup>
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
+import {useValidator} from "~/composables/use-validator";
 
 interface Props {
-  initialValues: UserProfileForm;
+  initialValues?: UserProfileForm;
   loading?: boolean;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['save', 'validation-failed']);
+const emit = defineEmits<{
+  (e: 'save', value: UserProfileForm): void;
+  (e: 'validation-failed'): void;
+}>();
 
 const firstNameInput = ref<InstanceType<typeof BaseInput>>();
 const lastNameInput = ref<InstanceType<typeof BaseInput>>();
 const emailInput = ref<InstanceType<typeof BaseInput>>();
 
-const state = reactive({...props.initialValues});
+const state = reactive<UserProfileForm>({
+  firstName: props.initialValues?.firstName ?? '',
+  lastName: props.initialValues?.lastName ?? '',
+  email: props.initialValues?.email ?? '',
+});
+
+watch(
+  () => props.initialValues,
+  (next) => {
+    if (next) Object.assign(state, next);
+  },
+);
 
 function validate(): boolean {
-  const inputs = [
-    firstNameInput.value,
-    lastNameInput.value,
-    emailInput.value
-  ];
-
-  let valid = true;
-  inputs.forEach((input) => {
-    if (input && !input.validate()) {
-      valid = false;
-    }
-  });
-
-  return valid;
+  return useValidator().validateInputs([firstNameInput, lastNameInput, emailInput]);
 }
 
 async function onSubmit() {

@@ -11,7 +11,7 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const emit = defineEmits<{
-  (e: 'edited'): void;
+  (e: 'updated'): void;
 }>();
 
 const api = useApi();
@@ -58,7 +58,7 @@ async function handleEdit() {
         transactionDate: form.value.transactionDate
       }
     );
-    emit('edited');
+    emit('updated');
     toasts.success('Transaction updated successfully.', 'Your transaction has been updated.');
     isOpen.value = false;
   } catch (error) {

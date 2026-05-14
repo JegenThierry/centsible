@@ -9,8 +9,6 @@ defineProps<{
   currency: Currency
 }>();
 
-const accountHistoryStore = useAccountHistoryStore();
-
 const formatDate = (dateString: string) => {
   try {
     return format(parseISO(dateString), 'dd.MM.yyyy');
@@ -32,7 +30,7 @@ const formatDate = (dateString: string) => {
 
     <div class="overflow-y-auto max-h-64">
       <ul class="divide-y divide-neutral-200 dark:divide-neutral-800">
-        <li v-for="snapshot in accountHistoryStore.snapshots"
+        <li v-for="snapshot in snapshots"
             :key="snapshot.createdAt"
             class="py-2 sm:py-3 flex justify-between items-center">
           <span class="text-sm text-neutral-500 dark:text-neutral-400">

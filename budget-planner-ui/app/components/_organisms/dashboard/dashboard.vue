@@ -113,7 +113,7 @@ onMounted(() => {
                           :snapshots="historyStore.snapshots"/>
     </div>
 
-    <CreateFab @click="onOpenCreateTransactionModal"/>
+    <CreateFab @create="onOpenCreateTransactionModal"/>
 
     <CreateTransactionModal v-if="isCreateTransactionModalVisible"
                             v-model:open="isCreateTransactionModalVisible"

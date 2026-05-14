@@ -1,19 +1,19 @@
-export function useValidator() {
-  function validate(value: 'string' | 'number', type: 'email' | 'password' | 'text') {
-  }
+import type {Ref} from 'vue';
 
+export interface Validatable {
+  validate: () => boolean;
+}
+
+export function useValidator() {
   /**
    * Validates all inputs in the given refs array.
    * Undefined inputs or inputs not supporting validate() are considered valid.
-   * @param refs
-   * @return true if all inputs are valid, false otherwise.
    */
-  function validateInputs(refs: Ref<any>[]) {
-    return refs.map(x => x.value?.validate() ?? true).every(x => x)
+  function validateInputs(refs: Ref<Validatable | undefined>[]) {
+    return refs.every(x => x.value?.validate?.() ?? true);
   }
 
   return {
-    validate,
     validateInputs,
   }
 }

@@ -3,7 +3,7 @@ import PageHeader from "~/components/_molecules/page/page-header.vue";
 import {useUserStore} from '~/stores/userStore';
 import UserAvatar from '~/components/_atoms/user/user-avatar.vue';
 import ProfileForm from '~/components/_organisms/user/profile-form.vue';
-import {useUserNotifications} from "~/components/_organisms/user/notifcations";
+import {useUserNotifications} from "~/components/_organisms/user/notifications";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 const userStore = useUserStore();
@@ -16,26 +16,14 @@ const {
 } = useUserNotifications();
 
 const fileInput = ref<HTMLInputElement | null>(null);
-const initialFormValues = ref<UserProfileForm>();
-const pending = ref(false);
 
-onMounted(async () => {
-  if (userStore.user) return;
-
-  const user = userStore.user;
-  if (!user) return;
-
-  const {firstName, lastName, email} = user;
-
-  initialFormValues.value = {
-    firstName,
-    lastName,
-    email,
-  };
+const initialFormValues = computed<UserProfileForm | undefined>(() => {
+  if (!userStore.user) return undefined;
+  const {firstName, lastName, email} = userStore.user;
+  return {firstName, lastName, email};
 });
 
-async function onSaveProfile(data: any) {
-  pending.value = true;
+async function onSaveProfile(data: UserProfileForm) {
   try {
     await userStore.updateProfile(data);
     onProfileUpdateSuccess();

@@ -39,6 +39,7 @@ export const useUserStore = defineStore('userStore', () => {
 
   return {
     user,
+    pending,
     fetchMyself,
     updateProfile,
     updateProfilePicture,

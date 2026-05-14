@@ -186,7 +186,7 @@ onMounted(() => {
     <LoadingAnimation v-if="loadingMore || loading"/>
   </div>
 
-  <CreateFab @click="onOpenCreateModal()"/>
+  <CreateFab @create="onOpenCreateModal"/>
 
   <CreateTransactionModal v-if="isCreateModalOpen"
                           v-model:open="isCreateModalOpen"

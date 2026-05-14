@@ -15,7 +15,6 @@ export function useTransactionService(api: AxiosInstance) {
 
   async function createTransaction(accountId: string, transaction: Partial<TransactionRequest>): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}`, transaction);
-    console.log(response.data)
     return validateRequest<Transaction>(response);
   }
 
