@@ -4,7 +4,17 @@
 package beer.thierry.jooq.generated.tables.references
 
 
-import beer.thierry.jooq.generated.tables.*
+import beer.thierry.jooq.generated.tables.AccountHistory
+import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.ContactBalances
+import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.LoanRepayments
+import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.SchemaMigrations
+import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.Users
+
 
 
 /**
@@ -21,6 +31,31 @@ val ACCOUNTS: Accounts = Accounts.ACCOUNTS
  * The table <code>public.categories</code>.
  */
 val CATEGORIES: Categories = Categories.CATEGORIES
+
+/**
+ * The table <code>public.contact_balances</code>.
+ */
+val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
+
+/**
+ * The table <code>public.contacts</code>.
+ */
+val CONTACTS: Contacts = Contacts.CONTACTS
+
+/**
+ * The table <code>public.loan_repayments</code>.
+ */
+val LOAN_REPAYMENTS: LoanRepayments = LoanRepayments.LOAN_REPAYMENTS
+
+/**
+ * The table <code>public.loans</code>.
+ */
+val LOANS: Loans = Loans.LOANS
+
+/**
+ * The table <code>public.schema_migrations</code>.
+ */
+val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
 
 /**
  * The table <code>public.transactions</code>.

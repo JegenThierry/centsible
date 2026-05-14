@@ -1,0 +1,93 @@
+package beer.thierry.budgetplannerrest.resources
+
+import beer.thierry.budgetplanner.api.model.contact.ContactDTO
+import beer.thierry.budgetplanner.api.model.contact.ContactForm
+import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.services.contacts.IContactService
+import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.util.Base64
+import java.util.UUID
+
+@RequestMapping("/api/contacts")
+@RestController
+class ContactsResource(private val contactService: IContactService) {
+
+    @GetMapping
+    fun list(
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<List<ContactDTO>> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(contactService.fetchAllContacts(authenticatedUser))
+    }
+
+    @GetMapping("/{id}")
+    fun get(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<ContactDTO> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val contact = contactService.fetchContactById(authenticatedUser, id)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(contact)
+    }
+
+    @PostMapping
+    fun create(
+        @Valid @RequestBody form: ContactForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<ContactDTO> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(contactService.createContact(authenticatedUser, form))
+    }
+
+    @PutMapping("/{id}")
+    fun update(
+        @PathVariable id: UUID,
+        @Valid @RequestBody form: ContactForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<ContactDTO> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val updated = contactService.updateContact(authenticatedUser, id, form)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(updated)
+    }
+
+    @PostMapping("/{id}/picture")
+    fun updatePicture(
+        @PathVariable id: UUID,
+        @RequestParam("file") file: MultipartFile,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<ContactDTO> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val base64 = Base64.getEncoder().encodeToString(file.bytes)
+        val dataUrl = "data:${file.contentType};base64,$base64"
+        val updated = contactService.updateContactPicture(authenticatedUser, id, dataUrl)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(updated)
+    }
+
+    @DeleteMapping("/{id}/picture")
+    fun removePicture(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<ContactDTO> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val updated = contactService.updateContactPicture(authenticatedUser, id, null)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(updated)
+    }
+
+    @DeleteMapping("/{id}")
+    fun delete(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?
+    ): ResponseEntity<Void> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val deleted = contactService.deleteContact(authenticatedUser, id)
+        return if (deleted) ResponseEntity.ok().build() else ResponseEntity.notFound().build()
+    }
+}

@@ -6,10 +6,18 @@ package beer.thierry.jooq.generated.keys
 
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.LoanRepayments
+import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
+import beer.thierry.jooq.generated.tables.records.ContactsRecord
+import beer.thierry.jooq.generated.tables.records.LoanRepaymentsRecord
+import beer.thierry.jooq.generated.tables.records.LoansRecord
+import beer.thierry.jooq.generated.tables.records.SchemaMigrationsRecord
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
@@ -19,72 +27,37 @@ import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 
 
+
 // -------------------------------------------------------------------------
 // UNIQUE and PRIMARY KEY definitions
 // -------------------------------------------------------------------------
 
-val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> =
-    Internal.createUniqueKey(Accounts.ACCOUNTS, DSL.name("accounts_pkey"), arrayOf(Accounts.ACCOUNTS.ID), true)
-val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(
-    Categories.CATEGORIES,
-    DSL.name("categories_pkey"),
-    arrayOf(Categories.CATEGORIES.ID),
-    true
-)
-val UQ_CATEGORIES_NAME: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(
-    Categories.CATEGORIES,
-    DSL.name("uq_categories_name"),
-    arrayOf(Categories.CATEGORIES.NAME),
-    true
-)
-val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(
-    Transactions.TRANSACTIONS,
-    DSL.name("transactions_pkey"),
-    arrayOf(Transactions.TRANSACTIONS.ID),
-    true
-)
-val USERS_EMAIL_KEY: UniqueKey<UsersRecord> =
-    Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
-val USERS_PKEY: UniqueKey<UsersRecord> =
-    Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.ID), true)
-val USERS_USERNAME_KEY: UniqueKey<UsersRecord> =
-    Internal.createUniqueKey(Users.USERS, DSL.name("users_username_key"), arrayOf(Users.USERS.USERNAME), true)
+val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> = Internal.createUniqueKey(Accounts.ACCOUNTS, DSL.name("accounts_pkey"), arrayOf(Accounts.ACCOUNTS.ID), true)
+val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), arrayOf(Categories.CATEGORIES.ID), true)
+val UQ_CATEGORIES_NAME: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("uq_categories_name"), arrayOf(Categories.CATEGORIES.NAME), true)
+val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("contacts_pkey"), arrayOf(Contacts.CONTACTS.ID), true)
+val UQ_CONTACTS_ID_USER: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("uq_contacts_id_user"), arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
+val LOAN_REPAYMENTS_PKEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_pkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.ID), true)
+val LOAN_REPAYMENTS_TRANSACTION_ID_KEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_key"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), true)
+val LOANS_PKEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(Loans.LOANS, DSL.name("loans_pkey"), arrayOf(Loans.LOANS.ID), true)
+val LOANS_TRANSACTION_ID_KEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(Loans.LOANS, DSL.name("loans_transaction_id_key"), arrayOf(Loans.LOANS.TRANSACTION_ID), true)
+val SCHEMA_MIGRATIONS_PKEY: UniqueKey<SchemaMigrationsRecord> = Internal.createUniqueKey(SchemaMigrations.SCHEMA_MIGRATIONS, DSL.name("schema_migrations_pkey"), arrayOf(SchemaMigrations.SCHEMA_MIGRATIONS.VERSION), true)
+val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(Transactions.TRANSACTIONS, DSL.name("transactions_pkey"), arrayOf(Transactions.TRANSACTIONS.ID), true)
+val USERS_EMAIL_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
+val USERS_PKEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.ID), true)
+val USERS_USERNAME_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_username_key"), arrayOf(Users.USERS.USERNAME), true)
 
 // -------------------------------------------------------------------------
 // FOREIGN KEY definitions
 // -------------------------------------------------------------------------
 
-val ACCOUNTS__ACCOUNTS_USER_ID_FKEY: ForeignKey<AccountsRecord, UsersRecord> = Internal.createForeignKey(
-    Accounts.ACCOUNTS,
-    DSL.name("accounts_user_id_fkey"),
-    arrayOf(Accounts.ACCOUNTS.USER_ID),
-    beer.thierry.jooq.generated.keys.USERS_PKEY,
-    arrayOf(Users.USERS.ID),
-    true
-)
-val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecord> = Internal.createForeignKey(
-    Categories.CATEGORIES,
-    DSL.name("categories_user_id_fkey"),
-    arrayOf(Categories.CATEGORIES.USER_ID),
-    beer.thierry.jooq.generated.keys.USERS_PKEY,
-    arrayOf(Users.USERS.ID),
-    true
-)
-val TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY: ForeignKey<TransactionsRecord, AccountsRecord> =
-    Internal.createForeignKey(
-        Transactions.TRANSACTIONS,
-        DSL.name("transactions_account_id_fkey"),
-        arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID),
-        beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY,
-        arrayOf(Accounts.ACCOUNTS.ID),
-        true
-    )
-val TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY: ForeignKey<TransactionsRecord, CategoriesRecord> =
-    Internal.createForeignKey(
-        Transactions.TRANSACTIONS,
-        DSL.name("transactions_category_id_fkey"),
-        arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID),
-        beer.thierry.jooq.generated.keys.CATEGORIES_PKEY,
-        arrayOf(Categories.CATEGORIES.ID),
-        true
-    )
+val ACCOUNTS__ACCOUNTS_USER_ID_FKEY: ForeignKey<AccountsRecord, UsersRecord> = Internal.createForeignKey(Accounts.ACCOUNTS, DSL.name("accounts_user_id_fkey"), arrayOf(Accounts.ACCOUNTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecord> = Internal.createForeignKey(Categories.CATEGORIES, DSL.name("categories_user_id_fkey"), arrayOf(Categories.CATEGORIES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val CONTACTS__CONTACTS_USER_ID_FKEY: ForeignKey<ContactsRecord, UsersRecord> = Internal.createForeignKey(Contacts.CONTACTS, DSL.name("contacts_user_id_fkey"), arrayOf(Contacts.CONTACTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val LOAN_REPAYMENTS__LOAN_REPAYMENTS_LOAN_ID_FKEY: ForeignKey<LoanRepaymentsRecord, LoansRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_loan_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), beer.thierry.jooq.generated.keys.LOANS_PKEY, arrayOf(Loans.LOANS.ID), true)
+val LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY: ForeignKey<LoanRepaymentsRecord, TransactionsRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY, arrayOf(Transactions.TRANSACTIONS.ID), true)
+val LOANS__FK_LOANS_CONTACT_USER: ForeignKey<LoansRecord, ContactsRecord> = Internal.createForeignKey(Loans.LOANS, DSL.name("fk_loans_contact_user"), arrayOf(Loans.LOANS.CONTACT_ID, Loans.LOANS.USER_ID), beer.thierry.jooq.generated.keys.UQ_CONTACTS_ID_USER, arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
+val LOANS__LOANS_TRANSACTION_ID_FKEY: ForeignKey<LoansRecord, TransactionsRecord> = Internal.createForeignKey(Loans.LOANS, DSL.name("loans_transaction_id_fkey"), arrayOf(Loans.LOANS.TRANSACTION_ID), beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY, arrayOf(Transactions.TRANSACTIONS.ID), true)
+val LOANS__LOANS_USER_ID_FKEY: ForeignKey<LoansRecord, UsersRecord> = Internal.createForeignKey(Loans.LOANS, DSL.name("loans_user_id_fkey"), arrayOf(Loans.LOANS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY: ForeignKey<TransactionsRecord, AccountsRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_account_id_fkey"), arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY, arrayOf(Accounts.ACCOUNTS.ID), true)
+val TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY: ForeignKey<TransactionsRecord, CategoriesRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_category_id_fkey"), arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), beer.thierry.jooq.generated.keys.CATEGORIES_PKEY, arrayOf(Categories.CATEGORIES.ID), true)

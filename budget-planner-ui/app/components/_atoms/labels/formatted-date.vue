@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const props = withDefaults(defineProps<{
   date: string | Date;
-  format?: 'short' | 'long' | 'time' | 'full';
+  format?: 'short' | 'long' | 'date' | 'time' | 'full';
   locale?: string;
 }>(), {
   format: 'full',
@@ -15,6 +15,9 @@ const formattedDate = computed(() => {
   }
   if (props.format === 'long') {
     return d.toLocaleDateString(props.locale, {day: 'numeric', month: 'short'});
+  }
+  if (props.format === 'date') {
+    return d.toLocaleDateString(props.locale, {day: 'numeric', month: 'short', year: 'numeric'});
   }
   if (props.format === 'time') {
     return d.toLocaleTimeString(props.locale, {hour: '2-digit', minute: '2-digit', hour12: false});

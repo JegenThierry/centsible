@@ -5,12 +5,14 @@ package beer.thierry.jooq.generated.tables.records
 
 
 import beer.thierry.jooq.generated.tables.Transactions
-import org.jooq.Record1
-import org.jooq.impl.UpdatableRecordImpl
+
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.*
+import java.util.UUID
+
+import org.jooq.Record1
+import org.jooq.impl.UpdatableRecordImpl
 
 
 /**
@@ -60,16 +62,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(
-        id: UUID? = null,
-        categoryId: Long? = null,
-        accountId: UUID? = null,
-        amount: BigDecimal? = null,
-        description: String? = null,
-        transactionDate: LocalDate? = null,
-        createdAt: OffsetDateTime? = null,
-        modifiedAt: OffsetDateTime? = null
-    ) : this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
@@ -84,7 +77,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(value: beer.thierry.jooq.generated.tables.pojos.Transactions?) : this() {
+    constructor(value: beer.thierry.jooq.generated.tables.pojos.Transactions?): this() {
         if (value != null) {
             this.id = value.id
             this.categoryId = value.categoryId

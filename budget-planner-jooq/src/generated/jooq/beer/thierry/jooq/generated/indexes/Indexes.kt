@@ -6,6 +6,9 @@ package beer.thierry.jooq.generated.indexes
 
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.LoanRepayments
+import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Transactions
 
 import org.jooq.Index
@@ -13,33 +16,18 @@ import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 
 
+
 // -------------------------------------------------------------------------
 // INDEX definitions
 // -------------------------------------------------------------------------
 
-val IDX_ACCOUNTS_USER_ID: Index =
-    Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
-val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(
-    DSL.name("idx_categories_user_lookup"),
-    Categories.CATEGORIES,
-    arrayOf(Categories.CATEGORIES.USER_ID),
-    false
-)
-val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(
-    DSL.name("idx_transactions_account_id"),
-    Transactions.TRANSACTIONS,
-    arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID),
-    false
-)
-val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(
-    DSL.name("idx_transactions_category_id"),
-    Transactions.TRANSACTIONS,
-    arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID),
-    false
-)
-val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(
-    DSL.name("idx_transactions_date"),
-    Transactions.TRANSACTIONS,
-    arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE),
-    false
-)
+val IDX_ACCOUNTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
+val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
+val IDX_CONTACTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_contacts_user_id"), Contacts.CONTACTS, arrayOf(Contacts.CONTACTS.USER_ID), false)
+val IDX_LOAN_REPAYMENTS_LOAN_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_loan_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), false)
+val IDX_LOAN_REPAYMENTS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_transaction_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), false)
+val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_transaction_id"), Loans.LOANS, arrayOf(Loans.LOANS.TRANSACTION_ID), false)
+val IDX_LOANS_USER_CONTACT: Index = Internal.createIndex(DSL.name("idx_loans_user_contact"), Loans.LOANS, arrayOf(Loans.LOANS.USER_ID, Loans.LOANS.CONTACT_ID), false)
+val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_transactions_account_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), false)
+val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(DSL.name("idx_transactions_category_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), false)
+val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactions_date"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE), false)

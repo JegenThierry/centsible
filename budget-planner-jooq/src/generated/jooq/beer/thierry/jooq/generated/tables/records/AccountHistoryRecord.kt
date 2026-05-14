@@ -5,10 +5,12 @@ package beer.thierry.jooq.generated.tables.records
 
 
 import beer.thierry.jooq.generated.tables.AccountHistory
-import org.jooq.impl.TableRecordImpl
+
 import java.math.BigDecimal
 import java.time.OffsetDateTime
-import java.util.*
+import java.util.UUID
+
+import org.jooq.impl.TableRecordImpl
 
 
 /**
@@ -44,14 +46,7 @@ open class AccountHistoryRecord() : TableRecordImpl<AccountHistoryRecord>(Accoun
     /**
      * Create a detached, initialised AccountHistoryRecord
      */
-    constructor(
-        id: Long? = null,
-        accountId: UUID? = null,
-        userId: UUID? = null,
-        balance: BigDecimal? = null,
-        createdAt: OffsetDateTime? = null,
-        transactionId: UUID? = null
-    ) : this() {
+    constructor(id: Long? = null, accountId: UUID? = null, userId: UUID? = null, balance: BigDecimal? = null, createdAt: OffsetDateTime? = null, transactionId: UUID? = null): this() {
         this.id = id
         this.accountId = accountId
         this.userId = userId
@@ -64,7 +59,7 @@ open class AccountHistoryRecord() : TableRecordImpl<AccountHistoryRecord>(Accoun
     /**
      * Create a detached, initialised AccountHistoryRecord
      */
-    constructor(value: beer.thierry.jooq.generated.tables.pojos.AccountHistory?) : this() {
+    constructor(value: beer.thierry.jooq.generated.tables.pojos.AccountHistory?): this() {
         if (value != null) {
             this.id = value.id
             this.accountId = value.accountId

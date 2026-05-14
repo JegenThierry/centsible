@@ -85,7 +85,6 @@ onMounted(() => {
     </div>
 
     <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
-      <!-- Monthly summary stats -->
       <DashboardStats :currency="accountStore.activeAccount.currency"
                       :transactions="transactionStore.transactions"/>
 
