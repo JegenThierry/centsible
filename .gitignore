@@ -135,3 +135,7 @@ out/
 
 # Project specific
 tasks
+
+# Claude
+CLAUDE.md
+.claude/
