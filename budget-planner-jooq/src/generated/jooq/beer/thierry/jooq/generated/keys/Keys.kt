@@ -7,17 +7,23 @@ package beer.thierry.jooq.generated.keys
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExportJobs
+import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.SchemaMigrations
+import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
 import beer.thierry.jooq.generated.tables.records.ContactsRecord
+import beer.thierry.jooq.generated.tables.records.ExportJobsRecord
+import beer.thierry.jooq.generated.tables.records.ExportPostProcessingRecord
 import beer.thierry.jooq.generated.tables.records.LoanRepaymentsRecord
 import beer.thierry.jooq.generated.tables.records.LoansRecord
 import beer.thierry.jooq.generated.tables.records.SchemaMigrationsRecord
+import beer.thierry.jooq.generated.tables.records.SystemInformationRecord
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
@@ -37,11 +43,14 @@ val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Cate
 val UQ_CATEGORIES_NAME: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("uq_categories_name"), arrayOf(Categories.CATEGORIES.NAME), true)
 val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("contacts_pkey"), arrayOf(Contacts.CONTACTS.ID), true)
 val UQ_CONTACTS_ID_USER: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("uq_contacts_id_user"), arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
+val EXPORT_JOBS_PKEY: UniqueKey<ExportJobsRecord> = Internal.createUniqueKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_pkey"), arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
+val EXPORT_POST_PROCESSING_PKEY: UniqueKey<ExportPostProcessingRecord> = Internal.createUniqueKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_pkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.ID), true)
 val LOAN_REPAYMENTS_PKEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_pkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.ID), true)
 val LOAN_REPAYMENTS_TRANSACTION_ID_KEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_key"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), true)
 val LOANS_PKEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(Loans.LOANS, DSL.name("loans_pkey"), arrayOf(Loans.LOANS.ID), true)
 val LOANS_TRANSACTION_ID_KEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(Loans.LOANS, DSL.name("loans_transaction_id_key"), arrayOf(Loans.LOANS.TRANSACTION_ID), true)
 val SCHEMA_MIGRATIONS_PKEY: UniqueKey<SchemaMigrationsRecord> = Internal.createUniqueKey(SchemaMigrations.SCHEMA_MIGRATIONS, DSL.name("schema_migrations_pkey"), arrayOf(SchemaMigrations.SCHEMA_MIGRATIONS.VERSION), true)
+val SYSTEM_INFORMATION_PKEY: UniqueKey<SystemInformationRecord> = Internal.createUniqueKey(SystemInformation.SYSTEM_INFORMATION, DSL.name("system_information_pkey"), arrayOf(SystemInformation.SYSTEM_INFORMATION.ID), true)
 val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(Transactions.TRANSACTIONS, DSL.name("transactions_pkey"), arrayOf(Transactions.TRANSACTIONS.ID), true)
 val USERS_EMAIL_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
 val USERS_PKEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.ID), true)
@@ -54,6 +63,8 @@ val USERS_USERNAME_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.
 val ACCOUNTS__ACCOUNTS_USER_ID_FKEY: ForeignKey<AccountsRecord, UsersRecord> = Internal.createForeignKey(Accounts.ACCOUNTS, DSL.name("accounts_user_id_fkey"), arrayOf(Accounts.ACCOUNTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecord> = Internal.createForeignKey(Categories.CATEGORIES, DSL.name("categories_user_id_fkey"), arrayOf(Categories.CATEGORIES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val CONTACTS__CONTACTS_USER_ID_FKEY: ForeignKey<ContactsRecord, UsersRecord> = Internal.createForeignKey(Contacts.CONTACTS, DSL.name("contacts_user_id_fkey"), arrayOf(Contacts.CONTACTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY: ForeignKey<ExportJobsRecord, UsersRecord> = Internal.createForeignKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_user_id_fkey"), arrayOf(ExportJobs.EXPORT_JOBS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val EXPORT_POST_PROCESSING__EXPORT_POST_PROCESSING_EXPORT_JOB_ID_FKEY: ForeignKey<ExportPostProcessingRecord, ExportJobsRecord> = Internal.createForeignKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_export_job_id_fkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.EXPORT_JOB_ID), beer.thierry.jooq.generated.keys.EXPORT_JOBS_PKEY, arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
 val LOAN_REPAYMENTS__LOAN_REPAYMENTS_LOAN_ID_FKEY: ForeignKey<LoanRepaymentsRecord, LoansRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_loan_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), beer.thierry.jooq.generated.keys.LOANS_PKEY, arrayOf(Loans.LOANS.ID), true)
 val LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY: ForeignKey<LoanRepaymentsRecord, TransactionsRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY, arrayOf(Transactions.TRANSACTIONS.ID), true)
 val LOANS__FK_LOANS_CONTACT_USER: ForeignKey<LoansRecord, ContactsRecord> = Internal.createForeignKey(Loans.LOANS, DSL.name("fk_loans_contact_user"), arrayOf(Loans.LOANS.CONTACT_ID, Loans.LOANS.USER_ID), beer.thierry.jooq.generated.keys.UQ_CONTACTS_ID_USER, arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)

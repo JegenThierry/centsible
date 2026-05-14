@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ meta.locale | default('en') }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }}</title>
+  {% include "_styles.peb" %}
+</head>
+<body>
+  <header class="doc-header">
+    <div>
+      <h1>{{ title }}</h1>
+      {% if subtitle %}<div class="subtitle">{{ subtitle }}</div>{% endif %}
+    </div>
+    <div class="meta">
+      <div><strong>{{ meta.userName }}</strong></div>
+      <div>{{ meta.userEmail }}</div>
+      <div>Generated {{ meta.generatedAt }}</div>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

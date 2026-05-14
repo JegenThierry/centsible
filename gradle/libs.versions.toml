@@ -5,6 +5,10 @@ dependencyManagement = "1.1.7"
 jjwt = "0.12.6"
 jooq = "3.19.29"
 postgresql = "42.7.5" # Adding explicit version for jooqCodegen if needed, though Spring Boot BOM handles it
+protobuf = "4.29.3"
+protobufPlugin = "0.9.5"
+pebble = "3.2.4"
+playwright = "1.51.0"
 
 [libraries]
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
@@ -19,12 +23,18 @@ spring-web = { module = "org.springframework:spring-web" }
 spring-security-crypto = { module = "org.springframework.security:spring-security-crypto" }
 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 postgresql = { module = "org.postgresql:postgresql" }
 
 jjwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jjwt" }
+
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-java-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobuf" }
+pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
@@ -41,3 +51,4 @@ kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotl
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
 jooq-codegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }

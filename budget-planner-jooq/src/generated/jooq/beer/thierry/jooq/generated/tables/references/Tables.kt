@@ -9,9 +9,12 @@ import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExportJobs
+import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.SchemaMigrations
+import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -43,6 +46,16 @@ val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
 val CONTACTS: Contacts = Contacts.CONTACTS
 
 /**
+ * The table <code>public.export_jobs</code>.
+ */
+val EXPORT_JOBS: ExportJobs = ExportJobs.EXPORT_JOBS
+
+/**
+ * The table <code>public.export_post_processing</code>.
+ */
+val EXPORT_POST_PROCESSING: ExportPostProcessing = ExportPostProcessing.EXPORT_POST_PROCESSING
+
+/**
  * The table <code>public.loan_repayments</code>.
  */
 val LOAN_REPAYMENTS: LoanRepayments = LoanRepayments.LOAN_REPAYMENTS
@@ -56,6 +69,11 @@ val LOANS: Loans = Loans.LOANS
  * The table <code>public.schema_migrations</code>.
  */
 val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
+
+/**
+ * The table <code>public.system_information</code>.
+ */
+val SYSTEM_INFORMATION: SystemInformation = SystemInformation.SYSTEM_INFORMATION
 
 /**
  * The table <code>public.transactions</code>.

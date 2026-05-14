@@ -1,0 +1,48 @@
+{% extends "_layout.peb" %}
+
+{% block content %}
+  <div class="period-line">{{ totalAccounts }} account{% if totalAccounts != 1 %}s{% endif %} tracked</div>
+
+  {% if byCurrency is empty %}
+    <div class="empty">No accounts to summarize.</div>
+  {% else %}
+    {% for c in byCurrency %}
+      <div class="group">
+        <h2>{{ c.currency }}
+          <span class="muted">— total {{ c.totalBalance | money(c.currency, meta.locale) }}</span>
+        </h2>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Opened</th>
+              <th class="num">Initial balance</th>
+              <th class="num">Balance</th>
+              <th class="num">Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in c.accounts %}
+              <tr>
+                <td>{{ a.name }}</td>
+                <td>{{ a.createdAt }}</td>
+                <td class="num">{{ a.initialBalance | money(a.currency, meta.locale) }}</td>
+                <td class="num">{{ a.balance | money(a.currency, meta.locale) }}</td>
+                <td class="num {% if a.delta >= 0 %}income{% else %}expense{% endif %}">
+                  {{ a.delta | money(a.currency, meta.locale) }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total {{ c.currency }}</td>
+              <td class="num">{{ c.totalBalance | money(c.currency, meta.locale) }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

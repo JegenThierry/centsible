@@ -1,0 +1,72 @@
+{% extends "_layout.peb" %}
+
+{% block content %}
+  <section class="summary">
+    <div class="card">
+      <div class="label">Outstanding</div>
+      <div class="value {% if totals.outstanding > 0 %}neg{% else %}pos{% endif %}">
+        {{ totals.outstanding | money(meta.currency, meta.locale) }}
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Total Lent</div>
+      <div class="value">{{ totals.lent | money(meta.currency, meta.locale) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Total Repaid</div>
+      <div class="value pos">{{ totals.repaid | money(meta.currency, meta.locale) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Contacts / Loans</div>
+      <div class="value">{{ totals.contactCount }} / {{ totals.loanCount }}</div>
+    </div>
+  </section>
+
+  {% if groups is empty %}
+    <div class="empty">No lendings to display.</div>
+  {% else %}
+    {% for g in groups %}
+      <div class="group">
+        <h2>{{ g.contactName }}
+          <span class="muted">— outstanding {{ g.outstanding | money(meta.currency, meta.locale) }} · {{ g.openLoanCount }} open</span>
+        </h2>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Loan date</th>
+              <th>Due date</th>
+              <th>Description</th>
+              <th class="num">Lent</th>
+              <th class="num">Repaid</th>
+              <th class="num">Outstanding</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in g.loans %}
+              <tr>
+                <td>{{ l.loanDate }}</td>
+                <td>{{ l.dueDate }}</td>
+                <td class="muted">{{ l.description }}</td>
+                <td class="num">{{ l.lentAmount | money(meta.currency, meta.locale) }}</td>
+                <td class="num income">{{ l.totalRepaid | money(meta.currency, meta.locale) }}</td>
+                <td class="num {% if l.outstanding > 0 %}expense{% else %}income{% endif %}">
+                  {{ l.outstanding | money(meta.currency, meta.locale) }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Subtotal</td>
+              <td class="num">{{ g.totalLent | money(meta.currency, meta.locale) }}</td>
+              <td class="num income">{{ g.totalRepaid | money(meta.currency, meta.locale) }}</td>
+              <td class="num {% if g.outstanding > 0 %}expense{% else %}income{% endif %}">
+                {{ g.outstanding | money(meta.currency, meta.locale) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

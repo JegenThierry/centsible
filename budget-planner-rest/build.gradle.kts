@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":budget-planner-core"))
     implementation(project(":budget-planner-api"))
+    implementation(project(":budget-planner-proto"))
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)

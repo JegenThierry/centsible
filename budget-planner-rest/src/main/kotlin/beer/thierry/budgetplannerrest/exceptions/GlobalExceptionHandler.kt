@@ -50,9 +50,10 @@ class GlobalExceptionHandler {
         ex: HttpMessageNotReadableException,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
+        val cause = ex.mostSpecificCause.message?.lineSequence()?.firstOrNull().orEmpty()
         val error = ErrorResponse(
             message = "Malformed request body.",
-            details = request.getDescription(false)
+            details = cause.ifBlank { request.getDescription(false) }
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
     }

@@ -28,6 +28,12 @@ const items = computed(() => {
       target: '_self'
     },
     {
+      label: 'My Documents',
+      to: '/exports',
+      icon: 'i-lucide-file-text',
+      target: '_self'
+    },
+    {
       label: 'Profile',
       to: '/profile',
       icon: 'i-lucide-user',

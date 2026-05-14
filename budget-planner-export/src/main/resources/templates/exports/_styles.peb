@@ -1,0 +1,189 @@
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 22mm 16mm;
+  }
+
+  :root {
+    --ink: #1a1a1a;
+    --ink-soft: #4b5563;
+    --ink-muted: #6b7280;
+    --rule: #d1d5db;
+    --rule-soft: #e5e7eb;
+    --zebra: #f9fafb;
+    --pos: #047857;
+    --neg: #b91c1c;
+    --accent: #1f2937;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body { padding: 0; }
+
+  /* Document header ----------------------------------------------------- */
+  header.doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 8pt;
+    border-bottom: 1.5pt solid var(--accent);
+    margin-bottom: 14pt;
+  }
+  header.doc-header h1 {
+    font-size: 18pt;
+    font-weight: 600;
+    margin: 0 0 2pt;
+    letter-spacing: -0.01em;
+  }
+  header.doc-header .subtitle {
+    color: var(--ink-soft);
+    font-size: 9.5pt;
+  }
+  header.doc-header .meta {
+    text-align: right;
+    color: var(--ink-soft);
+    font-size: 8.5pt;
+    line-height: 1.5;
+  }
+  header.doc-header .meta strong { color: var(--ink); font-weight: 600; }
+
+  /* Section headings ---------------------------------------------------- */
+  h2 {
+    font-size: 11pt;
+    font-weight: 600;
+    margin: 18pt 0 6pt;
+    padding-bottom: 3pt;
+    border-bottom: 0.5pt solid var(--rule);
+    letter-spacing: 0.01em;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  h2 .muted {
+    color: var(--ink-muted);
+    font-weight: 400;
+    font-size: 9pt;
+  }
+
+  /* Key-figures grid ---------------------------------------------------- */
+  section.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8pt;
+    margin-bottom: 14pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  section.summary .card {
+    border: 0.5pt solid var(--rule);
+    border-radius: 3pt;
+    padding: 7pt 9pt;
+  }
+  section.summary .label {
+    color: var(--ink-muted);
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  section.summary .value {
+    font-size: 13pt;
+    font-weight: 600;
+    margin-top: 2pt;
+    font-variant-numeric: tabular-nums;
+  }
+  section.summary .value.pos { color: var(--pos); }
+  section.summary .value.neg { color: var(--neg); }
+
+  /* Tables -------------------------------------------------------------- */
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+  table.data thead {
+    display: table-header-group; /* repeat on page break */
+  }
+  table.data tfoot {
+    display: table-footer-group;
+  }
+  table.data tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  table.data th, table.data td {
+    text-align: left;
+    padding: 4.5pt 6pt;
+    border-bottom: 0.25pt solid var(--rule-soft);
+    vertical-align: top;
+  }
+  table.data th {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 0.75pt solid var(--accent);
+    background: transparent;
+  }
+  table.data tbody tr:nth-child(even) td {
+    background: var(--zebra);
+  }
+  table.data td.num, table.data th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  table.data tfoot td {
+    font-weight: 600;
+    border-top: 0.75pt solid var(--accent);
+    border-bottom: none;
+    background: transparent;
+  }
+  table.data .income { color: var(--pos); }
+  table.data .expense { color: var(--neg); }
+  table.data .muted { color: var(--ink-muted); }
+
+  /* Category pills ------------------------------------------------------ */
+  .pill {
+    display: inline-block;
+    padding: 1pt 6pt;
+    border-radius: 2pt;
+    font-size: 8pt;
+    line-height: 1.4;
+    border: 0.5pt solid var(--rule);
+  }
+
+  /* Empty state --------------------------------------------------------- */
+  .empty {
+    padding: 24pt;
+    border: 0.5pt dashed var(--rule);
+    border-radius: 3pt;
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 9.5pt;
+  }
+
+  /* Contact section in lendings-all ------------------------------------- */
+  .group {
+    break-inside: avoid-page;
+  }
+
+  /* Misc ---------------------------------------------------------------- */
+  .muted { color: var(--ink-muted); }
+  .period-line {
+    color: var(--ink-soft);
+    font-size: 9.5pt;
+    margin-bottom: 10pt;
+  }
+</style>
