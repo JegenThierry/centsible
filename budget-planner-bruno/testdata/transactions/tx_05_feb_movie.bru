@@ -1,0 +1,29 @@
+meta {
+  name: tx_05_feb_movie
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCreditCardId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 22.50,
+    "categoryId": {{categoryEntertainmentId}},
+    "description": "Movie night",
+    "transactionDate": "2026-02-14"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

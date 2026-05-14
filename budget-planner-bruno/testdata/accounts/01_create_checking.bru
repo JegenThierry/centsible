@@ -1,0 +1,37 @@
+meta {
+  name: 01_create_checking
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/budget-accounts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Checking",
+    "initialBalance": 2500.00,
+    "currency": "EUR"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("accountCheckingId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

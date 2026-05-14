@@ -1,0 +1,35 @@
+meta {
+  name: 01_register
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "testuser",
+    "password": "TestPass123!",
+    "email": "testuser@example.com",
+    "firstName": "Test",
+    "lastName": "User"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.token) {
+      bru.setVar("token", body.token);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

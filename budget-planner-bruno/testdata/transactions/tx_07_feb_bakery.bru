@@ -1,0 +1,29 @@
+meta {
+  name: tx_07_feb_bakery
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCashId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 8.20,
+    "categoryId": {{categoryFoodId}},
+    "description": "Bakery breakfast",
+    "transactionDate": "2026-02-25"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

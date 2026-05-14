@@ -1,0 +1,37 @@
+meta {
+  name: 02_create_savings
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/budget-accounts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Savings",
+    "initialBalance": 12000.00,
+    "currency": "EUR"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("accountSavingsId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

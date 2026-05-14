@@ -1,0 +1,29 @@
+meta {
+  name: tx_23_may_salary
+  type: http
+  seq: 23
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 2800.00,
+    "categoryId": {{categorySalaryId}},
+    "description": "May salary",
+    "transactionDate": "2026-05-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

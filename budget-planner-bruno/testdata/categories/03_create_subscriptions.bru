@@ -1,0 +1,38 @@
+meta {
+  name: 03_create_subscriptions
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/categories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Subscriptions",
+    "icon": "i-lucide-repeat",
+    "color": "#8b5cf6",
+    "type": "EXPENSE"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id != null) {
+      bru.setVar("categorySubscriptionsId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

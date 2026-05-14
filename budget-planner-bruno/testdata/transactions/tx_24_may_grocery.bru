@@ -1,0 +1,29 @@
+meta {
+  name: tx_24_may_grocery
+  type: http
+  seq: 24
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 58.30,
+    "categoryId": {{categoryGroceriesId}},
+    "description": "Weekly grocery run",
+    "transactionDate": "2026-05-03"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

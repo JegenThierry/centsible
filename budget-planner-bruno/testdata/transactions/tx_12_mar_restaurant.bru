@@ -1,0 +1,29 @@
+meta {
+  name: tx_12_mar_restaurant
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCashId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 38.75,
+    "categoryId": {{categoryFoodId}},
+    "description": "Dinner with friends",
+    "transactionDate": "2026-03-15"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

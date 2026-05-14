@@ -1,0 +1,29 @@
+meta {
+  name: tx_28_may_pharmacy
+  type: http
+  seq: 28
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCashId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 27.80,
+    "categoryId": {{categoryHealthId}},
+    "description": "Pharmacy",
+    "transactionDate": "2026-05-13"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

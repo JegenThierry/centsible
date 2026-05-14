@@ -1,0 +1,41 @@
+meta {
+  name: 01_export_accounts_summary
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/exports
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "type": "ACCOUNTS_SUMMARY",
+    "title": "Accounts summary - 2026-05-14",
+    "params": {
+      "kind": "ACCOUNTS_SUMMARY",
+      "asOfDate": "2026-05-14"
+    },
+    "postProcessing": []
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("exportAccountsSummaryId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

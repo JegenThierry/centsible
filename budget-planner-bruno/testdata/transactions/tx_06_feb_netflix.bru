@@ -1,0 +1,29 @@
+meta {
+  name: tx_06_feb_netflix
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCreditCardId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 13.99,
+    "categoryId": {{categorySubscriptionsId}},
+    "description": "Netflix",
+    "transactionDate": "2026-02-18"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,38 @@
+meta {
+  name: 02_create_groceries
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/categories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Groceries",
+    "icon": "i-lucide-shopping-cart",
+    "color": "#16a34a",
+    "type": "EXPENSE"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id != null) {
+      bru.setVar("categoryGroceriesId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

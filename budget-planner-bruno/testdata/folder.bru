@@ -1,0 +1,43 @@
+meta {
+  name: testdata
+  seq: 99
+}
+
+auth {
+  mode: inherit
+}
+
+docs {
+  # Test data seeding
+
+  Self-contained Bruno folder that seeds a realistic dataset (1 user, 4 accounts,
+  4 custom categories, 5 contacts, ~28 transactions across Feb-May 2026, 4 loans
+  with repayments, 2 exports).
+
+  ## How to run
+
+  1. Start the stack with `SKIP_EMAIL_VERIFICATION=true` in `.env` (otherwise
+     the `01_register` request will not yield a usable session token).
+  2. Open this folder in Bruno and use the runner to execute every request
+     top-to-bottom (folders run in `seq` order; files within a folder do too).
+  3. Each create-request stores the returned id in a Bruno runtime variable
+     (e.g. `accountCheckingId`, `categoryFoodId`, `contactAliceId`) so later
+     requests can reference it. No environment file is required.
+
+  ## Re-running
+
+  - `01_register.bru` will 4xx if the test user already exists. That is fine —
+    `02_login.bru` then logs in with the same credentials and refreshes the
+    `{{token}}` variable.
+  - Categories have a global unique-name constraint, so the custom-category
+    creates will 4xx on a second run. The seeded ones are still picked up via
+    `categories/01_fetch_seeded.bru`.
+  - Accounts, contacts, transactions, loans and exports are duplicated on each
+    run. Reset the DB if you want a clean slate.
+
+  ## Credentials
+
+  - username: `testuser`
+  - password: `TestPass123!`
+  - email:    `testuser@example.com`
+}

@@ -1,0 +1,29 @@
+meta {
+  name: tx_19_apr_rent
+  type: http
+  seq: 19
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 950.00,
+    "categoryId": {{categoryHousingId}},
+    "description": "April rent",
+    "transactionDate": "2026-04-10"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
