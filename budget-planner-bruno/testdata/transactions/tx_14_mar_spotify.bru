@@ -1,0 +1,29 @@
+meta {
+  name: tx_14_mar_spotify
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCreditCardId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 10.99,
+    "categoryId": {{categorySubscriptionsId}},
+    "description": "Spotify",
+    "transactionDate": "2026-03-25"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

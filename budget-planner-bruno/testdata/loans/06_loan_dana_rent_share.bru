@@ -1,0 +1,43 @@
+meta {
+  name: 06_loan_dana_rent_share
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/loans
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "contactId": "{{contactDanaId}}",
+    "accountId": "{{accountCheckingId}}",
+    "affectBalance": true,
+    "lentAmount": 600.00,
+    "owedAmount": 600.00,
+    "description": "Dana's share of February rent",
+    "transactionDate": "2026-02-15",
+    "dueDate": "2026-03-15",
+    "notes": "Overdue scenario for testing."
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("loanDanaId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

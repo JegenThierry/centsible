@@ -1,0 +1,44 @@
+meta {
+  name: 02_export_transactions
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/exports
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "type": "TRANSACTIONS",
+    "title": "Transactions Feb-May 2026",
+    "params": {
+      "kind": "TRANSACTIONS",
+      "accountIds": null,
+      "fromDate": "2026-02-01",
+      "toDate": "2026-05-14",
+      "categoryIds": null
+    },
+    "postProcessing": []
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("exportTransactionsId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

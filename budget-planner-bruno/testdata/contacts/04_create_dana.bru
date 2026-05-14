@@ -1,0 +1,36 @@
+meta {
+  name: 04_create_dana
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/contacts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "firstName": "Dana",
+    "lastName": "Schultz"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("contactDanaId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

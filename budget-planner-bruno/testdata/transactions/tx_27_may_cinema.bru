@@ -1,0 +1,29 @@
+meta {
+  name: tx_27_may_cinema
+  type: http
+  seq: 27
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCashId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 14.00,
+    "categoryId": {{categoryEntertainmentId}},
+    "description": "Cinema",
+    "transactionDate": "2026-05-12"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,29 @@
+meta {
+  name: tx_16_apr_freelance
+  type: http
+  seq: 16
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 450.00,
+    "categoryId": {{categoryFreelanceId}},
+    "description": "Freelance logo design",
+    "transactionDate": "2026-04-02"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

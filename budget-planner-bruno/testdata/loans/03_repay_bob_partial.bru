@@ -1,0 +1,30 @@
+meta {
+  name: 03_repay_bob_partial
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/loans/{{loanBobId}}/repayments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "accountId": "{{accountCheckingId}}",
+    "affectBalance": true,
+    "amount": 75.00,
+    "description": "Bob paid half back",
+    "repaidAt": "2026-05-10"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

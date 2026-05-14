@@ -1,0 +1,36 @@
+meta {
+  name: 03_create_charlie
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/contacts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "firstName": "Charlie",
+    "lastName": "Okafor"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("contactCharlieId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

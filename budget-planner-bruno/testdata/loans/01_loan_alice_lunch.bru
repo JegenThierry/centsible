@@ -1,0 +1,43 @@
+meta {
+  name: 01_loan_alice_lunch
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/loans
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "contactId": "{{contactAliceId}}",
+    "accountId": "{{accountCheckingId}}",
+    "affectBalance": true,
+    "lentAmount": 80.00,
+    "owedAmount": 80.00,
+    "description": "Lunch tab covered for Alice",
+    "transactionDate": "2026-03-20",
+    "dueDate": null,
+    "notes": "She'll get the next one."
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("loanAliceId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

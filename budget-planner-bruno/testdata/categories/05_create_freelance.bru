@@ -1,0 +1,38 @@
+meta {
+  name: 05_create_freelance
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/categories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Freelance",
+    "icon": "i-lucide-briefcase",
+    "color": "#0ea5e9",
+    "type": "INCOME"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id != null) {
+      bru.setVar("categoryFreelanceId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

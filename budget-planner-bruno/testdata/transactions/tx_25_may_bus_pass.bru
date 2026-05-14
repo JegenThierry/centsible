@@ -1,0 +1,29 @@
+meta {
+  name: tx_25_may_bus_pass
+  type: http
+  seq: 25
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 45.00,
+    "categoryId": {{categoryTransportId}},
+    "description": "Monthly bus pass",
+    "transactionDate": "2026-05-05"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

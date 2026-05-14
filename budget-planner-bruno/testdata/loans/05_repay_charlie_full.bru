@@ -1,0 +1,30 @@
+meta {
+  name: 05_repay_charlie_full
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/loans/{{loanCharlieId}}/repayments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "accountId": null,
+    "affectBalance": false,
+    "amount": 25.00,
+    "description": "Charlie returned the book money",
+    "repaidAt": "2026-04-15"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

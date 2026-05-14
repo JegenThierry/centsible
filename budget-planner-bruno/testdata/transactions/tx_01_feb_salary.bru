@@ -1,0 +1,29 @@
+meta {
+  name: tx_01_feb_salary
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 2800.00,
+    "categoryId": {{categorySalaryId}},
+    "description": "February salary",
+    "transactionDate": "2026-02-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

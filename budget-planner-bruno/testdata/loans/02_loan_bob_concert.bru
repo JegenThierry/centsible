@@ -1,0 +1,43 @@
+meta {
+  name: 02_loan_bob_concert
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/loans
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "contactId": "{{contactBobId}}",
+    "accountId": "{{accountCheckingId}}",
+    "affectBalance": true,
+    "lentAmount": 150.00,
+    "owedAmount": 150.00,
+    "description": "Concert tickets fronted for Bob",
+    "transactionDate": "2026-04-05",
+    "dueDate": "2026-05-15",
+    "notes": null
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("loanBobId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

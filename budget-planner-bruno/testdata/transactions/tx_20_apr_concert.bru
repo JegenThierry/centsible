@@ -1,0 +1,29 @@
+meta {
+  name: tx_20_apr_concert
+  type: http
+  seq: 20
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCreditCardId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 65.00,
+    "categoryId": {{categoryEntertainmentId}},
+    "description": "Concert tickets",
+    "transactionDate": "2026-04-15"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

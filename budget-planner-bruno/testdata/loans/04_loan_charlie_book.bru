@@ -1,0 +1,43 @@
+meta {
+  name: 04_loan_charlie_book
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/loans
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "contactId": "{{contactCharlieId}}",
+    "accountId": null,
+    "affectBalance": false,
+    "lentAmount": 25.00,
+    "owedAmount": 25.00,
+    "description": "Programming book lent to Charlie",
+    "transactionDate": "2026-03-10",
+    "dueDate": null,
+    "notes": "Off-balance, just tracking."
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("loanCharlieId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

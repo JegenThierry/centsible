@@ -1,0 +1,29 @@
+meta {
+  name: tx_15_apr_salary
+  type: http
+  seq: 15
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 2800.00,
+    "categoryId": {{categorySalaryId}},
+    "description": "April salary",
+    "transactionDate": "2026-04-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

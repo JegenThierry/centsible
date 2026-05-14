@@ -1,0 +1,36 @@
+meta {
+  name: 05_create_eve
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/contacts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "firstName": "Eve",
+    "lastName": "Lambert"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id) {
+      bru.setVar("contactEveId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

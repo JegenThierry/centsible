@@ -1,0 +1,29 @@
+meta {
+  name: tx_13_mar_pharmacy
+  type: http
+  seq: 13
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCashId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 18.40,
+    "categoryId": {{categoryHealthId}},
+    "description": "Pharmacy",
+    "transactionDate": "2026-03-20"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

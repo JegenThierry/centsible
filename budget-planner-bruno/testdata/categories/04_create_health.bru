@@ -1,0 +1,38 @@
+meta {
+  name: 04_create_health
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/categories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Health",
+    "icon": "i-lucide-heart-pulse",
+    "color": "#ec4899",
+    "type": "EXPENSE"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const body = res.getBody();
+    if (body && body.id != null) {
+      bru.setVar("categoryHealthId", body.id);
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

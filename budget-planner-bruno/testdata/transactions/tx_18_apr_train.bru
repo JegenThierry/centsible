@@ -1,0 +1,29 @@
+meta {
+  name: tx_18_apr_train
+  type: http
+  seq: 18
+}
+
+post {
+  url: http://localhost:8080/api/transactions/{{accountCheckingId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 22.50,
+    "categoryId": {{categoryTransportId}},
+    "description": "Train ticket",
+    "transactionDate": "2026-04-08"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
