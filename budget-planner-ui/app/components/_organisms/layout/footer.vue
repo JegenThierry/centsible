@@ -3,6 +3,11 @@ import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue";
 
 const items: NavigationMenuItem[] = [
   {
+    label: 'About',
+    to: '/about',
+    target: '_self'
+  },
+  {
     label: 'Activity',
     to: 'https://codeberg.org/thierryjegen/budget-planner/activity',
     target: '_blank'

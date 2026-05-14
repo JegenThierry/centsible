@@ -12,6 +12,7 @@ import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.SchemaMigrations
+import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -76,6 +77,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
 
     /**
+     * The table <code>public.system_information</code>.
+     */
+    val SYSTEM_INFORMATION: SystemInformation get() = SystemInformation.SYSTEM_INFORMATION
+
+    /**
      * The table <code>public.transactions</code>.
      */
     val TRANSACTIONS: Transactions get() = Transactions.TRANSACTIONS
@@ -96,6 +102,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
         SchemaMigrations.SCHEMA_MIGRATIONS,
+        SystemInformation.SYSTEM_INFORMATION,
         Transactions.TRANSACTIONS,
         Users.USERS
     )
