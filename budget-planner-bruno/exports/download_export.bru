@@ -1,0 +1,20 @@
+meta {
+  name: download_export
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8080/api/exports/:jobId/download
+  body: none
+  auth: none
+}
+
+params:path {
+  jobId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

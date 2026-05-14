@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package beer.thierry.budgetplanner.export;
+
+option java_package = "beer.thierry.budgetplanner.export.proto";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+
+message ExportMeta {
+  string user_id = 1;
+  string user_display_name = 2;
+  string user_email = 3;
+  string locale = 4;
+  string currency = 5;
+  google.protobuf.Timestamp requested_at = 6;
+}
+
+message ExportRequest {
+  ExportMeta meta = 1;
+
+  oneof body {
+    TransactionsRequest       transactions          = 10;
+    LendingsPerContactRequest lendings_per_contact  = 11;
+    LendingsAllRequest        lendings_all          = 12;
+    AccountsSummaryRequest    accounts_summary      = 13;
+  }
+}
+
+message TransactionsRequest {
+  repeated string account_ids = 1;
+  string from_date = 2;
+  string to_date = 3;
+  repeated int64 category_ids = 4;
+}
+
+message LendingsPerContactRequest {
+  string contact_id = 1;
+}
+
+message LendingsAllRequest {
+  bool include_settled = 1;
+}
+
+message AccountsSummaryRequest {
+  string as_of_date = 1;
+}

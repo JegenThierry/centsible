@@ -9,6 +9,8 @@ import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExportJobs
+import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.SchemaMigrations
@@ -42,6 +44,16 @@ val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
  * The table <code>public.contacts</code>.
  */
 val CONTACTS: Contacts = Contacts.CONTACTS
+
+/**
+ * The table <code>public.export_jobs</code>.
+ */
+val EXPORT_JOBS: ExportJobs = ExportJobs.EXPORT_JOBS
+
+/**
+ * The table <code>public.export_post_processing</code>.
+ */
+val EXPORT_POST_PROCESSING: ExportPostProcessing = ExportPostProcessing.EXPORT_POST_PROCESSING
 
 /**
  * The table <code>public.loan_repayments</code>.

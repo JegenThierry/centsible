@@ -1,0 +1,36 @@
+meta {
+  name: create_export_transactions
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/exports
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "TRANSACTIONS",
+    "title": "Transactions export",
+    "params": {
+      "kind": "TRANSACTIONS",
+      "accountIds": null,
+      "fromDate": "2026-01-01",
+      "toDate": "2026-12-31",
+      "categoryIds": null
+    },
+    "postProcessing": [
+      {
+        "type": "SEND_EMAIL",
+        "config": {}
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

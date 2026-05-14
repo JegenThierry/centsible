@@ -1,0 +1,86 @@
+{% extends "_layout.peb" %}
+
+{% block content %}
+  <section class="summary">
+    <div class="card">
+      <div class="label">Income</div>
+      <div class="value pos">{{ totals.income | money(meta.currency, meta.locale) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Expense</div>
+      <div class="value neg">{{ totals.expense | money(meta.currency, meta.locale) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Net</div>
+      <div class="value {% if totals.net >= 0 %}pos{% else %}neg{% endif %}">
+        {{ totals.net | money(meta.currency, meta.locale) }}
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Transactions</div>
+      <div class="value">{{ totals.count }}</div>
+    </div>
+  </section>
+
+  {% if perAccount is not empty %}
+    <h2>Per Account</h2>
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th class="num">Income</th>
+          <th class="num">Expense</th>
+          <th class="num">Transactions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in perAccount %}
+          <tr>
+            <td>{{ a.name }}</td>
+            <td class="num income">{{ a.income | money(a.currency, meta.locale) }}</td>
+            <td class="num expense">{{ a.expense | money(a.currency, meta.locale) }}</td>
+            <td class="num">{{ a.count }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <h2>Transactions</h2>
+  {% if transactions is empty %}
+    <div class="empty">No transactions match the filters for this export.</div>
+  {% else %}
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Account</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+          <tr>
+            <td>{{ t.date }}</td>
+            <td>{{ t.account }}</td>
+            <td><span class="pill">{{ t.category }}</span></td>
+            <td class="muted">{{ t.description }}</td>
+            <td class="num {% if t.isIncome %}income{% else %}expense{% endif %}">
+              {% if t.isIncome %}+{% else %}−{% endif %}{{ t.amount | money(t.currency, meta.locale) }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4">Net</td>
+          <td class="num {% if totals.net >= 0 %}income{% else %}expense{% endif %}">
+            {{ totals.net | money(meta.currency, meta.locale) }}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  {% endif %}
+{% endblock %}

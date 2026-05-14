@@ -14,6 +14,7 @@ import EditContactModal from "~/components/_organisms/contacts/modals/edit-conta
 import DeleteContactModal from "~/components/_organisms/contacts/modals/delete-contact-modal.vue";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {Currency} from "~/models/budget-account/currency";
 
 const props = defineProps<{
@@ -123,6 +124,12 @@ onMounted(() => {
             </div>
           </div>
           <div class="flex gap-2">
+            <ExportButton
+              :default-title="`Lendings — ${contact.name}`"
+              :params-builder="() => ({ kind: 'LENDINGS_PER_CONTACT', contactId: contactId })"
+              label="Export"
+              type="LENDINGS_PER_CONTACT"
+            />
             <UButton color="neutral"
                      icon="i-lucide-pencil"
                      variant="outline"

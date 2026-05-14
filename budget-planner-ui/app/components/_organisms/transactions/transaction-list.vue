@@ -14,13 +14,13 @@ import CreateTransactionModal from "~/components/_organisms/transactions/modals/
 import {useToasts} from "~/services/toasts/toast-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
+import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UIcon = resolveComponent('UIcon')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
-const CategoryBadge = resolveComponent('CategoryBadge')
-const FormattedDate = resolveComponent('FormattedDate')
 
 const api = useApi();
 const toast = useToasts();
@@ -175,7 +175,7 @@ onMounted(() => {
       </template>
       <template #empty>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-database-x"/>
+          <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-inbox"/>
           <p class="text-sm text-neutral-500">No transactions found.</p>
         </div>
       </template>

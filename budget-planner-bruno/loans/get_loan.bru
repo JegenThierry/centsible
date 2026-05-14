@@ -1,0 +1,20 @@
+meta {
+  name: get_loan
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/loans/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

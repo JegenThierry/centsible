@@ -9,6 +9,8 @@ import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExportJobs
+import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.SchemaMigrations
@@ -62,6 +64,16 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val CONTACTS: Contacts get() = Contacts.CONTACTS
 
     /**
+     * The table <code>public.export_jobs</code>.
+     */
+    val EXPORT_JOBS: ExportJobs get() = ExportJobs.EXPORT_JOBS
+
+    /**
+     * The table <code>public.export_post_processing</code>.
+     */
+    val EXPORT_POST_PROCESSING: ExportPostProcessing get() = ExportPostProcessing.EXPORT_POST_PROCESSING
+
+    /**
      * The table <code>public.loan_repayments</code>.
      */
     val LOAN_REPAYMENTS: LoanRepayments get() = LoanRepayments.LOAN_REPAYMENTS
@@ -99,6 +111,8 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         Categories.CATEGORIES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,
+        ExportJobs.EXPORT_JOBS,
+        ExportPostProcessing.EXPORT_POST_PROCESSING,
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
         SchemaMigrations.SCHEMA_MIGRATIONS,

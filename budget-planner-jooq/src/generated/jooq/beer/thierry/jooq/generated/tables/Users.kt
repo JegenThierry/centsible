@@ -8,6 +8,7 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
@@ -15,6 +16,7 @@ import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
+import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
@@ -221,6 +223,22 @@ open class Users(
 
     val contacts: ContactsPath
         get(): ContactsPath = contacts()
+
+    private lateinit var _exportJobs: ExportJobsPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.export_jobs</code>
+     * table
+     */
+    fun exportJobs(): ExportJobsPath {
+        if (!this::_exportJobs.isInitialized)
+            _exportJobs = ExportJobsPath(this, null, EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY.inverseKey)
+
+        return _exportJobs;
+    }
+
+    val exportJobs: ExportJobsPath
+        get(): ExportJobsPath = exportJobs()
 
     private lateinit var _loans: LoansPath
 

@@ -1,0 +1,20 @@
+meta {
+  name: delete_loan
+  type: http
+  seq: 5
+}
+
+delete {
+  url: http://localhost:8080/api/loans/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

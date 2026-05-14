@@ -7,6 +7,8 @@ package beer.thierry.jooq.generated.indexes
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExportJobs
+import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Transactions
@@ -24,6 +26,10 @@ import org.jooq.impl.Internal
 val IDX_ACCOUNTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
 val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
 val IDX_CONTACTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_contacts_user_id"), Contacts.CONTACTS, arrayOf(Contacts.CONTACTS.USER_ID), false)
+val IDX_EXPORT_JOBS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_jobs_claimable"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.STATUS, ExportJobs.EXPORT_JOBS.CREATED_AT), false)
+val IDX_EXPORT_JOBS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_export_jobs_user_created"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.USER_ID, ExportJobs.EXPORT_JOBS.CREATED_AT.desc()), false)
+val IDX_EXPORT_POST_PROCESSING_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_post_processing_claimable"), ExportPostProcessing.EXPORT_POST_PROCESSING, arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.STATUS, ExportPostProcessing.EXPORT_POST_PROCESSING.CREATED_AT), false)
+val IDX_EXPORT_POST_PROCESSING_JOB: Index = Internal.createIndex(DSL.name("idx_export_post_processing_job"), ExportPostProcessing.EXPORT_POST_PROCESSING, arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.EXPORT_JOB_ID), false)
 val IDX_LOAN_REPAYMENTS_LOAN_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_loan_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), false)
 val IDX_LOAN_REPAYMENTS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_transaction_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), false)
 val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_transaction_id"), Loans.LOANS, arrayOf(Loans.LOANS.TRANSACTION_ID), false)

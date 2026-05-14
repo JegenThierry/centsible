@@ -12,6 +12,8 @@ import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import ExportButton from "~/components/_molecules/exports/export-button.vue";
+import {todayIsoDate} from "~/utils/date";
 import {Currency} from "~/models/budget-account/currency";
 import type {Contact} from "~/models/contact/contact";
 
@@ -57,6 +59,13 @@ onMounted(() => {
     <PageHeader description="Track people who owe you money."
                 title="Contacts">
       <template #actions>
+        <ExportButton
+          v-if="contactsStore.contacts.length > 0"
+          :default-title="`All Lendings ${todayIsoDate()}`"
+          :params-builder="() => ({ kind: 'LENDINGS_ALL', includeSettled: true })"
+          label="Export lendings"
+          type="LENDINGS_ALL"
+        />
         <UButton class="w-full sm:w-auto justify-center"
                  icon="i-lucide-hand-coins"
                  variant="outline"

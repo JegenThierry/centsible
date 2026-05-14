@@ -1,0 +1,21 @@
+meta {
+  name: fetch_loans
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/loans?contactId=
+  body: none
+  auth: none
+}
+
+params:query {
+  contactId:
+  ~contactId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

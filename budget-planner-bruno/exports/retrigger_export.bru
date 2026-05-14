@@ -1,0 +1,20 @@
+meta {
+  name: retrigger_export
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/exports/:jobId/retrigger
+  body: none
+  auth: none
+}
+
+params:path {
+  jobId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

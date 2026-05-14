@@ -1,0 +1,24 @@
+meta {
+  name: update_contact_picture
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/contacts/:id/picture
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+body:multipart-form {
+  file: @file()
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

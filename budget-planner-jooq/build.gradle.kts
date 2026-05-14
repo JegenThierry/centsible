@@ -28,13 +28,15 @@ fun resolveProperty(key: String): String? {
 val jooqGeneratedDir = layout.projectDirectory.dir("src/generated/jooq")
 
 dependencies {
+    val postgresqlDriver = libs.postgresql
     api(project(":budget-planner-api"))
 
     implementation(libs.spring.boot.starter.jooq)
     implementation(libs.spring.security.crypto)
-    runtimeOnly(libs.postgresql)
+    implementation(libs.jackson.databind)
+    runtimeOnly(postgresqlDriver)
 
-    jooqCodegen(libs.postgresql)
+    jooqCodegen(postgresqlDriver)
 }
 
 jooq {

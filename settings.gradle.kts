@@ -5,4 +5,6 @@ include(
     "budget-planner-jooq",
     "budget-planner-core",
     "budget-planner-rest",
+    "budget-planner-proto",
+    "budget-planner-export",
 )

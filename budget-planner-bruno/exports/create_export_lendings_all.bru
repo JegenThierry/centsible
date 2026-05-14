@@ -1,0 +1,28 @@
+meta {
+  name: create_export_lendings_all
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/exports
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "LENDINGS_ALL",
+    "title": "All lendings",
+    "params": {
+      "kind": "LENDINGS_ALL",
+      "includeSettled": false
+    },
+    "postProcessing": []
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

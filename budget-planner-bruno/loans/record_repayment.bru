@@ -1,0 +1,30 @@
+meta {
+  name: record_repayment
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/api/loans/:id/repayments
+  body: json
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+body:json {
+  {
+    "accountId": "<uuid>",
+    "affectBalance": true,
+    "amount": 50.00,
+    "description": "Partial repayment",
+    "repaidAt": "2026-05-14"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

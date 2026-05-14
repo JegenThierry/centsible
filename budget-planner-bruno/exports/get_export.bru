@@ -1,0 +1,20 @@
+meta {
+  name: get_export
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/exports/:jobId
+  body: none
+  auth: none
+}
+
+params:path {
+  jobId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

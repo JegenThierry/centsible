@@ -6,6 +6,8 @@ import AccountCard from "~/components/_organisms/cards/account-card.vue";
 import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-budget-account-button.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import ExportButton from "~/components/_molecules/exports/export-button.vue";
+import {todayIsoDate} from "~/utils/date";
 
 const accountStore = useBudgetAccountsStore();
 
@@ -24,7 +26,16 @@ accountStore.updateAvailableAccounts();
       title="Accounts"
     >
       <template #actions>
-        <CreateBudgetAccountButton/>
+        <div class="flex gap-2">
+          <ExportButton
+            v-if="accountStore.availableAccounts.length > 0"
+            :default-title="`Accounts Summary ${todayIsoDate()}`"
+            :params-builder="() => ({ kind: 'ACCOUNTS_SUMMARY' })"
+            label="Export summary"
+            type="ACCOUNTS_SUMMARY"
+          />
+          <CreateBudgetAccountButton/>
+        </div>
       </template>
     </PageHeader>
 
