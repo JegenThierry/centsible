@@ -22,7 +22,7 @@ class AuthenticationService(
     private val registerEmailService: IRegisterEmailService,
     @Value("\${skip.email.verification}") private val skipEmailVerification: Boolean,
     @Value("\${jwt.secret}") private val jwtSecret: String,
-    @Value("\${jwt.expirationMs}") private val jwtExpirationMs: Long
+    @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long
 ) : IAuthService {
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))

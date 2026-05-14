@@ -15,7 +15,7 @@ services:
       PGTZ: ${TZ:-UTC}
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
       - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
       - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
