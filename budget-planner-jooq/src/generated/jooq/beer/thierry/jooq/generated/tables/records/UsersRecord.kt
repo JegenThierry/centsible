@@ -5,10 +5,12 @@ package beer.thierry.jooq.generated.tables.records
 
 
 import beer.thierry.jooq.generated.tables.Users
+
+import java.time.OffsetDateTime
+import java.util.UUID
+
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
-import java.time.OffsetDateTime
-import java.util.*
 
 
 /**
@@ -70,19 +72,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(
-        id: UUID? = null,
-        username: String? = null,
-        email: String? = null,
-        firstName: String? = null,
-        lastName: String? = null,
-        passwordHash: String? = null,
-        createdAt: OffsetDateTime? = null,
-        modifiedAt: OffsetDateTime? = null,
-        registered: Boolean? = null,
-        registrationToken: UUID? = null,
-        profilePicture: String? = null
-    ) : this() {
+    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null): this() {
         this.id = id
         this.username = username
         this.email = email
@@ -100,7 +90,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(value: beer.thierry.jooq.generated.tables.pojos.Users?) : this() {
+    constructor(value: beer.thierry.jooq.generated.tables.pojos.Users?): this() {
         if (value != null) {
             this.id = value.id
             this.username = value.username

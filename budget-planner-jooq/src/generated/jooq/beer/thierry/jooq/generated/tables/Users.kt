@@ -5,17 +5,46 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
-import beer.thierry.jooq.generated.keys.*
+import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
+import beer.thierry.jooq.generated.keys.USERS_PKEY
+import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
+import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
+import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
-import org.jooq.*
+
+import java.time.OffsetDateTime
+import java.util.UUID
+
+import kotlin.collections.Collection
+import kotlin.collections.List
+
+import org.jooq.Condition
+import org.jooq.Field
+import org.jooq.ForeignKey
+import org.jooq.InverseForeignKey
+import org.jooq.Name
+import org.jooq.Path
+import org.jooq.PlainSQL
+import org.jooq.QueryPart
+import org.jooq.Record
+import org.jooq.SQL
+import org.jooq.Schema
+import org.jooq.Select
+import org.jooq.Stringly
+import org.jooq.Table
+import org.jooq.TableField
+import org.jooq.TableOptions
+import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
-import java.time.OffsetDateTime
-import java.util.*
 
 
 /**
@@ -30,7 +59,7 @@ open class Users(
     aliased: Table<UsersRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-) : TableImpl<UsersRecord>(
+): TableImpl<UsersRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -58,146 +87,89 @@ open class Users(
     /**
      * The column <code>public.users.id</code>.
      */
-    val ID: TableField<UsersRecord, UUID?> = createField(
-        DSL.name("id"),
-        SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)),
-        this,
-        ""
-    )
+    val ID: TableField<UsersRecord, UUID?> = createField(DSL.name("id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("gen_random_uuid()"), SQLDataType.UUID)), this, "")
 
     /**
      * The column <code>public.users.username</code>.
      */
-    val USERNAME: TableField<UsersRecord, String?> =
-        createField(DSL.name("username"), SQLDataType.VARCHAR(50).nullable(false), this, "")
+    val USERNAME: TableField<UsersRecord, String?> = createField(DSL.name("username"), SQLDataType.VARCHAR(50).nullable(false), this, "")
 
     /**
      * The column <code>public.users.email</code>.
      */
-    val EMAIL: TableField<UsersRecord, String?> =
-        createField(DSL.name("email"), SQLDataType.VARCHAR(255).nullable(false), this, "")
+    val EMAIL: TableField<UsersRecord, String?> = createField(DSL.name("email"), SQLDataType.VARCHAR(255).nullable(false), this, "")
 
     /**
      * The column <code>public.users.first_name</code>.
      */
-    val FIRST_NAME: TableField<UsersRecord, String?> =
-        createField(DSL.name("first_name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
+    val FIRST_NAME: TableField<UsersRecord, String?> = createField(DSL.name("first_name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
      * The column <code>public.users.last_name</code>.
      */
-    val LAST_NAME: TableField<UsersRecord, String?> =
-        createField(DSL.name("last_name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
+    val LAST_NAME: TableField<UsersRecord, String?> = createField(DSL.name("last_name"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
      * The column <code>public.users.password_hash</code>.
      */
-    val PASSWORD_HASH: TableField<UsersRecord, String?> =
-        createField(DSL.name("password_hash"), SQLDataType.CLOB.nullable(false), this, "")
+    val PASSWORD_HASH: TableField<UsersRecord, String?> = createField(DSL.name("password_hash"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
      * The column <code>public.users.created_at</code>.
      */
-    val CREATED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(
-        DSL.name("created_at"),
-        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
-            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
-        this,
-        ""
-    )
+    val CREATED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     /**
      * The column <code>public.users.modified_at</code>.
      */
-    val MODIFIED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(
-        DSL.name("modified_at"),
-        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
-            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
-        this,
-        ""
-    )
+    val MODIFIED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     /**
      * The column <code>public.users.registered</code>.
      */
-    val REGISTERED: TableField<UsersRecord, Boolean?> = createField(
-        DSL.name("registered"),
-        SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)),
-        this,
-        ""
-    )
+    val REGISTERED: TableField<UsersRecord, Boolean?> = createField(DSL.name("registered"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
 
     /**
      * The column <code>public.users.registration_token</code>.
      */
-    val REGISTRATION_TOKEN: TableField<UsersRecord, UUID?> =
-        createField(DSL.name("registration_token"), SQLDataType.UUID, this, "")
+    val REGISTRATION_TOKEN: TableField<UsersRecord, UUID?> = createField(DSL.name("registration_token"), SQLDataType.UUID, this, "")
 
     /**
      * The column <code>public.users.profile_picture</code>.
      */
-    val PROFILE_PICTURE: TableField<UsersRecord, String?> =
-        createField(DSL.name("profile_picture"), SQLDataType.CLOB, this, "")
+    val PROFILE_PICTURE: TableField<UsersRecord, String?> = createField(DSL.name("profile_picture"), SQLDataType.CLOB, this, "")
 
-    private constructor(alias: Name, aliased: Table<UsersRecord>?) : this(alias, null, null, null, aliased, null, null)
-    private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        parameters,
-        null
-    )
-
-    private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        where
-    )
+    private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
+    private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
+    private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
      * Create an aliased <code>public.users</code> table reference
      */
-    constructor(alias: String) : this(DSL.name(alias))
+    constructor(alias: String): this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.users</code> table reference
      */
-    constructor(alias: Name) : this(alias, null)
+    constructor(alias: Name): this(alias, null)
 
     /**
      * Create a <code>public.users</code> table reference
      */
-    constructor() : this(DSL.name("users"), null)
+    constructor(): this(DSL.name("users"), null)
 
-    constructor(
-        path: Table<out Record>,
-        childPath: ForeignKey<out Record, UsersRecord>?,
-        parentPath: InverseForeignKey<out Record, UsersRecord>?
-    ) : this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, USERS, null, null)
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, UsersRecord>?, parentPath: InverseForeignKey<out Record, UsersRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, USERS, null, null)
 
     /**
      * A subtype implementing {@link Path} for simplified path-based joins.
      */
     open class UsersPath : Users, Path<UsersRecord> {
-        constructor(
-            path: Table<out Record>,
-            childPath: ForeignKey<out Record, UsersRecord>?,
-            parentPath: InverseForeignKey<out Record, UsersRecord>?
-        ) : super(path, childPath, parentPath)
-
-        private constructor(alias: Name, aliased: Table<UsersRecord>) : super(alias, aliased)
-
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, UsersRecord>?, parentPath: InverseForeignKey<out Record, UsersRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<UsersRecord>): super(alias, aliased)
         override fun `as`(alias: String): UsersPath = UsersPath(DSL.name(alias), this)
         override fun `as`(alias: Name): UsersPath = UsersPath(alias, this)
         override fun `as`(alias: Table<*>): UsersPath = UsersPath(alias.qualifiedName, this)
     }
-
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getPrimaryKey(): UniqueKey<UsersRecord> = USERS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<UsersRecord>> = listOf(USERS_EMAIL_KEY, USERS_USERNAME_KEY)
@@ -234,6 +206,36 @@ open class Users(
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
 
+    private lateinit var _contacts: ContactsPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.contacts</code>
+     * table
+     */
+    fun contacts(): ContactsPath {
+        if (!this::_contacts.isInitialized)
+            _contacts = ContactsPath(this, null, CONTACTS__CONTACTS_USER_ID_FKEY.inverseKey)
+
+        return _contacts;
+    }
+
+    val contacts: ContactsPath
+        get(): ContactsPath = contacts()
+
+    private lateinit var _loans: LoansPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.loans</code> table
+     */
+    fun loans(): LoansPath {
+        if (!this::_loans.isInitialized)
+            _loans = LoansPath(this, null, LOANS__LOANS_USER_ID_FKEY.inverseKey)
+
+        return _loans;
+    }
+
+    val loans: LoansPath
+        get(): LoansPath = loans()
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)
     override fun `as`(alias: Name): Users = Users(alias, this)
     override fun `as`(alias: Table<*>): Users = Users(alias.qualifiedName, this)
@@ -276,28 +278,22 @@ open class Users(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(condition: SQL): Users = where(DSL.condition(condition))
+    @PlainSQL override fun where(condition: SQL): Users = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String): Users = where(DSL.condition(condition))
+    @PlainSQL override fun where(@Stringly.SQL condition: String): Users = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Users =
-        where(DSL.condition(condition, *binds))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Users = where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Users =
-        where(DSL.condition(condition, *parts))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Users = where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

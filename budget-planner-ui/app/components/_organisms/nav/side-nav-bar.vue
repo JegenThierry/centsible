@@ -22,6 +22,12 @@ const items = computed(() => {
       target: '_self'
     },
     {
+      label: 'Contacts',
+      to: '/contacts',
+      icon: 'i-lucide-users',
+      target: '_self'
+    },
+    {
       label: 'Profile',
       to: '/profile',
       icon: 'i-lucide-user',

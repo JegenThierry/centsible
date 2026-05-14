@@ -24,6 +24,7 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
         )
             .from(CATEGORIES)
             .where(CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull))
+            .and(CATEGORIES.IS_MANAGED.isFalse)
             .fetch { record ->
                 CategoryDTO(
                     id = record[CATEGORIES.ID],
@@ -47,7 +48,9 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
         )
             .from(CATEGORIES)
             .where(
-                (CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull)).and(CATEGORIES.ID.eq(id))
+                (CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull))
+                    .and(CATEGORIES.ID.eq(id))
+                    .and(CATEGORIES.IS_MANAGED.isFalse)
             )
             .fetchOne { record ->
                 CategoryDTO(

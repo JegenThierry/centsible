@@ -4,7 +4,19 @@
 package beer.thierry.jooq.generated
 
 
-import beer.thierry.jooq.generated.tables.*
+import beer.thierry.jooq.generated.tables.AccountHistory
+import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.ContactBalances
+import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.LoanRepayments
+import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.SchemaMigrations
+import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.Users
+
+import kotlin.collections.List
+
 import org.jooq.Catalog
 import org.jooq.Table
 import org.jooq.impl.SchemaImpl
@@ -39,6 +51,31 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val CATEGORIES: Categories get() = Categories.CATEGORIES
 
     /**
+     * The table <code>public.contact_balances</code>.
+     */
+    val CONTACT_BALANCES: ContactBalances get() = ContactBalances.CONTACT_BALANCES
+
+    /**
+     * The table <code>public.contacts</code>.
+     */
+    val CONTACTS: Contacts get() = Contacts.CONTACTS
+
+    /**
+     * The table <code>public.loan_repayments</code>.
+     */
+    val LOAN_REPAYMENTS: LoanRepayments get() = LoanRepayments.LOAN_REPAYMENTS
+
+    /**
+     * The table <code>public.loans</code>.
+     */
+    val LOANS: Loans get() = Loans.LOANS
+
+    /**
+     * The table <code>public.schema_migrations</code>.
+     */
+    val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
+
+    /**
      * The table <code>public.transactions</code>.
      */
     val TRANSACTIONS: Transactions get() = Transactions.TRANSACTIONS
@@ -54,6 +91,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         AccountHistory.ACCOUNT_HISTORY,
         Accounts.ACCOUNTS,
         Categories.CATEGORIES,
+        ContactBalances.CONTACT_BALANCES,
+        Contacts.CONTACTS,
+        LoanRepayments.LOAN_REPAYMENTS,
+        Loans.LOANS,
+        SchemaMigrations.SCHEMA_MIGRATIONS,
         Transactions.TRANSACTIONS,
         Users.USERS
     )

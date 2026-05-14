@@ -13,13 +13,37 @@ import beer.thierry.jooq.generated.keys.UQ_CATEGORIES_NAME
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
-import org.jooq.*
+
+import java.time.OffsetDateTime
+import java.util.UUID
+
+import kotlin.collections.Collection
+import kotlin.collections.List
+
+import org.jooq.Check
+import org.jooq.Condition
+import org.jooq.Field
+import org.jooq.ForeignKey
+import org.jooq.Identity
+import org.jooq.Index
+import org.jooq.InverseForeignKey
+import org.jooq.Name
+import org.jooq.Path
+import org.jooq.PlainSQL
+import org.jooq.QueryPart
+import org.jooq.Record
+import org.jooq.SQL
+import org.jooq.Schema
+import org.jooq.Select
+import org.jooq.Stringly
+import org.jooq.Table
+import org.jooq.TableField
+import org.jooq.TableOptions
+import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
-import java.time.OffsetDateTime
-import java.util.*
 
 
 /**
@@ -34,7 +58,7 @@ open class Categories(
     aliased: Table<CategoriesRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-) : TableImpl<CategoriesRecord>(
+): TableImpl<CategoriesRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -62,8 +86,7 @@ open class Categories(
     /**
      * The column <code>public.categories.id</code>.
      */
-    val ID: TableField<CategoriesRecord, Long?> =
-        createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
+    val ID: TableField<CategoriesRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
 
     /**
      * The column <code>public.categories.user_id</code>.
@@ -73,116 +96,67 @@ open class Categories(
     /**
      * The column <code>public.categories.name</code>.
      */
-    val NAME: TableField<CategoriesRecord, String?> =
-        createField(DSL.name("name"), SQLDataType.VARCHAR(50).nullable(false), this, "")
+    val NAME: TableField<CategoriesRecord, String?> = createField(DSL.name("name"), SQLDataType.VARCHAR(50).nullable(false), this, "")
 
     /**
      * The column <code>public.categories.icon</code>.
      */
-    val ICON: TableField<CategoriesRecord, String?> =
-        createField(DSL.name("icon"), SQLDataType.VARCHAR(50).nullable(false), this, "")
-
-    /**
-     * The column <code>public.categories.created_at</code>.
-     */
-    val CREATED_AT: TableField<CategoriesRecord, OffsetDateTime?> = createField(
-        DSL.name("created_at"),
-        SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false)
-            .defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)),
-        this,
-        ""
-    )
-
-    /**
-     * The column <code>public.categories.type</code>.
-     */
-    val TYPE: TableField<CategoriesRecord, String?> =
-        createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
+    val ICON: TableField<CategoriesRecord, String?> = createField(DSL.name("icon"), SQLDataType.VARCHAR(50).nullable(false), this, "")
 
     /**
      * The column <code>public.categories.color</code>.
      */
-    val COLOR: TableField<CategoriesRecord, String?> = createField(
-        DSL.name("color"),
-        SQLDataType.VARCHAR(7).nullable(false)
-            .defaultValue(DSL.field(DSL.raw("'#3b82f6'::character varying"), SQLDataType.VARCHAR)),
-        this,
-        ""
-    )
+    val COLOR: TableField<CategoriesRecord, String?> = createField(DSL.name("color"), SQLDataType.VARCHAR(7).nullable(false).defaultValue(DSL.field(DSL.raw("'#3b82f6'::character varying"), SQLDataType.VARCHAR)), this, "")
 
-    private constructor(alias: Name, aliased: Table<CategoriesRecord>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        null
-    )
+    /**
+     * The column <code>public.categories.type</code>.
+     */
+    val TYPE: TableField<CategoriesRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
 
-    private constructor(alias: Name, aliased: Table<CategoriesRecord>?, parameters: Array<Field<*>?>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        parameters,
-        null
-    )
+    /**
+     * The column <code>public.categories.created_at</code>.
+     */
+    val CREATED_AT: TableField<CategoriesRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
-    private constructor(alias: Name, aliased: Table<CategoriesRecord>?, where: Condition?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        where
-    )
+    /**
+     * The column <code>public.categories.is_managed</code>.
+     */
+    val IS_MANAGED: TableField<CategoriesRecord, Boolean?> = createField(DSL.name("is_managed"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
+    private constructor(alias: Name, aliased: Table<CategoriesRecord>?): this(alias, null, null, null, aliased, null, null)
+    private constructor(alias: Name, aliased: Table<CategoriesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
+    private constructor(alias: Name, aliased: Table<CategoriesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
      * Create an aliased <code>public.categories</code> table reference
      */
-    constructor(alias: String) : this(DSL.name(alias))
+    constructor(alias: String): this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.categories</code> table reference
      */
-    constructor(alias: Name) : this(alias, null)
+    constructor(alias: Name): this(alias, null)
 
     /**
      * Create a <code>public.categories</code> table reference
      */
-    constructor() : this(DSL.name("categories"), null)
+    constructor(): this(DSL.name("categories"), null)
 
-    constructor(
-        path: Table<out Record>,
-        childPath: ForeignKey<out Record, CategoriesRecord>?,
-        parentPath: InverseForeignKey<out Record, CategoriesRecord>?
-    ) : this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, CATEGORIES, null, null)
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CategoriesRecord>?, parentPath: InverseForeignKey<out Record, CategoriesRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, CATEGORIES, null, null)
 
     /**
      * A subtype implementing {@link Path} for simplified path-based joins.
      */
     open class CategoriesPath : Categories, Path<CategoriesRecord> {
-        constructor(
-            path: Table<out Record>,
-            childPath: ForeignKey<out Record, CategoriesRecord>?,
-            parentPath: InverseForeignKey<out Record, CategoriesRecord>?
-        ) : super(path, childPath, parentPath)
-
-        private constructor(alias: Name, aliased: Table<CategoriesRecord>) : super(alias, aliased)
-
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CategoriesRecord>?, parentPath: InverseForeignKey<out Record, CategoriesRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<CategoriesRecord>): super(alias, aliased)
         override fun `as`(alias: String): CategoriesPath = CategoriesPath(DSL.name(alias), this)
         override fun `as`(alias: Name): CategoriesPath = CategoriesPath(alias, this)
         override fun `as`(alias: Table<*>): CategoriesPath = CategoriesPath(alias.qualifiedName, this)
     }
-
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP)
-    override fun getIdentity(): Identity<CategoriesRecord, Long?> =
-        super.getIdentity() as Identity<CategoriesRecord, Long?>
-
+    override fun getIdentity(): Identity<CategoriesRecord, Long?> = super.getIdentity() as Identity<CategoriesRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CategoriesRecord> = CATEGORIES_PKEY
     override fun getUniqueKeys(): List<UniqueKey<CategoriesRecord>> = listOf(UQ_CATEGORIES_NAME)
     override fun getReferences(): List<ForeignKey<CategoriesRecord, *>> = listOf(CATEGORIES__CATEGORIES_USER_ID_FKEY)
@@ -217,16 +191,9 @@ open class Categories(
 
     val transactions: TransactionsPath
         get(): TransactionsPath = transactions()
-
     override fun getChecks(): List<Check<CategoriesRecord>> = listOf(
-        Internal.createCheck(
-            this,
-            DSL.name("categories_type_check"),
-            "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))",
-            true
-        )
+        Internal.createCheck(this, DSL.name("categories_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
     )
-
     override fun `as`(alias: String): Categories = Categories(DSL.name(alias), this)
     override fun `as`(alias: Name): Categories = Categories(alias, this)
     override fun `as`(alias: Table<*>): Categories = Categories(alias.qualifiedName, this)
@@ -249,8 +216,7 @@ open class Categories(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): Categories =
-        Categories(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): Categories = Categories(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -270,28 +236,22 @@ open class Categories(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(condition: SQL): Categories = where(DSL.condition(condition))
+    @PlainSQL override fun where(condition: SQL): Categories = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String): Categories = where(DSL.condition(condition))
+    @PlainSQL override fun where(@Stringly.SQL condition: String): Categories = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Categories =
-        where(DSL.condition(condition, *binds))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): Categories = where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Categories =
-        where(DSL.condition(condition, *parts))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): Categories = where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

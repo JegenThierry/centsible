@@ -9,15 +9,27 @@ const props = defineProps<{
 }>();
 
 const balanceChange = computed(() => props.currentBalance - props.previousBalance);
+
+const badgeColor = computed(() => {
+  if (balanceChange.value > 0) return 'success';
+  if (balanceChange.value < 0) return 'error';
+  return 'neutral';
+});
+
+const badgeIcon = computed(() => {
+  if (balanceChange.value > 0) return 'i-lucide-trending-up';
+  if (balanceChange.value < 0) return 'i-lucide-trending-down';
+  return 'i-lucide-minus';
+});
 </script>
 
 <template>
-  <UBadge :color="balanceChange > 0 ? 'success' : 'error'"
+  <UBadge :color="badgeColor"
           class="ml-1 mt-0.5 font-mono font-semibold"
           size="sm"
           variant="subtle">
 
-    <UIcon :name="balanceChange > 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+    <UIcon :name="badgeIcon"
            class="mr-1 size-3.5"/>
 
     <BalanceNumberFormat :balance="balanceChange"
