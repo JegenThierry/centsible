@@ -73,6 +73,8 @@ defineExpose({
 
     <BaseInput ref="amountInput"
                v-model="form.amount"
+               :max="9999999.99"
+               :min="0.01"
                label="Amount"
                placeholder="0.00"
                required
@@ -80,6 +82,7 @@ defineExpose({
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
+               :max-length="255"
                label="Description"
                placeholder="Lunch, Groceries, etc."
                required

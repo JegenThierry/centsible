@@ -1,8 +1,8 @@
 services:
 
-  budget_planner_db:
+  budget-planner-db:
     image: postgres:18.3-alpine
-    container_name: budget_planner_db
+    container_name: budget-planner-db
 
     restart: unless-stopped
 
@@ -46,13 +46,13 @@ services:
         max-file: "3"
 
     networks:
-      - budget_planner_net
+      - budget-planner-net
 
-  budget_planner_migrations:
+  budget-planner-migrations:
     image: postgres:18.3-alpine
-    container_name: budget_planner_migrations
+    container_name: budget-planner-migrations
     depends_on:
-      budget_planner_db:
+      budget-planner-db:
         condition: service_healthy
     volumes:
       - ./budget-planner-db/migrations:/migrations:ro,z
@@ -62,17 +62,17 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      PGHOST: budget_planner_db
+      PGHOST: budget-planner-db
       TZ: ${TZ:-UTC}
     entrypoint: [ "/bin/bash", "/run-migrations.sh" ]
     networks:
-      - budget_planner_net
+      - budget-planner-net
 
-  budget_planner_rest:
+  budget-planner-rest:
     build:
       context: .
       dockerfile: budget-planner-rest/Dockerfile
-    container_name: budget_planner_rest
+    container_name: budget-planner-rest
 
     develop:
       watch:
@@ -90,11 +90,11 @@ services:
     restart: unless-stopped
 
     depends_on:
-      budget_planner_migrations:
+      budget-planner-migrations:
         condition: service_completed_successfully
 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://budget_planner_db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://budget-planner-db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
@@ -130,14 +130,14 @@ services:
         max-file: "3"
 
     networks:
-      - budget_planner_net
+      - budget-planner-net
 
-  budget_planner_ui:
+  budget-planner-ui:
     build:
       context: ./budget-planner-ui
       dockerfile: Dockerfile
       target: dev
-    container_name: budget_planner_ui
+    container_name: budget-planner-ui
 
     develop:
       watch:
@@ -150,12 +150,12 @@ services:
     restart: unless-stopped
 
     depends_on:
-      budget_planner_rest:
+      budget-planner-rest:
         condition: service_healthy
 
     environment:
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8080/api}
-      NUXT_API_BASE_SSR: ${NUXT_API_BASE_SSR:-http://budget_planner_rest:8080/api}
+      NUXT_API_BASE_SSR: ${NUXT_API_BASE_SSR:-http://budget-planner-rest:8080/api}
       TZ: ${TZ:-UTC}
 
     ports:
@@ -172,10 +172,10 @@ services:
         max-file: "3"
 
     networks:
-      - budget_planner_net
+      - budget-planner-net
 
 networks:
-  budget_planner_net:
+  budget-planner-net:
     driver: bridge
 
 volumes:

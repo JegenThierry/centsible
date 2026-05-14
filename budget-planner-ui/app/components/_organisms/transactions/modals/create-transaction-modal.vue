@@ -5,6 +5,7 @@ import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 import {format} from 'date-fns';
 
 const props = withDefaults(defineProps<{
@@ -73,8 +74,7 @@ async function handleSave() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    toasts.error('Transaction not created.', 'Your transaction could not be created, please try again.');
-    console.error('Failed to save transaction:', error);
+    useApiErrors().toastError(error, 'Transaction not created.', 'Your transaction could not be created, please try again.');
   } finally {
     loading.value = false;
   }

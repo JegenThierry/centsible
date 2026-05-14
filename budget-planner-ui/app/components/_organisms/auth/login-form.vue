@@ -4,6 +4,9 @@ import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import type {AxiosInstance} from "axios";
 import type {AuthResponse} from "~/models/auth/auth-response";
+import BaseInput from "~/components/_atoms/inputs/base-input.vue";
+import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
+import {useValidator} from "~/composables/use-validator";
 
 const api = useApi();
 const authStore = useAuthStore();
@@ -16,7 +19,17 @@ const state = reactive({
 })
 const loading = ref<boolean>(false);
 
+const usernameInput = ref<InstanceType<typeof BaseInput>>();
+const passwordInput = ref<InstanceType<typeof PasswordInput>>();
+
+function validate(): boolean {
+  return useValidator().validateInputs([usernameInput, passwordInput]);
+}
+
 function onSubmit() {
+  if (!validate()) {
+    return;
+  }
   loading.value = true;
   useAuthService(api as AxiosInstance)
     .login({username: state.username, password: state.password})
@@ -42,13 +55,17 @@ function onSubmit() {
 
 <template>
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-    <UFormField autofocus label="Username" name="username">
-      <UInput v-model="state.username" class="w-full"/>
-    </UFormField>
+    <BaseInput ref="usernameInput"
+               v-model="state.username"
+               autofocus
+               label="Username"
+               required
+               type="text"/>
 
-    <UFormField label="Password" name="password">
-      <UInput v-model="state.password" class="w-full" type="password"/>
-    </UFormField>
+    <PasswordInput ref="passwordInput"
+                   v-model="state.password"
+                   label="Password"
+                   required/>
 
     <UButton :loading="loading" class="ml-auto" type="submit">
       Submit

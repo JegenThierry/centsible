@@ -3,6 +3,7 @@ package beer.thierry.budgetplannerrest.resources
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.users.IUserService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -29,7 +30,7 @@ class UserResource(private val userService: IUserService) {
     @PutMapping("/profile")
     fun updateProfile(
         @AuthenticationPrincipal user: UserDTO?,
-        @RequestBody profile: ProfileUpdateDTO
+        @Valid @RequestBody profile: ProfileUpdateDTO
     ): ResponseEntity<UserDTO> {
         if (user == null) {
             return ResponseEntity.status(401).build()

@@ -54,6 +54,7 @@ class AuthenticationService(
             ?: throw IllegalArgumentException("User could not be created")
 
         if (skipEmailVerification) {
+            userRepository.confirmUser(registeredUser.id)
             return AuthResponse(generateJwt(registeredUser))
         }
 

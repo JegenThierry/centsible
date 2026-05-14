@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    apiBaseSSR: 'http://budget_planner_rest:8080/api',
+    apiBaseSSR: 'http://budget-planner-rest:8080/api',
     public: {
       apiBase: "http://localhost:8080/api",
     }

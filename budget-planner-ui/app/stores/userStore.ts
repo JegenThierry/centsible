@@ -37,11 +37,17 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  function clear() {
+    user.value = null;
+    pending.value = false;
+  }
+
   return {
     user,
     pending,
     fetchMyself,
     updateProfile,
     updateProfilePicture,
+    clear,
   }
 });

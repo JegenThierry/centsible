@@ -3,6 +3,7 @@
     <BaseInput
       ref="firstNameInput"
       v-model="state.firstName"
+      :max-length="100"
       label="First Name"
       placeholder="First Name"
       required
@@ -12,6 +13,7 @@
     <BaseInput
       ref="lastNameInput"
       v-model="state.lastName"
+      :max-length="100"
       label="Last Name"
       placeholder="Last Name"
       required
@@ -21,6 +23,7 @@
     <BaseInput
       ref="emailInput"
       v-model="state.email"
+      :max-length="255"
       label="Email"
       placeholder="Email"
       required

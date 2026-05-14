@@ -4,6 +4,7 @@ import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.categories.ICategoryService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -14,7 +15,7 @@ class CategoriesResource(private val categoryService: ICategoryService) {
 
     @PostMapping
     fun create(
-        @RequestBody category: CategoryForm,
+        @Valid @RequestBody category: CategoryForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<CategoryDTO> {
         if (authenticatedUser == null) {
@@ -51,7 +52,7 @@ class CategoriesResource(private val categoryService: ICategoryService) {
     @PutMapping("/{id}")
     fun updateCategory(
         @PathVariable id: Long,
-        @RequestBody category: CategoryForm,
+        @Valid @RequestBody category: CategoryForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<CategoryDTO> {
         if (authenticatedUser == null) {

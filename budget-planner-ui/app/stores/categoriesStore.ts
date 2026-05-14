@@ -2,6 +2,7 @@ import {defineStore} from "pinia";
 import type {Category, CategoryForm} from "~/models/category/category";
 import {useCategoryService} from "~/services/category/category-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 
 export const useCategoriesStore = defineStore('categoriesStore', () => {
   const api = useApi();
@@ -29,8 +30,8 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
       await categoryService.createCategory(form);
       await updateCategories();
       toasts.success("Category created", "New category has been added");
-    } catch (error: any) {
-      toasts.error("Failed to create category", error.response?.data || "An error occurred");
+    } catch (error) {
+      useApiErrors().toastError(error, "Failed to create category", "An error occurred");
       throw error;
     } finally {
       pending.value = false;
@@ -43,8 +44,8 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
       await categoryService.updateCategory(id, form);
       await updateCategories();
       toasts.success("Category updated", "Category has been updated");
-    } catch (error: any) {
-      toasts.error("Failed to update category", error.response?.data || "An error occurred");
+    } catch (error) {
+      useApiErrors().toastError(error, "Failed to update category", "An error occurred");
       throw error;
     } finally {
       pending.value = false;
@@ -57,8 +58,8 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
       await categoryService.deleteCategory(id);
       await updateCategories();
       toasts.success("Category deleted", "Category has been removed");
-    } catch (error: any) {
-      toasts.error("Failed to delete category", error.response?.data || "An error occurred");
+    } catch (error) {
+      useApiErrors().toastError(error, "Failed to delete category", "An error occurred");
       throw error;
     } finally {
       pending.value = false;
