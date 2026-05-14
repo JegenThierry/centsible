@@ -1,0 +1,21 @@
+meta {
+  name: fetch_exports
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/api/exports?page=1&size=25
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  size: 25
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

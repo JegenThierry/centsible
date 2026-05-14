@@ -1,0 +1,20 @@
+meta {
+  name: delete_contact
+  type: http
+  seq: 7
+}
+
+delete {
+  url: http://localhost:8080/api/contacts/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

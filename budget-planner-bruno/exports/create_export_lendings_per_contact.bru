@@ -1,0 +1,28 @@
+meta {
+  name: create_export_lendings_per_contact
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/exports
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "LENDINGS_PER_CONTACT",
+    "title": "Lendings for contact",
+    "params": {
+      "kind": "LENDINGS_PER_CONTACT",
+      "contactId": "<uuid>"
+    },
+    "postProcessing": []
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

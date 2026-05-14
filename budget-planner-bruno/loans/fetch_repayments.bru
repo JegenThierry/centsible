@@ -1,0 +1,20 @@
+meta {
+  name: fetch_repayments
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/loans/:id/repayments
+  body: none
+  auth: none
+}
+
+params:path {
+  id: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

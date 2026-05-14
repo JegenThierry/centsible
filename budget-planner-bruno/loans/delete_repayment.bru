@@ -1,0 +1,21 @@
+meta {
+  name: delete_repayment
+  type: http
+  seq: 8
+}
+
+delete {
+  url: http://localhost:8080/api/loans/:loanId/repayments/:repaymentId
+  body: none
+  auth: none
+}
+
+params:path {
+  loanId: <uuid>
+  repaymentId: <uuid>
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

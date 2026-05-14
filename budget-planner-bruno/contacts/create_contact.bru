@@ -1,0 +1,23 @@
+meta {
+  name: create_contact
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/contacts
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Alice",
+    "lastName": "Doe"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

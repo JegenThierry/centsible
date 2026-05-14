@@ -1,0 +1,30 @@
+meta {
+  name: create_loan
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/loans
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "contactId": "<uuid>",
+    "accountId": "<uuid>",
+    "affectBalance": true,
+    "lentAmount": 100.00,
+    "owedAmount": 100.00,
+    "description": "Lunch loan",
+    "transactionDate": "2026-05-14",
+    "dueDate": null,
+    "notes": null
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
