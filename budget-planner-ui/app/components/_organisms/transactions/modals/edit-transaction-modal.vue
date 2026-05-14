@@ -4,6 +4,7 @@ import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -62,8 +63,7 @@ async function handleEdit() {
     toasts.success('Transaction updated successfully.', 'Your transaction has been updated.');
     isOpen.value = false;
   } catch (error) {
-    toasts.error('Transaction not updated.', 'Your transaction could not be updated, please try again.');
-    console.error('Failed to save transaction:', error);
+    useApiErrors().toastError(error, 'Transaction not updated.', 'Your transaction could not be updated, please try again.');
   } finally {
     loading.value = false;
   }

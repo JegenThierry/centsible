@@ -74,6 +74,7 @@ async function handleSave() {
 
         <BaseInput ref="nameInput"
                    v-model="form.name"
+                   :max-length="50"
                    label="Name"
                    placeholder="e.g. Food, Salary"
                    required

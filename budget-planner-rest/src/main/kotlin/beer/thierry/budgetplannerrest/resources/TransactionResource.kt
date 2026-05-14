@@ -4,6 +4,7 @@ import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.transactions.ITransactionService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -30,7 +31,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
     @PostMapping("/{accountId}")
     fun createTransaction(
         @PathVariable accountId: String,
-        @RequestBody transactionRequest: TransactionForm,
+        @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<TransactionDTO> {
         if (authenticatedUser == null) {
@@ -45,7 +46,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
     fun updateTransaction(
         @PathVariable accountId: String,
         @PathVariable transactionId: String,
-        @RequestBody transactionRequest: TransactionForm,
+        @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<TransactionDTO> {
         if (authenticatedUser == null) {

@@ -97,7 +97,7 @@ APP_BASE_URL=http://localhost:8080
 # Ui
 UI_HOST_PORT=3000
 NUXT_PUBLIC_API_BASE=http://localhost:8080/api
-NUXT_API_BASE_SSR=http://budget_planner_rest:8080/api
+NUXT_API_BASE_SSR=http://budget-planner-rest:8080/api
 
 # Application Configuration
 SKIP_EMAIL_VERIFICATION=true

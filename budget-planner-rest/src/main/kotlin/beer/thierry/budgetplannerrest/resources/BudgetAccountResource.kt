@@ -5,6 +5,7 @@ import beer.thierry.budgetplanner.api.model.budgetaccount.BudgetAccountSnapshotD
 import beer.thierry.budgetplanner.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.account.IBudgetAccountService
+import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -17,7 +18,7 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
 
     @PostMapping("")
     fun createAccount(
-        @RequestBody createBudgetAccountRequest: CreateBudgetAccountRequest,
+        @Valid @RequestBody createBudgetAccountRequest: CreateBudgetAccountRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<BudgetAccountDTO> {
         if (authenticatedUser == null) {

@@ -28,8 +28,11 @@ defineExpose({
           ref="iconInputRef"
           v-model="model"
           :label="label || 'Icon (Lucide name)'"
+          :max-length="50"
+          :pattern="ICON_PATTERN"
           :placeholder="placeholder || 'i-lucide-tag'"
           :required="required"
+          pattern-message="Icon must be a Lucide name like 'i-lucide-tag'."
           type="text"
         />
       </div>

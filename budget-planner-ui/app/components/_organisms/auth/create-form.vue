@@ -6,6 +6,8 @@ import type {AxiosInstance} from "axios";
 import type {AuthResponse} from "~/models/auth/auth-response";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import RegisterPasswordInput from "~/components/_organisms/inputs/register-password-input.vue";
+import {useValidator} from "~/composables/use-validator";
+import {useApiErrors} from "~/composables/use-api-errors";
 
 import {useUserStore} from "~/stores/userStore";
 
@@ -48,29 +50,20 @@ function onSubmit() {
       );
     })
     .catch((err) => {
-      console.error(err);
-      error(
-        'Registration failed',
-        'Please try again later.'
-      );
+      useApiErrors().toastError(err, 'Registration failed', 'Please try again later.');
     })
     .finally(() => loading.value = false);
 }
 
 
 function validate(): boolean {
-  const inputs = [
-    usernameInput.value,
-    emailInput.value,
-    firstnameInput.value,
-    lastnameInput.value,
-    passwordsInput.value,
-  ]
-
-  let valid = true;
-  inputs.forEach((input) => {
-    valid = input?.validate() ?? false
-  });
+  const valid = useValidator().validateInputs([
+    usernameInput,
+    emailInput,
+    firstnameInput,
+    lastnameInput,
+    passwordsInput,
+  ]);
 
   if (!valid) {
     error(
@@ -87,14 +80,19 @@ function validate(): boolean {
   <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
     <BaseInput ref="usernameInput"
                v-model="state.username"
+               :max-length="50"
+               :min-length="3"
+               :pattern="USERNAME_PATTERN"
                autofocus
                label="Username"
+               pattern-message="Username can only contain letters, digits, '.', '_' or '-'."
                placeholder="Username"
                required
                type="text"/>
 
     <BaseInput ref="emailInput"
                v-model="state.email"
+               :max-length="255"
                label="E-Mail"
                placeholder="E-Mail"
                required
@@ -102,6 +100,7 @@ function validate(): boolean {
 
     <BaseInput ref="firstnameInput"
                v-model="state.firstName"
+               :max-length="100"
                label="Firstname"
                placeholder="Firstname"
                required
@@ -109,6 +108,7 @@ function validate(): boolean {
 
     <BaseInput ref="lastnameInput"
                v-model="state.lastName"
+               :max-length="100"
                label="Lastname"
                placeholder="Lastname"
                required
