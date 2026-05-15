@@ -19,3 +19,10 @@ management.endpoint.health.show-details=never
 
 #Application Configuration
 skip.email.verification=true
+
+# Integrations (provider plugins)
+integrations.encryption-key=${INTEGRATIONS_ENCRYPTION_KEY:}
+integrations.encryption-salt=${INTEGRATIONS_ENCRYPTION_SALT:}
+integrations.sync.poll-interval-ms=${INTEGRATIONS_SYNC_POLL_INTERVAL_MS:300000}
+integrations.sync.interval-seconds=${INTEGRATIONS_SYNC_INTERVAL_SECONDS:3600}
+integrations.sync.lease-timeout-seconds=${INTEGRATIONS_SYNC_LEASE_TIMEOUT_SECONDS:300}

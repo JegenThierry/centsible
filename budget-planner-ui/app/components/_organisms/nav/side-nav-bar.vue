@@ -34,6 +34,12 @@ const items = computed(() => {
       target: '_self'
     },
     {
+      label: 'Integrations',
+      to: '/integrations',
+      icon: 'i-lucide-plug',
+      target: '_self'
+    },
+    {
       label: 'Profile',
       to: '/profile',
       icon: 'i-lucide-user',

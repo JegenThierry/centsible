@@ -7,4 +7,5 @@ include(
     "budget-planner-rest",
     "budget-planner-proto",
     "budget-planner-export",
+    "budget-planner-integrations:manual",
 )

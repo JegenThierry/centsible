@@ -10,6 +10,7 @@ import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
 import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
@@ -18,6 +19,7 @@ import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
+import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
 import java.time.OffsetDateTime
@@ -254,6 +256,22 @@ open class Users(
 
     val loans: LoansPath
         get(): LoansPath = loans()
+
+    private lateinit var _providerConnections: ProviderConnectionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.provider_connections</code> table
+     */
+    fun providerConnections(): ProviderConnectionsPath {
+        if (!this::_providerConnections.isInitialized)
+            _providerConnections = ProviderConnectionsPath(this, null, PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY.inverseKey)
+
+        return _providerConnections;
+    }
+
+    val providerConnections: ProviderConnectionsPath
+        get(): ProviderConnectionsPath = providerConnections()
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)
     override fun `as`(alias: Name): Users = Users(alias, this)
     override fun `as`(alias: Table<*>): Users = Users(alias.qualifiedName, this)

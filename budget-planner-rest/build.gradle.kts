@@ -9,6 +9,9 @@ dependencies {
     implementation(project(":budget-planner-api"))
     implementation(project(":budget-planner-proto"))
 
+    // Integration provider modules. To remove a provider, delete its line — nothing else changes.
+    implementation(project(":budget-planner-integrations:manual"))
+
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.actuator)
