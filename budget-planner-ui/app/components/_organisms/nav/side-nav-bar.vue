@@ -8,13 +8,46 @@ const {open} = useSidebar()
 
 const items = computed(() => {
   const accountId = accountStore.activeAccount?.id;
-  const menuItems = [
+  const menuItems: any[] = [
     {
       label: 'Accounts',
       to: '/accounts',
       icon: 'i-lucide-wallet',
       target: '_self'
     },
+  ];
+
+  if (accountId) {
+    menuItems.push(
+      {
+        label: 'Dashboard',
+        to: `/${accountId}/dashboard`,
+        icon: 'i-lucide-layout-dashboard',
+        target: '_self'
+      },
+      {
+        label: 'Transactions',
+        to: `/${accountId}/transactions`,
+        icon: 'i-lucide-arrow-right-left',
+        target: '_self'
+      },
+      {
+        label: 'Plan',
+        icon: 'i-lucide-target',
+        defaultOpen: true,
+        children: [
+          {
+            label: 'Recurring',
+            to: `/${accountId}/recurring`,
+            icon: 'i-lucide-repeat',
+            target: '_self'
+          }
+        ]
+      }
+    );
+  }
+
+  menuItems.push(
     {
       label: 'Categories',
       to: '/categories',
@@ -45,25 +78,7 @@ const items = computed(() => {
       icon: 'i-lucide-user',
       target: '_self'
     }
-  ];
-
-  if (accountId) {
-    menuItems.push(
-      {
-        label: 'Dashboard',
-        to: `/${accountId}/dashboard`,
-        icon: 'i-lucide-layout-dashboard',
-        target: '_self'
-      },
-      {
-        label: 'Transactions',
-        to: `/${accountId}/transactions`,
-        icon: 'i-lucide-arrow-right-left',
-        target: '_self'
-      }
-    );
-  }
-
+  );
 
   return menuItems;
 })
