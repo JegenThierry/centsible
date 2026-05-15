@@ -8,6 +8,7 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_CATEGORY_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_DATE
+import beer.thierry.jooq.generated.indexes.UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
@@ -128,6 +129,11 @@ open class Transactions(
      */
     val MODIFIED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    /**
+     * The column <code>public.transactions.import_hash</code>.
+     */
+    val IMPORT_HASH: TableField<TransactionsRecord, String?> = createField(DSL.name("import_hash"), SQLDataType.VARCHAR(64), this, "")
+
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -160,7 +166,7 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
     override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY)
 

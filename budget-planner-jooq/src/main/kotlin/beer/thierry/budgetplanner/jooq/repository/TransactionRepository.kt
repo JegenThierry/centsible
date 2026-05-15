@@ -2,9 +2,11 @@ package beer.thierry.budgetplanner.jooq.repository
 
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionRow
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.BatchImportOutcome
 import beer.thierry.budgetplanner.api.repository.ITransactionRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
@@ -12,6 +14,7 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -146,6 +149,60 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         dsl.deleteFrom(TRANSACTIONS).where(TRANSACTIONS.ID.eq(transactionId)).execute()
 
         return transaction
+    }
+
+    override fun importBatch(
+        accountId: UUID,
+        rows: List<ImportTransactionRow>,
+        hashes: List<String>,
+        authenticatedUser: UserDTO,
+    ): BatchImportOutcome {
+        require(rows.size == hashes.size) { "rows and hashes must have equal length" }
+        if (rows.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
+
+        val ownsAccount = dsl.selectOne().from(ACCOUNTS)
+            .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .fetchOne() != null
+        if (!ownsAccount) throw IllegalArgumentException("Account not found or not owned by user")
+
+        val now = OffsetDateTime.now()
+        val insertStep = dsl.insertInto(
+            TRANSACTIONS,
+            TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.IMPORT_HASH,
+            TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
+        )
+        rows.forEachIndexed { i, row ->
+            insertStep.values(
+                accountId, row.categoryId, row.amount,
+                row.description, row.transactionDate, hashes[i],
+                now, now,
+            )
+        }
+
+        val inserted = insertStep
+            .onConflict(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.IMPORT_HASH)
+            .where(TRANSACTIONS.IMPORT_HASH.isNotNull)
+            .doNothing()
+            .returning(TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT)
+            .fetch()
+
+        if (inserted.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
+
+        val categoryIds = inserted.map { it[TRANSACTIONS.CATEGORY_ID]!! }.distinct()
+        val typeByCategoryId = dsl.select(CATEGORIES.ID, CATEGORIES.TYPE)
+            .from(CATEGORIES)
+            .where(CATEGORIES.ID.`in`(categoryIds))
+            .fetch { it[CATEGORIES.ID]!! to CategoryType.fromValue(it[CATEGORIES.TYPE]!!) }
+            .toMap()
+
+        val net = inserted.fold(BigDecimal.ZERO) { acc, rec ->
+            val type = typeByCategoryId[rec[TRANSACTIONS.CATEGORY_ID]!!]
+            val amount = rec[TRANSACTIONS.AMOUNT]!!
+            acc + if (type == CategoryType.INCOME) amount else amount.negate()
+        }
+
+        return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)
     }
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =

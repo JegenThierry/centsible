@@ -1,5 +1,7 @@
 package beer.thierry.budgetplannerrest.resources
 
+import beer.thierry.budgetplanner.api.model.transaction.ImportResult
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -59,6 +61,18 @@ class TransactionResource(private val transactionService: ITransactionService) {
             authenticatedUser
         )
         return ResponseEntity.ok(result)
+    }
+
+    @PostMapping("/{accountId}/import")
+    fun importTransactions(
+        @PathVariable accountId: String,
+        @Valid @RequestBody request: ImportTransactionsRequest,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+    ): ResponseEntity<ImportResult> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(
+            transactionService.importBatch(UUID.fromString(accountId), request, authenticatedUser)
+        )
     }
 
     @DeleteMapping("/{accountId}/{transactionId}")

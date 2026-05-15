@@ -13,6 +13,7 @@ import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.Users
 
 import org.jooq.Index
 import org.jooq.impl.DSL
@@ -40,3 +41,5 @@ val IDX_PROVIDER_CONNECTIONS_USER: Index = Internal.createIndex(DSL.name("idx_pr
 val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_transactions_account_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), false)
 val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(DSL.name("idx_transactions_category_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), false)
 val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactions_date"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE), false)
+val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_registration_token_hash"), Users.USERS, arrayOf(Users.USERS.REGISTRATION_TOKEN_HASH), false)
+val UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH: Index = Internal.createIndex(DSL.name("uq_transactions_account_import_hash"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.IMPORT_HASH), true)

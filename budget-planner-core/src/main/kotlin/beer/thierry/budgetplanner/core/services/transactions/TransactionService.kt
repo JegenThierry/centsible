@@ -1,6 +1,9 @@
 package beer.thierry.budgetplanner.core.services.transactions
 
 import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.transaction.ImportResult
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionRow
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -10,6 +13,7 @@ import beer.thierry.budgetplanner.api.services.transactions.ITransactionService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.security.MessageDigest
 import java.util.*
 
 @Service
@@ -73,6 +77,34 @@ class TransactionService(
         updateAccountBalanceAndLogHistory(accountId, adjustment.negate(), authenticatedUser)
 
         return transaction
+    }
+
+    @Transactional
+    override fun importBatch(
+        accountId: UUID,
+        request: ImportTransactionsRequest,
+        authenticatedUser: UserDTO,
+    ): ImportResult {
+        val rows = request.rows
+        if (rows.isEmpty()) return ImportResult(0, 0)
+
+        val hashes = rows.map { rowHash(accountId, it) }
+        val outcome = transactionRepository.importBatch(accountId, rows, hashes, authenticatedUser)
+
+        if (outcome.netBalanceAdjustment.signum() != 0) {
+            accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
+        }
+
+        return ImportResult(
+            imported = outcome.insertedCount,
+            skippedDuplicates = rows.size - outcome.insertedCount,
+        )
+    }
+
+    private fun rowHash(accountId: UUID, row: ImportTransactionRow): String {
+        val payload = "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}"
+        val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
+        return digest.joinToString("") { "%02x".format(it) }
     }
 
     private fun calculateAdjustment(type: CategoryType?, amount: BigDecimal?): BigDecimal {

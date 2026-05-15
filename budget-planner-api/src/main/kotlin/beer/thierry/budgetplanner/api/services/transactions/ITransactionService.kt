@@ -1,6 +1,8 @@
 package beer.thierry.budgetplanner.api.services.transactions
 
 import beer.thierry.budgetplanner.api.model.DEFAULT_PAGE_SIZE
+import beer.thierry.budgetplanner.api.model.transaction.ImportResult
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -23,4 +25,10 @@ interface ITransactionService {
     ): TransactionDTO
 
     fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
+
+    fun importBatch(
+        accountId: UUID,
+        request: ImportTransactionsRequest,
+        authenticatedUser: UserDTO,
+    ): ImportResult
 }
