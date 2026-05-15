@@ -43,7 +43,7 @@ class EmailPostProcessor(
             "html" to """
                 <p>Hello,</p>
                 <p>Your export <strong>${HtmlUtils.htmlEscape(job.title)}</strong> is attached.</p>
-                <p>— Budget Planner</p>
+                <p>— Centsible</p>
             """.trimIndent(),
             "attachments" to listOf(
                 mapOf(

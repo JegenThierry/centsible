@@ -54,7 +54,7 @@ class PdfRenderer(
 
         private val FOOTER_TEMPLATE = """
             <div style="font-size:7pt;color:#6b7280;width:100%;padding:0 16mm;display:flex;justify-content:space-between;">
-              <span>Budget Planner</span>
+              <span>Centsible</span>
               <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
             </div>
         """.trimIndent()

@@ -13,7 +13,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Transactions | Budget Planner',
+  title: 'Transactions',
 });
 
 const route = useRoute();

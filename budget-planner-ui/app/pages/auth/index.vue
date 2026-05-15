@@ -16,7 +16,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Welcome | Budget Planner',
+  title: 'Welcome',
 });
 </script>
 

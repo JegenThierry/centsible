@@ -6,7 +6,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Dashboard | Budget Planner',
+  title: 'Dashboard',
 });
 </script>
 

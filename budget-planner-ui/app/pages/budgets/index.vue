@@ -7,7 +7,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'Budgets | Budget Planner',
+  title: 'Budgets',
 });
 </script>
 

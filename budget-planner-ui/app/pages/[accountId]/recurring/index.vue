@@ -7,7 +7,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'Recurring | Budget Planner',
+  title: 'Recurring',
 });
 </script>
 

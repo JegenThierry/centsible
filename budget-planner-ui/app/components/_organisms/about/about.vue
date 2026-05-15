@@ -19,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <PageHeader description="Version and build details about this instance of Budget Planner."
+    <PageHeader description="Version and build details about this instance of Centsible."
                 title="About"/>
 
     <div v-if="systemInformationStore.pending && !info" class="flex justify-center py-12">

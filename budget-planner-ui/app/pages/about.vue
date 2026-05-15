@@ -2,7 +2,7 @@
 import About from "~/components/_organisms/about/about.vue";
 
 useHead({
-  title: 'About | Budget Planner',
+  title: 'About',
 });
 </script>
 

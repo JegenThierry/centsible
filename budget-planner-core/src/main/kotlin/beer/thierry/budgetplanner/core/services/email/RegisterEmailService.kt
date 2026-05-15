@@ -15,7 +15,7 @@ class RegisterEmailService(
         val confirmationUrl = "$baseUrl/api/auth/confirm?token=$token"
         val subject = "Confirm your account"
         val content = """
-            <h1>Welcome to Budget Planner</h1>
+            <h1>Welcome to Centsible</h1>
             <p>Please confirm your account by clicking the button below:</p>
             <a href="$confirmationUrl" style="background-color: #4CAF50; color: white; padding: 16px 24px; text-decoration: none; display: inline-block; border-radius: 4px;">Confirm Account</a>
         """.trimIndent()

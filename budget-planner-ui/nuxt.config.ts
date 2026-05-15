@@ -20,7 +20,42 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'Budget Planner',
+      title: 'Centsible',
+      htmlAttrs: {lang: 'en'},
+      meta: [
+        {charset: 'utf-8'},
+        {name: 'viewport', content: 'width=device-width, initial-scale=1'},
+        {
+          name: 'description',
+          content: 'Centsible is a clean, self-hosted budget tracker with multiple accounts, smart categories, monthly budgets, and dashboards that actually help you decide.',
+        },
+        {name: 'theme-color', content: '#ee387e'},
+        {name: 'color-scheme', content: 'light dark'},
+        {property: 'og:type', content: 'website'},
+        {property: 'og:site_name', content: 'Centsible'},
+        {property: 'og:title', content: 'Centsible — Take control of your money'},
+        {
+          property: 'og:description',
+          content: 'A clean, self-hosted budget tracker. Open source, no tracking, no ads.',
+        },
+        {property: 'og:image', content: '/brand/og-image.png'},
+        {property: 'og:image:width', content: '1200'},
+        {property: 'og:image:height', content: '630'},
+        {name: 'twitter:card', content: 'summary_large_image'},
+        {name: 'twitter:title', content: 'Centsible — Take control of your money'},
+        {
+          name: 'twitter:description',
+          content: 'A clean, self-hosted budget tracker. Open source, no tracking, no ads.',
+        },
+        {name: 'twitter:image', content: '/brand/og-image.png'},
+      ],
+      link: [
+        {rel: 'icon', type: 'image/svg+xml', href: '/brand/favicon.svg'},
+        {rel: 'icon', type: 'image/x-icon', href: '/favicon.ico'},
+        {rel: 'icon', type: 'image/png', sizes: '32x32', href: '/brand/icon-32.png'},
+        {rel: 'apple-touch-icon', sizes: '180x180', href: '/brand/apple-touch-icon.png'},
+        {rel: 'manifest', href: '/site.webmanifest'},
+      ],
     }
   }
 })

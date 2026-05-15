@@ -9,7 +9,7 @@ const route = useRoute();
 const contactId = computed(() => String(route.params.id ?? ''));
 
 useHead({
-  title: 'Contact | Budget Planner',
+  title: 'Contact',
 });
 </script>
 

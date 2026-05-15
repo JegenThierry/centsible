@@ -2,6 +2,7 @@
 import {computed} from 'vue';
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useSidebar} from "~/composables/use-sidebar";
+import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
 
 const accountStore = useBudgetAccountsStore();
 const {open} = useSidebar()
@@ -103,7 +104,11 @@ const items = computed(() => {
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <UIcon class="size-8" name="i-logos-nuxt-icon"/>
+        <NuxtLink aria-label="Centsible home"
+                  class="flex items-center transition-opacity hover:opacity-90"
+                  to="/accounts">
+          <BrandMark :show-wordmark="open"/>
+        </NuxtLink>
         <UButton
           aria-label="Close sidebar"
           class="lg:hidden"

@@ -6,7 +6,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Categories | Budget Planner',
+  title: 'Categories',
 });
 </script>
 

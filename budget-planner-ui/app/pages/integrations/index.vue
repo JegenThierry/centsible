@@ -6,7 +6,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'Integrations | Budget Planner',
+  title: 'Integrations',
 });
 </script>
 

@@ -30,7 +30,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'Budget Planner — Take control of your money',
+  title: 'Centsible',
 });
 </script>
 

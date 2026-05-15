@@ -3,6 +3,7 @@
 import Profile from "~/components/_organisms/nav/profile.vue";
 import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
 import ThemePicker from "~/components/_organisms/theme/theme-picker.vue";
+import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 import {useSidebar} from "~/composables/use-sidebar";
@@ -36,10 +37,10 @@ onMounted(async () => {
                variant="ghost"
                @click="onToggleOpen()"/>
       <NuxtLink v-else
-                class="flex items-center gap-2 font-semibold text-highlighted hover:text-primary transition-colors"
+                aria-label="Centsible home"
+                class="flex items-center transition-opacity hover:opacity-90"
                 to="/">
-        <UIcon class="w-5 h-5 text-primary" name="i-lucide-wallet"/>
-        Budget Planner
+        <BrandMark/>
       </NuxtLink>
     </div>
 

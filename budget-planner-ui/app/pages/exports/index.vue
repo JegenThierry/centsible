@@ -10,7 +10,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'My Documents | Budget Planner',
+  title: 'My Documents',
 });
 
 const {

@@ -1,7 +1,6 @@
-# Budget Planner
+# Centsible
 
-A full-stack application for comprehensive budget management. **NOTE: This project is in its early development stages,
-and bugs may occur. If you find any issues, please feel free to create an issue.**
+A clean, self-hosted budget tracker — multiple accounts, smart categories, monthly budgets, and dashboards that actually help you decide. **NOTE: This project is in its early development stages, and bugs may occur. If you find any issues, please feel free to create an issue.**
 
 ## Donate
 

@@ -6,6 +6,11 @@ import SideNavBar from "~/components/_organisms/nav/side-nav-bar.vue";
 import MainContentWrapper from "~/components/_wrapper/main-content-wrapper.vue";
 
 const authStore = useAuthStore();
+
+useHead({
+  titleTemplate: (title?: string) =>
+    title && title !== 'Centsible' ? `${title} · Centsible` : 'Centsible — Take control of your money',
+});
 </script>
 
 <template>
