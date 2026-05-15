@@ -76,31 +76,41 @@ export function parseAmount(raw: string): number {
   return isNegative ? -Math.abs(n) : n;
 }
 
+export type DateFormat = 'auto' | 'dd/MM/yyyy' | 'MM/dd/yyyy' | 'yyyy-MM-dd';
+
 /**
  * Normalize a date string to ISO `yyyy-MM-dd`. Returns null if it can't be parsed.
- * Accepts: yyyy-MM-dd, dd/MM/yyyy, dd.MM.yyyy, MM/dd/yyyy (US).
+ *
+ * `format` controls how ambiguous formats are interpreted:
+ * - `'yyyy-MM-dd'`: only ISO; rejects anything else
+ * - `'dd/MM/yyyy'`: day-first (European), accepts `/`, `.`, or `-` separators
+ * - `'MM/dd/yyyy'`: month-first (US), accepts `/`, `.`, or `-` separators
+ * - `'auto'` (default): tries ISO first, then day-first, then month-first.
+ *   Caller should prefer an explicit format to avoid silently swapping day/month.
  */
-export function parseToIsoDate(raw: string): string | null {
+export function parseToIsoDate(raw: string, format: DateFormat = 'auto'): string | null {
   if (!raw) return null;
   const s = raw.trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  if (format === 'yyyy-MM-dd') return null;
 
   const parts = s.split(/[/.-]/);
   if (parts.length !== 3) return null;
-
   const [a, b, c] = parts;
-  if (!a || !b || !c) return null;
+  if (!a || !b || !c || c.length !== 4) return null;
 
-  if (c.length === 4) {
-    // assume dd?/MM/yyyy first; fall back to MM/dd/yyyy if day > 12 and a <= 12
-    const day = Number(a), month = Number(b), year = Number(c);
-    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-      return `${c}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    }
-    if (month >= 1 && month <= 31 && day >= 1 && day <= 12) {
-      return `${c}-${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}`;
-    }
-  }
-  return null;
+  const first = Number(a), second = Number(b), year = c;
+  const tryDayFirst = () => buildIso(year, second, first);
+  const tryMonthFirst = () => buildIso(year, first, second);
+
+  if (format === 'dd/MM/yyyy') return tryDayFirst();
+  if (format === 'MM/dd/yyyy') return tryMonthFirst();
+  return tryDayFirst() ?? tryMonthFirst();
+}
+
+function buildIso(year: string, month: number, day: number): string | null {
+  if (!Number.isInteger(month) || !Number.isInteger(day)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 

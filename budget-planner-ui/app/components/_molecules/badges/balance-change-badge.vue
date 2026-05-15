@@ -33,8 +33,7 @@ const badgeIcon = computed(() => {
            class="mr-1 size-3.5"/>
 
     <BalanceNumberFormat :balance="balanceChange"
-                         :currency="currency"
-                         format="de-De"/>
+                         :currency="currency"/>
   </UBadge>
 </template>
 

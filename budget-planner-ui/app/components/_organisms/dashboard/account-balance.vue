@@ -36,8 +36,7 @@ const props = defineProps<{
           <span
             class="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums leading-none">
             <BalanceNumberFormat :balance="balance"
-                                 :currency="currency"
-                                 format="de-De"/>
+                                 :currency="currency"/>
           </span>
         </div>
       </div>

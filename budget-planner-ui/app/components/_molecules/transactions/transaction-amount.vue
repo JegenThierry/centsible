@@ -13,6 +13,6 @@ defineProps<{
 <template>
   <div :class="type === CategoryType.INCOME ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
        class="text-sm font-semibold">
-    <BalanceNumberFormat :balance="amount" :currency="currency" format="de-De"/>
+    <BalanceNumberFormat :balance="amount" :currency="currency"/>
   </div>
 </template>

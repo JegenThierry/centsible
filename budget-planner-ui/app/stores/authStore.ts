@@ -19,7 +19,9 @@ export const useAuthStore = defineStore('authStore', () => {
     // so making the user wait gains us nothing.
     isAuthenticated.value = false
     useUserStore().clear();
-    authService.logout().catch(() => {})
+    authService.logout().catch((error) => {
+      console.warn('Server logout failed; cookie may still be valid until it expires.', error)
+    })
     return navigateTo('/auth')
   }
 

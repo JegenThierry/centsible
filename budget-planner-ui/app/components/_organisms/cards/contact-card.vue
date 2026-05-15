@@ -38,7 +38,7 @@ const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? C
         <div class="text-right">
           <p class="text-xs text-neutral-500">Outstanding</p>
           <p :class="Number(contact.outstanding) > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-neutral-500'">
-            <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </div>
         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

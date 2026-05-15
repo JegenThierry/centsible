@@ -23,7 +23,7 @@ defineProps<{
           {{ label }}
         </span>
         <span :class="['text-xl font-bold mt-1 truncate', amountColorClass]">
-          <BalanceNumberFormat :balance="amount" :currency="currency" format="de-De"/>
+          <BalanceNumberFormat :balance="amount" :currency="currency"/>
         </span>
       </div>
     </div>

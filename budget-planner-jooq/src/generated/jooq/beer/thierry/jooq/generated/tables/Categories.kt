@@ -6,12 +6,13 @@ package beer.thierry.jooq.generated.tables
 
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_CATEGORIES_USER_LOOKUP
+import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_NAME_PER_USER
+import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_NAME_SYSTEM
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES_PKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
-import beer.thierry.jooq.generated.keys.UQ_CATEGORIES_NAME
 import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
@@ -159,10 +160,9 @@ open class Categories(
         override fun `as`(alias: Table<*>): CategoriesPath = CategoriesPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP)
+    override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP, UQ_CATEGORIES_NAME_PER_USER, UQ_CATEGORIES_NAME_SYSTEM)
     override fun getIdentity(): Identity<CategoriesRecord, Long?> = super.getIdentity() as Identity<CategoriesRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CategoriesRecord> = CATEGORIES_PKEY
-    override fun getUniqueKeys(): List<UniqueKey<CategoriesRecord>> = listOf(UQ_CATEGORIES_NAME)
     override fun getReferences(): List<ForeignKey<CategoriesRecord, *>> = listOf(CATEGORIES__CATEGORIES_USER_ID_FKEY)
 
     private lateinit var _users: UsersPath

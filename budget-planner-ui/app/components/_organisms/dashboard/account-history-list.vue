@@ -38,8 +38,7 @@ const formatDate = (dateString: string) => {
           </span>
           <span class="text-sm font-medium text-gray-900 dark:text-white">
             <BalanceNumberFormat :balance="snapshot.balance"
-                                 :currency="currency"
-                                 format="de-De"/>
+                                 :currency="currency"/>
           </span>
         </li>
       </ul>

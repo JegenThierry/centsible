@@ -6,7 +6,7 @@ import type {
   ImportColumnField,
   ImportPayloadRow,
 } from "~/models/transactions/csv-import";
-import {parseAmount, parseCsv, parseToIsoDate} from "~/utils/csv";
+import {type DateFormat, parseAmount, parseCsv, parseToIsoDate} from "~/utils/csv";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useCategoryService} from "~/services/category/category-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
@@ -38,6 +38,14 @@ const defaultCategory = ref<Category | undefined>(undefined);
 const categories = ref<Category[]>([]);
 const previewRows = ref<ImportPayloadRow[]>([]);
 const invalidRowCount = ref(0);
+const dateFormat = ref<DateFormat>('dd/MM/yyyy');
+
+const dateFormatOptions: { value: DateFormat; label: string }[] = [
+  {value: 'dd/MM/yyyy', label: 'Day first (31/12/2026)'},
+  {value: 'MM/dd/yyyy', label: 'Month first (12/31/2026)'},
+  {value: 'yyyy-MM-dd', label: 'ISO (2026-12-31)'},
+  {value: 'auto', label: 'Auto-detect (best effort)'},
+];
 
 const modalTitle = computed(() => {
   if (step.value === 'upload') return 'Import transactions';
@@ -59,6 +67,7 @@ watch(isOpen, async (open) => {
   previewRows.value = [];
   invalidRowCount.value = 0;
   defaultCategory.value = undefined;
+  dateFormat.value = 'dd/MM/yyyy';
   if (categories.value.length === 0) {
     try {
       categories.value = await categoryService.fetchCategories();
@@ -128,7 +137,7 @@ function buildPayload() {
     const rawAmount = m.amount !== null ? row.cells[m.amount] : undefined;
     const rawDesc = m.description !== null ? row.cells[m.description] : undefined;
 
-    const isoDate = rawDate ? parseToIsoDate(rawDate) : null;
+    const isoDate = rawDate ? parseToIsoDate(rawDate, dateFormat.value) : null;
     const amount = rawAmount ? Math.abs(parseAmount(rawAmount)) : NaN;
     const desc = (rawDesc ?? '').trim();
     const category = defaultCategory.value;
@@ -210,6 +219,14 @@ async function handleImport() {
                         description="All imported rows will use this category."
                         label="Assign category"
                         required/>
+
+        <UFormField description="How dates are written in your CSV. Pick the right one to avoid swapping day and month."
+                    label="Date format">
+          <USelect v-model="dateFormat"
+                   :items="dateFormatOptions"
+                   class="w-full"
+                   value-key="value"/>
+        </UFormField>
 
         <UAlert v-if="!mappingValid"
                 color="warning"

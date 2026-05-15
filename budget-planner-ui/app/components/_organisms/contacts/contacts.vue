@@ -16,10 +16,12 @@ import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {todayIsoDate} from "~/utils/date";
 import {Currency} from "~/models/budget-account/currency";
 import type {Contact} from "~/models/contact/contact";
+import {useToasts} from "~/services/toasts/toast-service";
 
 const contactsStore = useContactsStore();
 const loansStore = useLoansStore();
 const budgetAccountsStore = useBudgetAccountsStore();
+const toasts = useToasts();
 
 const isCreateContactOpen = ref(false);
 const isEditContactOpen = ref(false);
@@ -43,14 +45,19 @@ function openDelete(contact: Contact) {
   isDeleteContactOpen.value = true;
 }
 
-onMounted(() => {
-  Promise.all([
-    contactsStore.updateContacts(),
-    loansStore.refreshOutstanding(),
-    budgetAccountsStore.availableAccounts.length === 0
-      ? budgetAccountsStore.updateAvailableAccounts()
-      : Promise.resolve(),
-  ]);
+onMounted(async () => {
+  try {
+    await Promise.all([
+      contactsStore.updateContacts(),
+      loansStore.refreshOutstanding(),
+      budgetAccountsStore.availableAccounts.length === 0
+        ? budgetAccountsStore.updateAvailableAccounts()
+        : Promise.resolve(),
+    ]);
+  } catch (error) {
+    console.error('Failed to load contacts data', error);
+    toasts.error('Failed to load contacts', 'Please refresh the page to try again.');
+  }
 });
 </script>
 
@@ -87,7 +94,7 @@ onMounted(() => {
           <div>
             <p class="text-sm text-neutral-500">People owe you</p>
             <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">
-              <BalanceNumberFormat :balance="Number(loansStore.totalOutstanding)" :currency="currency" format="de-De"/>
+              <BalanceNumberFormat :balance="Number(loansStore.totalOutstanding)" :currency="currency"/>
             </p>
           </div>
         </div>

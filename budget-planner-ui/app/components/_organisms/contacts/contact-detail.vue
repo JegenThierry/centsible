@@ -76,14 +76,19 @@ function onContactDeleted() {
   navigateTo('/contacts');
 }
 
-onMounted(() => {
-  Promise.all([
-    contactsStore.fetchContact(props.contactId),
-    loansStore.refreshLoansForContact(props.contactId),
-    budgetAccountsStore.availableAccounts.length === 0
-      ? budgetAccountsStore.updateAvailableAccounts()
-      : Promise.resolve(),
-  ]);
+onMounted(async () => {
+  try {
+    await Promise.all([
+      contactsStore.fetchContact(props.contactId),
+      loansStore.refreshLoansForContact(props.contactId),
+      budgetAccountsStore.availableAccounts.length === 0
+        ? budgetAccountsStore.updateAvailableAccounts()
+        : Promise.resolve(),
+    ]);
+  } catch (error) {
+    console.error('Failed to load contact detail', error);
+    toasts.error('Failed to load contact', 'Please refresh the page to try again.');
+  }
 });
 </script>
 
@@ -150,25 +155,25 @@ onMounted(() => {
         <UCard>
           <p class="text-xs text-neutral-500">Total lent</p>
           <p class="text-lg font-bold">
-            <BalanceNumberFormat :balance="Number(contact.totalLent)" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="Number(contact.totalLent)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
           <p class="text-xs text-neutral-500">Total owed</p>
           <p class="text-lg font-bold">
-            <BalanceNumberFormat :balance="Number(contact.totalOwed)" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="Number(contact.totalOwed)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
           <p class="text-xs text-neutral-500">Total repaid</p>
           <p class="text-lg font-bold text-green-600 dark:text-green-400">
-            <BalanceNumberFormat :balance="Number(contact.totalRepaid)" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="Number(contact.totalRepaid)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
           <p class="text-xs text-neutral-500">Outstanding</p>
           <p class="text-lg font-bold text-amber-600 dark:text-amber-400">
-            <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </UCard>
       </div>

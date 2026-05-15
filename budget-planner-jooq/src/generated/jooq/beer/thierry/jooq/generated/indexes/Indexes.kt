@@ -48,4 +48,6 @@ val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(DSL.name("idx_tra
 val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactions_date"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE), false)
 val IDX_TRANSACTIONS_RECURRING_ID: Index = Internal.createIndex(DSL.name("idx_transactions_recurring_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.RECURRING_TRANSACTION_ID), false)
 val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_registration_token_hash"), Users.USERS, arrayOf(Users.USERS.REGISTRATION_TOKEN_HASH), false)
+val UQ_CATEGORIES_NAME_PER_USER: Index = Internal.createIndex(DSL.name("uq_categories_name_per_user"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID, Categories.CATEGORIES.NAME), true)
+val UQ_CATEGORIES_NAME_SYSTEM: Index = Internal.createIndex(DSL.name("uq_categories_name_system"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.NAME), true)
 val UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH: Index = Internal.createIndex(DSL.name("uq_transactions_account_import_hash"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.IMPORT_HASH), true)

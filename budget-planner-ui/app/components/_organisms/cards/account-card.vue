@@ -33,7 +33,6 @@ defineEmits<{
         <BalanceNumberFormat
           :balance="account.balance"
           :currency="account.currency"
-          format="de-De"
         />
       </p>
     </div>

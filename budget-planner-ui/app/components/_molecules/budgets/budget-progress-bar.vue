@@ -36,9 +36,9 @@ const cur = computed(() => props.currency ?? Currency.EUR);
         <UBadge v-if="overBudget" color="error" size="sm" variant="subtle">Over</UBadge>
       </div>
       <div class="text-sm tabular-nums whitespace-nowrap">
-        <BalanceNumberFormat :balance="budget.amountSpent" :currency="cur" format="de-De"/>
+        <BalanceNumberFormat :balance="budget.amountSpent" :currency="cur"/>
         <span class="text-neutral-400 mx-1">/</span>
-        <BalanceNumberFormat :balance="budget.amountLimit" :currency="cur" format="de-De"/>
+        <BalanceNumberFormat :balance="budget.amountLimit" :currency="cur"/>
       </div>
     </div>
     <div class="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">

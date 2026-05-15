@@ -141,7 +141,26 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         val type = rule.category.type ?: throw IllegalStateException("Rule category type missing")
         val amount = rule.amount ?: throw IllegalStateException("Rule amount missing")
         val occurrenceDate = rule.nextRunAt ?: throw IllegalStateException("Rule next_run_at missing")
+        val frequency = rule.frequency ?: throw IllegalStateException("Rule frequency missing")
         val now = OffsetDateTime.now()
+
+        val newNext = frequency.advance(occurrenceDate)
+        val endDate = rule.endDate
+        val deactivate = endDate != null && newNext > endDate
+
+        // CAS on next_run_at so only one concurrent materialization wins this occurrence.
+        val advanced = dsl.update(RECURRING_TRANSACTIONS)
+            .set(RECURRING_TRANSACTIONS.NEXT_RUN_AT, newNext)
+            .set(RECURRING_TRANSACTIONS.ACTIVE, !deactivate)
+            .set(RECURRING_TRANSACTIONS.MODIFIED_AT, now)
+            .where(
+                RECURRING_TRANSACTIONS.ID.eq(ruleId)
+                    .and(RECURRING_TRANSACTIONS.NEXT_RUN_AT.eq(occurrenceDate))
+                    .and(RECURRING_TRANSACTIONS.ACTIVE.eq(true))
+            )
+            .execute()
+
+        if (advanced == 0) return null
 
         dsl.insertInto(
             TRANSACTIONS,
@@ -161,18 +180,6 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             .set(ACCOUNTS.BALANCE, ACCOUNTS.BALANCE.plus(adjustment))
             .set(ACCOUNTS.MODIFIED_AT, now)
             .where(ACCOUNTS.ID.eq(accountId))
-            .execute()
-
-        val frequency = rule.frequency ?: throw IllegalStateException("Rule frequency missing")
-        val newNext = frequency.advance(occurrenceDate)
-        val endDate = rule.endDate
-        val deactivate = endDate != null && newNext > endDate
-
-        dsl.update(RECURRING_TRANSACTIONS)
-            .set(RECURRING_TRANSACTIONS.NEXT_RUN_AT, newNext)
-            .set(RECURRING_TRANSACTIONS.ACTIVE, !deactivate)
-            .set(RECURRING_TRANSACTIONS.MODIFIED_AT, now)
-            .where(RECURRING_TRANSACTIONS.ID.eq(ruleId))
             .execute()
 
         return if (deactivate) null else newNext

@@ -92,7 +92,7 @@ const total = computed(() =>
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10">
           <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium">Total</span>
           <span class="text-lg font-bold text-gray-900 dark:text-white">
-            <BalanceNumberFormat :balance="total" :currency="currency" format="de-De"/>
+            <BalanceNumberFormat :balance="total" :currency="currency"/>
           </span>
         </div>
       </template>

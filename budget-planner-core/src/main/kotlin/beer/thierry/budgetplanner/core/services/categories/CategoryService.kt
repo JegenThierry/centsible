@@ -23,14 +23,14 @@ class CategoryService(private val categoriesRepository: ICategoriesRepository) :
 
     override fun updateCategory(authenticatedUser: UserDTO, id: Long, category: CategoryForm): CategoryDTO? {
         val existing = categoriesRepository.fetchCategoryById(authenticatedUser, id) ?: return null
-        if (existing.type != category.type && categoriesRepository.isCategoryUsed(id)) {
+        if (existing.type != category.type && categoriesRepository.isCategoryUsed(authenticatedUser, id)) {
             throw IllegalArgumentException("Cannot change type of a category that is referenced in transactions")
         }
         return categoriesRepository.updateCategory(authenticatedUser, id, category)
     }
 
     override fun deleteCategory(authenticatedUser: UserDTO, id: Long): Boolean {
-        if (categoriesRepository.isCategoryUsed(id)) {
+        if (categoriesRepository.isCategoryUsed(authenticatedUser, id)) {
             throw IllegalArgumentException("Cannot delete a category that is referenced in transactions")
         }
         return categoriesRepository.deleteCategory(authenticatedUser, id)

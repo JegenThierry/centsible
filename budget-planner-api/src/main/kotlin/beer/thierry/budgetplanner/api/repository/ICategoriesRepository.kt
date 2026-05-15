@@ -10,5 +10,5 @@ interface ICategoriesRepository {
     fun createCategory(authenticatedUser: UserDTO, category: CategoryForm): CategoryDTO
     fun updateCategory(authenticatedUser: UserDTO, id: Long, category: CategoryForm): CategoryDTO?
     fun deleteCategory(authenticatedUser: UserDTO, id: Long): Boolean
-    fun isCategoryUsed(id: Long): Boolean
+    fun isCategoryUsed(authenticatedUser: UserDTO, id: Long): Boolean
 }

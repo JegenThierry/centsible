@@ -5,6 +5,7 @@ import beer.thierry.budgetplanner.api.model.category.CategoryForm
 import beer.thierry.budgetplanner.api.model.category.CategoryType
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.ICategoriesRepository
+import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
@@ -127,11 +128,13 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
             .execute() > 0
     }
 
-    override fun isCategoryUsed(id: Long): Boolean {
+    override fun isCategoryUsed(authenticatedUser: UserDTO, id: Long): Boolean {
         return dsl.fetchExists(
             dsl.selectOne()
                 .from(TRANSACTIONS)
+                .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
                 .where(TRANSACTIONS.CATEGORY_ID.eq(id))
+                .and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
         )
     }
 }

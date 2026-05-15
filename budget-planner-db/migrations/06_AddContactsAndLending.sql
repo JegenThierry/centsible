@@ -15,10 +15,15 @@ CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts (user_id);
 ALTER TABLE categories
     ADD COLUMN IF NOT EXISTS is_managed BOOLEAN NOT NULL DEFAULT FALSE;
 
+-- Conflict target inferred against the system-categories partial unique index
+-- (name) WHERE user_id IS NULL (introduced in 14_CategoriesUniquePerUser.sql,
+-- and pre-applied in tables.sql for fresh installs). For databases that ran
+-- this migration under the old global UNIQUE(name) constraint, no replay
+-- happens — schema_migrations already records 06 as applied.
 INSERT INTO categories (name, icon, color, type, is_managed)
 VALUES ('Lending', 'i-lucide-hand-coins', '#f97316', 'EXPENSE', TRUE),
        ('Repayment', 'i-lucide-hand-helping', '#10b981', 'INCOME', TRUE)
-ON CONFLICT (name) DO UPDATE
+ON CONFLICT (name) WHERE user_id IS NULL DO UPDATE
     SET icon       = EXCLUDED.icon,
         color      = EXCLUDED.color,
         type       = EXCLUDED.type,
