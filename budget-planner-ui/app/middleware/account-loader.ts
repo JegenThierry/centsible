@@ -6,6 +6,10 @@ export default defineNuxtRouteMiddleware(async (to, _) => {
     return;
   }
 
+  if (accountStore.activeAccount?.id !== accountId) {
+    accountStore.clearActiveAccount();
+  }
+
   await accountStore.loadActiveAccount(accountId);
 
   if (!accountStore.activeAccount) {

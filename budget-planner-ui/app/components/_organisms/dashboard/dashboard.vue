@@ -17,11 +17,24 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
 
+const route = useRoute();
 const accountStore = useBudgetAccountsStore();
 const historyStore = useAccountHistoryStore();
 const transactionStore = useTransactionStore();
 
 const isCreateTransactionModalVisible = ref(false);
+
+const routeAccountId = computed(() => String(route.params.accountId ?? ''));
+const isAccountReady = computed(
+  () => !!accountStore.activeAccount && accountStore.activeAccount.id === routeAccountId.value,
+);
+const isLoading = computed(
+  () => !isAccountReady.value || accountStore.pending || historyStore.pending || transactionStore.pending,
+);
+const headerDescription = computed(() => {
+  if (!isAccountReady.value || !accountStore.activeAccount) return 'Loading account…';
+  return `Overview for account: ${accountStore.activeAccount.name}`;
+});
 
 async function fetchData() {
   if (!accountStore.activeAccount) return;
@@ -46,27 +59,18 @@ async function onCreated() {
 }
 
 watch(() => accountStore.activeAccount?.id, (newId) => {
-  if (newId) fetchData();
+  if (newId && newId === routeAccountId.value) fetchData();
 }, {immediate: true});
-
-onMounted(() => {
-  if (accountStore.activeAccount) {
-    fetchData();
-  }
-});
 </script>
 
 <template>
   <UContainer class="py-6 sm:py-10 space-y-4 sm:space-y-6">
     <PageHeader
-      v-if="accountStore.activeAccount"
-      :description="`Overview for account: ${accountStore.activeAccount.name}`"
+      :description="headerDescription"
       title="Dashboard"
     />
 
-    <div
-      v-if="accountStore.pending || (accountStore.activeAccount && (historyStore.pending || transactionStore.pending))"
-      class="space-y-4 sm:space-y-6">
+    <div v-if="isLoading" class="space-y-4 sm:space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <CardSkeleton v-for="i in 3" :key="i"/>
       </div>

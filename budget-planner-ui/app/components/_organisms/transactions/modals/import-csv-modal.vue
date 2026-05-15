@@ -39,6 +39,18 @@ const categories = ref<Category[]>([]);
 const previewRows = ref<ImportPayloadRow[]>([]);
 const invalidRowCount = ref(0);
 
+const modalTitle = computed(() => {
+  if (step.value === 'upload') return 'Import transactions';
+  if (step.value === 'map') return 'Map columns';
+  return 'Confirm import';
+});
+
+const modalDescription = computed(() => {
+  if (step.value === 'upload') return 'Upload a CSV exported from your bank.';
+  if (step.value === 'map') return 'Tell us which column is which.';
+  return "Review the rows we'll create.";
+});
+
 watch(isOpen, async (open) => {
   if (!open) return;
   step.value = 'upload';
@@ -167,8 +179,8 @@ async function handleImport() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="step === 'upload' ? 'Upload a CSV exported from your bank.' : step === 'map' ? 'Tell us which column is which.' : 'Review the rows we\\'ll create.'"
-          :title="step === 'upload' ? 'Import transactions' : step === 'map' ? 'Map columns' : 'Confirm import'"
+          :description="modalDescription"
+          :title="modalTitle"
           :ui="{content: 'max-w-2xl'}">
     <template #body>
       <!-- Step 1: upload -->

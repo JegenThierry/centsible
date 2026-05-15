@@ -11,7 +11,6 @@ import EditTransactionModal from "~/components/_organisms/transactions/modals/ed
 import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
-import {useToasts} from "~/services/toasts/toast-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
@@ -23,7 +22,6 @@ const UIcon = resolveComponent('UIcon')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const api = useApi();
-const toast = useToasts();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
 
@@ -149,13 +147,13 @@ useIntersectionObserver(loadMoreTrigger, async (entries) => {
   await loadTransactions()
 })
 
-onMounted(() => {
-  if (budgetAccountsStore.activeAccount?.id == undefined) {
-    toast.error('No active account selected', 'Please select an account to view transactions.')
-  }
-
-  loadTransactions(true)
-})
+watch(
+  () => budgetAccountsStore.activeAccount?.id,
+  (id) => {
+    if (id) loadTransactions(true)
+  },
+  {immediate: true},
+)
 </script>
 
 <template>
