@@ -2,6 +2,7 @@
 
 import Profile from "~/components/_organisms/nav/profile.vue";
 import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
+import ThemePicker from "~/components/_organisms/theme/theme-picker.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 import {useSidebar} from "~/composables/use-sidebar";
@@ -43,7 +44,7 @@ onMounted(async () => {
     </div>
 
     <div class="flex items-center gap-2">
-      <UColorModeButton/>
+      <ThemePicker/>
       <template v-if="authStore.isAuthenticated">
         <Profile v-if="userStore.user" :user="userStore.user"/>
         <ProfileSkeleton v-else/>
