@@ -20,6 +20,11 @@ management.endpoint.health.show-details=never
 #Application Configuration
 skip.email.verification=true
 
+cors.allowed-origins=http://localhost:3000
+
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=4MB
+
 # Integrations (provider plugins)
 integrations.encryption-key=${INTEGRATIONS_ENCRYPTION_KEY:}
 integrations.encryption-salt=${INTEGRATIONS_ENCRYPTION_SALT:}

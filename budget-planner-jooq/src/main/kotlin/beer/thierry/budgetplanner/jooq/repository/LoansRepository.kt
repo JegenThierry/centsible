@@ -63,7 +63,7 @@ class LoansRepository(
                 ?: throw IllegalStateException("Failed to create lending transaction")
 
             // Lending is an EXPENSE-typed managed category, so the cash leaves the account.
-            budgetAccountsRepository.updateBalance(accountId, form.lentAmount.negate())
+            budgetAccountsRepository.updateBalance(accountId, form.lentAmount.negate(), authenticatedUser)
 
             newTransactionId
         } else null
@@ -126,12 +126,12 @@ class LoansRepository(
         }
 
         lendingReversal?.let { (accountId, amount) ->
-            budgetAccountsRepository.updateBalance(accountId, amount)
+            budgetAccountsRepository.updateBalance(accountId, amount, authenticatedUser)
         }
         repaymentTxRows.forEach { row ->
             val accountId = row[TRANSACTIONS.ACCOUNT_ID]!!
             val amount = row[TRANSACTIONS.AMOUNT] ?: BigDecimal.ZERO
-            budgetAccountsRepository.updateBalance(accountId, amount.negate())
+            budgetAccountsRepository.updateBalance(accountId, amount.negate(), authenticatedUser)
         }
 
         return true

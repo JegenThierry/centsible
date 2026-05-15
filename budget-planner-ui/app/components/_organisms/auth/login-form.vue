@@ -2,8 +2,6 @@
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
-import type {AxiosInstance} from "axios";
-import type {AuthResponse} from "~/models/auth/auth-response";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 import {useValidator} from "~/composables/use-validator";
@@ -31,11 +29,11 @@ function onSubmit() {
     return;
   }
   loading.value = true;
-  useAuthService(api as AxiosInstance)
+  useAuthService(api)
     .login({username: state.username, password: state.password})
-    .then((res: AuthResponse) => {
-      authStore.setToken(res.token);
-      userStore.fetchMyself();
+    .then(async () => {
+      authStore.setAuthenticated(true);
+      await userStore.fetchMyself();
       navigateTo('/accounts');
       success(
         'Login successfully',

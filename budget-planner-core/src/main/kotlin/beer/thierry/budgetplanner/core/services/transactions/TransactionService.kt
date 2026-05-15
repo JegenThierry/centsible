@@ -85,6 +85,6 @@ class TransactionService(
     }
 
     private fun updateAccountBalanceAndLogHistory(accountId: UUID, adjustment: BigDecimal, authenticatedUser: UserDTO) {
-        accountRepository.updateBalance(accountId, adjustment)
+        accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
     }
 }

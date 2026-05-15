@@ -2,7 +2,7 @@ import {useAuthStore} from "~/stores/authStore";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
 
-export default defineNuxtRouteMiddleware(async (to) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   const authStore = useAuthStore();
   const api = useApi();
   const authService = useAuthService(api);
@@ -12,27 +12,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return;
   }
 
-  if (!authStore.isAuthenticated) {
-    return navigateTo('/auth');
+  // Client-side in-app navigation when we already know the session is valid: trust the flag.
+  // Stale sessions surface as 401s on the next data call. SSR + first load still verify.
+  if (import.meta.client && from.path && authStore.isAuthenticated) {
+    return;
   }
 
   try {
     const isVerified = await authService.verify();
 
     if (!isVerified) {
-      return authStore.logout();
+      authStore.setAuthenticated(false);
+      return navigateTo('/auth');
     }
-
+    authStore.setAuthenticated(true);
   } catch (error: any) {
-    console.error('Auth verification error:', error);
-
-    // If it's a 401 or 403, the token is definitely invalid, so log out.
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      return authStore.logout();
+      authStore.setAuthenticated(false);
+      return navigateTo('/auth');
     }
 
-    // If it's a connection error or other server-side issue, don't log out immediately.
-    // This prevents deleting the token if the backend is temporarily unreachable during SSR.
+    // Network / 5xx: toast and stay; don't log the user out for a transient outage.
     if (import.meta.client) {
       toasts.error("Verification failed", "Could not verify session with the server.");
     }

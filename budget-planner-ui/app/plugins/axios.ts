@@ -1,6 +1,4 @@
 import axios from 'axios'
-import {useAuthStore} from "~/stores/authStore";
-import {unref} from "vue";
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
@@ -8,26 +6,25 @@ export default defineNuxtPlugin(() => {
 
   const api = axios.create({
     baseURL: baseURL as string,
+    // Required so the browser attaches the HttpOnly auth cookie on cross-origin XHRs.
+    withCredentials: true,
     headers: {
       common: {}
     }
   })
 
-  const authStore = useAuthStore();
-  api.interceptors.request.use((config) => {
-    try {
-      // In Pinia setup stores, state is unwrapped.
-      // But we can use unref to be safe across different environments.
-      const token = unref(authStore.token);
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+  // During SSR the request to the backend is server-to-server, so the browser's cookies
+  // are NOT auto-attached. Forward the incoming request's cookie header so the auth-guard's
+  // /auth/verify call carries the user's auth_token and the session survives hard refreshes.
+  if (import.meta.server) {
+    const requestHeaders = useRequestHeaders(['cookie']);
+    api.interceptors.request.use((cfg) => {
+      if (requestHeaders.cookie) {
+        cfg.headers.set('Cookie', requestHeaders.cookie);
       }
-    } catch (e) {
-      console.error('Failed to get token from authStore in interceptor', e);
-    }
-    return config;
-  });
+      return cfg;
+    });
+  }
 
   api.interceptors.response.use(
     (response) => response,

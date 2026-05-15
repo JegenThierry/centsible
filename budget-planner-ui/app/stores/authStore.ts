@@ -1,26 +1,29 @@
 import {defineStore} from 'pinia'
 import {useUserStore} from "~/stores/userStore";
+import {useAuthService} from "~/services/auth/auth-service";
 
-const ONE_WEEK = 60 * 60 * 24 * 7;
-
+// JWT lives in the HttpOnly cookie; auth-guard restores this flag via /auth/verify.
 export const useAuthStore = defineStore('authStore', () => {
-  const token = useCookie<string | null>('auth_token', {
-    maxAge: ONE_WEEK, watch: true, path: '/'
-  })
+  const api = useApi();
+  const authService = useAuthService(api);
 
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = ref(false)
 
-  const setToken = (newToken: string) => {
-    token.value = newToken
+  const setAuthenticated = (value: boolean) => {
+    isAuthenticated.value = value
   }
 
   const logout = () => {
-    token.value = null;
+    // Fire-and-forget the server call: a failed roundtrip leaves the cookie alive,
+    // but the auth-guard's next /verify would just re-authenticate the user anyway,
+    // so making the user wait gains us nothing.
+    isAuthenticated.value = false
     useUserStore().clear();
+    authService.logout().catch(() => {})
     return navigateTo('/auth')
   }
 
   return {
-    isAuthenticated, token, logout, setToken,
+    isAuthenticated, setAuthenticated, logout,
   }
 });

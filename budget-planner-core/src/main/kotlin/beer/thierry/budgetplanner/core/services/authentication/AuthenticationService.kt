@@ -12,6 +12,9 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.time.OffsetDateTime
 import java.util.*
 import javax.crypto.SecretKey
 
@@ -22,7 +25,8 @@ class AuthenticationService(
     private val registerEmailService: IRegisterEmailService,
     @Value("\${skip.email.verification}") private val skipEmailVerification: Boolean,
     @Value("\${jwt.secret}") private val jwtSecret: String,
-    @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long
+    @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
+    @Value("\${registration.enabled:false}") private val registrationEnabled: Boolean,
 ) : IAuthService {
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
@@ -44,13 +48,23 @@ class AuthenticationService(
     }
 
     override fun register(authRequest: AuthRegisterRequest): AuthResponse {
+        if (!registrationEnabled) throw IllegalArgumentException("Registration is disabled")
         assertPasswordMatchesSecuritySettings(authRequest.password)
-        val user = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
-        if (user != null) {
-            throw IllegalArgumentException("An account with these credentials already exists")
+
+        val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
+        if (existing != null) {
+            // Same response shape as success — don't leak account existence.
+            return AuthResponse("")
         }
 
-        val registeredUser = userRepository.createUser(authRequest)
+        val passwordHash = passwordEncoder.encode(authRequest.password)
+            ?: throw IllegalStateException("Password encoder returned null hash")
+
+        val rawToken = generateRegistrationToken()
+        val tokenHash = sha256(rawToken)
+        val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
+
+        val registeredUser = userRepository.createUser(authRequest, passwordHash, tokenHash, tokenExpiresAt)
             ?: throw IllegalArgumentException("User could not be created")
 
         if (skipEmailVerification) {
@@ -58,13 +72,29 @@ class AuthenticationService(
             return AuthResponse(generateJwt(registeredUser))
         }
 
-        registerEmailService.sendRegistrationEmail(registeredUser, registeredUser.registrationToken.toString())
+        registerEmailService.sendRegistrationEmail(registeredUser, rawToken)
         return AuthResponse("")
     }
 
-    override fun confirmRegistration(token: String, username: String): Boolean {
-        val user = userRepository.findUserByTokenAndUsername(UUID.fromString(token), username) ?: return false
+    override fun confirmRegistration(token: String): Boolean {
+        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) return false
+        val user = userRepository.findUserByValidTokenHash(sha256(token)) ?: return false
         return userRepository.confirmUser(user.id)
+    }
+
+    private fun generateRegistrationToken(): String {
+        val bytes = ByteArray(REGISTRATION_TOKEN_BYTES).also { SecureRandom().nextBytes(it) }
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    }
+
+    private fun sha256(input: String): ByteArray =
+        MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
+
+    companion object {
+        private const val REGISTRATION_TOKEN_BYTES = 32
+        // 32 bytes base64url-encoded (no padding) is exactly 43 chars; cap a bit higher for safety.
+        private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
+        private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
     }
 
     private fun generateJwt(user: User): String {
@@ -85,15 +115,6 @@ class AuthenticationService(
             .compact()
     }
 
-    /**
-     * The password needs to match the following criteria:
-     * - Needs to be at least 8 chars long
-     * - Needs to contain at least 1 uppercase letter
-     * - Needs to contain at least 1 lowercase letter
-     * - Needs to contain at least 1 number
-     * - Needs to contain at least 1 of the following special characters: @ $ ! % * ? &
-     * @throws IllegalArgumentException when the password does not match the above criteria.
-     */
     private fun assertPasswordMatchesSecuritySettings(password: String) {
         val passwordRegex = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
         if (!password.matches(passwordRegex)) {

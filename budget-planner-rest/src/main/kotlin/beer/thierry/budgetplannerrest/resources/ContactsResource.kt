@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.util.Base64
 import java.util.UUID
 
 @RequestMapping("/api/contacts")
@@ -63,8 +62,7 @@ class ContactsResource(private val contactService: IContactService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO?
     ): ResponseEntity<ContactDTO> {
         if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val base64 = Base64.getEncoder().encodeToString(file.bytes)
-        val dataUrl = "data:${file.contentType};base64,$base64"
+        val dataUrl = file.toValidatedImageDataUrl()
         val updated = contactService.updateContactPicture(authenticatedUser, id, dataUrl)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updated)
