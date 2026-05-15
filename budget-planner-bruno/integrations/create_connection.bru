@@ -1,0 +1,27 @@
+meta {
+  name: create_connection
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/integrations/connections
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "providerKey": "manual",
+    "displayName": "Wallet",
+    "values": {
+      "label": "Cash in wallet",
+      "notes": "Loose change from yesterday"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -9,6 +9,8 @@ COPY budget-planner-core/build.gradle.kts ./budget-planner-core/
 COPY budget-planner-proto/build.gradle.kts ./budget-planner-proto/
 COPY budget-planner-export/build.gradle.kts ./budget-planner-export/
 COPY budget-planner-rest/build.gradle.kts ./budget-planner-rest/
+# Integration provider modules. Each plugin lives in its own subdir.
+COPY budget-planner-integrations ./budget-planner-integrations
 
 RUN gradle dependencies --no-daemon --quiet || true
 
