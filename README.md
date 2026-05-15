@@ -168,6 +168,35 @@ for dependency management.
 - **Frontend**: TODO: Add frontend test command (e.g., `npm test`) if tests are implemented.
 - **API**: Use the collections in `budget-planner-bruno` with the Bruno client.
 
+## Test Data Seeding
+
+The `budget-planner-bruno/testdata/` folder is a self-contained Bruno collection that seeds a realistic dataset against a running stack (1 user, 4 accounts, 4 custom categories, 5 contacts, ~28 transactions across Feb–May 2026, 4 loans with repayments, 2 exports).
+
+### How to run
+
+1. Start the stack with `SKIP_EMAIL_VERIFICATION=true` in `.env` — otherwise `01_register.bru` will not yield a usable session token.
+   ```bash
+   docker compose up --build
+   ```
+2. Open `budget-planner-bruno/` in [Bruno](https://www.usebruno.com/).
+3. Right-click the `testdata` folder and choose **Run** to execute every request top-to-bottom. Folders run in `seq` order, and files within each folder do too.
+
+Each create-request stores the returned id in a Bruno runtime variable (e.g. `accountCheckingId`, `categoryFoodId`, `contactAliceId`) so later requests can reference it — no environment file is required.
+
+### Seeded credentials
+
+| Field    | Value                  |
+|:---------|:-----------------------|
+| username | `testuser`             |
+| password | `TestPass123!`         |
+| email    | `testuser@example.com` |
+
+### Re-running
+
+- `01_register.bru` returns 4xx if the test user already exists. That is fine — `02_login.bru` logs in with the same credentials and refreshes the `{{token}}` variable.
+- Categories have a global unique-name constraint, so the custom-category creates 4xx on a second run. The seeded ones are still picked up via `categories/01_fetch_seeded.bru`.
+- Accounts, contacts, transactions, loans, and exports are duplicated on each run. Reset the DB (e.g. `docker compose down -v`) for a clean slate.
+
 ## Environment Variables
 
 | Variable                       | Description                                                                                  | Default                      |
