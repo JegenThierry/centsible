@@ -24,3 +24,17 @@ export interface TransactionForm {
   transactionDate: string | undefined,
 }
 
+export interface CategoryAggregate {
+  categoryId: number,
+  categoryName: string,
+  categoryColor?: string | null,
+  categoryIcon?: string | null,
+  total: number,
+}
+
+export interface MonthlyAggregate {
+  yearMonth: string,
+  income: number,
+  expense: number,
+}
+

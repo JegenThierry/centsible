@@ -24,6 +24,7 @@ data class Transactions(
     val transactionDate: LocalDate? = null,
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null,
+    val recurringTransactionId: UUID? = null,
     val importHash: String? = null
 ): Serializable {
 
@@ -83,6 +84,12 @@ data class Transactions(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.recurringTransactionId == null) {
+            if (o.recurringTransactionId != null)
+                return false
+        }
+        else if (this.recurringTransactionId != o.recurringTransactionId)
+            return false
         if (this.importHash == null) {
             if (o.importHash != null)
                 return false
@@ -103,6 +110,7 @@ data class Transactions(
         result = prime * result + (if (this.transactionDate == null) 0 else this.transactionDate.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.recurringTransactionId == null) 0 else this.recurringTransactionId.hashCode())
         result = prime * result + (if (this.importHash == null) 0 else this.importHash.hashCode())
         return result
     }
@@ -118,6 +126,7 @@ data class Transactions(
         sb.append(", ").append(transactionDate)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(recurringTransactionId)
         sb.append(", ").append(importHash)
 
         sb.append(")")

@@ -1,7 +1,9 @@
 package beer.thierry.budgetplannerrest.resources
 
+import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.ImportResult
 import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
+import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -10,6 +12,8 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import java.time.YearMonth
+import java.time.format.DateTimeParseException
 import java.util.*
 
 @RequestMapping("/api/transactions")
@@ -61,6 +65,38 @@ class TransactionResource(private val transactionService: ITransactionService) {
             authenticatedUser
         )
         return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/{accountId}/aggregates/by-category")
+    fun aggregateByCategory(
+        @PathVariable accountId: String,
+        @RequestParam(required = false) month: String?,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+    ): ResponseEntity<List<CategoryAggregateDTO>> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        val yearMonth = month?.let {
+            try {
+                YearMonth.parse(it)
+            } catch (e: DateTimeParseException) {
+                return ResponseEntity.badRequest().build()
+            }
+        } ?: YearMonth.now()
+        return ResponseEntity.ok(
+            transactionService.aggregateByCategory(UUID.fromString(accountId), authenticatedUser, yearMonth)
+        )
+    }
+
+    @GetMapping("/{accountId}/aggregates/by-month")
+    fun aggregateByMonth(
+        @PathVariable accountId: String,
+        @RequestParam(defaultValue = "6") months: Int,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+    ): ResponseEntity<List<MonthlyAggregateDTO>> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        if (months !in 1..36) return ResponseEntity.badRequest().build()
+        return ResponseEntity.ok(
+            transactionService.aggregateByMonth(UUID.fromString(accountId), authenticatedUser, months)
+        )
     }
 
     @PostMapping("/{accountId}/import")

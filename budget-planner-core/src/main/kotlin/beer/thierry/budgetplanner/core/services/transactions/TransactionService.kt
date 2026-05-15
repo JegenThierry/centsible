@@ -1,9 +1,11 @@
 package beer.thierry.budgetplanner.core.services.transactions
 
 import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.ImportResult
 import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionRow
 import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
+import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.security.MessageDigest
+import java.time.YearMonth
 import java.util.*
 
 @Service
@@ -78,6 +81,16 @@ class TransactionService(
 
         return transaction
     }
+
+    override fun aggregateByCategory(
+        accountId: UUID, authenticatedUser: UserDTO, yearMonth: YearMonth
+    ): List<CategoryAggregateDTO> =
+        transactionRepository.aggregateByCategory(accountId, authenticatedUser, yearMonth)
+
+    override fun aggregateByMonth(
+        accountId: UUID, authenticatedUser: UserDTO, months: Int
+    ): List<MonthlyAggregateDTO> =
+        transactionRepository.aggregateByMonth(accountId, authenticatedUser, months)
 
     @Transactional
     override fun importBatch(

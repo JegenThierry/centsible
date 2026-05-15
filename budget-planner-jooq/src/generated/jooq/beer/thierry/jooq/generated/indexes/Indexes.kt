@@ -5,6 +5,7 @@ package beer.thierry.jooq.generated.indexes
 
 
 import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
@@ -12,6 +13,7 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.ProviderConnections
+import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -26,6 +28,7 @@ import org.jooq.impl.Internal
 // -------------------------------------------------------------------------
 
 val IDX_ACCOUNTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
+val IDX_BUDGETS_USER_ID: Index = Internal.createIndex(DSL.name("idx_budgets_user_id"), Budgets.BUDGETS, arrayOf(Budgets.BUDGETS.USER_ID), false)
 val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
 val IDX_CONTACTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_contacts_user_id"), Contacts.CONTACTS, arrayOf(Contacts.CONTACTS.USER_ID), false)
 val IDX_EXPORT_JOBS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_jobs_claimable"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.STATUS, ExportJobs.EXPORT_JOBS.CREATED_AT), false)
@@ -38,8 +41,11 @@ val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_t
 val IDX_LOANS_USER_CONTACT: Index = Internal.createIndex(DSL.name("idx_loans_user_contact"), Loans.LOANS, arrayOf(Loans.LOANS.USER_ID, Loans.LOANS.CONTACT_ID), false)
 val IDX_PROVIDER_CONNECTIONS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_provider_connections_claimable"), ProviderConnections.PROVIDER_CONNECTIONS, arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.STATUS, ProviderConnections.PROVIDER_CONNECTIONS.LAST_SYNC_AT), false)
 val IDX_PROVIDER_CONNECTIONS_USER: Index = Internal.createIndex(DSL.name("idx_provider_connections_user"), ProviderConnections.PROVIDER_CONNECTIONS, arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.USER_ID), false)
+val IDX_RECURRING_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_recurring_account_id"), RecurringTransactions.RECURRING_TRANSACTIONS, arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ACCOUNT_ID), false)
+val IDX_RECURRING_DUE: Index = Internal.createIndex(DSL.name("idx_recurring_due"), RecurringTransactions.RECURRING_TRANSACTIONS, arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.NEXT_RUN_AT), false)
 val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_transactions_account_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), false)
 val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(DSL.name("idx_transactions_category_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), false)
 val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactions_date"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE), false)
+val IDX_TRANSACTIONS_RECURRING_ID: Index = Internal.createIndex(DSL.name("idx_transactions_recurring_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.RECURRING_TRANSACTION_ID), false)
 val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_registration_token_hash"), Users.USERS, arrayOf(Users.USERS.REGISTRATION_TOKEN_HASH), false)
 val UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH: Index = Internal.createIndex(DSL.name("uq_transactions_account_import_hash"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.IMPORT_HASH), true)

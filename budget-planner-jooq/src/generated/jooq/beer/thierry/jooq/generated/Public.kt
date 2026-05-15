@@ -6,6 +6,7 @@ package beer.thierry.jooq.generated
 
 import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
@@ -14,6 +15,7 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.ProviderConnections
+import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
@@ -48,6 +50,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.accounts</code>.
      */
     val ACCOUNTS: Accounts get() = Accounts.ACCOUNTS
+
+    /**
+     * The table <code>public.budgets</code>.
+     */
+    val BUDGETS: Budgets get() = Budgets.BUDGETS
 
     /**
      * The table <code>public.categories</code>.
@@ -90,6 +97,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val PROVIDER_CONNECTIONS: ProviderConnections get() = ProviderConnections.PROVIDER_CONNECTIONS
 
     /**
+     * The table <code>public.recurring_transactions</code>.
+     */
+    val RECURRING_TRANSACTIONS: RecurringTransactions get() = RecurringTransactions.RECURRING_TRANSACTIONS
+
+    /**
      * The table <code>public.schema_migrations</code>.
      */
     val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
@@ -114,6 +126,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     override fun getTables(): List<Table<*>> = listOf(
         AccountHistory.ACCOUNT_HISTORY,
         Accounts.ACCOUNTS,
+        Budgets.BUDGETS,
         Categories.CATEGORIES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,
@@ -122,6 +135,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
         ProviderConnections.PROVIDER_CONNECTIONS,
+        RecurringTransactions.RECURRING_TRANSACTIONS,
         SchemaMigrations.SCHEMA_MIGRATIONS,
         SystemInformation.SYSTEM_INFORMATION,
         Transactions.TRANSACTIONS,

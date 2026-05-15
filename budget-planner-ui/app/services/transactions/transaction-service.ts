@@ -1,5 +1,10 @@
 import type {AxiosInstance} from "axios";
-import type {Transaction, TransactionRequest} from "~/models/transactions/transaction";
+import type {
+  CategoryAggregate,
+  MonthlyAggregate,
+  Transaction,
+  TransactionRequest
+} from "~/models/transactions/transaction";
 import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import {validateRequest} from "~/composables/use-api";
 
@@ -31,6 +36,22 @@ export function useTransactionService(api: AxiosInstance) {
     }
   }
 
+  async function aggregateByCategory(accountId: string, month?: string): Promise<CategoryAggregate[]> {
+    const response = await api.get<CategoryAggregate[]>(
+      `/transactions/${encodeURIComponent(accountId)}/aggregates/by-category`,
+      {params: month ? {month} : undefined}
+    );
+    return validateRequest<CategoryAggregate[]>(response);
+  }
+
+  async function aggregateByMonth(accountId: string, months: number = 6): Promise<MonthlyAggregate[]> {
+    const response = await api.get<MonthlyAggregate[]>(
+      `/transactions/${encodeURIComponent(accountId)}/aggregates/by-month`,
+      {params: {months}}
+    );
+    return validateRequest<MonthlyAggregate[]>(response);
+  }
+
   async function importBatch(accountId: string, rows: ImportPayloadRow[]): Promise<ImportResult> {
     const response = await api.post<ImportResult>(
       `/transactions/${encodeURIComponent(accountId)}/import`,
@@ -44,6 +65,8 @@ export function useTransactionService(api: AxiosInstance) {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    aggregateByCategory,
+    aggregateByMonth,
     importBatch,
   }
 }

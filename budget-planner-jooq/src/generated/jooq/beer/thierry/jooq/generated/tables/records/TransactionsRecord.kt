@@ -53,9 +53,13 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         set(value): Unit = set(7, value)
         get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
-    open var importHash: String?
+    open var recurringTransactionId: UUID?
         set(value): Unit = set(8, value)
-        get(): String? = get(8) as String?
+        get(): UUID? = get(8) as UUID?
+
+    open var importHash: String?
+        set(value): Unit = set(9, value)
+        get(): String? = get(9) as String?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -66,7 +70,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, importHash: String? = null): this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
@@ -75,6 +79,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         this.transactionDate = transactionDate
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.recurringTransactionId = recurringTransactionId
         this.importHash = importHash
         resetChangedOnNotNull()
     }
@@ -92,6 +97,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
             this.transactionDate = value.transactionDate
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.recurringTransactionId = value.recurringTransactionId
             this.importHash = value.importHash
             resetChangedOnNotNull()
         }

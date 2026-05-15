@@ -8,16 +8,19 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_CATEGORY_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_DATE
+import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_RECURRING_ID
 import beer.thierry.jooq.generated.indexes.UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
+import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 
 import java.math.BigDecimal
@@ -130,6 +133,11 @@ open class Transactions(
     val MODIFIED_AT: TableField<TransactionsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     /**
+     * The column <code>public.transactions.recurring_transaction_id</code>.
+     */
+    val RECURRING_TRANSACTION_ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("recurring_transaction_id"), SQLDataType.UUID, this, "")
+
+    /**
      * The column <code>public.transactions.import_hash</code>.
      */
     val IMPORT_HASH: TableField<TransactionsRecord, String?> = createField(DSL.name("import_hash"), SQLDataType.VARCHAR(64), this, "")
@@ -166,9 +174,9 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
-    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
 
     private lateinit var _accounts: AccountsPath
 
@@ -199,6 +207,22 @@ open class Transactions(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+
+    private lateinit var _recurringTransactions: RecurringTransactionsPath
+
+    /**
+     * Get the implicit join path to the
+     * <code>public.recurring_transactions</code> table.
+     */
+    fun recurringTransactions(): RecurringTransactionsPath {
+        if (!this::_recurringTransactions.isInitialized)
+            _recurringTransactions = RecurringTransactionsPath(this, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY, null)
+
+        return _recurringTransactions;
+    }
+
+    val recurringTransactions: RecurringTransactionsPath
+        get(): RecurringTransactionsPath = recurringTransactions()
 
     private lateinit var _loanRepayments: LoanRepaymentsPath
 
