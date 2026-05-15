@@ -1,2 +1,74 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/*
+  Custom palettes consumed by themes in `composables/use-theme.ts`.
+  `@theme static` forces every shade to be emitted so NuxtUI's runtime
+  color plugin can switch primary to any of these at runtime.
+ */
+@theme static {
+  /* Lavender — vivid violet */
+  --color-lavender-50:  #faf5ff;
+  --color-lavender-100: #f2e6ff;
+  --color-lavender-200: #e3cbff;
+  --color-lavender-300: #cda4fc;
+  --color-lavender-400: #ad75f5;
+  --color-lavender-500: #8b4ee0;
+  --color-lavender-600: #7333c4;
+  --color-lavender-700: #5d289f;
+  --color-lavender-800: #4b2280;
+  --color-lavender-900: #391b60;
+  --color-lavender-950: #21103e;
+
+  /* Mint — teal-leaning green that reads distinctly from Nuxt green */
+  --color-mint-50:  #ebfdf5;
+  --color-mint-100: #d2f9e6;
+  --color-mint-200: #a8f0cf;
+  --color-mint-300: #6fe1b1;
+  --color-mint-400: #34cd92;
+  --color-mint-500: #14b277;
+  --color-mint-600: #0a8e5e;
+  --color-mint-700: #0a704d;
+  --color-mint-800: #0c5940;
+  --color-mint-900: #0c4936;
+  --color-mint-950: #02281d;
+
+  /* Peach — bold warm coral */
+  --color-peach-50:  #fff5ed;
+  --color-peach-100: #ffe5d0;
+  --color-peach-200: #fec79e;
+  --color-peach-300: #fb9f5b;
+  --color-peach-400: #f6792a;
+  --color-peach-500: #e85714;
+  --color-peach-600: #cb3f0d;
+  --color-peach-700: #a4300f;
+  --color-peach-800: #842914;
+  --color-peach-900: #6b2413;
+  --color-peach-950: #3a0e08;
+
+  /* Blush — soft yet saturated pink */
+  --color-blush-50:  #fff1f6;
+  --color-blush-100: #ffe4ee;
+  --color-blush-200: #ffc9dd;
+  --color-blush-300: #ff9bc1;
+  --color-blush-400: #fc60a0;
+  --color-blush-500: #ee387e;
+  --color-blush-600: #d8195f;
+  --color-blush-700: #b50f4d;
+  --color-blush-800: #921045;
+  --color-blush-900: #781140;
+  --color-blush-950: #43041e;
+
+  /* Ocean — clear sky-cyan blue */
+  --color-ocean-50:  #ecf8ff;
+  --color-ocean-100: #d4eeff;
+  --color-ocean-200: #a3deff;
+  --color-ocean-300: #6cc7ff;
+  --color-ocean-400: #38aeff;
+  --color-ocean-500: #1190ec;
+  --color-ocean-600: #0571c8;
+  --color-ocean-700: #0a5aa1;
+  --color-ocean-800: #0e4d84;
+  --color-ocean-900: #11406d;
+  --color-ocean-950: #082a4d;
+}

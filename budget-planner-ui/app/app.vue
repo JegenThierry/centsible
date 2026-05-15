@@ -6,20 +6,6 @@ import SideNavBar from "~/components/_organisms/nav/side-nav-bar.vue";
 import MainContentWrapper from "~/components/_wrapper/main-content-wrapper.vue";
 
 const authStore = useAuthStore();
-const router = useRouter();
-
-onMounted(async () => {
-  if (router.currentRoute.value.path !== '/') {
-    return;
-  }
-
-  if (authStore.isAuthenticated) {
-    navigateTo('/accounts');
-    return;
-  }
-
-  navigateTo('/auth');
-})
 </script>
 
 <template>
