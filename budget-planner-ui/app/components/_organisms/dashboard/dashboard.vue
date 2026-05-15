@@ -6,6 +6,7 @@ import SpendingByCategoryChart from "~/components/_organisms/dashboard/spending-
 import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-expense-chart.vue";
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
+import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -111,6 +112,8 @@ onMounted(() => {
 
       <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
                             :currency="accountStore.activeAccount.currency"/>
+
+      <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
 
       <AccountHistoryList :currency="accountStore.activeAccount.currency"
                           :snapshots="historyStore.snapshots"/>

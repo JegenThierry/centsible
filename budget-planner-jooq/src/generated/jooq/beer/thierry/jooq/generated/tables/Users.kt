@@ -7,6 +7,7 @@ package beer.thierry.jooq.generated.tables
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_USERS_REGISTRATION_TOKEN_HASH
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
@@ -16,6 +17,7 @@ import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
 import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
+import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
@@ -206,6 +208,22 @@ open class Users(
 
     val accounts: AccountsPath
         get(): AccountsPath = accounts()
+
+    private lateinit var _budgets: BudgetsPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.budgets</code>
+     * table
+     */
+    fun budgets(): BudgetsPath {
+        if (!this::_budgets.isInitialized)
+            _budgets = BudgetsPath(this, null, BUDGETS__BUDGETS_USER_ID_FKEY.inverseKey)
+
+        return _budgets;
+    }
+
+    val budgets: BudgetsPath
+        get(): BudgetsPath = budgets()
 
     private lateinit var _categories: CategoriesPath
 

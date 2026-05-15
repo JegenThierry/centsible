@@ -6,6 +6,7 @@ package beer.thierry.jooq.generated.tables.references
 
 import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
@@ -31,6 +32,11 @@ val ACCOUNT_HISTORY: AccountHistory = AccountHistory.ACCOUNT_HISTORY
  * The table <code>public.accounts</code>.
  */
 val ACCOUNTS: Accounts = Accounts.ACCOUNTS
+
+/**
+ * The table <code>public.budgets</code>.
+ */
+val BUDGETS: Budgets = Budgets.BUDGETS
 
 /**
  * The table <code>public.categories</code>.

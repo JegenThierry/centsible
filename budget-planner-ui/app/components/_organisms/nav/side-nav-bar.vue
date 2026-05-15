@@ -37,6 +37,12 @@ const items = computed(() => {
         defaultOpen: true,
         children: [
           {
+            label: 'Budgets',
+            to: '/budgets',
+            icon: 'i-lucide-piggy-bank',
+            target: '_self'
+          },
+          {
             label: 'Recurring',
             to: `/${accountId}/recurring`,
             icon: 'i-lucide-repeat',
