@@ -14,7 +14,7 @@
       :alt="alt"
       :size="size"
       :ui="ui"
-      class="cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ring-2 ring-primary/20"
+      class="cursor-pointer hover:bg-elevated transition-colors ring-2 ring-primary/20"
       icon="i-heroicons-user"
       @click="editable && $emit('edit')"
     />

@@ -43,14 +43,15 @@ function onSubmit() {
       if (res.token) {
         authStore.setAuthenticated(true);
         await userStore.fetchMyself();
-        navigateTo('/accounts');
+        success(
+          'Registered successfully',
+          'You have successfully registered, you will be redirected to the dashboard.'
+        );
+        await navigateTo('/accounts');
+        return;
       }
-      success(
-        'Registered successfully',
-        res.token
-          ? 'You have successfully registered, you will be redirected to the dashboard.'
-          : 'Check your inbox to confirm your account.'
-      );
+      success('Registered successfully', 'Check your inbox to confirm your account.');
+      await navigateTo({path: '/auth/check-email', query: {email: state.email}});
     })
     .catch((err) => {
       useApiErrors().toastError(err, 'Registration failed', 'Please try again later.');

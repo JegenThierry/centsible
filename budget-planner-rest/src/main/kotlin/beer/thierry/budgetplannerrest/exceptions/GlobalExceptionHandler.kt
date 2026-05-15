@@ -61,7 +61,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(
-            message = "${ex.javaClass.simpleName}: ${ex.message}",
+            message = ex.message ?: "Invalid request.",
             details = request.getDescription(false)
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

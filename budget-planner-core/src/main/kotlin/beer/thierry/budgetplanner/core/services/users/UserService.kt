@@ -16,6 +16,8 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         return mapToDTO(user)
     }
 
+    override fun userExists(id: UUID): Boolean = userRepository.findUserById(id) != null
+
     override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
         val user = userRepository.findUserById(userId)
             ?: throw IllegalArgumentException("User with ID $userId not found")

@@ -29,15 +29,15 @@ const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? C
         <ContactAvatar :alt="contact.name" :src="contact.picture" size="lg"/>
         <div>
           <p class="font-semibold">{{ contact.name }}</p>
-          <p class="text-xs text-neutral-500">
+          <p class="text-xs text-muted">
             {{ contact.openLoanCount }} {{ contact.openLoanCount === 1 ? 'loan' : 'loans' }}
           </p>
         </div>
       </div>
       <div class="flex items-center gap-3">
         <div class="text-right">
-          <p class="text-xs text-neutral-500">Outstanding</p>
-          <p :class="Number(contact.outstanding) > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-neutral-500'">
+          <p class="text-xs text-muted">Outstanding</p>
+          <p :class="Number(contact.outstanding) > 0 ? 'text-warning font-semibold' : 'text-muted'">
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </div>

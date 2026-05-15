@@ -44,7 +44,7 @@ const activeIcon = computed(() => {
       :description="activeDescription"
       :icon="activeIcon"
       :title="activeHeader"
-      class="max-w-xl mx-auto bg-white dark:bg-neutral-600"
+      class="max-w-xl mx-auto"
       spotlight
       spotlight-color="primary"
     >

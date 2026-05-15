@@ -90,10 +90,10 @@ onMounted(async () => {
     <UCard v-if="loansStore.totalOutstanding > 0" class="mb-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <UIcon class="w-8 h-8 text-amber-500" name="i-lucide-hand-coins"/>
+          <UIcon class="w-8 h-8 text-warning" name="i-lucide-hand-coins"/>
           <div>
-            <p class="text-sm text-neutral-500">People owe you</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">
+            <p class="text-sm text-muted">People owe you</p>
+            <p class="text-2xl font-bold text-warning">
               <BalanceNumberFormat :balance="Number(loansStore.totalOutstanding)" :currency="currency"/>
             </p>
           </div>

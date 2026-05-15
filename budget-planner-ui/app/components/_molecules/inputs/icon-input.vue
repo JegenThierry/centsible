@@ -37,15 +37,15 @@ defineExpose({
         />
       </div>
       <div
-        class="p-2 border rounded-md dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center">
+        class="p-2 border border-default rounded-md bg-muted flex items-center justify-center">
         <UIcon
           :name="model || 'i-lucide-help-circle'"
           class="w-4 h-4"
         />
       </div>
     </div>
-    <p class="text-xs text-neutral-500">
-      Find icons at <a class="text-primary-500 underline" href="https://lucide.dev/icons"
+    <p class="text-xs text-muted">
+      Find icons at <a class="text-primary underline" href="https://lucide.dev/icons"
                        target="_blank">lucide.dev</a>. Use <code>i-lucide-[name]</code> format.
     </p>
   </div>

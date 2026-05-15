@@ -29,7 +29,7 @@ export default defineNuxtConfig({
           name: 'description',
           content: 'Centsible is a clean, self-hosted budget tracker with multiple accounts, smart categories, monthly budgets, and dashboards that actually help you decide.',
         },
-        {name: 'theme-color', content: '#22c55e'},
+        {name: 'theme-color', content: '#ee387e'},
         {name: 'color-scheme', content: 'light dark'},
         {property: 'og:type', content: 'website'},
         {property: 'og:site_name', content: 'Centsible'},

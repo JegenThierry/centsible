@@ -18,7 +18,7 @@ defineEmits<{
       'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-left transition-colors',
       selected
         ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-        : 'hover:bg-elevated text-default'
+        : 'hover:bg-primary/5 text-default'
     ]"
     type="button"
     @click="$emit('select')">

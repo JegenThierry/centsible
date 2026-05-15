@@ -18,8 +18,8 @@ const emit = defineEmits<{
     :class="[
       'group transition-all',
       category.system
-        ? 'bg-neutral-50/50 dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-800'
-        : 'border-primary-100 dark:border-primary-900/30'
+        ? 'bg-muted border-default'
+        : 'border-primary-200 dark:border-primary-900/40'
     ]"
   >
     <div class="flex items-center justify-between">

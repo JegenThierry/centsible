@@ -17,9 +17,9 @@ const percent = computed(() => Math.min(100, Math.round(ratio.value * 100)));
 const overBudget = computed(() => ratio.value > 1);
 
 const barColor = computed(() => {
-  if (overBudget.value) return 'bg-red-500';
-  if (ratio.value >= 0.85) return 'bg-amber-500';
-  return 'bg-emerald-500';
+  if (overBudget.value) return 'bg-error';
+  if (ratio.value >= 0.85) return 'bg-warning';
+  return 'bg-success';
 });
 
 const cur = computed(() => props.currency ?? Currency.EUR);
@@ -41,7 +41,7 @@ const cur = computed(() => props.currency ?? Currency.EUR);
         <BalanceNumberFormat :balance="budget.amountLimit" :currency="cur"/>
       </div>
     </div>
-    <div class="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+    <div class="h-2 w-full rounded-full bg-elevated overflow-hidden">
       <div :class="barColor"
            :style="{width: percent + '%'}"
            class="h-full transition-all"/>

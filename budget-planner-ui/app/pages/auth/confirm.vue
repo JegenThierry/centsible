@@ -72,7 +72,7 @@ onMounted(async () => {
       :icon="card.icon"
       :title="card.title"
       :ui="{ leadingIcon: card.iconClass }"
-      class="max-w-xl mx-auto bg-white dark:bg-neutral-600"
+      class="max-w-xl mx-auto"
       spotlight
       spotlight-color="primary">
       <template v-if="state !== 'pending'" #footer>

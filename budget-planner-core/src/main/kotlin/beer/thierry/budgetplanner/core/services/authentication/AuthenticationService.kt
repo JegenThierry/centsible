@@ -9,6 +9,7 @@ import beer.thierry.budgetplanner.api.services.authentication.IAuthService
 import beer.thierry.budgetplanner.api.services.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -28,6 +29,8 @@ class AuthenticationService(
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
     @Value("\${registration.enabled:false}") private val registrationEnabled: Boolean,
 ) : IAuthService {
+    private val log = LoggerFactory.getLogger(AuthenticationService::class.java)
+
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
     }
@@ -53,8 +56,8 @@ class AuthenticationService(
 
         val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
         if (existing != null) {
-            // Same response shape as success — don't leak account existence.
-            return AuthResponse("")
+            log.info("Registration rejected: account already exists for username='{}' or email='{}'", authRequest.username, authRequest.email)
+            throw IllegalArgumentException("An account with this username or email already exists.")
         }
 
         val passwordHash = passwordEncoder.encode(authRequest.password)

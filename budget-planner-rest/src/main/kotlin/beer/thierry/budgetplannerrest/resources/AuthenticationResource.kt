@@ -5,6 +5,7 @@ import beer.thierry.budgetplanner.api.model.auth.AuthRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthResponse
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.authentication.IAuthService
+import beer.thierry.budgetplanner.api.services.users.IUserService
 import beer.thierry.budgetplannerrest.security.AuthCookieIssuer
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class AuthenticationResource(
     private val authService: IAuthService,
+    private val userService: IUserService,
     private val authCookieIssuer: AuthCookieIssuer,
 ) {
     @PostMapping("/login")
@@ -56,9 +58,18 @@ class AuthenticationResource(
     }
 
     @GetMapping("/verify")
-    fun verify(@AuthenticationPrincipal authenticatedUser: UserDTO?): ResponseEntity<String> {
+    fun verify(
+        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+        response: HttpServletResponse,
+    ): ResponseEntity<String> {
         if (authenticatedUser == null) {
             return ResponseEntity.status(401).body("Not authenticated")
+        }
+        // The JWT filter rebuilds the principal from claims alone, so a valid token can
+        // outlive the user. Reject — and clear the cookie — when that happens.
+        if (!userService.userExists(authenticatedUser.id)) {
+            authCookieIssuer.clear(response)
+            return ResponseEntity.status(401).body("Account no longer exists")
         }
         return ResponseEntity.ok("ok")
     }

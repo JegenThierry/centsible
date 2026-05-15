@@ -239,13 +239,13 @@ async function handleImport() {
       <div v-else class="space-y-4">
         <div class="flex items-center justify-between gap-4 text-sm">
           <p>Ready to import <strong>{{ previewRows.length }}</strong> row(s).</p>
-          <p v-if="invalidRowCount > 0" class="text-amber-600 dark:text-amber-400">
+          <p v-if="invalidRowCount > 0" class="text-warning">
             {{ invalidRowCount }} row(s) skipped (missing/invalid data)
           </p>
         </div>
-        <div class="max-h-64 overflow-y-auto border border-neutral-200 dark:border-neutral-800 rounded-md">
+        <div class="max-h-64 overflow-y-auto border border-default rounded-md">
           <table class="w-full text-sm">
-            <thead class="bg-neutral-50 dark:bg-neutral-900 sticky top-0">
+            <thead class="bg-muted sticky top-0">
               <tr>
                 <th class="text-left p-2">Date</th>
                 <th class="text-left p-2">Description</th>
@@ -253,7 +253,7 @@ async function handleImport() {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in previewRows.slice(0, 50)" :key="i" class="border-t border-neutral-100 dark:border-neutral-800">
+              <tr v-for="(row, i) in previewRows.slice(0, 50)" :key="i" class="border-t border-muted">
                 <td class="p-2 tabular-nums">{{ row.transactionDate }}</td>
                 <td class="p-2 truncate max-w-[20rem]">{{ row.description }}</td>
                 <td class="p-2 text-right tabular-nums">{{ row.amount.toFixed(2) }}</td>

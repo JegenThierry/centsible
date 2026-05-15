@@ -34,28 +34,28 @@ const netSavings = computed(() => {
     <StatCard
       :amount="monthlyIncome"
       :currency="currency"
-      amount-color-class="text-green-600 dark:text-green-400"
+      color="success"
       icon="i-lucide-trending-up"
-      icon-color-class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
       label="Monthly Income"
+      tone="positive"
     />
 
     <StatCard
       :amount="monthlyExpenses"
       :currency="currency"
-      amount-color-class="text-red-600 dark:text-red-400"
+      color="error"
       icon="i-lucide-trending-down"
-      icon-color-class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
       label="Monthly Expenses"
+      tone="negative"
     />
 
     <StatCard
       :amount="netSavings"
-      :amount-color-class="netSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
       :currency="currency"
+      color="primary"
       icon="i-lucide-piggy-bank"
-      icon-color-class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
       label="Net Savings"
+      tone="signed"
     />
   </div>
 </template>

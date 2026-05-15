@@ -2,6 +2,38 @@
 @import "@nuxt/ui";
 
 /*
+  Body gradient lives on a fixed ::before so scroll doesn't repaint
+  the viewport-sized background; tints stay in 50/100 (and 900-mixed
+  in dark) to keep contrast on cards & text intact.
+ */
+@layer base {
+  body {
+    background-color: var(--ui-color-primary-50);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(at 0% 0%, var(--ui-color-primary-100) 0px, transparent 55%),
+      radial-gradient(at 100% 100%, var(--ui-color-primary-100) 0px, transparent 60%);
+  }
+
+  .dark body {
+    background-color: var(--ui-color-neutral-950);
+  }
+
+  .dark body::before {
+    background-image:
+      radial-gradient(at 0% 0%, color-mix(in oklab, var(--ui-color-primary-900) 35%, transparent) 0px, transparent 55%),
+      radial-gradient(at 100% 100%, color-mix(in oklab, var(--ui-color-primary-900) 28%, transparent) 0px, transparent 60%);
+  }
+}
+
+/*
   Custom palettes consumed by themes in `composables/use-theme.ts`.
   `@theme static` forces every shade to be emitted so NuxtUI's runtime
   color plugin can switch primary to any of these at runtime.

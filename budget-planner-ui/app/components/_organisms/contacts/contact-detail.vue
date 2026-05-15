@@ -153,26 +153,26 @@ onMounted(async () => {
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <UCard>
-          <p class="text-xs text-neutral-500">Total lent</p>
+          <p class="text-xs text-muted">Total lent</p>
           <p class="text-lg font-bold">
             <BalanceNumberFormat :balance="Number(contact.totalLent)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-neutral-500">Total owed</p>
+          <p class="text-xs text-muted">Total owed</p>
           <p class="text-lg font-bold">
             <BalanceNumberFormat :balance="Number(contact.totalOwed)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-neutral-500">Total repaid</p>
-          <p class="text-lg font-bold text-green-600 dark:text-green-400">
+          <p class="text-xs text-muted">Total repaid</p>
+          <p class="text-lg font-bold text-success">
             <BalanceNumberFormat :balance="Number(contact.totalRepaid)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-neutral-500">Outstanding</p>
-          <p class="text-lg font-bold text-amber-600 dark:text-amber-400">
+          <p class="text-xs text-muted">Outstanding</p>
+          <p class="text-lg font-bold text-warning">
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </UCard>

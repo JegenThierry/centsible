@@ -69,7 +69,7 @@ const columns: TableColumn<Loan>[] = [
   {
     accessorKey: 'totalRepaid',
     header: 'Repaid',
-    meta: {class: {th: 'text-right', td: 'text-right text-green-600 dark:text-green-400'}},
+    meta: {class: {th: 'text-right', td: 'text-right text-success'}},
     cell: ({row}) => h(BalanceNumberFormat, {
       balance: Number(row.original.totalRepaid),
       currency: currency.value,
@@ -82,7 +82,7 @@ const columns: TableColumn<Loan>[] = [
     meta: {class: {th: 'text-right', td: 'text-right font-semibold'}},
     cell: ({row}) => {
       const value = Number(row.original.outstanding);
-      const cls = value > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500';
+      const cls = value > 0 ? 'text-warning' : 'text-muted';
       return h('span', {class: cls}, [
         h(BalanceNumberFormat, {
           balance: value,
@@ -145,8 +145,8 @@ const columns: TableColumn<Loan>[] = [
   <UTable :columns="columns" :data="loans" :loading="loading">
     <template #empty>
       <div class="flex flex-col items-center justify-center py-10 gap-3">
-        <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-inbox"/>
-        <p class="text-sm text-neutral-500">No loans yet.</p>
+        <UIcon class="w-8 h-8 text-dimmed" name="i-lucide-inbox"/>
+        <p class="text-sm text-muted">No loans yet.</p>
       </div>
     </template>
   </UTable>

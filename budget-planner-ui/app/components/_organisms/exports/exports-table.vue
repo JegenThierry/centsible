@@ -44,7 +44,7 @@ function postProcessingLabel(job: ExportJob): string {
     >
       <template #title-cell="{ row }">
         <div class="font-medium">{{ row.original.title }}</div>
-        <div v-if="row.original.errorMessage" class="text-xs text-red-600 dark:text-red-400 mt-0.5">
+        <div v-if="row.original.errorMessage" class="text-xs text-error mt-0.5">
           {{ row.original.errorMessage }}
         </div>
       </template>

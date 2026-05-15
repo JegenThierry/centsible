@@ -103,10 +103,10 @@ onMounted(() => {
               <p class="text-sm text-neutral-500">
                 {{ descriptorFor(conn)?.displayName ?? conn.providerKey }}
               </p>
-              <p v-if="conn.lastSyncAt" class="text-xs text-neutral-400 mt-1">
+              <p v-if="conn.lastSyncAt" class="text-xs text-dimmed mt-1">
                 Last synced: {{ new Date(conn.lastSyncAt).toLocaleString() }}
               </p>
-              <p v-if="conn.lastError" class="text-xs text-red-500 mt-1 truncate" :title="conn.lastError">
+              <p v-if="conn.lastError" class="text-xs text-error mt-1 truncate" :title="conn.lastError">
                 Last error: {{ conn.lastError }}
               </p>
             </div>
