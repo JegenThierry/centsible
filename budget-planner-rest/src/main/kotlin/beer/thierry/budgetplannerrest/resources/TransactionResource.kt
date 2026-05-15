@@ -1,6 +1,8 @@
 package beer.thierry.budgetplannerrest.resources
 
 import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.budgetplanner.api.model.transaction.ImportResult
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
@@ -94,6 +96,18 @@ class TransactionResource(private val transactionService: ITransactionService) {
         if (months !in 1..36) return ResponseEntity.badRequest().build()
         return ResponseEntity.ok(
             transactionService.aggregateByMonth(UUID.fromString(accountId), authenticatedUser, months)
+        )
+    }
+
+    @PostMapping("/{accountId}/import")
+    fun importTransactions(
+        @PathVariable accountId: String,
+        @Valid @RequestBody request: ImportTransactionsRequest,
+        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+    ): ResponseEntity<ImportResult> {
+        if (authenticatedUser == null) return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(
+            transactionService.importBatch(UUID.fromString(accountId), request, authenticatedUser)
         )
     }
 

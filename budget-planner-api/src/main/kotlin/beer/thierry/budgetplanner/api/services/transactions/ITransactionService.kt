@@ -2,6 +2,8 @@ package beer.thierry.budgetplanner.api.services.transactions
 
 import beer.thierry.budgetplanner.api.model.DEFAULT_PAGE_SIZE
 import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.budgetplanner.api.model.transaction.ImportResult
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
@@ -38,4 +40,10 @@ interface ITransactionService {
         authenticatedUser: UserDTO,
         months: Int = 6,
     ): List<MonthlyAggregateDTO>
+
+    fun importBatch(
+        accountId: UUID,
+        request: ImportTransactionsRequest,
+        authenticatedUser: UserDTO,
+    ): ImportResult
 }

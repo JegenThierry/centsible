@@ -1,10 +1,12 @@
 package beer.thierry.budgetplanner.api.repository
 
 import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.budgetplanner.api.model.transaction.ImportTransactionRow
 import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.util.*
 
@@ -34,4 +36,17 @@ interface ITransactionRepository {
         authenticatedUser: UserDTO,
         months: Int,
     ): List<MonthlyAggregateDTO>
+
+    /** Inserts rows skipping duplicates by [account_id, import_hash]. Returns inserted-row net adjustment. */
+    fun importBatch(
+        accountId: UUID,
+        rows: List<ImportTransactionRow>,
+        hashes: List<String>,
+        authenticatedUser: UserDTO,
+    ): BatchImportOutcome
 }
+
+data class BatchImportOutcome(
+    val insertedCount: Int,
+    val netBalanceAdjustment: BigDecimal,
+)

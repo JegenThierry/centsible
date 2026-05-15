@@ -5,6 +5,7 @@ import type {
   Transaction,
   TransactionRequest
 } from "~/models/transactions/transaction";
+import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import {validateRequest} from "~/composables/use-api";
 
 export function useTransactionService(api: AxiosInstance) {
@@ -51,6 +52,14 @@ export function useTransactionService(api: AxiosInstance) {
     return validateRequest<MonthlyAggregate[]>(response);
   }
 
+  async function importBatch(accountId: string, rows: ImportPayloadRow[]): Promise<ImportResult> {
+    const response = await api.post<ImportResult>(
+      `/transactions/${encodeURIComponent(accountId)}/import`,
+      {rows}
+    );
+    return validateRequest<ImportResult>(response);
+  }
+
   return {
     fetchTransactions,
     createTransaction,
@@ -58,5 +67,6 @@ export function useTransactionService(api: AxiosInstance) {
     deleteTransaction,
     aggregateByCategory,
     aggregateByMonth,
+    importBatch,
   }
 }
