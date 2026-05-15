@@ -63,6 +63,14 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         set(value): Unit = set(10, value)
         get(): String? = get(10) as String?
 
+    open var registrationTokenHash: ByteArray?
+        set(value): Unit = set(11, value)
+        get(): ByteArray? = get(11) as ByteArray?
+
+    open var registrationTokenExpiresAt: OffsetDateTime?
+        set(value): Unit = set(12, value)
+        get(): OffsetDateTime? = get(12) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -72,7 +80,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null): this() {
+    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null, registrationTokenHash: ByteArray? = null, registrationTokenExpiresAt: OffsetDateTime? = null): this() {
         this.id = id
         this.username = username
         this.email = email
@@ -84,6 +92,8 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         this.registered = registered
         this.registrationToken = registrationToken
         this.profilePicture = profilePicture
+        this.registrationTokenHash = registrationTokenHash
+        this.registrationTokenExpiresAt = registrationTokenExpiresAt
         resetChangedOnNotNull()
     }
 
@@ -103,6 +113,8 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
             this.registered = value.registered
             this.registrationToken = value.registrationToken
             this.profilePicture = value.profilePicture
+            this.registrationTokenHash = value.registrationTokenHash
+            this.registrationTokenExpiresAt = value.registrationTokenExpiresAt
             resetChangedOnNotNull()
         }
     }

@@ -6,6 +6,7 @@ package beer.thierry.jooq.generated
 
 import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
+import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
@@ -48,6 +49,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.accounts</code>.
      */
     val ACCOUNTS: Accounts get() = Accounts.ACCOUNTS
+
+    /**
+     * The table <code>public.budgets</code>.
+     */
+    val BUDGETS: Budgets get() = Budgets.BUDGETS
 
     /**
      * The table <code>public.categories</code>.
@@ -114,6 +120,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     override fun getTables(): List<Table<*>> = listOf(
         AccountHistory.ACCOUNT_HISTORY,
         Accounts.ACCOUNTS,
+        Budgets.BUDGETS,
         Categories.CATEGORIES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,

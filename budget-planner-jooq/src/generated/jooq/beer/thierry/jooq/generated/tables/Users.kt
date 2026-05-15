@@ -5,7 +5,9 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
+import beer.thierry.jooq.generated.indexes.IDX_USERS_REGISTRATION_TOKEN_HASH
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
@@ -15,6 +17,7 @@ import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
 import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
+import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
@@ -31,6 +34,7 @@ import kotlin.collections.List
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
+import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.Path
@@ -143,6 +147,16 @@ open class Users(
      */
     val PROFILE_PICTURE: TableField<UsersRecord, String?> = createField(DSL.name("profile_picture"), SQLDataType.CLOB, this, "")
 
+    /**
+     * The column <code>public.users.registration_token_hash</code>.
+     */
+    val REGISTRATION_TOKEN_HASH: TableField<UsersRecord, ByteArray?> = createField(DSL.name("registration_token_hash"), SQLDataType.BLOB, this, "")
+
+    /**
+     * The column <code>public.users.registration_token_expires_at</code>.
+     */
+    val REGISTRATION_TOKEN_EXPIRES_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("registration_token_expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -175,6 +189,7 @@ open class Users(
         override fun `as`(alias: Table<*>): UsersPath = UsersPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
+    override fun getIndexes(): List<Index> = listOf(IDX_USERS_REGISTRATION_TOKEN_HASH)
     override fun getPrimaryKey(): UniqueKey<UsersRecord> = USERS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<UsersRecord>> = listOf(USERS_EMAIL_KEY, USERS_USERNAME_KEY)
 
@@ -193,6 +208,22 @@ open class Users(
 
     val accounts: AccountsPath
         get(): AccountsPath = accounts()
+
+    private lateinit var _budgets: BudgetsPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.budgets</code>
+     * table
+     */
+    fun budgets(): BudgetsPath {
+        if (!this::_budgets.isInitialized)
+            _budgets = BudgetsPath(this, null, BUDGETS__BUDGETS_USER_ID_FKEY.inverseKey)
+
+        return _budgets;
+    }
+
+    val budgets: BudgetsPath
+        get(): BudgetsPath = budgets()
 
     private lateinit var _categories: CategoriesPath
 

@@ -5,6 +5,7 @@ import AccountHistoryList from "~/components/_organisms/dashboard/account-histor
 import TransactionsByCategory from "~/components/_organisms/dashboard/transactions-by-category.vue";
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
+import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -107,6 +108,8 @@ onMounted(() => {
         <TransactionsByCategory :currency="accountStore.activeAccount.currency"
                                 :transactions="transactionStore.transactions"/>
       </div>
+
+      <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
 
       <AccountHistoryList :currency="accountStore.activeAccount.currency"
                           :snapshots="historyStore.snapshots"/>
