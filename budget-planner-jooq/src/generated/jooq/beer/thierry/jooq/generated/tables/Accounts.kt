@@ -8,7 +8,9 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_ACCOUNTS_USER_ID
 import beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
+import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
@@ -171,6 +173,22 @@ open class Accounts(
 
     val users: UsersPath
         get(): UsersPath = users()
+
+    private lateinit var _recurringTransactions: RecurringTransactionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.recurring_transactions</code> table
+     */
+    fun recurringTransactions(): RecurringTransactionsPath {
+        if (!this::_recurringTransactions.isInitialized)
+            _recurringTransactions = RecurringTransactionsPath(this, null, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY.inverseKey)
+
+        return _recurringTransactions;
+    }
+
+    val recurringTransactions: RecurringTransactionsPath
+        get(): RecurringTransactionsPath = recurringTransactions()
 
     private lateinit var _transactions: TransactionsPath
 

@@ -6,6 +6,7 @@ package beer.thierry.jooq.generated.tables.pojos
 
 import java.io.Serializable
 import java.time.OffsetDateTime
+import java.util.Arrays
 import java.util.UUID
 
 
@@ -24,7 +25,9 @@ data class Users(
     val modifiedAt: OffsetDateTime? = null,
     val registered: Boolean? = null,
     val registrationToken: UUID? = null,
-    val profilePicture: String? = null
+    val profilePicture: String? = null,
+    val registrationTokenHash: ByteArray? = null,
+    val registrationTokenExpiresAt: OffsetDateTime? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -101,6 +104,18 @@ data class Users(
         }
         else if (this.profilePicture != o.profilePicture)
             return false
+        if (this.registrationTokenHash == null) {
+            if (o.registrationTokenHash != null)
+                return false
+        }
+        else if (!Arrays.equals(this.registrationTokenHash, o.registrationTokenHash))
+            return false
+        if (this.registrationTokenExpiresAt == null) {
+            if (o.registrationTokenExpiresAt != null)
+                return false
+        }
+        else if (this.registrationTokenExpiresAt != o.registrationTokenExpiresAt)
+            return false
         return true
     }
 
@@ -118,6 +133,8 @@ data class Users(
         result = prime * result + (if (this.registered == null) 0 else this.registered.hashCode())
         result = prime * result + (if (this.registrationToken == null) 0 else this.registrationToken.hashCode())
         result = prime * result + (if (this.profilePicture == null) 0 else this.profilePicture.hashCode())
+        result = prime * result + (if (this.registrationTokenHash == null) 0 else Arrays.hashCode(this.registrationTokenHash))
+        result = prime * result + (if (this.registrationTokenExpiresAt == null) 0 else this.registrationTokenExpiresAt.hashCode())
         return result
     }
 
@@ -135,6 +152,8 @@ data class Users(
         sb.append(", ").append(registered)
         sb.append(", ").append(registrationToken)
         sb.append(", ").append(profilePicture)
+        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(registrationTokenExpiresAt)
 
         sb.append(")")
         return sb.toString()

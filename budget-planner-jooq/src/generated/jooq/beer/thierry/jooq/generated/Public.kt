@@ -14,6 +14,7 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.ProviderConnections
+import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
@@ -90,6 +91,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val PROVIDER_CONNECTIONS: ProviderConnections get() = ProviderConnections.PROVIDER_CONNECTIONS
 
     /**
+     * The table <code>public.recurring_transactions</code>.
+     */
+    val RECURRING_TRANSACTIONS: RecurringTransactions get() = RecurringTransactions.RECURRING_TRANSACTIONS
+
+    /**
      * The table <code>public.schema_migrations</code>.
      */
     val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
@@ -122,6 +128,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
         ProviderConnections.PROVIDER_CONNECTIONS,
+        RecurringTransactions.RECURRING_TRANSACTIONS,
         SchemaMigrations.SCHEMA_MIGRATIONS,
         SystemInformation.SYSTEM_INFORMATION,
         Transactions.TRANSACTIONS,
