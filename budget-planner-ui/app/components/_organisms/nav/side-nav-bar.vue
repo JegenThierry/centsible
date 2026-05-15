@@ -30,24 +30,30 @@ const items = computed(() => {
         to: `/${accountId}/transactions`,
         icon: 'i-lucide-arrow-right-left',
         target: '_self'
+      },
+      {
+        label: 'Plan',
+        icon: 'i-lucide-target',
+        defaultOpen: true,
+        children: [
+          {
+            label: 'Budgets',
+            to: '/budgets',
+            icon: 'i-lucide-piggy-bank',
+            target: '_self'
+          },
+          {
+            label: 'Recurring',
+            to: `/${accountId}/recurring`,
+            icon: 'i-lucide-repeat',
+            target: '_self'
+          }
+        ]
       }
     );
   }
 
   menuItems.push(
-    {
-      label: 'Plan',
-      icon: 'i-lucide-target',
-      defaultOpen: true,
-      children: [
-        {
-          label: 'Budgets',
-          to: '/budgets',
-          icon: 'i-lucide-piggy-bank',
-          target: '_self'
-        }
-      ]
-    },
     {
       label: 'Categories',
       to: '/categories',

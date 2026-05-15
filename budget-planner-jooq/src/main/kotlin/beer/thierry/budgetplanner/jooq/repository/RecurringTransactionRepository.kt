@@ -1,0 +1,227 @@
+package beer.thierry.budgetplanner.jooq.repository
+
+import beer.thierry.budgetplanner.api.model.category.CategoryDTO
+import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.recurring.Frequency
+import beer.thierry.budgetplanner.api.model.recurring.RecurringTransactionDTO
+import beer.thierry.budgetplanner.api.model.recurring.RecurringTransactionForm
+import beer.thierry.budgetplanner.api.model.user.UserDTO
+import beer.thierry.budgetplanner.api.repository.IRecurringTransactionRepository
+import beer.thierry.jooq.generated.tables.references.ACCOUNTS
+import beer.thierry.jooq.generated.tables.references.CATEGORIES
+import beer.thierry.jooq.generated.tables.references.RECURRING_TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import org.jooq.Condition
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.util.*
+
+@Repository
+class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTransactionRepository {
+
+    override fun fetchAll(authenticatedUser: UserDTO, accountId: UUID?): List<RecurringTransactionDTO> {
+        val ownership = ACCOUNTS.USER_ID.eq(authenticatedUser.id)
+        val filter: Condition = if (accountId != null) ownership.and(ACCOUNTS.ID.eq(accountId)) else ownership
+
+        return baseSelect()
+            .where(filter)
+            .orderBy(RECURRING_TRANSACTIONS.ACTIVE.desc(), RECURRING_TRANSACTIONS.NEXT_RUN_AT.asc())
+            .fetch { mapToDTO(it) }
+    }
+
+    override fun fetchById(id: UUID, authenticatedUser: UserDTO): RecurringTransactionDTO {
+        return baseSelect()
+            .where(RECURRING_TRANSACTIONS.ID.eq(id).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .fetchSingle { mapToDTO(it) }
+    }
+
+    override fun create(
+        accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
+    ): RecurringTransactionDTO {
+        val now = OffsetDateTime.now()
+        val record = dsl.insertInto(
+            RECURRING_TRANSACTIONS,
+            RECURRING_TRANSACTIONS.ACCOUNT_ID,
+            RECURRING_TRANSACTIONS.CATEGORY_ID,
+            RECURRING_TRANSACTIONS.AMOUNT,
+            RECURRING_TRANSACTIONS.DESCRIPTION,
+            RECURRING_TRANSACTIONS.FREQUENCY,
+            RECURRING_TRANSACTIONS.START_DATE,
+            RECURRING_TRANSACTIONS.END_DATE,
+            RECURRING_TRANSACTIONS.NEXT_RUN_AT,
+            RECURRING_TRANSACTIONS.ACTIVE,
+            RECURRING_TRANSACTIONS.CREATED_AT,
+            RECURRING_TRANSACTIONS.MODIFIED_AT,
+        )
+            .select(
+                dsl.select(
+                    DSL.value(accountId),
+                    DSL.value(form.categoryId),
+                    DSL.value(form.amount),
+                    DSL.value(form.description),
+                    DSL.value(form.frequency.name),
+                    DSL.value(form.startDate),
+                    DSL.value(form.endDate),
+                    DSL.value(form.startDate),
+                    DSL.value(form.active),
+                    DSL.value(now),
+                    DSL.value(now),
+                ).whereExists(
+                    dsl.selectOne().from(ACCOUNTS)
+                        .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+                )
+            )
+            .returning(RECURRING_TRANSACTIONS.ID)
+            .fetchOne()
+            ?: throw IllegalArgumentException("Account not found or not owned by user")
+
+        return fetchById(record[RECURRING_TRANSACTIONS.ID]!!, authenticatedUser)
+    }
+
+    override fun update(
+        id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
+    ): RecurringTransactionDTO {
+        val updated = dsl.update(RECURRING_TRANSACTIONS)
+            .set(RECURRING_TRANSACTIONS.CATEGORY_ID, form.categoryId)
+            .set(RECURRING_TRANSACTIONS.AMOUNT, form.amount)
+            .set(RECURRING_TRANSACTIONS.DESCRIPTION, form.description)
+            .set(RECURRING_TRANSACTIONS.FREQUENCY, form.frequency.name)
+            .set(RECURRING_TRANSACTIONS.START_DATE, form.startDate)
+            .set(RECURRING_TRANSACTIONS.END_DATE, form.endDate)
+            .set(RECURRING_TRANSACTIONS.ACTIVE, form.active)
+            .set(RECURRING_TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
+            .where(
+                RECURRING_TRANSACTIONS.ID.eq(id).and(
+                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(
+                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                    )
+                )
+            )
+            .execute()
+
+        if (updated == 0) throw IllegalArgumentException("Recurring transaction not found or not owned by user")
+        return fetchById(id, authenticatedUser)
+    }
+
+    override fun delete(id: UUID, authenticatedUser: UserDTO) {
+        val deleted = dsl.deleteFrom(RECURRING_TRANSACTIONS)
+            .where(
+                RECURRING_TRANSACTIONS.ID.eq(id).and(
+                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(
+                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                    )
+                )
+            )
+            .execute()
+        if (deleted == 0) throw IllegalArgumentException("Recurring transaction not found or not owned by user")
+    }
+
+    override fun fetchDueRules(today: LocalDate): List<RecurringTransactionDTO> {
+        return baseSelect()
+            .where(
+                RECURRING_TRANSACTIONS.ACTIVE.eq(true)
+                    .and(RECURRING_TRANSACTIONS.NEXT_RUN_AT.le(today))
+                    .and(
+                        RECURRING_TRANSACTIONS.END_DATE.isNull
+                            .or(RECURRING_TRANSACTIONS.NEXT_RUN_AT.le(RECURRING_TRANSACTIONS.END_DATE))
+                    )
+            )
+            .orderBy(RECURRING_TRANSACTIONS.NEXT_RUN_AT.asc())
+            .fetch { mapToDTO(it) }
+    }
+
+    @Transactional
+    override fun materializeOnce(rule: RecurringTransactionDTO): LocalDate? {
+        val ruleId = rule.id ?: throw IllegalStateException("Rule id missing")
+        val accountId = rule.accountId ?: throw IllegalStateException("Rule account missing")
+        val type = rule.category.type ?: throw IllegalStateException("Rule category type missing")
+        val amount = rule.amount ?: throw IllegalStateException("Rule amount missing")
+        val occurrenceDate = rule.nextRunAt ?: throw IllegalStateException("Rule next_run_at missing")
+        val now = OffsetDateTime.now()
+
+        dsl.insertInto(
+            TRANSACTIONS,
+            TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.RECURRING_TRANSACTION_ID,
+            TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
+        ).values(
+            accountId, rule.category.id, amount,
+            rule.description, occurrenceDate,
+            ruleId,
+            now, now,
+        ).execute()
+
+        val adjustment = if (type == CategoryType.INCOME) amount else amount.negate()
+        dsl.update(ACCOUNTS)
+            .set(ACCOUNTS.BALANCE, ACCOUNTS.BALANCE.plus(adjustment))
+            .set(ACCOUNTS.MODIFIED_AT, now)
+            .where(ACCOUNTS.ID.eq(accountId))
+            .execute()
+
+        val frequency = rule.frequency ?: throw IllegalStateException("Rule frequency missing")
+        val newNext = frequency.advance(occurrenceDate)
+        val endDate = rule.endDate
+        val deactivate = endDate != null && newNext > endDate
+
+        dsl.update(RECURRING_TRANSACTIONS)
+            .set(RECURRING_TRANSACTIONS.NEXT_RUN_AT, newNext)
+            .set(RECURRING_TRANSACTIONS.ACTIVE, !deactivate)
+            .set(RECURRING_TRANSACTIONS.MODIFIED_AT, now)
+            .where(RECURRING_TRANSACTIONS.ID.eq(ruleId))
+            .execute()
+
+        return if (deactivate) null else newNext
+    }
+
+    private fun baseSelect() = dsl.select(
+        RECURRING_TRANSACTIONS.ID,
+        RECURRING_TRANSACTIONS.ACCOUNT_ID,
+        RECURRING_TRANSACTIONS.AMOUNT,
+        RECURRING_TRANSACTIONS.DESCRIPTION,
+        RECURRING_TRANSACTIONS.FREQUENCY,
+        RECURRING_TRANSACTIONS.START_DATE,
+        RECURRING_TRANSACTIONS.END_DATE,
+        RECURRING_TRANSACTIONS.NEXT_RUN_AT,
+        RECURRING_TRANSACTIONS.ACTIVE,
+        RECURRING_TRANSACTIONS.CREATED_AT,
+        RECURRING_TRANSACTIONS.MODIFIED_AT,
+        CATEGORIES.ID,
+        CATEGORIES.NAME,
+        CATEGORIES.ICON,
+        CATEGORIES.TYPE,
+        CATEGORIES.COLOR,
+    )
+        .from(RECURRING_TRANSACTIONS)
+        .join(CATEGORIES).on(CATEGORIES.ID.eq(RECURRING_TRANSACTIONS.CATEGORY_ID))
+        .join(ACCOUNTS).on(ACCOUNTS.ID.eq(RECURRING_TRANSACTIONS.ACCOUNT_ID))
+
+    private fun mapToDTO(record: org.jooq.Record): RecurringTransactionDTO {
+        val category = CategoryDTO(
+            id = record[CATEGORIES.ID]!!,
+            name = record[CATEGORIES.NAME]!!,
+            icon = record[CATEGORIES.ICON]!!,
+            type = CategoryType.fromValue(record[CATEGORIES.TYPE]!!),
+            color = record[CATEGORIES.COLOR],
+        )
+
+        return RecurringTransactionDTO(
+            id = record[RECURRING_TRANSACTIONS.ID]!!,
+            accountId = record[RECURRING_TRANSACTIONS.ACCOUNT_ID]!!,
+            category = category,
+            amount = record[RECURRING_TRANSACTIONS.AMOUNT]!!,
+            description = record[RECURRING_TRANSACTIONS.DESCRIPTION]!!,
+            frequency = Frequency.fromValue(record[RECURRING_TRANSACTIONS.FREQUENCY]!!),
+            startDate = record[RECURRING_TRANSACTIONS.START_DATE]!!,
+            endDate = record[RECURRING_TRANSACTIONS.END_DATE],
+            nextRunAt = record[RECURRING_TRANSACTIONS.NEXT_RUN_AT]!!,
+            active = record[RECURRING_TRANSACTIONS.ACTIVE]!!,
+            createdAt = record[RECURRING_TRANSACTIONS.CREATED_AT]!!,
+            updatedAt = record[RECURRING_TRANSACTIONS.MODIFIED_AT]!!,
+        )
+    }
+}

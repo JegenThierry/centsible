@@ -15,6 +15,7 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.ProviderConnections
+import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
@@ -76,6 +77,11 @@ val LOANS: Loans = Loans.LOANS
  * The table <code>public.provider_connections</code>.
  */
 val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CONNECTIONS
+
+/**
+ * The table <code>public.recurring_transactions</code>.
+ */
+val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURRING_TRANSACTIONS
 
 /**
  * The table <code>public.schema_migrations</code>.
