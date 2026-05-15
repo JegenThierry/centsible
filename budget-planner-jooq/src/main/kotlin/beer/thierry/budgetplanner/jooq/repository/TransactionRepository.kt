@@ -2,6 +2,8 @@ package beer.thierry.budgetplanner.jooq.repository
 
 import beer.thierry.budgetplanner.api.model.category.CategoryDTO
 import beer.thierry.budgetplanner.api.model.category.CategoryType
+import beer.thierry.budgetplanner.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.budgetplanner.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionDTO
 import beer.thierry.budgetplanner.api.model.transaction.TransactionForm
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -12,7 +14,9 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
 import java.time.OffsetDateTime
+import java.time.YearMonth
 import java.util.*
 
 @Repository
@@ -146,6 +150,76 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         dsl.deleteFrom(TRANSACTIONS).where(TRANSACTIONS.ID.eq(transactionId)).execute()
 
         return transaction
+    }
+
+    override fun aggregateByCategory(
+        accountId: UUID, authenticatedUser: UserDTO, yearMonth: YearMonth
+    ): List<CategoryAggregateDTO> {
+        val start = yearMonth.atDay(1)
+        val end = yearMonth.atEndOfMonth()
+        val total = DSL.sum(TRANSACTIONS.AMOUNT).`as`("total")
+
+        return dsl.select(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON, total)
+            .from(TRANSACTIONS)
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                baseCondition(accountId, authenticatedUser)
+                    .and(CATEGORIES.TYPE.eq(CategoryType.EXPENSE.name))
+                    .and(TRANSACTIONS.TRANSACTION_DATE.between(start, end))
+            )
+            .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON)
+            .orderBy(total.desc())
+            .fetch { record ->
+                CategoryAggregateDTO(
+                    categoryId = record[CATEGORIES.ID]!!,
+                    categoryName = record[CATEGORIES.NAME]!!,
+                    categoryColor = record[CATEGORIES.COLOR],
+                    categoryIcon = record[CATEGORIES.ICON],
+                    total = record[total] ?: BigDecimal.ZERO,
+                )
+            }
+    }
+
+    override fun aggregateByMonth(
+        accountId: UUID, authenticatedUser: UserDTO, months: Int
+    ): List<MonthlyAggregateDTO> {
+        require(months in 1..36) { "months must be between 1 and 36" }
+        val today = java.time.LocalDate.now()
+        val firstMonth = YearMonth.from(today).minusMonths((months - 1).toLong())
+        val start = firstMonth.atDay(1)
+
+        val monthExpr = DSL.field("to_char({0}, 'YYYY-MM')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("ym")
+        val incomeExpr = DSL.sum(
+            DSL.case_().`when`(CATEGORIES.TYPE.eq(CategoryType.INCOME.name), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("income")
+        val expenseExpr = DSL.sum(
+            DSL.case_().`when`(CATEGORIES.TYPE.eq(CategoryType.EXPENSE.name), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("expense")
+
+        val rows = dsl.select(monthExpr, incomeExpr, expenseExpr)
+            .from(TRANSACTIONS)
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                baseCondition(accountId, authenticatedUser)
+                    .and(TRANSACTIONS.TRANSACTION_DATE.ge(start))
+            )
+            .groupBy(monthExpr)
+            .fetch { record ->
+                record[monthExpr]!! to MonthlyAggregateDTO(
+                    yearMonth = record[monthExpr]!!,
+                    income = record[incomeExpr] ?: BigDecimal.ZERO,
+                    expense = record[expenseExpr] ?: BigDecimal.ZERO,
+                )
+            }.toMap()
+
+        return (0 until months).map { offset ->
+            val ym = firstMonth.plusMonths(offset.toLong()).toString()
+            rows[ym] ?: MonthlyAggregateDTO(yearMonth = ym)
+        }
     }
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =
