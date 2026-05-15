@@ -20,7 +20,7 @@ export const themes: ThemeDefinition[] = [
 export const swatchFor = (palette: Palette): string => `var(--color-${palette}-500)`;
 
 const STORAGE_KEY = 'budget-planner.theme';
-const DEFAULT_THEME_ID: ThemeId = 'blush';
+const DEFAULT_THEME_ID: ThemeId = 'nuxt';
 
 const safeStorage = {
   get(key: string): string | null {

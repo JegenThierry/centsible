@@ -18,6 +18,8 @@ The project is organized as a monorepo containing both frontend and backend modu
 
 ### Folder Overview
 
+> **A note on naming.** The product is **Centsible**, but the modules, Kotlin packages (`beer.thierry.budgetplanner.*`), Docker service names, the `budget_planner` database, and the jOOQ-generated code under `beer.thierry.jooq.generated` still use the original `budget-planner` identifier. These are internal infrastructure names — renaming them would churn generated sources, Spring `@ComponentScan` lists, Docker Compose references, environment variables, and git history with no user-facing benefit. Treat `budget-planner-*` as the codebase's legacy skin; **Centsible** is what users see.
+
 - **`budget-planner-api`**: Shared domain models, DTOs, and interfaces.
 - **`budget-planner-bruno`**: API request collections for the [Bruno](https://www.usebruno.com/) API client.
 - **`budget-planner-core`**: Core business logic and service implementations.
@@ -183,7 +185,7 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 | `REST_HOST_PORT`                    | Host-side port for the REST API                                                                                                                      | `8080`                           |
 | `JWT_SECRET`                        | Base64-encoded JWT signing key (≥256 bits — `openssl rand -base64 64`)                                                                               | —                                |
 | `JWT_EXPIRATION_MS`                 | JWT lifetime in ms                                                                                                                                   | `14400000` (4h)                  |
-| `APP_BASE_URL`                      | Public base URL (used in confirmation emails). MUST be `https://…` in prod                                                                           | `http://localhost:8080`          |
+| `APP_BASE_URL`                      | User-facing UI origin (used in confirmation email links). MUST be `https://…` in prod                                                                | `http://localhost:3000`          |
 | `SKIP_EMAIL_VERIFICATION`           | Auto-confirms new registrations (dev only — `ProductionGuard` rejects `true` under prod profile)                                                     | `false`                          |
 | `SPRING_PROFILES_ACTIVE`            | Set to `prod` for public deployments to activate `ProductionGuard` invariant checks                                                                  | empty                            |
 | `CORS_ALLOWED_ORIGINS`              | Comma-separated origin allowlist for the UI. Never use wildcards                                                                                     | `http://localhost:3000`          |

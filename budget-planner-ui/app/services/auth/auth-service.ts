@@ -29,11 +29,19 @@ export function useAuthService(api: AxiosInstance) {
     return response.status === 200;
   }
 
+  async function confirm(token: string): Promise<boolean> {
+    const response = await api.get<string>('/auth/confirm', {
+      params: {token},
+      validateStatus: (status) => status === 200 || status === 400,
+    });
+    return response.status === 200;
+  }
+
   async function logout(): Promise<void> {
     await api.post('/auth/logout');
   }
 
   return {
-    login, register, verify, logout
+    login, register, verify, confirm, logout
   }
 }
