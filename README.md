@@ -82,40 +82,9 @@ In addition, two cross-cutting modules support the export pipeline:
 
 ### Configuration
 
-The project uses an `.env` file at the root for configuration. Copy `.env.example` to `.env` and update the values as needed.
+Copy `.env.example` to `.env` and adjust values. The full set of variables (with annotations) is documented inline there; see also the **Environment Variables** section below for descriptions and defaults.
 
-```env
-# ===== Database =====
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=change_me_super_strong_password
-POSTGRES_DB=budget_planner
-DB_HOST_PORT=5432
-
-# ===== REST API =====
-REST_HOST_PORT=8080
-JWT_SECRET=your-secret-here
-JWT_EXPIRATION_MS=86400000
-APP_BASE_URL=http://localhost:8080
-SKIP_EMAIL_VERIFICATION=true
-JAVA_OPTS='-Xms128m -Xmx384m'
-
-# ===== Resend (email) =====
-RESEND_API_KEY=re_123456789
-RESEND_FROM_EMAIL=onboarding@resend.dev
-
-# ===== Export Service =====
-EXPORT_HOST_PORT=8081
-EXPORT_POLL_INTERVAL_MS=2000
-EXPORT_LEASE_TIMEOUT_SECONDS=300
-
-# ===== UI =====
-UI_HOST_PORT=3000
-NUXT_PUBLIC_API_BASE=http://localhost:8080/api
-NUXT_API_BASE_SSR=http://budget-planner-rest:8080/api
-
-# ===== Runtime =====
-TZ=UTC
-```
+Defaults are tuned for a **production-shaped** deployment (registration disabled, `Secure` cookies, `SPRING_PROFILES_ACTIVE=prod`). For local HTTP dev, override the relevant variables — typically by setting `SKIP_EMAIL_VERIFICATION=true`, `AUTH_COOKIE_SECURE=false`, `SPRING_PROFILES_ACTIVE=` (empty), and `REGISTRATION_ENABLED=true` when you need to create an account.
 
 ### Installation and Deployment
 
@@ -135,9 +104,9 @@ This monitors your source files and automatically rebuilds or syncs containers w
 
 This will start:
 
-- PostgreSQL on port `5432` (or as configured in `DB_HOST_PORT`)
+- PostgreSQL on `127.0.0.1:5432` (configurable via `DB_HOST_PORT`; bound to localhost only — never published externally)
 - REST API on port `8080` (or as configured in `REST_HOST_PORT`)
-- Export worker on port `8081` (or as configured in `EXPORT_HOST_PORT`) — actuator only; the worker has no HTTP API of its own.
+- Export worker — internal only, not published to the host
 - UI on port `3000` (or as configured in `UI_HOST_PORT`)
 
 ## Module Scripts
@@ -174,7 +143,7 @@ The `budget-planner-bruno/testdata/` folder is a self-contained Bruno collection
 
 ### How to run
 
-1. Start the stack with `SKIP_EMAIL_VERIFICATION=true` in `.env` — otherwise `01_register.bru` will not yield a usable session token.
+1. In `.env`, set `REGISTRATION_ENABLED=true` and `SKIP_EMAIL_VERIFICATION=true`. Without the first, `01_register.bru` is rejected with "Registration is disabled"; without the second, it returns no session token. Then start the stack:
    ```bash
    docker compose up --build
    ```
@@ -199,28 +168,69 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 
 ## Environment Variables
 
-| Variable                       | Description                                                                                  | Default                      |
-|:-------------------------------|:---------------------------------------------------------------------------------------------|:-----------------------------|
-| `POSTGRES_USER`                | Database username                                                                            | -                            |
-| `POSTGRES_PASSWORD`            | Database password                                                                            | -                            |
-| `POSTGRES_DB`                  | Database name                                                                                | `budget_planner`             |
-| `DB_HOST_PORT`                 | Port for PostgreSQL                                                                          | `5432`                       |
-| `JWT_SECRET`                   | Secret key for JWT signing                                                                   | -                            |
-| `JWT_EXPIRATION_MS`            | JWT token expiration in ms                                                                   | `86400000` (24h)             |
-| `REST_HOST_PORT`               | Port for REST API                                                                            | `8080`                       |
-| `JAVA_OPTS`                    | JVM options for the REST container                                                           | `-Xms128m -Xmx384m`          |
-| `RESEND_API_KEY`               | API key for Resend email service                                                             | -                            |
-| `RESEND_FROM_EMAIL`            | Email address to send emails from                                                            | -                            |
-| `APP_BASE_URL`                 | Base URL for the application                                                                 | `http://localhost:8080`      |
-| `SKIP_EMAIL_VERIFICATION`      | Skip email verification during registration                                                  | `false`                      |
-| `EXPORT_HOST_PORT`             | Port for the export worker's actuator                                                        | `8081`                       |
-| `EXPORT_POLL_INTERVAL_MS`      | How often the export worker polls for queued jobs (ms)                                       | `2000`                       |
-| `EXPORT_LEASE_TIMEOUT_SECONDS` | Worker lease TTL — jobs leased but not finished within this window are reclaimable by others | `300`                        |
-| `EXPORT_JAVA_OPTS`             | JVM options for the export container                                                         | `-Xms256m -Xmx512m`          |
-| `UI_HOST_PORT`                 | Port for UI                                                                                  | `3000`                       |
-| `NUXT_PUBLIC_API_BASE`         | Public API URL for the frontend                                                              | `http://localhost:8080/api`  |
-| `NUXT_API_BASE_SSR`            | API URL for SSR in Nuxt                                                                      | -                            |
-| `TZ`                           | Timezone applied to all containers                                                           | `UTC`                        |
+### Database
+
+| Variable                       | Description                                                                                  | Default                              |
+|:-------------------------------|:---------------------------------------------------------------------------------------------|:-------------------------------------|
+| `POSTGRES_USER`                | Database username                                                                            | —                                    |
+| `POSTGRES_PASSWORD`            | Database password (generate: `openssl rand -base64 32`)                                      | —                                    |
+| `POSTGRES_DB`                  | Database name                                                                                | `budget_planner`                     |
+| `DB_HOST_PORT`                 | Host-side port for PostgreSQL. Bound to `127.0.0.1` only — never published externally        | `5432`                               |
+
+### REST API
+
+| Variable                            | Description                                                                                                                                          | Default                          |
+|:------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------|
+| `REST_HOST_PORT`                    | Host-side port for the REST API                                                                                                                      | `8080`                           |
+| `JWT_SECRET`                        | Base64-encoded JWT signing key (≥256 bits — `openssl rand -base64 64`)                                                                               | —                                |
+| `JWT_EXPIRATION_MS`                 | JWT lifetime in ms                                                                                                                                   | `14400000` (4h)                  |
+| `APP_BASE_URL`                      | Public base URL (used in confirmation emails). MUST be `https://…` in prod                                                                           | `http://localhost:8080`          |
+| `SKIP_EMAIL_VERIFICATION`           | Auto-confirms new registrations (dev only — `ProductionGuard` rejects `true` under prod profile)                                                     | `false`                          |
+| `SPRING_PROFILES_ACTIVE`            | Set to `prod` for public deployments to activate `ProductionGuard` invariant checks                                                                  | empty                            |
+| `CORS_ALLOWED_ORIGINS`              | Comma-separated origin allowlist for the UI. Never use wildcards                                                                                     | `http://localhost:3000`          |
+| `REGISTRATION_ENABLED`              | Kill switch for `POST /api/auth/register`. Flip `true` to create your account, then back to `false`                                                  | `false`                          |
+| `AUTH_COOKIE_SECURE`                | Sets the `Secure` flag on the auth cookie. MUST be `true` in prod (ProductionGuard enforces under `prod` profile)                                    | `false`                          |
+| `AUTH_COOKIE_DOMAIN`                | Cookie `Domain` attribute. Set when UI and API share a parent domain                                                                                 | empty                            |
+| `SERVER_FORWARD_HEADERS_STRATEGY`   | `framework` honours `X-Forwarded-*` from a trusted proxy. Use `none` if no proxy — otherwise the rate-limit client-IP becomes spoofable              | `framework`                      |
+| `JAVA_OPTS`                         | JVM options for the REST container                                                                                                                   | `-Xms128m -Xmx384m`              |
+
+### Email (Resend)
+
+| Variable                  | Description                          | Default |
+|:--------------------------|:-------------------------------------|:--------|
+| `RESEND_API_KEY`          | API key for the Resend email service | —       |
+| `RESEND_FROM_EMAIL`       | "From" address on outbound mail      | —       |
+
+### Export worker
+
+| Variable                       | Description                                                                                  | Default                |
+|:-------------------------------|:---------------------------------------------------------------------------------------------|:-----------------------|
+| `EXPORT_POLL_INTERVAL_MS`      | How often the worker polls for queued jobs (ms)                                              | `2000`                 |
+| `EXPORT_LEASE_TIMEOUT_SECONDS` | Worker lease TTL — jobs leased but not finished within this window are reclaimable by others | `300`                  |
+| `EXPORT_JAVA_OPTS`             | JVM options for the export container                                                         | `-Xms256m -Xmx512m`    |
+
+### Integrations (provider plugins — only required if storing third-party credentials)
+
+| Variable                              | Description                                                                                           | Default      |
+|:--------------------------------------|:------------------------------------------------------------------------------------------------------|:-------------|
+| `INTEGRATIONS_ENCRYPTION_KEY`         | Passphrase used to derive the AES-256 key that encrypts provider credentials at rest                  | empty        |
+| `INTEGRATIONS_ENCRYPTION_SALT`        | Hex string, ≥16 chars (`openssl rand -hex 16`)                                                        | empty        |
+| `INTEGRATIONS_SYNC_POLL_INTERVAL_MS`  | How often the sync orchestrator polls (ms)                                                            | `300000`     |
+| `INTEGRATIONS_SYNC_INTERVAL_SECONDS`  | How often a single connection is re-synced (s)                                                        | `3600`       |
+
+### UI
+
+| Variable               | Description                       | Default                            |
+|:-----------------------|:----------------------------------|:-----------------------------------|
+| `UI_HOST_PORT`         | Host-side port for the UI         | `3000`                             |
+| `NUXT_PUBLIC_API_BASE` | Public API URL used by the browser| `http://localhost:8080/api`        |
+| `NUXT_API_BASE_SSR`    | API URL used during Nuxt SSR      | `http://budget-planner-rest:8080/api` |
+
+### Runtime
+
+| Variable | Description                        | Default |
+|:---------|:-----------------------------------|:--------|
+| `TZ`     | Timezone applied to all containers | `UTC`   |
 
 ## License
 

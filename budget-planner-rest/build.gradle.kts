@@ -26,6 +26,9 @@ dependencies {
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
 
+    implementation(libs.bucket4j.core)
+    implementation(libs.caffeine)
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation(libs.spring.boot.starter.jooq.test)

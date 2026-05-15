@@ -10,10 +10,6 @@ import java.util.*
 
 @Service
 class UserService(private val userRepository: IUserRepository) : IUserService {
-    override fun fetchAllUsers(): List<UserDTO> {
-        return userRepository.findAllUsers()
-    }
-
     override fun fetchUserByUsername(username: String): UserDTO {
         val user = userRepository.findUserByUsername(username)
             ?: throw IllegalArgumentException("User with username $username not found")

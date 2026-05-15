@@ -34,12 +34,17 @@ class JwtAuthenticationFilter(
         filterChain.doFilter(request, response)
     }
 
-    private fun extractToken(request: HttpServletRequest): String? =
-        request.getHeader("Authorization")
+    private fun extractToken(request: HttpServletRequest): String? {
+        // Cookie for browsers; Authorization header for curl/Bruno.
+        val cookieToken = request.cookies?.firstOrNull { it.name == AUTH_COOKIE_NAME }?.value
+        if (!cookieToken.isNullOrBlank()) return cookieToken
+
+        return request.getHeader("Authorization")
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substringAfter("Bearer ")
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
+    }
 
     private fun parseUserDTO(token: String): UserDTO? = try {
         val claims = Jwts.parser()

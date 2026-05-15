@@ -66,7 +66,7 @@ class TransactionServiceTest {
         val result = service.createTransaction(accountId, form, user)
 
         assertEquals(transaction, result)
-        verify(accountRepository).updateBalance(accountId, BigDecimal("50.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("50.00"), user)
     }
 
     @Test
@@ -89,7 +89,7 @@ class TransactionServiceTest {
         val result = service.createTransaction(accountId, form, user)
 
         assertEquals(transaction, result)
-        verify(accountRepository).updateBalance(accountId, BigDecimal("-30.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-30.00"), user)
     }
 
     @Test
@@ -127,7 +127,7 @@ class TransactionServiceTest {
 
         assertEquals(updatedTransaction, result)
         // Combined adjustment: reverse old expense (+50) + apply new income (+100) = +150
-        verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"), user)
     }
 
     @Test
@@ -151,7 +151,7 @@ class TransactionServiceTest {
 
         assertEquals(transaction, result)
         // Reverse income: -40
-        verify(accountRepository).updateBalance(accountId, BigDecimal("-40.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-40.00"), user)
     }
 
     @Test
@@ -175,7 +175,7 @@ class TransactionServiceTest {
 
         assertEquals(transaction, result)
         // Reverse expense: +25
-        verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"), user)
     }
 
     @Test
@@ -213,6 +213,6 @@ class TransactionServiceTest {
 
         assertEquals(updatedTransaction, result)
         // Combined adjustment: reverse old income (-120) + apply new expense (-80) = -200
-        verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"), user)
     }
 }

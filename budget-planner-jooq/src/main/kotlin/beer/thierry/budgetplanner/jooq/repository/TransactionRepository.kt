@@ -10,6 +10,7 @@ import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.*
@@ -87,12 +88,27 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun createTransaction(
         accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
     ): TransactionDTO {
-        val record = dsl.insertInto(TRANSACTIONS).set(TRANSACTIONS.ACCOUNT_ID, accountId)
-            .set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId).set(TRANSACTIONS.AMOUNT, transactionForm.amount)
-            .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
-            .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
-            .set(TRANSACTIONS.CREATED_AT, OffsetDateTime.now()).set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
-            .returning().fetchOne() ?: throw IllegalStateException("Failed to create transaction")
+        // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
+        val now = OffsetDateTime.now()
+        val record = dsl.insertInto(
+            TRANSACTIONS,
+            TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
+        )
+            .select(
+                dsl.select(
+                    DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(transactionForm.amount),
+                    DSL.value(transactionForm.description), DSL.value(transactionForm.transactionDate),
+                    DSL.value(now), DSL.value(now),
+                ).whereExists(
+                    dsl.selectOne().from(ACCOUNTS)
+                        .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+                )
+            )
+            .returning(TRANSACTIONS.ID)
+            .fetchOne()
+            ?: throw IllegalArgumentException("Account not found or not owned by user")
 
         return fetchTransactionById(record[TRANSACTIONS.ID]!!, authenticatedUser)
     }
@@ -100,13 +116,26 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun updateTransaction(
         transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
     ): TransactionDTO {
-        dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
+        // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
+        val updated = dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
             .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
-            .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now()).where(
-                TRANSACTIONS.ID.eq(transactionId).and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+            .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
+            .where(
+                TRANSACTIONS.ID.eq(transactionId)
+                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+                    .and(
+                        TRANSACTIONS.ACCOUNT_ID.`in`(
+                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
+                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                        )
+                    )
             ).execute()
+
+        if (updated == 0) {
+            throw IllegalArgumentException("Transaction not found or not owned by user")
+        }
 
         return fetchTransactionById(transactionId, authenticatedUser)
     }

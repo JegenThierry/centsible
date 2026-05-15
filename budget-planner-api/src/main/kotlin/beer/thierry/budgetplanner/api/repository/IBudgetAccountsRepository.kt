@@ -15,5 +15,5 @@ interface IBudgetAccountsRepository {
     ): BudgetAccountDTO
 
     fun fetchInitialBalance(accountId: UUID, authenticatedUser: UserDTO): BigDecimal
-    fun updateBalance(accountId: UUID, amount: BigDecimal)
+    fun updateBalance(accountId: UUID, amount: BigDecimal, authenticatedUser: UserDTO)
 }

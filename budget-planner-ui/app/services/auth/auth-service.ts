@@ -29,7 +29,11 @@ export function useAuthService(api: AxiosInstance) {
     return response.status === 200;
   }
 
+  async function logout(): Promise<void> {
+    await api.post('/auth/logout');
+  }
+
   return {
-    login, register, verify
+    login, register, verify, logout
   }
 }

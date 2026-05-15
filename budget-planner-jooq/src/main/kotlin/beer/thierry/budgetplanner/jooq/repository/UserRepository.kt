@@ -2,32 +2,19 @@ package beer.thierry.budgetplanner.jooq.repository
 
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.user.User
-import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.repository.IUserRepository
 import beer.thierry.jooq.generated.tables.references.USERS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.*
 
+private val REGISTRATION_TOKEN_HASH = field("registration_token_hash", ByteArray::class.java)
+private val REGISTRATION_TOKEN_EXPIRES_AT = field("registration_token_expires_at", OffsetDateTime::class.java)
+
 @Repository
 class UserRepository(private val dsl: DSLContext) : IUserRepository {
-    override fun findAllUsers(): List<UserDTO> {
-        return dsl.select(
-            USERS.ID,
-            USERS.USERNAME,
-            USERS.EMAIL,
-            USERS.FIRST_NAME,
-            USERS.LAST_NAME,
-            USERS.FIRST_NAME.concat(" ").concat(USERS.LAST_NAME).`as`("name"),
-            USERS.PROFILE_PICTURE
-        )
-            .from(USERS)
-            .fetchInto(UserDTO::class.java)
-    }
-
     override fun findUserByUsername(username: String): User? {
         return dsl.selectFrom(USERS)
             .where(USERS.USERNAME.eq(username))
@@ -52,23 +39,28 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .fetchOneInto(User::class.java)
     }
 
-    override fun findUserByTokenAndUsername(token: UUID, username: String): User? {
+    override fun findUserByValidTokenHash(tokenHash: ByteArray): User? {
         return dsl.selectFrom(USERS)
-            .where(field("registration_token", UUID::class.java).eq(token).and(USERS.USERNAME.eq(username)))
+            .where(REGISTRATION_TOKEN_HASH.eq(tokenHash))
+            .and(REGISTRATION_TOKEN_EXPIRES_AT.gt(OffsetDateTime.now()))
             .fetchOneInto(User::class.java)
     }
 
-    override fun createUser(user: AuthRegisterRequest): User? {
-        val encoder = BCryptPasswordEncoder()
-
+    override fun createUser(
+        user: AuthRegisterRequest,
+        passwordHash: String,
+        registrationTokenHash: ByteArray,
+        registrationTokenExpiresAt: OffsetDateTime,
+    ): User? {
         return dsl.insertInto(USERS)
             .set(USERS.USERNAME, user.username)
             .set(USERS.EMAIL, user.email)
             .set(USERS.FIRST_NAME, user.firstName)
             .set(USERS.LAST_NAME, user.lastName)
-            .set(USERS.PASSWORD_HASH, encoder.encode(user.password))
+            .set(USERS.PASSWORD_HASH, passwordHash)
             .set(field("registered", Boolean::class.java), false)
-            .set(field("registration_token", UUID::class.java), UUID.randomUUID())
+            .set(REGISTRATION_TOKEN_HASH, registrationTokenHash)
+            .set(REGISTRATION_TOKEN_EXPIRES_AT, registrationTokenExpiresAt)
             .set(USERS.CREATED_AT, OffsetDateTime.now())
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .returning()
@@ -78,7 +70,8 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
     override fun confirmUser(id: UUID): Boolean {
         return dsl.update(USERS)
             .set(field("registered", Boolean::class.java), true)
-            .set(field("registration_token", UUID::class.java), null as UUID?)
+            .set(REGISTRATION_TOKEN_HASH, null as ByteArray?)
+            .set(REGISTRATION_TOKEN_EXPIRES_AT, null as OffsetDateTime?)
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0

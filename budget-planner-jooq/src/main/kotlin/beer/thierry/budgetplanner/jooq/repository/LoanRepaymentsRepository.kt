@@ -88,7 +88,7 @@ class LoanRepaymentsRepository(
                 ?: throw IllegalStateException("Failed to create repayment transaction")
 
             // Repayment is an INCOME-typed managed category, so the cash returns to the account.
-            budgetAccountsRepository.updateBalance(accountId, form.amount)
+            budgetAccountsRepository.updateBalance(accountId, form.amount, authenticatedUser)
 
             newTransactionId
         } else null
@@ -141,7 +141,7 @@ class LoanRepaymentsRepository(
 
         if (deleted) {
             reversal?.let { (accountId, amount) ->
-                budgetAccountsRepository.updateBalance(accountId, amount.negate())
+                budgetAccountsRepository.updateBalance(accountId, amount.negate(), authenticatedUser)
             }
         }
 

@@ -12,7 +12,7 @@ class RegisterEmailService(
     @Value("\${app.base-url:http://localhost:8080}") private val baseUrl: String
 ) : IRegisterEmailService {
     override fun sendRegistrationEmail(user: User, token: String) {
-        val confirmationUrl = "$baseUrl/api/auth/confirm?token=$token&username=${user.username}"
+        val confirmationUrl = "$baseUrl/api/auth/confirm?token=$token"
         val subject = "Confirm your account"
         val content = """
             <h1>Welcome to Budget Planner</h1>

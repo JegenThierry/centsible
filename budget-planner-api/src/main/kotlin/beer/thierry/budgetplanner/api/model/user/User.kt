@@ -11,7 +11,6 @@ data class User(
     val passwordHash: String = "",
     val profilePicture: String? = null,
     val registered: Boolean = false,
-    val registrationToken: UUID? = null,
     val createdAt: java.time.OffsetDateTime = java.time.OffsetDateTime.now(),
     val modifiedAt: java.time.OffsetDateTime = java.time.OffsetDateTime.now()
 )

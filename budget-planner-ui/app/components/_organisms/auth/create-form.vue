@@ -2,8 +2,6 @@
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
-import type {AxiosInstance} from "axios";
-import type {AuthResponse} from "~/models/auth/auth-response";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import RegisterPasswordInput from "~/components/_organisms/inputs/register-password-input.vue";
 import {useValidator} from "~/composables/use-validator";
@@ -38,15 +36,20 @@ function onSubmit() {
   }
   loading.value = true;
 
-  useAuthService(api as AxiosInstance)
+  useAuthService(api)
     .register(state)
-    .then((res: AuthResponse) => {
-      authStore.setToken(res.token);
-      userStore.fetchMyself();
-      navigateTo('/accounts');
+    .then(async (res) => {
+      // res.token is only set when SKIP_EMAIL_VERIFICATION=true; otherwise confirm-via-email.
+      if (res.token) {
+        authStore.setAuthenticated(true);
+        await userStore.fetchMyself();
+        navigateTo('/accounts');
+      }
       success(
         'Registered successfully',
-        'You have successfully registered, you will be redirected to the dashboard.'
+        res.token
+          ? 'You have successfully registered, you will be redirected to the dashboard.'
+          : 'Check your inbox to confirm your account.'
       );
     })
     .catch((err) => {

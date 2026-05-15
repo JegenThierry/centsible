@@ -65,11 +65,13 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
         return account.get("initial_balance", BigDecimal::class.java) ?: BigDecimal.ZERO
     }
 
-    override fun updateBalance(accountId: UUID, amount: BigDecimal) {
-        dsl.update(ACCOUNTS)
+    override fun updateBalance(accountId: UUID, amount: BigDecimal, authenticatedUser: UserDTO) {
+        val rows = dsl.update(ACCOUNTS)
             .set(ACCOUNTS.BALANCE, ACCOUNTS.BALANCE.plus(amount))
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
-            .where(ACCOUNTS.ID.eq(accountId))
+            .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .execute()
+        // Must throw, not no-op: @Transactional callers rely on this to roll back.
+        if (rows == 0) throw IllegalArgumentException("Account not found or not owned by user")
     }
 }
