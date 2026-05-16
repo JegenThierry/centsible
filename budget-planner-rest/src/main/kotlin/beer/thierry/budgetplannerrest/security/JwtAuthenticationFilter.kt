@@ -59,10 +59,12 @@ class JwtAuthenticationFilter(
         val firstName = claims["firstName"] as? String ?: ""
         val lastName = claims["lastName"] as? String ?: ""
         val name = claims["name"] as? String ?: ""
-        val profilePicture = claims["profilePicture"] as? String
         // Pre-locale tokens won't carry the claim; default to English so legacy sessions still work.
         val locale = claims["locale"] as? String ?: "en"
 
+        // Profile picture is intentionally not in the JWT — base64 images would
+        // bloat every request and overflow Tomcat's response header buffer at login.
+        // Anything that needs the avatar fetches /api/users/myself.
         UserDTO(
             id = UUID.fromString(userId),
             username = username,
@@ -70,7 +72,7 @@ class JwtAuthenticationFilter(
             firstName = firstName,
             lastName = lastName,
             name = name,
-            profilePicture = profilePicture,
+            profilePicture = null,
             locale = locale,
         )
     } catch (ex: JwtException) {

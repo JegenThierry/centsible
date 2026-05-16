@@ -121,7 +121,6 @@ class AuthenticationService(
             .claim("firstName", user.firstName)
             .claim("lastName", user.lastName)
             .claim("name", "${user.firstName} ${user.lastName}")
-            .claim("profilePicture", user.profilePicture)
             .claim("locale", user.locale)
             .issuedAt(now)
             .expiration(expiry)
