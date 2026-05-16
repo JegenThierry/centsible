@@ -243,7 +243,7 @@ async function handleImport() {
             {{ t('transactions.import.skippedRows', {count: invalidRowCount}) }}
           </p>
         </div>
-        <div class="max-h-64 overflow-y-auto border border-default rounded-md">
+        <div class="max-h-64 overflow-auto border border-default rounded-md">
           <table class="w-full text-sm">
             <thead class="bg-muted sticky top-0">
               <tr>

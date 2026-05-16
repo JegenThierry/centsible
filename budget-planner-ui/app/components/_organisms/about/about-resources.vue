@@ -27,6 +27,12 @@ const resources = computed(() => [
     icon: 'i-lucide-activity',
     to: `${props.repository}/activity`,
   },
+  {
+    label: t('landing.about.resources.donateLabel'),
+    description: t('landing.about.resources.donateDescription'),
+    icon: 'i-simple-icons-kofi',
+    to: 'https://ko-fi.com/thierryjegen',
+  },
 ]);
 </script>
 
@@ -36,7 +42,7 @@ const resources = computed(() => [
       <AboutSectionHeader icon="i-lucide-link" :title="t('landing.about.sections.resources')"/>
     </template>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <li v-for="item in resources" :key="item.label">
         <AboutResourceLink :description="item.description"
                            :icon="item.icon"

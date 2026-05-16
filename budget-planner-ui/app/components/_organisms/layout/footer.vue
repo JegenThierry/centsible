@@ -29,6 +29,13 @@ const items = computed<NavigationMenuItem[]>(() => [
                      variant="link"/>
 
     <template #right>
+      <UButton :aria-label="t('nav.footer.donate')"
+               color="neutral"
+               icon="i-simple-icons-kofi"
+               target="_blank"
+               to="https://ko-fi.com/thierryjegen"
+               variant="ghost"/>
+
       <UButton :aria-label="t('nav.footer.instagram')"
                color="neutral"
                icon="i-simple-icons-instagram"

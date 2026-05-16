@@ -20,7 +20,7 @@ const {t} = useI18n();
     :columns="columns"
     :data="data"
     :loading="loading"
-    :ui="{ root: 'rounded-lg overflow-hidden ring ring-default bg-default' }"
+    :ui="{ root: 'rounded-lg overflow-x-auto ring ring-default bg-default' }"
   >
     <template v-for="(_, name) in slots" :key="name" #[name]="scope">
       <slot :name="name" v-bind="scope"/>
