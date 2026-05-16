@@ -1,0 +1,75 @@
+# Production overlay — apply on top of docker-compose.yml:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# What this overlay changes vs the base file:
+#   - UI is built from the `release` stage (compiled Nuxt output, no `nuxt dev`).
+#   - The UI source bind-mount is removed (otherwise it would shadow `.output/`).
+#   - `develop:` watch blocks are stripped (no hot-reload in prod).
+#   - REST, UI, and Postgres ports are NOT published to the host. The reverse proxy
+#     reaches `budget-planner-rest:8080` and `budget-planner-ui:3000` by service
+#     name over the shared `proxy-net` Docker network. Postgres stays internal to
+#     `budget-planner-net` and is unreachable from outside the compose stack.
+#
+# Reverse-proxy assumptions (nginx-proxy-manager, Caddy, Traefik, …):
+#   - The proxy runs in its own compose stack and is attached to a Docker network
+#     whose name matches ${PROXY_NETWORK} (default: `nginx-proxy-manager_default`).
+#     Override `PROXY_NETWORK` in `.env` to match your proxy's network name —
+#     check with `docker network ls`.
+#   - The proxy terminates TLS and forwards `X-Forwarded-Proto: https` plus
+#     `X-Forwarded-Host`. The REST service already trusts these headers
+#     (`SERVER_FORWARD_HEADERS_STRATEGY=framework` in the base file).
+#
+# Two topology options (pick one in your proxy config):
+#   A. Two subdomains:
+#      - app.example.com  -> http://budget-planner-ui:3000
+#      - api.example.com  -> http://budget-planner-rest:8080
+#      Set in .env:
+#        APP_BASE_URL=https://app.example.com
+#        CORS_ALLOWED_ORIGINS=https://app.example.com
+#        AUTH_COOKIE_DOMAIN=.example.com
+#        NUXT_PUBLIC_API_BASE=https://api.example.com/api
+#
+#   B. Single host with path-based routing:
+#      - example.com/api/*  -> http://budget-planner-rest:8080
+#      - example.com/*      -> http://budget-planner-ui:3000
+#      Set in .env:
+#        APP_BASE_URL=https://example.com
+#        CORS_ALLOWED_ORIGINS=https://example.com
+#        AUTH_COOKIE_DOMAIN=
+#        NUXT_PUBLIC_API_BASE=/api
+
+services:
+
+  budget-planner-db:
+    ports: !reset []
+
+  budget-planner-migrations:
+    develop: !reset null
+
+  budget-planner-rest:
+    develop: !reset null
+    ports: !reset []
+    networks:
+      - budget-planner-net
+      - proxy-net
+
+  budget-planner-export:
+    develop: !reset null
+
+  budget-planner-ui:
+    build:
+      context: ./budget-planner-ui
+      dockerfile: Dockerfile
+      target: release
+    develop: !reset null
+    volumes: !reset []
+    ports: !reset []
+    networks:
+      - budget-planner-net
+      - proxy-net
+
+networks:
+  proxy-net:
+    name: ${PROXY_NETWORK:-nginx-proxy-manager_default}
+    external: true

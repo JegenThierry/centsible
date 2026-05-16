@@ -110,6 +110,31 @@ This will start:
 - Export worker — internal only, not published to the host
 - UI on port `3000` (or as configured in `UI_HOST_PORT`)
 
+### Production deployment behind a reverse proxy
+
+The base `docker-compose.yml` runs the UI in `nuxt dev` mode with hot-reload and publishes ports to the host — suitable for local work, **not** for a public deployment. For production, apply the prod overlay:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+The overlay:
+
+- builds the UI from the `release` stage (compiled Nuxt output, no `nuxt dev`),
+- drops the UI source bind-mount and all `develop:` watch blocks,
+- unpublishes the REST, UI, and Postgres ports — the stack is reachable only over Docker networks.
+
+A reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) must terminate TLS and forward requests to `budget-planner-ui:3000` and `budget-planner-rest:8080`. The overlay attaches both services to an external `proxy-net` network — set `PROXY_NETWORK` in `.env` to the Docker network name of your proxy stack (default `nginx-proxy-manager_default`; check `docker network ls`).
+
+Pick one topology in your proxy config:
+
+| Topology | Proxy routing | `.env` values |
+|:---|:---|:---|
+| Two subdomains | `app.example.com → budget-planner-ui:3000`<br/>`api.example.com → budget-planner-rest:8080` | `APP_BASE_URL=https://app.example.com`<br/>`CORS_ALLOWED_ORIGINS=https://app.example.com`<br/>`AUTH_COOKIE_DOMAIN=.example.com`<br/>`NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
+| Single host, path-based | `example.com/api/* → budget-planner-rest:8080`<br/>`example.com/* → budget-planner-ui:3000` | `APP_BASE_URL=https://example.com`<br/>`CORS_ALLOWED_ORIGINS=https://example.com`<br/>`AUTH_COOKIE_DOMAIN=`<br/>`NUXT_PUBLIC_API_BASE=/api` |
+
+Either way, `AUTH_COOKIE_SECURE=true` and `SPRING_PROFILES_ACTIVE=prod` must be set (ProductionGuard enforces this).
+
 ## Module Scripts
 
 ### Frontend (`budget-planner-ui`)
