@@ -1,14 +1,9 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-/*
-  Body gradient lives on a fixed ::before so scroll doesn't repaint
-  the viewport-sized background; tints stay in 50/100 (and 900-mixed
-  in dark) to keep contrast on cards & text intact.
- */
 @layer base {
   body {
-    background-color: var(--ui-color-primary-50);
+    background-color: var(--ui-color-neutral-50);
   }
 
   body::before {
@@ -18,8 +13,23 @@
     z-index: -1;
     pointer-events: none;
     background-image:
-      radial-gradient(at 0% 0%, var(--ui-color-primary-100) 0px, transparent 55%),
-      radial-gradient(at 100% 100%, var(--ui-color-primary-100) 0px, transparent 60%);
+      radial-gradient(60% 55% at 0% 0%,    color-mix(in oklab, var(--ui-color-primary-200) 55%, transparent) 0%, transparent 70%),
+      radial-gradient(55% 50% at 100% 100%, color-mix(in oklab, var(--ui-color-primary-200) 45%, transparent) 0%, transparent 70%),
+      radial-gradient(45% 45% at 100% 0%,   color-mix(in oklab, var(--ui-color-neutral-200) 80%, transparent) 0%, transparent 65%),
+      radial-gradient(45% 45% at 0% 100%,   color-mix(in oklab, var(--ui-color-neutral-200) 70%, transparent) 0%, transparent 65%);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image: radial-gradient(var(--ui-color-neutral-300) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.45;
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, black 0%, transparent 100%);
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, black 0%, transparent 100%);
   }
 
   .dark body {
@@ -28,16 +38,18 @@
 
   .dark body::before {
     background-image:
-      radial-gradient(at 0% 0%, color-mix(in oklab, var(--ui-color-primary-900) 35%, transparent) 0px, transparent 55%),
-      radial-gradient(at 100% 100%, color-mix(in oklab, var(--ui-color-primary-900) 28%, transparent) 0px, transparent 60%);
+      radial-gradient(60% 55% at 0% 0%,    color-mix(in oklab, var(--ui-color-primary-800) 30%, transparent) 0%, transparent 70%),
+      radial-gradient(55% 50% at 100% 100%, color-mix(in oklab, var(--ui-color-primary-800) 24%, transparent) 0%, transparent 70%),
+      radial-gradient(45% 45% at 100% 0%,   color-mix(in oklab, var(--ui-color-neutral-800) 55%, transparent) 0%, transparent 65%),
+      radial-gradient(45% 45% at 0% 100%,   color-mix(in oklab, var(--ui-color-neutral-800) 45%, transparent) 0%, transparent 65%);
+  }
+
+  .dark body::after {
+    background-image: radial-gradient(var(--ui-color-neutral-700) 1px, transparent 1px);
+    opacity: 0.25;
   }
 }
 
-/*
-  Custom palettes consumed by themes in `composables/use-theme.ts`.
-  `@theme static` forces every shade to be emitted so NuxtUI's runtime
-  color plugin can switch primary to any of these at runtime.
- */
 @theme static {
   /* Lavender — vivid violet */
   --color-lavender-50:  #faf5ff;
@@ -103,4 +115,76 @@
   --color-ocean-800: #0e4d84;
   --color-ocean-900: #11406d;
   --color-ocean-950: #082a4d;
+
+  --color-lavender-neutral-50:  color-mix(in oklab, var(--color-lavender-500) 2%,   var(--color-slate-50));
+  --color-lavender-neutral-100: color-mix(in oklab, var(--color-lavender-500) 2%,   var(--color-slate-100));
+  --color-lavender-neutral-200: color-mix(in oklab, var(--color-lavender-500) 1.5%, var(--color-slate-200));
+  --color-lavender-neutral-300: color-mix(in oklab, var(--color-lavender-500) 1%,   var(--color-slate-300));
+  --color-lavender-neutral-400: color-mix(in oklab, var(--color-lavender-500) 1%,   var(--color-slate-400));
+  --color-lavender-neutral-500: color-mix(in oklab, var(--color-lavender-500) 1%,   var(--color-slate-500));
+  --color-lavender-neutral-600: color-mix(in oklab, var(--color-lavender-500) 1%,   var(--color-slate-600));
+  --color-lavender-neutral-700: color-mix(in oklab, var(--color-lavender-500) 1.5%, var(--color-slate-700));
+  --color-lavender-neutral-800: color-mix(in oklab, var(--color-lavender-500) 2%,   var(--color-slate-800));
+  --color-lavender-neutral-900: color-mix(in oklab, var(--color-lavender-500) 2.5%, var(--color-slate-900));
+  --color-lavender-neutral-950: color-mix(in oklab, var(--color-lavender-500) 3%,   var(--color-slate-950));
+
+  --color-mint-neutral-50:  color-mix(in oklab, var(--color-mint-500) 2%,   var(--color-zinc-50));
+  --color-mint-neutral-100: color-mix(in oklab, var(--color-mint-500) 2%,   var(--color-zinc-100));
+  --color-mint-neutral-200: color-mix(in oklab, var(--color-mint-500) 1.5%, var(--color-zinc-200));
+  --color-mint-neutral-300: color-mix(in oklab, var(--color-mint-500) 1%,   var(--color-zinc-300));
+  --color-mint-neutral-400: color-mix(in oklab, var(--color-mint-500) 1%,   var(--color-zinc-400));
+  --color-mint-neutral-500: color-mix(in oklab, var(--color-mint-500) 1%,   var(--color-zinc-500));
+  --color-mint-neutral-600: color-mix(in oklab, var(--color-mint-500) 1%,   var(--color-zinc-600));
+  --color-mint-neutral-700: color-mix(in oklab, var(--color-mint-500) 1.5%, var(--color-zinc-700));
+  --color-mint-neutral-800: color-mix(in oklab, var(--color-mint-500) 2%,   var(--color-zinc-800));
+  --color-mint-neutral-900: color-mix(in oklab, var(--color-mint-500) 2.5%, var(--color-zinc-900));
+  --color-mint-neutral-950: color-mix(in oklab, var(--color-mint-500) 3%,   var(--color-zinc-950));
+
+  --color-peach-neutral-50:  color-mix(in oklab, var(--color-peach-500) 2%,   var(--color-stone-50));
+  --color-peach-neutral-100: color-mix(in oklab, var(--color-peach-500) 2%,   var(--color-stone-100));
+  --color-peach-neutral-200: color-mix(in oklab, var(--color-peach-500) 1.5%, var(--color-stone-200));
+  --color-peach-neutral-300: color-mix(in oklab, var(--color-peach-500) 1%,   var(--color-stone-300));
+  --color-peach-neutral-400: color-mix(in oklab, var(--color-peach-500) 1%,   var(--color-stone-400));
+  --color-peach-neutral-500: color-mix(in oklab, var(--color-peach-500) 1%,   var(--color-stone-500));
+  --color-peach-neutral-600: color-mix(in oklab, var(--color-peach-500) 1%,   var(--color-stone-600));
+  --color-peach-neutral-700: color-mix(in oklab, var(--color-peach-500) 1.5%, var(--color-stone-700));
+  --color-peach-neutral-800: color-mix(in oklab, var(--color-peach-500) 2%,   var(--color-stone-800));
+  --color-peach-neutral-900: color-mix(in oklab, var(--color-peach-500) 2.5%, var(--color-stone-900));
+  --color-peach-neutral-950: color-mix(in oklab, var(--color-peach-500) 3%,   var(--color-stone-950));
+
+  --color-blush-neutral-50:  color-mix(in oklab, var(--color-blush-500) 2%,   var(--color-stone-50));
+  --color-blush-neutral-100: color-mix(in oklab, var(--color-blush-500) 2%,   var(--color-stone-100));
+  --color-blush-neutral-200: color-mix(in oklab, var(--color-blush-500) 1.5%, var(--color-stone-200));
+  --color-blush-neutral-300: color-mix(in oklab, var(--color-blush-500) 1%,   var(--color-stone-300));
+  --color-blush-neutral-400: color-mix(in oklab, var(--color-blush-500) 1%,   var(--color-stone-400));
+  --color-blush-neutral-500: color-mix(in oklab, var(--color-blush-500) 1%,   var(--color-stone-500));
+  --color-blush-neutral-600: color-mix(in oklab, var(--color-blush-500) 1%,   var(--color-stone-600));
+  --color-blush-neutral-700: color-mix(in oklab, var(--color-blush-500) 1.5%, var(--color-stone-700));
+  --color-blush-neutral-800: color-mix(in oklab, var(--color-blush-500) 2%,   var(--color-stone-800));
+  --color-blush-neutral-900: color-mix(in oklab, var(--color-blush-500) 2.5%, var(--color-stone-900));
+  --color-blush-neutral-950: color-mix(in oklab, var(--color-blush-500) 3%,   var(--color-stone-950));
+
+  --color-ocean-neutral-50:  color-mix(in oklab, var(--color-ocean-500) 2%,   var(--color-slate-50));
+  --color-ocean-neutral-100: color-mix(in oklab, var(--color-ocean-500) 2%,   var(--color-slate-100));
+  --color-ocean-neutral-200: color-mix(in oklab, var(--color-ocean-500) 1.5%, var(--color-slate-200));
+  --color-ocean-neutral-300: color-mix(in oklab, var(--color-ocean-500) 1%,   var(--color-slate-300));
+  --color-ocean-neutral-400: color-mix(in oklab, var(--color-ocean-500) 1%,   var(--color-slate-400));
+  --color-ocean-neutral-500: color-mix(in oklab, var(--color-ocean-500) 1%,   var(--color-slate-500));
+  --color-ocean-neutral-600: color-mix(in oklab, var(--color-ocean-500) 1%,   var(--color-slate-600));
+  --color-ocean-neutral-700: color-mix(in oklab, var(--color-ocean-500) 1.5%, var(--color-slate-700));
+  --color-ocean-neutral-800: color-mix(in oklab, var(--color-ocean-500) 2%,   var(--color-slate-800));
+  --color-ocean-neutral-900: color-mix(in oklab, var(--color-ocean-500) 2.5%, var(--color-slate-900));
+  --color-ocean-neutral-950: color-mix(in oklab, var(--color-ocean-500) 3%,   var(--color-slate-950));
+
+  --color-nuxt-neutral-50:  color-mix(in oklab, var(--color-green-500) 2%,   var(--color-zinc-50));
+  --color-nuxt-neutral-100: color-mix(in oklab, var(--color-green-500) 2%,   var(--color-zinc-100));
+  --color-nuxt-neutral-200: color-mix(in oklab, var(--color-green-500) 1.5%, var(--color-zinc-200));
+  --color-nuxt-neutral-300: color-mix(in oklab, var(--color-green-500) 1%,   var(--color-zinc-300));
+  --color-nuxt-neutral-400: color-mix(in oklab, var(--color-green-500) 1%,   var(--color-zinc-400));
+  --color-nuxt-neutral-500: color-mix(in oklab, var(--color-green-500) 1%,   var(--color-zinc-500));
+  --color-nuxt-neutral-600: color-mix(in oklab, var(--color-green-500) 1%,   var(--color-zinc-600));
+  --color-nuxt-neutral-700: color-mix(in oklab, var(--color-green-500) 1.5%, var(--color-zinc-700));
+  --color-nuxt-neutral-800: color-mix(in oklab, var(--color-green-500) 2%,   var(--color-zinc-800));
+  --color-nuxt-neutral-900: color-mix(in oklab, var(--color-green-500) 2.5%, var(--color-zinc-900));
+  --color-nuxt-neutral-950: color-mix(in oklab, var(--color-green-500) 3%,   var(--color-zinc-950));
 }

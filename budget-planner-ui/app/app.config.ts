@@ -7,8 +7,10 @@
 export default defineAppConfig({
   ui: {
     colors: {
+      // Initial values match the default theme; `useTheme().setTheme` swaps
+      // both at runtime to keep neutrals tinted with the active theme's hue.
       primary: 'blush',
-      neutral: 'slate',
+      neutral: 'blush-neutral',
     },
 
     card: {

@@ -9,7 +9,7 @@ const authStore = useAuthStore();
 
 useHead({
   titleTemplate: (title?: string) =>
-    title && title !== 'Centsible' ? `${title} · Centsible` : 'Centsible — Take control of your money',
+    title && title !== 'Centsible' ? `${title} | Centsible` : 'Centsible | Take control of your money',
 });
 </script>
 

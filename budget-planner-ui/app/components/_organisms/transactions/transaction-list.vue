@@ -157,13 +157,7 @@ watch(
 </script>
 
 <template>
-  <UCard variant="outline">
-    <template #header>
-      <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-gray-900 dark:text-white">Transactions</h3>
-      </div>
-    </template>
-
+  <div class="border rounded-lg overflow-hidden border-neutral-200 dark:border-neutral-800">
     <UTable :columns="columns" :data="transactions" :loading="loading" class="flex-1 overflow-y-auto">
       <template #loading>
         <div class="flex flex-col items-center justify-center py-10 gap-3">
@@ -178,7 +172,7 @@ watch(
         </div>
       </template>
     </UTable>
-  </UCard>
+  </div>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
     <LoadingAnimation v-if="loadingMore || loading"/>
