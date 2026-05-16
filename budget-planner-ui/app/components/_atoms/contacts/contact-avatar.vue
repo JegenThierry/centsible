@@ -17,6 +17,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 defineEmits(['edit']);
 
+const {t} = useI18n();
+
 const iconSizeClass = computed(() => {
   switch (props.size) {
     case 'sm':
@@ -56,7 +58,7 @@ const iconSizeClass = computed(() => {
     />
     <button
       v-if="editable"
-      :aria-label="`Change picture for ${alt}`"
+      :aria-label="t('contacts.avatar.changeAria', {name: alt})"
       class="absolute inset-0 rounded-full flex items-center justify-center cursor-pointer bg-black/0 hover:bg-black/50 focus-visible:bg-black/50 focus:outline-none transition-colors"
       type="button"
       @click="$emit('edit')"

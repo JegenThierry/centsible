@@ -1,0 +1,143 @@
+{
+  "contacts": {
+    "page": {
+      "title": "Kontakte",
+      "description": "Behalte den Überblick über Personen, die dir Geld schulden.",
+      "exportLabel": "Verleihungen exportieren",
+      "exportDefaultTitle": "Alle Verleihungen {date}",
+      "recordLending": "Verleih erfassen",
+      "addContact": "Kontakt hinzufügen"
+    },
+    "summary": {
+      "peopleOweYou": "Andere schulden dir"
+    },
+    "empty": {
+      "title": "Noch keine Kontakte",
+      "description": "Füge einen Kontakt hinzu oder erfasse deinen ersten Verleih, um den Überblick zu behalten.",
+      "action": "Kontakt hinzufügen"
+    },
+    "card": {
+      "loanCount": "{count} Verleih | {count} Verleihungen",
+      "outstanding": "Offen",
+      "editAria": "Kontakt bearbeiten",
+      "deleteAria": "Kontakt löschen"
+    },
+    "detail": {
+      "back": "Zurück zu den Kontakten",
+      "loanCount": "{count} Verleih | {count} Verleihungen",
+      "exportLabel": "Exportieren",
+      "exportDefaultTitle": "Verleihungen — {name}",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "stats": {
+        "totalLent": "Insgesamt verliehen",
+        "totalOwed": "Insgesamt geschuldet",
+        "totalRepaid": "Insgesamt zurückgezahlt",
+        "outstanding": "Offen"
+      },
+      "loansHeading": "Verleihungen",
+      "recordLending": "Verleih erfassen"
+    },
+    "form": {
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "z. B. Alex",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "z. B. Müller (optional)"
+    },
+    "create": {
+      "title": "Kontakt hinzufügen",
+      "description": "Erfasse jemanden, dem du Geld geliehen hast.",
+      "submit": "Hinzufügen"
+    },
+    "edit": {
+      "title": "Kontakt bearbeiten",
+      "description": "Aktualisiere die Details dieses Kontakts.",
+      "submit": "Speichern"
+    },
+    "delete": {
+      "title": "Kontakt löschen",
+      "descriptionWithName": "Damit wird {name} aus deiner Liste entfernt. Kontakte mit offenen Verleihungen können nicht gelöscht werden.",
+      "descriptionGeneric": "Damit wird dieser Kontakt aus deiner Liste entfernt. Kontakte mit offenen Verleihungen können nicht gelöscht werden.",
+      "submit": "Löschen"
+    },
+    "toasts": {
+      "loadFailedTitle": "Kontakte konnten nicht geladen werden",
+      "loadFailedBody": "Bitte aktualisiere die Seite, um es erneut zu versuchen.",
+      "loadDetailFailedTitle": "Kontakt konnte nicht geladen werden",
+      "removedTitle": "Kontakt entfernt",
+      "removedBody": "Zurück zur Kontaktliste."
+    },
+    "loans": {
+      "table": {
+        "date": "Datum",
+        "description": "Beschreibung",
+        "lent": "Verliehen",
+        "owed": "Geschuldet",
+        "repaid": "Zurückgezahlt",
+        "outstanding": "Offen",
+        "status": "Status",
+        "actionsAria": "Aktionen für Verleih",
+        "trackingOnly": "Nur zur Übersicht",
+        "statusSettled": "Beglichen",
+        "statusPartial": "Teilweise zurückgezahlt",
+        "statusOpen": "Offen",
+        "recordRepayment": "Rückzahlung erfassen",
+        "deleteLoan": "Verleih löschen",
+        "empty": "Noch keine Verleihungen."
+      },
+      "form": {
+        "modeLegend": "Kontakt",
+        "modeExisting": "Bestehender Kontakt",
+        "modeNew": "Neue Person",
+        "pickContact": "Kontakt auswählen",
+        "newFirstNameLabel": "Vorname",
+        "newFirstNameDescription": "Es wird ein Kontakt erstellt und der Verleih damit verknüpft.",
+        "newFirstNamePlaceholder": "z. B. Alex",
+        "newLastNameLabel": "Nachname (optional)",
+        "newLastNamePlaceholder": "z. B. Müller",
+        "affectBalanceLabel": "Von einem Konto abbuchen",
+        "affectBalanceDescription": "Deaktiviere dies, wenn das Geld bereits außerhalb deiner Konten geflossen ist (z. B. bar übergeben) und du den Verleih nur erfassen möchtest.",
+        "fromAccountLabel": "Quellkonto",
+        "fromAccountDescription": "Das Konto, von dem das Geld abgeht.",
+        "lentLabel": "Verliehener Betrag",
+        "lentPlaceholder": "0,00",
+        "owedLabel": "Zurückzuzahlender Betrag",
+        "owedDescription": "Standardmäßig der verliehene Betrag. Erhöhe ihn, wenn dir mehr geschuldet wird (z. B. Zinsen).",
+        "owedPlaceholder": "0,00",
+        "descriptionLabel": "Beschreibung",
+        "descriptionPlaceholder": "Wofür war der Verleih?",
+        "dateLabel": "Datum"
+      },
+      "create": {
+        "title": "Verleih erfassen",
+        "description": "Erfasse Geld, das du jemandem geliehen hast.",
+        "submit": "Erfassen"
+      },
+      "delete": {
+        "title": "Verleih löschen",
+        "description": "Damit werden der Verleih, die ursprüngliche Transaktion und alle Rückzahlungen gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "submit": "Löschen"
+      },
+      "repayment": {
+        "title": "Rückzahlung erfassen",
+        "descriptionWithContact": "Erfasse eine Rückzahlung von {name}.",
+        "submit": "Erfassen",
+        "form": {
+          "affectBalanceLabel": "Auf ein Konto buchen",
+          "affectBalanceDescription": "Deaktiviere dies, wenn das Geld außerhalb deiner Konten zurückgezahlt wurde (z. B. in bar) und du es nur als zurückgezahlt markieren möchtest.",
+          "toAccountLabel": "Zielkonto",
+          "toAccountDescription": "Das Konto, auf dem das Geld eingeht.",
+          "amountLabel": "Betrag",
+          "amountPlaceholder": "0,00",
+          "outstandingHelp": "Offen: {amount}",
+          "descriptionLabel": "Beschreibung (optional)",
+          "descriptionPlaceholder": "Rückzahlung",
+          "dateLabel": "Rückzahlungsdatum"
+        }
+      }
+    },
+    "avatar": {
+      "changeAria": "Bild von {name} ändern"
+    }
+  }
+}

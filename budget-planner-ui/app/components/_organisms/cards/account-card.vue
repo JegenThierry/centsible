@@ -10,6 +10,8 @@ defineProps<{
 defineEmits<{
   (e: 'click'): void
 }>()
+
+const {t} = useI18n();
 </script>
 
 <template>
@@ -28,7 +30,7 @@ defineEmits<{
     </template>
 
     <div class="space-y-1">
-      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">Current Balance</p>
+      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">{{ t('accounts.card.currentBalance') }}</p>
       <p class="text-xl sm:text-2xl font-bold">
         <BalanceNumberFormat
           :balance="account.balance"

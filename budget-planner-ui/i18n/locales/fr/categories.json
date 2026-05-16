@@ -1,0 +1,51 @@
+{
+  "categories": {
+    "page": {
+      "title": "Catégories",
+      "description": "Gérez vos catégories de revenus et de dépenses",
+      "createAction": "Créer une catégorie"
+    },
+    "sections": {
+      "yours": "Vos catégories",
+      "system": "Catégories système"
+    },
+    "empty": {
+      "title": "Aucune catégorie trouvée",
+      "description": "Créez votre première catégorie pour commencer à suivre votre budget.",
+      "action": "Créer une catégorie"
+    },
+    "card": {
+      "systemBadge": "Système",
+      "editAria": "Modifier la catégorie",
+      "deleteAria": "Supprimer la catégorie"
+    },
+    "type": {
+      "income": "Revenu",
+      "expense": "Dépense",
+      "legend": "Type de catégorie"
+    },
+    "form": {
+      "nameLabel": "Nom",
+      "namePlaceholder": "ex. Alimentation, Salaire",
+      "iconLabel": "Icône (nom Lucide)",
+      "iconPlaceholder": "i-lucide-tag",
+      "iconPatternMessage": "L'icône doit être un nom Lucide comme « i-lucide-tag ».",
+      "iconHelp": "Trouvez des icônes sur lucide.dev. Utilisez le format i-lucide-[nom].",
+      "colorLabel": "Couleur"
+    },
+    "create": {
+      "title": "Créer une catégorie",
+      "description": "Créez une nouvelle catégorie pour vos transactions.",
+      "submit": "Créer"
+    },
+    "edit": {
+      "title": "Modifier la catégorie",
+      "description": "Mettez à jour les détails de votre catégorie.",
+      "submit": "Enregistrer les modifications"
+    },
+    "delete": {
+      "title": "Supprimer la catégorie",
+      "description": "Voulez-vous vraiment supprimer la catégorie « {name} » ? Cette action est irréversible."
+    }
+  }
+}

@@ -1,25 +1,27 @@
 <script lang="ts" setup>
 import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue";
 
-const items: NavigationMenuItem[] = [
+const {t} = useI18n();
+
+const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: 'About',
+    label: t('nav.footer.about'),
     to: '/about',
     target: '_self'
   },
   {
-    label: 'Activity',
+    label: t('nav.footer.activity'),
     to: 'https://codeberg.org/thierryjegen/budget-planner/activity',
     target: '_blank'
   }
-]
+]);
 </script>
 
 <template>
   <UFooter>
     <template #left>
       <p class="text-muted text-sm">
-        Copyright © {{ new Date().getFullYear() }}
+        {{ t('nav.footer.copyright', {year: new Date().getFullYear()}) }}
       </p>
     </template>
 
@@ -27,21 +29,21 @@ const items: NavigationMenuItem[] = [
                      variant="link"/>
 
     <template #right>
-      <UButton aria-label="Instagram"
+      <UButton :aria-label="t('nav.footer.instagram')"
                color="neutral"
                icon="i-simple-icons-instagram"
                target="_blank"
                to="https://www.instagram.com/thierryjegen/"
                variant="ghost"/>
 
-      <UButton aria-label="X"
+      <UButton :aria-label="t('nav.footer.twitter')"
                color="neutral"
                icon="i-simple-icons-x"
                target="_blank"
                to="https://x.com/ThierryJegen1"
                variant="ghost"/>
 
-      <UButton aria-label="Codeberg"
+      <UButton :aria-label="t('nav.footer.codeberg')"
                color="neutral"
                icon="i-simple-icons-codeberg"
                target="_blank"

@@ -9,6 +9,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
+const {t} = useI18n();
 const accountId = computed(() => route.params.accountId as string);
 
 const recentTransactions = computed(() => {
@@ -24,10 +25,10 @@ const recentTransactions = computed(() => {
     <template #header>
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-          Recent Transactions
+          {{ t('accounts.dashboard.recentTransactions') }}
         </h3>
         <UButton :to="`/${accountId}/transactions`" color="neutral" size="xs" variant="ghost">
-          View All
+          {{ t('accounts.dashboard.viewAll') }}
         </UButton>
       </div>
     </template>
@@ -40,7 +41,7 @@ const recentTransactions = computed(() => {
         :transaction="transaction"
       />
       <div v-if="recentTransactions.length === 0" class="text-center py-4 text-sm text-neutral-500">
-        No recent transactions
+        {{ t('accounts.dashboard.noRecentTransactions') }}
       </div>
     </div>
   </UCard>

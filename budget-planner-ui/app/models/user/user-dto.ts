@@ -6,4 +6,5 @@ export interface UserDto {
   lastName: string;
   name: string;
   profilePicture?: string;
+  locale: string;
 }

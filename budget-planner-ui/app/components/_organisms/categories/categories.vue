@@ -11,6 +11,7 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import type {Category} from "~/models/category/category";
 
 const categoriesStore = useCategoriesStore();
+const {t} = useI18n();
 
 const systemCategories = computed(() => categoriesStore.categories.filter(c => c.system));
 const userCategories = computed(() => categoriesStore.categories.filter(c => !c.system));
@@ -38,12 +39,12 @@ onMounted(() => {
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="Manage your income and expense categories"
-      title="Categories"
+      :description="t('categories.page.description')"
+      :title="t('categories.page.title')"
     >
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">Create
-          Category
+        <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">
+          {{ t('categories.page.createAction') }}
         </UButton>
       </template>
     </PageHeader>
@@ -54,12 +55,14 @@ onMounted(() => {
 
     <AppEmptyState
       v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending"
-      description="Create your first category to start tracking your budget."
+      :description="t('categories.empty.description')"
       icon="i-lucide-tag"
-      title="No categories found"
+      :title="t('categories.empty.title')"
     >
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">Create Category</UButton>
+        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+          {{ t('categories.empty.action') }}
+        </UButton>
       </template>
     </AppEmptyState>
 
@@ -73,7 +76,7 @@ onMounted(() => {
       <section v-if="userCategories.length > 0">
         <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
           <UIcon class="w-5 h-5 text-primary-500" name="i-lucide-user"/>
-          Your Categories
+          {{ t('categories.sections.yours') }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in userCategories"
@@ -87,7 +90,7 @@ onMounted(() => {
       <section v-if="systemCategories.length > 0">
         <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
           <UIcon class="w-5 h-5" name="i-lucide-settings"/>
-          System Categories
+          {{ t('categories.sections.system') }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <CategoryCard v-for="category in systemCategories"

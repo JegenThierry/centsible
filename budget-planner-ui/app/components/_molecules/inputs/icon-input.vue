@@ -9,6 +9,8 @@ defineProps<{
   placeholder?: string;
 }>();
 
+const {t} = useI18n();
+
 const iconInputRef = ref<InstanceType<typeof BaseInput>>();
 
 function validate() {
@@ -27,12 +29,12 @@ defineExpose({
         <BaseInput
           ref="iconInputRef"
           v-model="model"
-          :label="label || 'Icon (Lucide name)'"
+          :label="label || t('categories.form.iconLabel')"
           :max-length="50"
           :pattern="ICON_PATTERN"
-          :placeholder="placeholder || 'i-lucide-tag'"
+          :placeholder="placeholder || t('categories.form.iconPlaceholder')"
           :required="required"
-          pattern-message="Icon must be a Lucide name like 'i-lucide-tag'."
+          :pattern-message="t('categories.form.iconPatternMessage')"
           type="text"
         />
       </div>
@@ -45,8 +47,7 @@ defineExpose({
       </div>
     </div>
     <p class="text-xs text-muted">
-      Find icons at <a class="text-primary underline" href="https://lucide.dev/icons"
-                       target="_blank">lucide.dev</a>. Use <code>i-lucide-[name]</code> format.
+      {{ t('categories.form.iconHelp') }}
     </p>
   </div>
 </template>

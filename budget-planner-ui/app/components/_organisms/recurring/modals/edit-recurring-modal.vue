@@ -18,6 +18,7 @@ const emit = defineEmits<{
 const api = useApi();
 const service = useRecurringTransactionService(api);
 const toasts = useToasts();
+const {t} = useI18n();
 
 const form = ref<RecurringTransactionForm>(toForm(props.rule));
 const formRef = ref<InstanceType<typeof RecurringFormFields>>();
@@ -54,11 +55,11 @@ async function handleSave() {
       endDate: form.value.endDate || null,
       active: form.value.active,
     });
-    toasts.success('Recurring rule updated.', 'Future occurrences will use the new values.');
+    toasts.success(t('transactions.recurring.edit.toastSuccessTitle'), t('transactions.recurring.edit.toastSuccessBody'));
     emit('updated');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Rule not updated.', 'Could not update the recurring rule, please try again.');
+    useApiErrors().toastError(error, t('transactions.recurring.edit.toastErrorTitle'), t('transactions.recurring.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -67,8 +68,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Update this recurring rule. Already-generated transactions are not changed."
-          title="Edit recurring rule">
+          :description="t('transactions.recurring.edit.description')"
+          :title="t('transactions.recurring.edit.title')">
     <template #body>
       <RecurringFormFields ref="formRef" v-model="form"/>
     </template>
@@ -76,7 +77,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Save</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('transactions.recurring.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

@@ -6,16 +6,18 @@ definePageMeta({
   middleware: ['auth-guard', 'account-loader'],
 });
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Recurring',
+  title: () => t('transactions.recurring.pageTitle'),
 });
 </script>
 
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="Schedule transactions that repeat automatically — rent, salary, subscriptions."
-      title="Recurring transactions"
+      :description="t('transactions.recurring.description')"
+      :title="t('transactions.recurring.title')"
     />
     <RecurringList/>
   </UContainer>

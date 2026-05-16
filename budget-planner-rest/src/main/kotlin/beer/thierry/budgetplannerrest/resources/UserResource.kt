@@ -1,5 +1,6 @@
 package beer.thierry.budgetplannerrest.resources
 
+import beer.thierry.budgetplanner.api.model.user.LocaleUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.users.IUserService
@@ -42,5 +43,16 @@ class UserResource(private val userService: IUserService) {
         }
         val dataUrl = file.toValidatedImageDataUrl()
         return ResponseEntity.ok(userService.updateProfilePicture(user.id, dataUrl))
+    }
+
+    @PutMapping("/locale")
+    fun updateLocale(
+        @AuthenticationPrincipal user: UserDTO?,
+        @Valid @RequestBody body: LocaleUpdateDTO,
+    ): ResponseEntity<UserDTO> {
+        if (user == null) {
+            return ResponseEntity.status(401).build()
+        }
+        return ResponseEntity.ok(userService.updateUserLocale(user.id, body.locale))
     }
 }

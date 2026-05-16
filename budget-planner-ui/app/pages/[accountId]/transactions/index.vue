@@ -12,8 +12,10 @@ definePageMeta({
   middleware: ['auth-guard', 'account-loader']
 })
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Transactions',
+  title: () => t('transactions.pageTitle'),
 });
 
 const route = useRoute();
@@ -39,8 +41,8 @@ async function onImported() {
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="View and manage your transactions"
-      title="Transactions"
+      :description="t('transactions.description')"
+      :title="t('transactions.title')"
     >
       <template #actions>
         <div class="flex flex-wrap gap-2">
@@ -48,12 +50,12 @@ async function onImported() {
                    icon="i-lucide-upload"
                    variant="outline"
                    @click="isImportModalOpen = true">
-            Import CSV
+            {{ t('transactions.importCsvButton') }}
           </UButton>
           <ExportButton
-            :default-title="`Transactions ${todayIsoDate()}`"
+            :default-title="t('transactions.exportDefaultTitle', {date: todayIsoDate()})"
             :params-builder="buildParams"
-            label="Export transactions"
+            :label="t('transactions.exportLabel')"
             type="TRANSACTIONS"
           />
         </div>

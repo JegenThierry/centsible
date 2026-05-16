@@ -1,0 +1,51 @@
+{
+  "categories": {
+    "page": {
+      "title": "Categories",
+      "description": "Manage your income and expense categories",
+      "createAction": "Create category"
+    },
+    "sections": {
+      "yours": "Your categories",
+      "system": "System categories"
+    },
+    "empty": {
+      "title": "No categories found",
+      "description": "Create your first category to start tracking your budget.",
+      "action": "Create category"
+    },
+    "card": {
+      "systemBadge": "System",
+      "editAria": "Edit category",
+      "deleteAria": "Delete category"
+    },
+    "type": {
+      "income": "Income",
+      "expense": "Expense",
+      "legend": "Category type"
+    },
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Food, Salary",
+      "iconLabel": "Icon (Lucide name)",
+      "iconPlaceholder": "i-lucide-tag",
+      "iconPatternMessage": "Icon must be a Lucide name like 'i-lucide-tag'.",
+      "iconHelp": "Find icons at lucide.dev. Use the i-lucide-[name] format.",
+      "colorLabel": "Color"
+    },
+    "create": {
+      "title": "Create category",
+      "description": "Create a new category for your transactions.",
+      "submit": "Create"
+    },
+    "edit": {
+      "title": "Edit category",
+      "description": "Update your category details.",
+      "submit": "Save changes"
+    },
+    "delete": {
+      "title": "Delete category",
+      "description": "Are you sure you want to delete the category '{name}'? This action cannot be undone."
+    }
+  }
+}

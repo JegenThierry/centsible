@@ -2,6 +2,8 @@
 import AboutSectionHeader from "~/components/_molecules/about/about-section-header.vue";
 import AboutTechBadge from "~/components/_molecules/about/about-tech-badge.vue";
 
+const {t} = useI18n();
+
 const techStack: Array<{label: string; icon: string}> = [
   {label: 'Java 21', icon: 'i-simple-icons-openjdk'},
   {label: 'Kotlin 2.2', icon: 'i-simple-icons-kotlin'},
@@ -22,7 +24,7 @@ const techStack: Array<{label: string; icon: string}> = [
 <template>
   <UCard>
     <template #header>
-      <AboutSectionHeader icon="i-lucide-layers" title="Built with"/>
+      <AboutSectionHeader icon="i-lucide-layers" :title="t('landing.about.sections.techStack')"/>
     </template>
 
     <div class="flex flex-wrap gap-2">

@@ -13,33 +13,33 @@ import java.util.UUID
 data class LoanForm(
     var contactId: UUID? = null,
 
-    @field:Size(max = 100, message = "First name must be at most 100 characters.")
+    @field:Size(max = 100, message = "{validation.firstName.tooLong}")
     var newContactFirstName: String? = null,
 
-    @field:Size(max = 100, message = "Last name must be at most 100 characters.")
+    @field:Size(max = 100, message = "{validation.lastName.tooLong}")
     var newContactLastName: String? = null,
 
     var accountId: UUID? = null,
 
     var affectBalance: Boolean = true,
 
-    @field:NotNull(message = "Lent amount is required.")
-    @field:DecimalMin(value = "0.01", message = "Lent amount must be greater than 0.")
-    @field:DecimalMax(value = "9999999.99", message = "Lent amount must not exceed 9,999,999.99.")
-    @field:Digits(integer = 7, fraction = 2, message = "Lent amount must have at most 2 decimal places.")
+    @field:NotNull(message = "{validation.loan.lent.required}")
+    @field:DecimalMin(value = "0.01", message = "{validation.loan.lent.tooSmall}")
+    @field:DecimalMax(value = "9999999.99", message = "{validation.loan.lent.tooLarge}")
+    @field:Digits(integer = 7, fraction = 2, message = "{validation.loan.lent.fraction}")
     var lentAmount: BigDecimal = BigDecimal.ZERO,
 
-    @field:NotNull(message = "Owed amount is required.")
-    @field:DecimalMin(value = "0.00", message = "Owed amount must be 0 or greater.")
-    @field:DecimalMax(value = "9999999.99", message = "Owed amount must not exceed 9,999,999.99.")
-    @field:Digits(integer = 7, fraction = 2, message = "Owed amount must have at most 2 decimal places.")
+    @field:NotNull(message = "{validation.loan.owed.required}")
+    @field:DecimalMin(value = "0.00", message = "{validation.loan.owed.tooSmall}")
+    @field:DecimalMax(value = "9999999.99", message = "{validation.loan.owed.tooLarge}")
+    @field:Digits(integer = 7, fraction = 2, message = "{validation.loan.owed.fraction}")
     var owedAmount: BigDecimal = BigDecimal.ZERO,
 
-    @field:NotBlank(message = "Description is required.")
-    @field:Size(min = 1, max = 255, message = "Description must be 1-255 characters.")
+    @field:NotBlank(message = "{validation.description.required}")
+    @field:Size(min = 1, max = 255, message = "{validation.description.range}")
     var description: String = "",
 
-    @field:NotNull(message = "Transaction date is required.")
+    @field:NotNull(message = "{validation.transactionDate.required}")
     var transactionDate: LocalDate = LocalDate.now(),
 
     var dueDate: LocalDate? = null,

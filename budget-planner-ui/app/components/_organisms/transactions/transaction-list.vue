@@ -21,6 +21,7 @@ import TableRowActionsMenu from "~/components/_molecules/tables/table-row-action
 const api = useApi();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const {
   transactions,
@@ -51,10 +52,10 @@ function openDeleteModal(transaction: Transaction) {
   isDeleteModalOpen.value = true;
 }
 
-const columns: TableColumn<Transaction>[] = [
+const columns = computed<TableColumn<Transaction>[]>(() => [
   {
     accessorKey: 'transactionDate',
-    header: 'Date',
+    header: t('transactions.table.date'),
     cell: ({row}) => {
       return h(FormattedDate, {
         date: row.getValue('transactionDate'),
@@ -64,11 +65,11 @@ const columns: TableColumn<Transaction>[] = [
   },
   {
     accessorKey: 'description',
-    header: 'Description'
+    header: t('transactions.table.description')
   },
   {
     accessorKey: 'category',
-    header: 'Category',
+    header: t('transactions.table.category'),
     cell: ({row}) => {
       const category = row.getValue('category') as any
       return h(CategoryBadge, {
@@ -80,7 +81,7 @@ const columns: TableColumn<Transaction>[] = [
   },
   {
     accessorKey: 'amount',
-    header: 'Amount',
+    header: t('transactions.table.amount'),
     meta: {
       class: {
         th: 'text-right',
@@ -103,15 +104,15 @@ const columns: TableColumn<Transaction>[] = [
       }
     },
     cell: ({row}) => h(TableRowActionsMenu, {
-      label: 'Transaction actions',
+      label: t('transactions.table.actionsLabel'),
       items: [
         {
-          label: 'Edit',
+          label: t('transactions.table.actionEdit'),
           icon: 'i-lucide-pencil',
           onSelect: () => openEditModal(row.original)
         },
         {
-          label: 'Delete',
+          label: t('transactions.table.actionDelete'),
           icon: 'i-lucide-trash',
           color: 'error' as any,
           onSelect: () => openDeleteModal(row.original)
@@ -119,7 +120,7 @@ const columns: TableColumn<Transaction>[] = [
       ],
     })
   }
-]
+])
 
 useIntersectionObserver(loadMoreTrigger, async (entries) => {
   const entry = entries[0]
@@ -142,8 +143,8 @@ watch(
   <BaseTable :columns="columns"
              :data="transactions"
              :loading="loading"
-             empty-title="No transactions found."
-             loading-message="Loading transactions..."
+             :empty-title="t('transactions.emptyTitle')"
+             :loading-message="t('transactions.loadingMessage')"
              class="flex-1 overflow-y-auto"/>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">

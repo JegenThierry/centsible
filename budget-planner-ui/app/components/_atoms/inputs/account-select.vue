@@ -11,11 +11,12 @@ const props = defineProps<{
 
 const model = defineModel<BudgetAccount | undefined>();
 const error = ref<string | undefined>(undefined);
+const {t} = useI18n();
 
 function validate(): boolean {
   error.value = undefined;
   if (props.required && !model.value) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field: props.label});
     return false;
   }
   return true;
@@ -34,7 +35,7 @@ defineExpose({validate})
                  :items="options"
                  class="w-full"
                  label-key="name"
-                 placeholder="Select an account"
+                 :placeholder="t('transactions.selects.selectAccount')"
                  searchable>
       <template #label>
         <div v-if="model" class="flex items-center gap-2">
@@ -42,7 +43,7 @@ defineExpose({validate})
           <span>{{ model.name }}</span>
           <span class="text-xs text-neutral-500">({{ model.currency }})</span>
         </div>
-        <span v-else>Select an account</span>
+        <span v-else>{{ t('transactions.selects.selectAccount') }}</span>
       </template>
 
       <template #item-leading="{ item }">

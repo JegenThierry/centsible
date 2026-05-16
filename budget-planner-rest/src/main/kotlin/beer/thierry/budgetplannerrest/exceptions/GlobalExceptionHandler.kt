@@ -1,7 +1,10 @@
 package beer.thierry.budgetplannerrest.exceptions
 
+import beer.thierry.budgetplanner.api.exceptions.LocalizedException
 import beer.thierry.budgetplanner.api.model.ErrorResponse
 import jakarta.validation.ConstraintViolationException
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -11,16 +14,28 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 
 @ControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(private val messageSource: MessageSource) {
+
+    private fun t(key: String, vararg args: Any): String =
+        messageSource.getMessage(key, args, key, LocaleContextHolder.getLocale()) ?: key
+
+    @ExceptionHandler(LocalizedException::class)
+    fun handleLocalized(ex: LocalizedException, request: WebRequest): ResponseEntity<ErrorResponse> {
+        val message = messageSource.getMessage(ex, LocaleContextHolder.getLocale())
+        val error = ErrorResponse(message = message, details = request.getDescription(false))
+        return ResponseEntity.status(ex.httpStatus).body(error)
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(
         ex: MethodArgumentNotValidException,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
-        val fieldErrors = ex.bindingResult.fieldErrors.associate { it.field to (it.defaultMessage ?: "Invalid value.") }
+        val fieldErrors = ex.bindingResult.fieldErrors.associate {
+            it.field to (it.defaultMessage ?: t("validation.generic.invalid"))
+        }
         val error = ErrorResponse(
-            message = "Validation failed.",
+            message = t("error.validation.failed"),
             details = request.getDescription(false),
             fieldErrors = fieldErrors
         )
@@ -38,7 +53,7 @@ class GlobalExceptionHandler {
             field to violation.message
         }
         val error = ErrorResponse(
-            message = "Validation failed.",
+            message = t("error.validation.failed"),
             details = request.getDescription(false),
             fieldErrors = fieldErrors
         )
@@ -52,7 +67,7 @@ class GlobalExceptionHandler {
     ): ResponseEntity<ErrorResponse> {
         val cause = ex.mostSpecificCause.message?.lineSequence()?.firstOrNull().orEmpty()
         val error = ErrorResponse(
-            message = "Malformed request body.",
+            message = t("error.request.malformed"),
             details = cause.ifBlank { request.getDescription(false) }
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
@@ -60,8 +75,10 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ErrorResponse> {
+        // Internal services may still throw IllegalArgumentException directly; keep the message
+        // English. Prefer LocalizedException for anything user-facing.
         val error = ErrorResponse(
-            message = ex.message ?: "Invalid request.",
+            message = ex.message ?: t("error.request.invalid"),
             details = request.getDescription(false)
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
@@ -70,7 +87,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(ex: IllegalStateException, request: WebRequest): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(
-            message = ex.message,
+            message = ex.message ?: t("error.unexpected"),
             details = request.getDescription(false)
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)
@@ -79,7 +96,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleGlobalException(ex: Exception, request: WebRequest): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(
-            message = "An unexpected error occurred",
+            message = t("error.unexpected"),
             details = ex.message ?: request.getDescription(false)
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)

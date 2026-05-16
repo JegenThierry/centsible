@@ -3,6 +3,8 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
 }>();
 
+const {t} = useI18n();
+
 function onRefresh() {
   emit('refresh');
 }
@@ -10,7 +12,6 @@ function onRefresh() {
 
 <template>
   <UButton color="neutral" icon="i-lucide-refresh-cw" variant="subtle" @click="onRefresh">
-    Refresh
+    {{ t('common.actions.refresh') }}
   </UButton>
 </template>
-

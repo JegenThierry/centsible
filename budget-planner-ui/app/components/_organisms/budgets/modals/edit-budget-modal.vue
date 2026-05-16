@@ -17,6 +17,7 @@ const emit = defineEmits<{
 
 const service = useBudgetService(useApi());
 const toasts = useToasts();
+const {t} = useI18n();
 
 const form = ref<BudgetForm>(toForm(props.budget));
 const formRef = ref<InstanceType<typeof BudgetFormFields>>();
@@ -40,11 +41,11 @@ async function handleSave() {
       categoryId: form.value.category.id,
       amountLimit: form.value.amountLimit,
     });
-    toasts.success('Budget updated.', 'Your monthly limit has been saved.');
+    toasts.success(t('budgets.edit.toastSuccessTitle'), t('budgets.edit.toastSuccessBody'));
     emit('updated');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Budget not updated.', 'Could not update the budget, please try again.');
+    useApiErrors().toastError(error, t('budgets.edit.toastErrorTitle'), t('budgets.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -53,8 +54,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Update this budget's category or monthly limit."
-          title="Edit budget">
+          :description="t('budgets.edit.description')"
+          :title="t('budgets.edit.title')">
     <template #body>
       <BudgetFormFields ref="formRef" v-model="form"/>
     </template>
@@ -62,7 +63,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Save</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('budgets.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

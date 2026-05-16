@@ -6,8 +6,10 @@ const props = defineProps<{
   label?: string;
 }>();
 
-const triggerLabel = computed(() => props.label ?? 'Open row actions');
-const menuLabel = computed(() => props.label ?? 'Row actions');
+const {t} = useI18n();
+
+const triggerLabel = computed(() => props.label ?? t('transactions.table_meta.openRowActions'));
+const menuLabel = computed(() => props.label ?? t('transactions.table_meta.rowActions'));
 </script>
 
 <template>

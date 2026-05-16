@@ -9,6 +9,8 @@ defineProps<{
   currency: Currency
 }>();
 
+const {t} = useI18n();
+
 const formatDate = (dateString: string) => {
   try {
     return format(parseISO(dateString), 'dd.MM.yyyy');
@@ -23,7 +25,7 @@ const formatDate = (dateString: string) => {
     <template #header>
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-          Account History
+          {{ t('accounts.dashboard.accountHistory') }}
         </h3>
       </div>
     </template>

@@ -18,6 +18,7 @@ const props = defineProps<{
 
 const model = defineModel<string | number>();
 const error = ref<string | undefined>(undefined);
+const {t} = useI18n();
 
 function isEmpty(value: string | number | undefined): boolean {
   if (value === undefined || value === null) return true;
@@ -29,9 +30,10 @@ function validate(): boolean {
   error.value = undefined;
 
   const value = model.value;
+  const field = props.label;
 
   if (props.required && isEmpty(value)) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field});
     return false;
   }
 
@@ -42,37 +44,37 @@ function validate(): boolean {
   const stringValue = typeof value === 'string' ? value : String(value);
 
   if (props.type === 'email' && !EMAIL_REGEX.test(stringValue.trim())) {
-    error.value = `${props.label} must be a valid email address.`;
+    error.value = t('common.validation.email', {field});
     return false;
   }
 
   if (props.minLength !== undefined && stringValue.length < props.minLength) {
-    error.value = `${props.label} must be at least ${props.minLength} characters.`;
+    error.value = t('common.validation.minLength', {field, min: props.minLength});
     return false;
   }
 
   if (props.maxLength !== undefined && stringValue.length > props.maxLength) {
-    error.value = `${props.label} must be at most ${props.maxLength} characters.`;
+    error.value = t('common.validation.maxLength', {field, max: props.maxLength});
     return false;
   }
 
   if (props.pattern && !props.pattern.test(stringValue)) {
-    error.value = props.patternMessage ?? `${props.label} has an invalid format.`;
+    error.value = props.patternMessage ?? t('common.validation.invalidFormat', {field});
     return false;
   }
 
   if (props.type === 'number') {
     const numericValue = typeof value === 'number' ? value : Number(stringValue);
     if (Number.isNaN(numericValue)) {
-      error.value = `${props.label} must be a number.`;
+      error.value = t('common.validation.number', {field});
       return false;
     }
     if (props.min !== undefined && numericValue < props.min) {
-      error.value = `${props.label} must be at least ${props.min}.`;
+      error.value = t('common.validation.min', {field, min: props.min});
       return false;
     }
     if (props.max !== undefined && numericValue > props.max) {
-      error.value = `${props.label} must be at most ${props.max}.`;
+      error.value = t('common.validation.max', {field, max: props.max});
       return false;
     }
   }

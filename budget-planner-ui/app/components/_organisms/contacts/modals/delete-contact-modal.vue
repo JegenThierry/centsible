@@ -14,7 +14,15 @@ const emit = defineEmits<{
 }>();
 
 const contactsStore = useContactsStore();
+const {t} = useI18n();
 const loading = ref(false);
+
+const description = computed(() => {
+  if (props.contact?.name) {
+    return t('contacts.delete.descriptionWithName', {name: props.contact.name});
+  }
+  return t('contacts.delete.descriptionGeneric');
+});
 
 async function handleDelete() {
   if (!props.contact?.id) return;
@@ -34,12 +42,12 @@ async function handleDelete() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="`This will remove ${contact?.name ?? 'this contact'} from your list. Contacts with outstanding loans cannot be deleted.`"
-          title="Delete Contact">
+          :description="description"
+          :title="t('contacts.delete.title')">
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" color="error" @click="handleDelete">Delete</UButton>
+        <UButton :loading="loading" color="error" @click="handleDelete">{{ t('contacts.delete.submit') }}</UButton>
       </div>
     </template>
   </UModal>

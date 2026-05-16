@@ -17,6 +17,7 @@ const store = useRecurringTransactionsStore();
 const accountsStore = useBudgetAccountsStore();
 const service = useRecurringTransactionService(useApi());
 const toasts = useToasts();
+const {t} = useI18n();
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -44,14 +45,14 @@ async function toggle(rule: RecurringTransaction) {
   try {
     if (rule.active) {
       await service.pause(rule.id);
-      toasts.success('Rule paused.', 'No new occurrences will be generated.');
+      toasts.success(t('transactions.recurring.toastPausedTitle'), t('transactions.recurring.toastPausedBody'));
     } else {
       await service.resume(rule.id);
-      toasts.success('Rule resumed.', 'Occurrences will be generated from the next due date.');
+      toasts.success(t('transactions.recurring.toastResumedTitle'), t('transactions.recurring.toastResumedBody'));
     }
     refresh();
   } catch (error) {
-    toasts.error('Action failed.', 'Could not change the rule status.');
+    toasts.error(t('transactions.recurring.toastToggleErrorTitle'), t('transactions.recurring.toastToggleErrorBody'));
     console.error(error);
   }
 }
@@ -66,12 +67,12 @@ watch(() => accountsStore.activeAccount?.id, () => refresh(), {immediate: true})
     </div>
 
     <AppEmptyState v-else-if="store.items.length === 0"
-                   description="Create a recurring rule to auto-generate transactions like rent, salary, or subscriptions."
+                   :description="t('transactions.recurring.emptyDescription')"
                    icon="i-lucide-repeat"
-                   title="No recurring rules yet">
+                   :title="t('transactions.recurring.emptyTitle')">
       <template #actions>
         <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
-          New recurring rule
+          {{ t('transactions.recurring.newRule') }}
         </UButton>
       </template>
     </AppEmptyState>

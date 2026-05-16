@@ -1,5 +1,6 @@
 package beer.thierry.budgetplanner.core.services.users
 
+import beer.thierry.budgetplanner.api.exceptions.LocalizedException
 import beer.thierry.budgetplanner.api.model.user.ProfileUpdateDTO
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.model.user.UserDTO
@@ -12,7 +13,7 @@ import java.util.*
 class UserService(private val userRepository: IUserRepository) : IUserService {
     override fun fetchUserByUsername(username: String): UserDTO {
         val user = userRepository.findUserByUsername(username)
-            ?: throw IllegalArgumentException("User with username $username not found")
+            ?: throw LocalizedException.NotFound("error.user.notFoundByUsername", username)
         return mapToDTO(user)
     }
 
@@ -20,7 +21,7 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
 
     override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
         val user = userRepository.findUserById(userId)
-            ?: throw IllegalArgumentException("User with ID $userId not found")
+            ?: throw LocalizedException.NotFound("error.user.notFound")
 
         val updatedUser = userRepository.updateUserProfile(
             id = userId,
@@ -28,14 +29,14 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
             lastName = profile.lastName,
             email = profile.email,
             profilePicture = user.profilePicture
-        ) ?: throw IllegalStateException("Failed to update user profile")
+        ) ?: throw LocalizedException.InternalError("error.user.profileUpdateFailed")
 
         return mapToDTO(updatedUser)
     }
 
     override fun updateProfilePicture(userId: UUID, profilePicture: String?): UserDTO {
         val user = userRepository.findUserById(userId)
-            ?: throw IllegalArgumentException("User with ID $userId not found")
+            ?: throw LocalizedException.NotFound("error.user.notFound")
 
         val updatedUser = userRepository.updateUserProfile(
             id = userId,
@@ -43,9 +44,15 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
             lastName = user.lastName,
             email = user.email,
             profilePicture = profilePicture
-        ) ?: throw IllegalStateException("Failed to update profile picture")
+        ) ?: throw LocalizedException.InternalError("error.user.pictureUpdateFailed")
 
         return mapToDTO(updatedUser)
+    }
+
+    override fun updateUserLocale(userId: UUID, locale: String): UserDTO {
+        val updated = userRepository.updateUserLocale(userId, locale)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        return mapToDTO(updated)
     }
 
     private fun mapToDTO(user: User): UserDTO {
@@ -57,6 +64,7 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
             lastName = user.lastName,
             name = "${user.firstName} ${user.lastName}",
             profilePicture = user.profilePicture,
+            locale = user.locale,
         )
     }
 }

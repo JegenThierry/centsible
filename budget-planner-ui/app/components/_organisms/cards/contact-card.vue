@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? Currency.EUR);
 </script>
 
@@ -30,13 +31,13 @@ const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? C
         <div>
           <p class="font-semibold">{{ contact.name }}</p>
           <p class="text-xs text-muted">
-            {{ contact.openLoanCount }} {{ contact.openLoanCount === 1 ? 'loan' : 'loans' }}
+            {{ contact.openLoanCount === 1 ? t('common.category.loanCount', {count: contact.openLoanCount}) : t('common.category.loansCount', {count: contact.openLoanCount}) }}
           </p>
         </div>
       </div>
       <div class="flex items-center gap-3">
         <div class="text-right">
-          <p class="text-xs text-muted">Outstanding</p>
+          <p class="text-xs text-muted">{{ t('common.category.outstanding') }}</p>
           <p :class="Number(contact.outstanding) > 0 ? 'text-warning font-semibold' : 'text-muted'">
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>

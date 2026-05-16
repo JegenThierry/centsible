@@ -5,8 +5,10 @@ definePageMeta({
   middleware: ['auth-guard', 'account-loader']
 })
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Dashboard',
+  title: () => t('accounts.dashboard.pageTitle'),
 });
 </script>
 

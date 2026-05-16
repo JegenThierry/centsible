@@ -1,0 +1,77 @@
+{
+  "landing": {
+    "pageTitle": "Centsible",
+    "aboutPageTitle": "About",
+    "hero": {
+      "badge": "Open source · Self-hosted",
+      "title": "Take control of your money,",
+      "titleHighlight": "without the bloat.",
+      "subtitle": "A clean, self-hosted budget tracker with multiple accounts, smart categories, monthly budgets, and dashboards that actually help you decide.",
+      "getStarted": "Get started",
+      "learnMore": "Learn more",
+      "tagline": "Your data lives on your server. No tracking, no ads, no nonsense."
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Everything you need to budget, nothing you don't.",
+      "subtitle": "The essentials, done well. No upsell, no premium tier.",
+      "accounts": {
+        "title": "Multiple accounts",
+        "description": "Track checking, savings, and cards side by side — each with their own currency and running balance."
+      },
+      "categories": {
+        "title": "Smart categories",
+        "description": "Tag income and expenses to see exactly where your money comes from and where it goes."
+      },
+      "budgets": {
+        "title": "Monthly budgets",
+        "description": "Set per-category spending goals and watch overspend surface before the month is over."
+      },
+      "recurring": {
+        "title": "Recurring transactions",
+        "description": "Automate the predictable: rent, salary, subscriptions — log them once and forget."
+      },
+      "csv": {
+        "title": "CSV import",
+        "description": "Pull statements straight from your bank with column mapping and built-in deduplication."
+      },
+      "dashboards": {
+        "title": "Insightful dashboards",
+        "description": "Charts and stats that show trends, breakdowns, and the bottom line at a glance."
+      }
+    },
+    "cta": {
+      "title": "Ready to plan smarter?",
+      "description": "Spin up an account and start tracking in under a minute. Your data stays on your server.",
+      "createAccount": "Create an account",
+      "alreadyHave": "I already have one"
+    },
+    "about": {
+      "title": "About",
+      "description": "Version and build details about this instance of Centsible.",
+      "loadingUnavailable": "System information is currently unavailable.",
+      "loadingTitle": "Nothing to show",
+      "tryAgain": "Try again",
+      "sections": {
+        "release": "Release details",
+        "techStack": "Built with",
+        "resources": "Resources"
+      },
+      "fields": {
+        "version": "Version",
+        "released": "Released",
+        "license": "License",
+        "repository": "Repository",
+        "openLink": "Open"
+      },
+      "resources": {
+        "sourceLabel": "Source repository",
+        "sourceDescription": "Browse the code, open issues, or contribute.",
+        "bugLabel": "Report a bug",
+        "bugDescription": "Found something off? Let us know on the issue tracker.",
+        "activityLabel": "Activity",
+        "activityDescription": "See what has changed recently."
+      }
+    }
+  }
+}

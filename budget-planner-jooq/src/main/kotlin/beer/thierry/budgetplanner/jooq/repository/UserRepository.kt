@@ -5,6 +5,7 @@ import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.repository.IUserRepository
 import beer.thierry.jooq.generated.tables.references.USERS
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL.field
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
@@ -12,35 +13,43 @@ import java.util.*
 
 private val REGISTRATION_TOKEN_HASH = field("registration_token_hash", ByteArray::class.java)
 private val REGISTRATION_TOKEN_EXPIRES_AT = field("registration_token_expires_at", OffsetDateTime::class.java)
+// LOCALE isn't in the generated USERS metadata yet; declared manually until the next jOOQ regen.
+private val LOCALE = field("locale", String::class.java)
+private val USER_FIELDS: Array<Field<*>> = arrayOf(*USERS.fields(), LOCALE)
+private const val DEFAULT_LOCALE = "en"
+private val SUPPORTED_LOCALES = setOf("en", "fr", "de")
+
+private fun normaliseLocale(locale: String?): String =
+    locale?.takeIf { it in SUPPORTED_LOCALES } ?: DEFAULT_LOCALE
 
 @Repository
 class UserRepository(private val dsl: DSLContext) : IUserRepository {
     override fun findUserByUsername(username: String): User? {
-        return dsl.selectFrom(USERS)
+        return dsl.select(*USER_FIELDS).from(USERS)
             .where(USERS.USERNAME.eq(username))
             .fetchOneInto(User::class.java)
     }
 
     override fun findUserByEmail(email: String): User? {
-        return dsl.selectFrom(USERS)
+        return dsl.select(*USER_FIELDS).from(USERS)
             .where(USERS.EMAIL.eq(email))
             .fetchOneInto(User::class.java)
     }
 
     override fun findUserByEmailOrUsername(email: String, username: String): User? {
-        return dsl.selectFrom(USERS)
+        return dsl.select(*USER_FIELDS).from(USERS)
             .where(USERS.EMAIL.eq(email).or(USERS.USERNAME.eq(username)))
             .fetchOneInto(User::class.java)
     }
 
     override fun findUserById(id: UUID): User? {
-        return dsl.selectFrom(USERS)
+        return dsl.select(*USER_FIELDS).from(USERS)
             .where(USERS.ID.eq(id))
             .fetchOneInto(User::class.java)
     }
 
     override fun findUserByValidTokenHash(tokenHash: ByteArray): User? {
-        return dsl.selectFrom(USERS)
+        return dsl.select(*USER_FIELDS).from(USERS)
             .where(REGISTRATION_TOKEN_HASH.eq(tokenHash))
             .and(REGISTRATION_TOKEN_EXPIRES_AT.gt(OffsetDateTime.now()))
             .fetchOneInto(User::class.java)
@@ -58,12 +67,13 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.FIRST_NAME, user.firstName)
             .set(USERS.LAST_NAME, user.lastName)
             .set(USERS.PASSWORD_HASH, passwordHash)
+            .set(LOCALE, normaliseLocale(user.locale))
             .set(field("registered", Boolean::class.java), false)
             .set(REGISTRATION_TOKEN_HASH, registrationTokenHash)
             .set(REGISTRATION_TOKEN_EXPIRES_AT, registrationTokenExpiresAt)
             .set(USERS.CREATED_AT, OffsetDateTime.now())
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
-            .returning()
+            .returningResult(*USER_FIELDS)
             .fetchOneInto(User::class.java)
     }
 
@@ -91,7 +101,16 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.PROFILE_PICTURE, profilePicture)
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
-            .returning()
+            .returningResult(*USER_FIELDS)
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun updateUserLocale(id: UUID, locale: String): User? {
+        return dsl.update(USERS)
+            .set(LOCALE, normaliseLocale(locale))
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .returningResult(*USER_FIELDS)
             .fetchOneInto(User::class.java)
     }
 }

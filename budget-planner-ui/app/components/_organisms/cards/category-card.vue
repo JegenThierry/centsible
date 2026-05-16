@@ -11,6 +11,8 @@ const emit = defineEmits<{
   edit: [category: Category];
   delete: [category: Category];
 }>();
+
+const {t} = useI18n();
 </script>
 
 <template>
@@ -29,7 +31,7 @@ const emit = defineEmits<{
           <p class="font-semibold">{{ category.name }}</p>
           <div class="flex gap-2">
             <CategoryTypeBadge :type="category.type"/>
-            <UBadge v-if="category.system" color="neutral" size="xs" variant="outline">System</UBadge>
+            <UBadge v-if="category.system" color="neutral" size="xs" variant="outline">{{ t('common.category.system') }}</UBadge>
           </div>
         </div>
       </div>

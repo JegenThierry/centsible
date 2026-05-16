@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const loansStore = useLoansStore();
+const {t} = useI18n();
 
 const form = ref<LoanFormModel>(makeBlankForm());
 const formRef = ref<InstanceType<typeof LoanForm>>();
@@ -59,8 +60,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Record money you've lent to someone."
-          title="Record Lending">
+          :description="t('contacts.loans.create.description')"
+          :title="t('contacts.loans.create.title')">
     <template #body>
       <LoanForm ref="formRef" v-model="form" :lock-contact="!!contactId"/>
     </template>
@@ -68,7 +69,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Record</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('contacts.loans.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

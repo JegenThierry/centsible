@@ -11,6 +11,7 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const categoriesStore = useCategoriesStore();
+const {t} = useI18n();
 const loading = ref(false);
 
 async function handleDelete() {
@@ -30,8 +31,8 @@ async function handleDelete() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="`Are you sure you want to delete the category '${category?.name}'? This action cannot be undone.`"
-          title="Delete Category">
+          :description="t('categories.delete.description', {name: category?.name ?? ''})"
+          :title="t('categories.delete.title')">
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>

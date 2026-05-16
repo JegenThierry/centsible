@@ -1,5 +1,6 @@
 package beer.thierry.budgetplanner.core.services.authentication
 
+import beer.thierry.budgetplanner.api.exceptions.LocalizedException
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthResponse
@@ -19,6 +20,13 @@ import java.time.OffsetDateTime
 import java.util.*
 import javax.crypto.SecretKey
 
+private val SUPPORTED_EMAIL_LOCALES = setOf("en", "fr", "de")
+
+private fun resolveEmailLocale(stored: String?): Locale {
+    val code = stored?.takeIf { it in SUPPORTED_EMAIL_LOCALES } ?: "en"
+    return Locale.forLanguageTag(code)
+}
+
 @Service
 class AuthenticationService(
     private val userRepository: IUserRepository,
@@ -37,45 +45,47 @@ class AuthenticationService(
 
     override fun authenticate(authRequest: AuthRequest): AuthResponse {
         val user = userRepository.findUserByUsername(authRequest.username)
-            ?: throw IllegalArgumentException("Invalid username or password")
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
 
         if (!passwordEncoder.matches(authRequest.password, user.passwordHash)) {
-            throw IllegalArgumentException("Invalid username or password")
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
         }
 
         if (!user.registered) {
-            throw IllegalArgumentException("Please confirm your email address")
+            throw LocalizedException.Unauthorized("error.auth.emailNotConfirmed")
         }
 
         return AuthResponse(generateJwt(user))
     }
 
     override fun register(authRequest: AuthRegisterRequest): AuthResponse {
-        if (!registrationEnabled) throw IllegalArgumentException("Registration is disabled")
+        if (!registrationEnabled) throw LocalizedException.Forbidden("error.auth.registrationDisabled")
         assertPasswordMatchesSecuritySettings(authRequest.password)
 
         val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
         if (existing != null) {
             log.info("Registration rejected: account already exists for username='{}' or email='{}'", authRequest.username, authRequest.email)
-            throw IllegalArgumentException("An account with this username or email already exists.")
+            throw LocalizedException.Conflict("error.auth.accountExists")
         }
 
         val passwordHash = passwordEncoder.encode(authRequest.password)
-            ?: throw IllegalStateException("Password encoder returned null hash")
+            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
 
         val rawToken = generateRegistrationToken()
         val tokenHash = sha256(rawToken)
         val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
 
         val registeredUser = userRepository.createUser(authRequest, passwordHash, tokenHash, tokenExpiresAt)
-            ?: throw IllegalArgumentException("User could not be created")
+            ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
 
         if (skipEmailVerification) {
             userRepository.confirmUser(registeredUser.id)
             return AuthResponse(generateJwt(registeredUser))
         }
 
-        registerEmailService.sendRegistrationEmail(registeredUser, rawToken)
+        // Use the locale the user just chose during registration so the confirmation email
+        // arrives in their language, not whatever the calling request's Accept-Language said.
+        registerEmailService.sendRegistrationEmail(registeredUser, rawToken, resolveEmailLocale(registeredUser.locale))
         return AuthResponse("")
     }
 
@@ -112,6 +122,7 @@ class AuthenticationService(
             .claim("lastName", user.lastName)
             .claim("name", "${user.firstName} ${user.lastName}")
             .claim("profilePicture", user.profilePicture)
+            .claim("locale", user.locale)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(signingKey)
@@ -121,7 +132,7 @@ class AuthenticationService(
     private fun assertPasswordMatchesSecuritySettings(password: String) {
         val passwordRegex = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
         if (!password.matches(passwordRegex)) {
-            throw IllegalArgumentException("Password does not meet security requirements")
+            throw LocalizedException.BadRequest("error.auth.passwordRequirements")
         }
     }
 }

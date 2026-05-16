@@ -1,0 +1,57 @@
+{
+  "profile": {
+    "page": {
+      "title": "Profil",
+      "description": "Gérez les paramètres de votre compte et vos informations personnelles"
+    },
+    "avatar": {
+      "alt": "Photo de profil",
+      "change": "Changer la photo"
+    },
+    "form": {
+      "firstNameLabel": "Prénom",
+      "firstNamePlaceholder": "Prénom",
+      "lastNameLabel": "Nom",
+      "lastNamePlaceholder": "Nom",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "E-mail",
+      "submit": "Enregistrer les modifications"
+    },
+    "toasts": {
+      "avatarSuccessTitle": "Photo de profil mise à jour",
+      "avatarSuccessBody": "Votre photo de profil a été mise à jour avec succès.",
+      "avatarErrorTitle": "Échec de la mise à jour de la photo",
+      "avatarErrorFallback": "Impossible de mettre à jour votre photo de profil. Veuillez réessayer plus tard.",
+      "validationErrorTitle": "Validation échouée",
+      "validationErrorBody": "Veuillez vérifier les erreurs du formulaire.",
+      "profileSuccessTitle": "Profil mis à jour",
+      "profileSuccessBody": "Vos informations de profil ont bien été enregistrées.",
+      "profileErrorTitle": "Erreur lors de la mise à jour du profil",
+      "profileErrorFallback": "Vos informations de profil n'ont pas pu être mises à jour. Veuillez réessayer plus tard."
+    },
+    "dropdown": {
+      "profile": "Profil",
+      "settings": "Paramètres",
+      "about": "À propos",
+      "logout": "Déconnexion"
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Choisissez la langue utilisée dans l'interface.",
+      "current": "Langue actuelle",
+      "en": "English",
+      "fr": "Français",
+      "de": "Deutsch"
+    },
+    "theme": {
+      "buttonAria": "Changer de thème",
+      "appearance": "Apparence",
+      "title": "Thème",
+      "modes": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+      }
+    }
+  }
+}

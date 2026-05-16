@@ -11,14 +11,19 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {todayIsoDate} from "~/utils/date";
 
+const {t} = useI18n();
+
 const props = withDefaults(defineProps<{
   title?: string;
   description?: string;
   filterType?: CategoryType;
 }>(), {
-  title: 'Create Transaction',
-  description: 'Create a new transaction for your active account.'
+  title: undefined,
+  description: undefined,
 });
+
+const computedTitle = computed(() => props.title ?? t('transactions.create.title'));
+const computedDescription = computed(() => props.description ?? t('transactions.create.description'));
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -34,10 +39,10 @@ const budgetAccountsStore = useBudgetAccountsStore();
 
 const mode = ref<'standard' | 'lending'>('standard');
 
-const modeOptions = [
-  {label: 'Standard', value: 'standard'},
-  {label: 'Lending', value: 'lending'},
-];
+const modeOptions = computed(() => [
+  {label: t('transactions.create.modeStandard'), value: 'standard'},
+  {label: t('transactions.create.modeLending'), value: 'lending'},
+]);
 
 const form = ref<TransactionForm>(makeBlankTransactionForm());
 const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
@@ -103,11 +108,11 @@ async function saveStandard() {
         transactionDate: form.value.transactionDate
       }
     );
-    toasts.success('Transaction created successfully.', 'Your transaction has been created.');
+    toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Transaction not created.', 'Your transaction could not be created, please try again.');
+    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -131,13 +136,13 @@ async function saveLending() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="description"
-          :title="title">
+          :description="computedDescription"
+          :title="computedTitle">
     <template #body>
       <div class="space-y-4">
         <URadioGroup v-model="mode"
                      :items="modeOptions"
-                     legend="Type"
+                     :legend="t('transactions.create.modeLegend')"
                      orientation="horizontal"/>
         <TransactionFormFields v-if="mode === 'standard'"
                                ref="formRef"
@@ -152,7 +157,7 @@ async function saveLending() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave"> Create</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('transactions.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

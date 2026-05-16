@@ -15,6 +15,7 @@ const emit = defineEmits<{
 }>();
 
 const authStore = useAuthStore();
+const {t} = useI18n();
 const open = ref(false);
 const sendEmail = ref(false);
 const recipient = ref('');
@@ -54,23 +55,23 @@ function submit() {
     <template #content>
       <div class="p-4 space-y-3 w-80">
         <div>
-          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">Title</label>
+          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.titleLabel') }}</label>
           <UInput v-model="title" :placeholder="defaultTitle" class="w-full mt-1"/>
         </div>
 
         <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3">
-          <UCheckbox v-model="sendEmail" label="Email me a copy when ready"/>
+          <UCheckbox v-model="sendEmail" :label="t('exports.options.emailMe')"/>
         </div>
 
         <div v-if="sendEmail">
-          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">Recipient</label>
+          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.recipientLabel') }}</label>
           <UInput v-model="recipient" :placeholder="userEmail" class="w-full mt-1" type="email"/>
-          <p class="text-xs text-neutral-500 mt-1">Leave blank to use your account email.</p>
+          <p class="text-xs text-neutral-500 mt-1">{{ t('exports.options.recipientHelp') }}</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
-          <UButton color="neutral" variant="ghost" @click="open = false">Cancel</UButton>
-          <UButton :loading="pending" color="primary" @click="submit">Start export</UButton>
+          <UButton color="neutral" variant="ghost" @click="open = false">{{ t('exports.options.cancel') }}</UButton>
+          <UButton :loading="pending" color="primary" @click="submit">{{ t('exports.options.start') }}</UButton>
         </div>
       </div>
     </template>

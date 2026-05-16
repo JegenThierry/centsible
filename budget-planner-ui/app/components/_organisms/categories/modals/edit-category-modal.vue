@@ -14,6 +14,7 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const categoriesStore = useCategoriesStore();
+const {t} = useI18n();
 
 const form = ref<CategoryForm>({
   name: '',
@@ -27,10 +28,10 @@ const iconInput = ref<InstanceType<typeof IconInput>>();
 
 const loading = ref(false);
 
-const typeOptions = [
-  {label: 'Expense', value: CategoryType.EXPENSE},
-  {label: 'Income', value: CategoryType.INCOME},
-];
+const typeOptions = computed(() => [
+  {label: t('categories.type.expense'), value: CategoryType.EXPENSE},
+  {label: t('categories.type.income'), value: CategoryType.INCOME},
+]);
 
 watch(() => props.category, (newCategory) => {
   if (newCategory) {
@@ -65,20 +66,20 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Update your category details."
-          title="Edit Category">
+          :description="t('categories.edit.description')"
+          :title="t('categories.edit.title')">
     <template #body>
       <div class="space-y-4">
         <URadioGroup v-model="form.type"
                      :items="typeOptions"
-                     legend="Category Type"
+                     :legend="t('categories.type.legend')"
                      orientation="horizontal"/>
 
         <BaseInput ref="nameInput"
                    v-model="form.name"
                    :max-length="50"
-                   label="Name"
-                   placeholder="e.g. Food, Salary"
+                   :label="t('categories.form.nameLabel')"
+                   :placeholder="t('categories.form.namePlaceholder')"
                    required
                    type="text"/>
 
@@ -87,7 +88,7 @@ async function handleSave() {
                    required/>
 
         <ColorSelect v-model="form.color"
-                     label="Color"
+                     :label="t('categories.form.colorLabel')"
                      required/>
       </div>
     </template>
@@ -95,7 +96,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Save Changes</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('categories.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

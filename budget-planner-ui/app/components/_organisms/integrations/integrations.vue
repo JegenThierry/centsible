@@ -8,6 +8,8 @@ import LoadingAnimation from "~/components/_atoms/animations/loading-animation.v
 import ConnectProviderModal from "~/components/_organisms/integrations/modals/connect-provider-modal.vue";
 
 const providersStore = useProvidersStore();
+const {t} = useI18n();
+const localeTag = useLocaleTag();
 
 const isConnectOpen = ref(false);
 const activeDescriptor = ref<ProviderDescriptor | undefined>();
@@ -26,6 +28,14 @@ function statusColor(status: ProviderConnection['status']): 'success' | 'warning
   }
 }
 
+function statusLabel(status: ProviderConnection['status']): string {
+  return t(`integrations.connections.status.${status}`);
+}
+
+function formatLastSync(value: string): string {
+  return new Date(value).toLocaleString(localeTag.value);
+}
+
 function descriptorFor(connection: ProviderConnection): ProviderDescriptor | undefined {
   return providersStore.findDescriptor(connection.providerKey);
 }
@@ -35,7 +45,7 @@ async function onSync(connection: ProviderConnection) {
 }
 
 async function onDelete(connection: ProviderConnection) {
-  if (!confirm(`Disconnect "${connection.displayName}"?`)) return;
+  if (!confirm(t('integrations.connections.confirmDisconnect', {name: connection.displayName}))) return;
   await providersStore.deleteConnection(connection.id);
 }
 
@@ -46,8 +56,8 @@ onMounted(() => {
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <PageHeader description="Connect external sources of accounts, transactions, or quotes."
-                title="Integrations"/>
+    <PageHeader :description="t('integrations.page.description')"
+                :title="t('integrations.page.title')"/>
 
     <div v-if="providersStore.pending && providersStore.descriptors.length === 0"
          class="flex justify-center my-10">
@@ -55,11 +65,11 @@ onMounted(() => {
     </div>
 
     <section class="mb-10">
-      <h2 class="text-lg font-semibold mb-3">Available providers</h2>
+      <h2 class="text-lg font-semibold mb-3">{{ t('integrations.available.heading') }}</h2>
       <AppEmptyState v-if="!providersStore.pending && providersStore.descriptors.length === 0"
-                     description="No provider plugins are enabled on this server."
+                     :description="t('integrations.available.emptyDescription')"
                      icon="i-lucide-plug-zap"
-                     title="No providers"/>
+                     :title="t('integrations.available.emptyTitle')"/>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <UCard v-for="d in providersStore.descriptors" :key="d.key">
           <div class="flex flex-col gap-3 h-full">
@@ -77,7 +87,7 @@ onMounted(() => {
             </div>
             <div class="flex-1"/>
             <UButton block icon="i-lucide-plus" @click="openConnect(d)">
-              Connect
+              {{ t('integrations.available.connect') }}
             </UButton>
           </div>
         </UCard>
@@ -85,11 +95,11 @@ onMounted(() => {
     </section>
 
     <section>
-      <h2 class="text-lg font-semibold mb-3">Your connections</h2>
+      <h2 class="text-lg font-semibold mb-3">{{ t('integrations.connections.heading') }}</h2>
       <AppEmptyState v-if="!providersStore.pending && providersStore.connections.length === 0"
-                     description="Connect a provider above to start tracking external data."
+                     :description="t('integrations.connections.emptyDescription')"
                      icon="i-lucide-cable"
-                     title="No connections yet"/>
+                     :title="t('integrations.connections.emptyTitle')"/>
       <div v-else class="space-y-3">
         <UCard v-for="conn in providersStore.connections" :key="conn.id">
           <div class="flex items-start justify-between gap-4 flex-wrap">
@@ -97,17 +107,17 @@ onMounted(() => {
               <div class="flex items-center gap-2">
                 <h3 class="font-semibold truncate">{{ conn.displayName }}</h3>
                 <UBadge :color="statusColor(conn.status)" size="sm" variant="soft">
-                  {{ conn.status.toLowerCase() }}
+                  {{ statusLabel(conn.status) }}
                 </UBadge>
               </div>
               <p class="text-sm text-neutral-500">
                 {{ descriptorFor(conn)?.displayName ?? conn.providerKey }}
               </p>
               <p v-if="conn.lastSyncAt" class="text-xs text-dimmed mt-1">
-                Last synced: {{ new Date(conn.lastSyncAt).toLocaleString() }}
+                {{ t('integrations.connections.lastSynced', {date: formatLastSync(conn.lastSyncAt)}) }}
               </p>
               <p v-if="conn.lastError" class="text-xs text-error mt-1 truncate" :title="conn.lastError">
-                Last error: {{ conn.lastError }}
+                {{ t('integrations.connections.lastError', {error: conn.lastError}) }}
               </p>
             </div>
             <div class="flex gap-2">
@@ -116,14 +126,14 @@ onMounted(() => {
                        size="sm"
                        variant="soft"
                        @click="onSync(conn)">
-                Sync now
+                {{ t('integrations.connections.syncNow') }}
               </UButton>
               <UButton color="error"
                        icon="i-lucide-trash-2"
                        size="sm"
                        variant="soft"
                        @click="onDelete(conn)">
-                Disconnect
+                {{ t('integrations.connections.disconnect') }}
               </UButton>
             </div>
           </div>

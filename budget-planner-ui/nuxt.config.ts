@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: {enabled: false},
-  modules: ['@nuxt/ui', '@pinia/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
   css: ['@/assets/css/main.css'],
   vite: {
     optimizeDeps: {
@@ -18,10 +18,29 @@ export default defineNuxtConfig({
       apiBase: "http://localhost:8080/api",
     }
   },
+  i18n: {
+    strategy: 'no_prefix',
+    defaultLocale: 'en',
+    locales: [
+      {code: 'en', name: 'English', language: 'en-US', files: ['en/common.json', 'en/nav.json', 'en/auth.json', 'en/landing.json', 'en/accounts.json', 'en/transactions.json', 'en/budgets.json', 'en/categories.json', 'en/contacts.json', 'en/profile.json', 'en/exports.json', 'en/integrations.json']},
+      {code: 'fr', name: 'Français', language: 'fr-FR', files: ['fr/common.json', 'fr/nav.json', 'fr/auth.json', 'fr/landing.json', 'fr/accounts.json', 'fr/transactions.json', 'fr/budgets.json', 'fr/categories.json', 'fr/contacts.json', 'fr/profile.json', 'fr/exports.json', 'fr/integrations.json']},
+      {code: 'de', name: 'Deutsch', language: 'de-DE', files: ['de/common.json', 'de/nav.json', 'de/auth.json', 'de/landing.json', 'de/accounts.json', 'de/transactions.json', 'de/budgets.json', 'de/categories.json', 'de/contacts.json', 'de/profile.json', 'de/exports.json', 'de/integrations.json']},
+    ],
+    lazy: true,
+    bundle: {
+      optimizeTranslationDirective: false,
+    },
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'centsible_locale',
+      redirectOn: 'root',
+      alwaysRedirect: false,
+      fallbackLocale: 'en',
+    },
+  },
   app: {
     head: {
       title: 'Centsible',
-      htmlAttrs: {lang: 'en'},
       meta: [
         {charset: 'utf-8'},
         {name: 'viewport', content: 'width=device-width, initial-scale=1'},

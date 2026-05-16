@@ -13,6 +13,7 @@ const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const {success, error} = useToasts();
+const {t, locale} = useI18n();
 
 const state = reactive({
   username: '',
@@ -37,24 +38,28 @@ function onSubmit() {
   loading.value = true;
 
   useAuthService(api)
-    .register(state)
+    .register({
+      username: state.username,
+      email: state.email,
+      firstName: state.firstName,
+      lastName: state.lastName,
+      password: state.password,
+      locale: locale.value,
+    })
     .then(async (res) => {
       // res.token is only set when SKIP_EMAIL_VERIFICATION=true; otherwise confirm-via-email.
       if (res.token) {
         authStore.setAuthenticated(true);
         await userStore.fetchMyself();
-        success(
-          'Registered successfully',
-          'You have successfully registered, you will be redirected to the dashboard.'
-        );
+        success(t('auth.register.toastSuccessTitle'), t('auth.register.toastSuccessBodyAuto'));
         await navigateTo('/accounts');
         return;
       }
-      success('Registered successfully', 'Check your inbox to confirm your account.');
+      success(t('auth.register.toastSuccessTitle'), t('auth.register.toastSuccessBodyEmail'));
       await navigateTo({path: '/auth/check-email', query: {email: state.email}});
     })
     .catch((err) => {
-      useApiErrors().toastError(err, 'Registration failed', 'Please try again later.');
+      useApiErrors().toastError(err, t('auth.register.toastErrorTitle'), t('auth.register.toastErrorFallback'));
     })
     .finally(() => loading.value = false);
 }
@@ -70,10 +75,7 @@ function validate(): boolean {
   ]);
 
   if (!valid) {
-    error(
-      'Validation failed.',
-      'One or more validation errors occurred.'
-    )
+    error(t('auth.register.toastValidationTitle'), t('auth.register.toastValidationBody'));
   }
 
   return valid;
@@ -88,33 +90,33 @@ function validate(): boolean {
                :min-length="3"
                :pattern="USERNAME_PATTERN"
                autofocus
-               label="Username"
-               pattern-message="Username can only contain letters, digits, '.', '_' or '-'."
-               placeholder="Username"
+               :label="t('auth.fields.username')"
+               :pattern-message="t('auth.register.usernamePattern')"
+               :placeholder="t('auth.placeholders.username')"
                required
                type="text"/>
 
     <BaseInput ref="emailInput"
                v-model="state.email"
                :max-length="255"
-               label="E-Mail"
-               placeholder="E-Mail"
+               :label="t('auth.fields.email')"
+               :placeholder="t('auth.placeholders.email')"
                required
                type="email"/>
 
     <BaseInput ref="firstnameInput"
                v-model="state.firstName"
                :max-length="100"
-               label="Firstname"
-               placeholder="Firstname"
+               :label="t('auth.fields.firstName')"
+               :placeholder="t('auth.placeholders.firstName')"
                required
                type="text"/>
 
     <BaseInput ref="lastnameInput"
                v-model="state.lastName"
                :max-length="100"
-               label="Lastname"
-               placeholder="Lastname"
+               :label="t('auth.fields.lastName')"
+               :placeholder="t('auth.placeholders.lastName')"
                required
                type="text"/>
 
@@ -123,7 +125,7 @@ function validate(): boolean {
                            v-model:password="state.password"/>
 
     <UButton :loading="loading" class="ml-auto" type="submit">
-      Register
+      {{ t('auth.register.submit') }}
     </UButton>
   </UForm>
 </template>

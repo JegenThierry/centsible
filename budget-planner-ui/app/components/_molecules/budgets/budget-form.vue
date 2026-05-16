@@ -14,6 +14,7 @@ const emit = defineEmits(['update:modelValue']);
 const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
+const {t} = useI18n();
 
 const limitInput = ref<InstanceType<typeof BaseInput>>();
 const categoryInput = ref();
@@ -44,16 +45,16 @@ defineExpose({
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
                     :options="categories"
-                    label="Category"
+                    :label="t('budgets.form.categoryLabel')"
                     required/>
 
     <BaseInput ref="limitInput"
                v-model="form.amountLimit"
                :max="9999999.99"
                :min="0.01"
-               description="Resets every calendar month."
-               label="Monthly limit"
-               placeholder="0.00"
+               :description="t('budgets.form.limitDescription')"
+               :label="t('budgets.form.limitLabel')"
+               :placeholder="t('budgets.form.limitPlaceholder')"
                required
                type="number"/>
   </div>

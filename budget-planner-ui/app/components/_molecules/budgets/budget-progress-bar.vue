@@ -8,6 +8,8 @@ const props = defineProps<{
   currency?: Currency;
 }>();
 
+const {t} = useI18n();
+
 const ratio = computed(() => {
   if (props.budget.amountLimit <= 0) return 0;
   return props.budget.amountSpent / props.budget.amountLimit;
@@ -33,7 +35,7 @@ const cur = computed(() => props.currency ?? Currency.EUR);
                :style="{color: budget.category.color}"
                class="w-4 h-4 shrink-0"/>
         <span class="font-medium truncate">{{ budget.category.name }}</span>
-        <UBadge v-if="overBudget" color="error" size="sm" variant="subtle">Over</UBadge>
+        <UBadge v-if="overBudget" color="error" size="sm" variant="subtle">{{ t('budgets.list.overBadge') }}</UBadge>
       </div>
       <div class="text-sm tabular-nums whitespace-nowrap">
         <BalanceNumberFormat :balance="budget.amountSpent" :currency="cur"/>

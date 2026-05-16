@@ -12,6 +12,7 @@ defineProps<{
 }>();
 
 const slots = defineSlots<Record<string, (scope: any) => any>>();
+const {t} = useI18n();
 </script>
 
 <template>
@@ -28,7 +29,7 @@ const slots = defineSlots<Record<string, (scope: any) => any>>();
     <template v-if="!slots.empty" #empty>
       <div class="flex flex-col items-center justify-center py-10 gap-3">
         <UIcon class="w-8 h-8 text-dimmed" :name="emptyIcon ?? 'i-lucide-inbox'"/>
-        <p class="text-sm text-muted">{{ emptyTitle ?? 'Nothing here yet.' }}</p>
+        <p class="text-sm text-muted">{{ emptyTitle ?? t('transactions.table_meta.emptyDefault') }}</p>
       </div>
     </template>
 

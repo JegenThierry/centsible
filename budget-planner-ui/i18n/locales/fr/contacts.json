@@ -1,0 +1,143 @@
+{
+  "contacts": {
+    "page": {
+      "title": "Contacts",
+      "description": "Suivez les personnes qui vous doivent de l'argent.",
+      "exportLabel": "Exporter les prêts",
+      "exportDefaultTitle": "Tous les prêts {date}",
+      "recordLending": "Enregistrer un prêt",
+      "addContact": "Ajouter un contact"
+    },
+    "summary": {
+      "peopleOweYou": "On vous doit"
+    },
+    "empty": {
+      "title": "Aucun contact pour le moment",
+      "description": "Ajoutez un contact ou enregistrez votre premier prêt pour commencer le suivi.",
+      "action": "Ajouter un contact"
+    },
+    "card": {
+      "loanCount": "{count} prêt | {count} prêts",
+      "outstanding": "Restant dû",
+      "editAria": "Modifier le contact",
+      "deleteAria": "Supprimer le contact"
+    },
+    "detail": {
+      "back": "Retour aux contacts",
+      "loanCount": "{count} prêt | {count} prêts",
+      "exportLabel": "Exporter",
+      "exportDefaultTitle": "Prêts — {name}",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "stats": {
+        "totalLent": "Total prêté",
+        "totalOwed": "Total dû",
+        "totalRepaid": "Total remboursé",
+        "outstanding": "Restant dû"
+      },
+      "loansHeading": "Prêts",
+      "recordLending": "Enregistrer un prêt"
+    },
+    "form": {
+      "firstNameLabel": "Prénom",
+      "firstNamePlaceholder": "ex. Alex",
+      "lastNameLabel": "Nom",
+      "lastNamePlaceholder": "ex. Dupont (facultatif)"
+    },
+    "create": {
+      "title": "Ajouter un contact",
+      "description": "Suivez une personne à qui vous avez prêté de l'argent.",
+      "submit": "Ajouter"
+    },
+    "edit": {
+      "title": "Modifier le contact",
+      "description": "Mettez à jour les détails de ce contact.",
+      "submit": "Enregistrer"
+    },
+    "delete": {
+      "title": "Supprimer le contact",
+      "descriptionWithName": "Cela retirera {name} de votre liste. Les contacts ayant des prêts en cours ne peuvent pas être supprimés.",
+      "descriptionGeneric": "Cela retirera ce contact de votre liste. Les contacts ayant des prêts en cours ne peuvent pas être supprimés.",
+      "submit": "Supprimer"
+    },
+    "toasts": {
+      "loadFailedTitle": "Échec du chargement des contacts",
+      "loadFailedBody": "Veuillez actualiser la page pour réessayer.",
+      "loadDetailFailedTitle": "Échec du chargement du contact",
+      "removedTitle": "Contact supprimé",
+      "removedBody": "Retour à la liste des contacts."
+    },
+    "loans": {
+      "table": {
+        "date": "Date",
+        "description": "Description",
+        "lent": "Prêté",
+        "owed": "Dû",
+        "repaid": "Remboursé",
+        "outstanding": "Restant dû",
+        "status": "Statut",
+        "actionsAria": "Actions du prêt",
+        "trackingOnly": "Suivi uniquement",
+        "statusSettled": "Soldé",
+        "statusPartial": "Partiellement remboursé",
+        "statusOpen": "Ouvert",
+        "recordRepayment": "Enregistrer un remboursement",
+        "deleteLoan": "Supprimer le prêt",
+        "empty": "Aucun prêt pour le moment."
+      },
+      "form": {
+        "modeLegend": "Contact",
+        "modeExisting": "Contact existant",
+        "modeNew": "Nouvelle personne",
+        "pickContact": "Choisir un contact",
+        "newFirstNameLabel": "Prénom",
+        "newFirstNameDescription": "Un contact sera créé et le prêt y sera rattaché.",
+        "newFirstNamePlaceholder": "ex. Alex",
+        "newLastNameLabel": "Nom (facultatif)",
+        "newLastNamePlaceholder": "ex. Dupont",
+        "affectBalanceLabel": "Débiter d'un compte",
+        "affectBalanceDescription": "Décochez si l'argent a déjà quitté vos comptes suivis (ex. remis en espèces) et que vous souhaitez seulement suivre le prêt.",
+        "fromAccountLabel": "Compte source",
+        "fromAccountDescription": "Le compte d'où l'argent est débité.",
+        "lentLabel": "Montant prêté",
+        "lentPlaceholder": "0,00",
+        "owedLabel": "Montant à rembourser",
+        "owedDescription": "Par défaut, identique au montant prêté. Augmentez-le si la personne vous doit plus (ex. intérêts).",
+        "owedPlaceholder": "0,00",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "À quoi servait ce prêt ?",
+        "dateLabel": "Date"
+      },
+      "create": {
+        "title": "Enregistrer un prêt",
+        "description": "Enregistrez de l'argent que vous avez prêté à quelqu'un.",
+        "submit": "Enregistrer"
+      },
+      "delete": {
+        "title": "Supprimer le prêt",
+        "description": "Cela supprimera le prêt, sa transaction d'origine et tous les remboursements. Cette action est irréversible.",
+        "submit": "Supprimer"
+      },
+      "repayment": {
+        "title": "Enregistrer un remboursement",
+        "descriptionWithContact": "Enregistrez un remboursement de la part de {name}.",
+        "submit": "Enregistrer",
+        "form": {
+          "affectBalanceLabel": "Créditer un compte",
+          "affectBalanceDescription": "Décochez si l'argent a été reçu en dehors de vos comptes suivis (ex. rendu en espèces) et que vous souhaitez seulement marquer le prêt comme remboursé.",
+          "toAccountLabel": "Compte destinataire",
+          "toAccountDescription": "Le compte sur lequel l'argent est reversé.",
+          "amountLabel": "Montant",
+          "amountPlaceholder": "0,00",
+          "outstandingHelp": "Restant dû : {amount}",
+          "descriptionLabel": "Description (facultatif)",
+          "descriptionPlaceholder": "Remboursement",
+          "dateLabel": "Date du remboursement"
+        }
+      }
+    },
+    "avatar": {
+      "changeAria": "Changer la photo de {name}"
+    }
+  }
+}

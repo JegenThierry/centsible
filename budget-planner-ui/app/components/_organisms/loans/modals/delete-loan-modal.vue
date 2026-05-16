@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const loansStore = useLoansStore();
+const {t} = useI18n();
 const loading = ref(false);
 
 async function handleDelete() {
@@ -34,12 +35,12 @@ async function handleDelete() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="This will delete the loan, its originating transaction, and all repayments. This cannot be undone."
-          title="Delete Loan">
+          :description="t('contacts.loans.delete.description')"
+          :title="t('contacts.loans.delete.title')">
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" color="error" @click="handleDelete">Delete</UButton>
+        <UButton :loading="loading" color="error" @click="handleDelete">{{ t('contacts.loans.delete.submit') }}</UButton>
       </div>
     </template>
   </UModal>

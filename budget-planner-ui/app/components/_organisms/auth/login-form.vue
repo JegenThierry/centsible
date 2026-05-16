@@ -10,6 +10,7 @@ const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const {success, error} = useToasts();
+const {t} = useI18n();
 
 const state = reactive({
   username: '',
@@ -35,17 +36,11 @@ function onSubmit() {
       authStore.setAuthenticated(true);
       await userStore.fetchMyself();
       navigateTo('/accounts');
-      success(
-        'Login successfully',
-        'You have been logged in, redirecting to the dashboard.'
-      );
+      success(t('auth.login.toastSuccessTitle'), t('auth.login.toastSuccessBody'));
     })
     .catch((err) => {
       console.error(err);
-      error(
-        'Login failed',
-        'Username or password are incorrect.'
-      );
+      error(t('auth.login.toastErrorTitle'), t('auth.login.toastErrorBody'));
     })
     .finally(() => loading.value = false);
 }
@@ -56,17 +51,17 @@ function onSubmit() {
     <BaseInput ref="usernameInput"
                v-model="state.username"
                autofocus
-               label="Username"
+               :label="t('auth.fields.username')"
                required
                type="text"/>
 
     <PasswordInput ref="passwordInput"
                    v-model="state.password"
-                   label="Password"
+                   :label="t('auth.fields.password')"
                    required/>
 
     <UButton :loading="loading" class="ml-auto" type="submit">
-      Submit
+      {{ t('auth.login.submit') }}
     </UButton>
   </UForm>
 </template>

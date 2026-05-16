@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {Frequency, FREQUENCY_LABELS} from "~/models/recurring/recurring-transaction";
+import {Frequency} from "~/models/recurring/recurring-transaction";
 
 const props = defineProps<{
   label: string;
@@ -10,16 +10,17 @@ const props = defineProps<{
 
 const model = defineModel<Frequency>();
 const error = ref<string | undefined>(undefined);
+const {t} = useI18n();
 
-const options = Object.values(Frequency).map(value => ({
-  label: FREQUENCY_LABELS[value],
+const options = computed(() => Object.values(Frequency).map(value => ({
+  label: t(`transactions.recurring.frequency.${value}`),
   value,
-}));
+})));
 
 function validate(): boolean {
   error.value = undefined;
   if (props.required && !model.value) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field: props.label});
     return false;
   }
   return true;
@@ -37,7 +38,7 @@ defineExpose({validate});
     <USelect v-model="model"
              :items="options"
              class="w-full"
-             placeholder="Select a frequency"
+             :placeholder="t('transactions.selects.selectFrequency')"
              value-key="value"/>
   </UFormField>
 </template>

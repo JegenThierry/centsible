@@ -4,36 +4,69 @@ import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.services.email.IEmailService
 import beer.thierry.budgetplanner.api.services.email.IRegisterEmailService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.MessageSource
 import org.springframework.stereotype.Service
 import org.springframework.web.util.HtmlUtils
+import java.util.Locale
 
 @Service
 class RegisterEmailService(
     private val emailService: IEmailService,
+    private val messageSource: MessageSource,
     // Must be the user-facing origin (where the UI is served), not the REST host.
     @Value("\${app.base-url:http://localhost:3000}") private val baseUrl: String,
 ) : IRegisterEmailService {
-    override fun sendRegistrationEmail(user: User, token: String) {
+    override fun sendRegistrationEmail(user: User, token: String, locale: Locale) {
         val url = HtmlUtils.htmlEscape("$baseUrl/auth/confirm?token=$token")
-        val greetingName = user.firstName.takeIf { it.isNotBlank() }?.let { HtmlUtils.htmlEscape(it) } ?: "there"
-        val subject = "Confirm your account · Centsible"
+        val greetingName = user.firstName.takeIf { it.isNotBlank() }
+            ?.let { HtmlUtils.htmlEscape(it) }
+            ?: t("email.register.greeting.fallbackName", locale)
 
-        emailService.sendEmail(user, subject, buildEmailHtml(greetingName, url))
+        val copy = EmailCopy(
+            subject = t("email.register.subject", locale),
+            preheader = t("email.register.preheader", locale),
+            eyebrow = t("email.register.eyebrow", locale),
+            heading = t("email.register.heading", locale, greetingName),
+            body = t("email.register.body", locale),
+            cta = t("email.register.cta", locale),
+            fallbackPrompt = t("email.register.fallbackPrompt", locale),
+            expiryNotice = t("email.register.expiry", locale),
+            footer = t("email.register.footer", locale),
+            htmlLang = locale.language.lowercase().ifBlank { "en" },
+        )
+
+        emailService.sendEmail(user, copy.subject, buildEmailHtml(copy, url))
     }
 
-    private fun buildEmailHtml(greetingName: String, url: String): String = """
+    private fun t(key: String, locale: Locale, vararg args: Any): String =
+        messageSource.getMessage(key, args, key, locale) ?: key
+
+    private data class EmailCopy(
+        val subject: String,
+        val preheader: String,
+        val eyebrow: String,
+        val heading: String,
+        val body: String,
+        val cta: String,
+        val fallbackPrompt: String,
+        val expiryNotice: String,
+        val footer: String,
+        val htmlLang: String,
+    )
+
+    private fun buildEmailHtml(copy: EmailCopy, url: String): String = """
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang="${copy.htmlLang}">
         <head>
           <meta charset="UTF-8"/>
           <meta name="viewport" content="width=device-width,initial-scale=1"/>
           <meta name="color-scheme" content="light only"/>
           <meta name="supported-color-schemes" content="light"/>
-          <title>Confirm your account · Centsible</title>
+          <title>${copy.subject}</title>
         </head>
         <body style="margin:0;padding:0;background-color:#fff1f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Helvetica Neue',Arial,sans-serif;color:#0f172a;-webkit-font-smoothing:antialiased;">
           <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#fff1f6;opacity:0;">
-            One last step — confirm your email to start using Centsible.
+            ${copy.preheader}
           </div>
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff1f6;padding:32px 16px;">
@@ -63,13 +96,13 @@ class RegisterEmailService(
                   <tr>
                     <td style="background-color:#ffffff;border-radius:16px;border:1px solid #ffe4ee;padding:40px 36px;box-shadow:0 1px 2px rgba(15,23,42,0.04);">
                       <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#b50f4d;">
-                        Confirm your email
+                        ${copy.eyebrow}
                       </p>
                       <h1 style="margin:0 0 16px 0;font-size:26px;line-height:1.25;font-weight:700;letter-spacing:-0.4px;color:#0f172a;">
-                        Hi $greetingName, welcome to Centsible.
+                        ${copy.heading}
                       </h1>
                       <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#334155;">
-                        Thanks for signing up. Click the button below to confirm your email and start budgeting — no tracking, no ads, your data on your server.
+                        ${copy.body}
                       </p>
 
                       <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
@@ -77,14 +110,14 @@ class RegisterEmailService(
                           <td bgcolor="#ee387e" style="border-radius:10px;">
                             <a href="$url"
                                style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;background-color:#ee387e;line-height:1;">
-                              Confirm my account
+                              ${copy.cta}
                             </a>
                           </td>
                         </tr>
                       </table>
 
                       <p style="margin:0 0 8px 0;font-size:13px;line-height:1.5;color:#64748b;">
-                        Button not working? Copy and paste this link into your browser:
+                        ${copy.fallbackPrompt}
                       </p>
                       <p style="margin:0;font-size:13px;line-height:1.5;word-break:break-all;">
                         <a href="$url" style="color:#d8195f;text-decoration:underline;">$url</a>
@@ -93,14 +126,14 @@ class RegisterEmailService(
                       <hr style="border:none;border-top:1px solid #ffe4ee;margin:32px 0;"/>
 
                       <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">
-                        This link expires in 24 hours. If you didn't sign up for Centsible, you can safely ignore this email — no account will be created.
+                        ${copy.expiryNotice}
                       </p>
                     </td>
                   </tr>
 
                   <tr>
                     <td align="center" style="padding:24px 16px 8px 16px;font-size:12px;line-height:1.5;color:#94a3b8;">
-                      Centsible · A clean, self-hosted budget tracker.
+                      ${copy.footer}
                     </td>
                   </tr>
                 </table>

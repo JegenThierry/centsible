@@ -11,20 +11,20 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class TransactionForm(
-    @field:NotNull(message = "Amount is required.")
-    @field:DecimalMin(value = "0.01", message = "Amount must be greater than 0.")
-    @field:DecimalMax(value = "9999999.99", message = "Amount must not exceed 9,999,999.99.")
-    @field:Digits(integer = 7, fraction = 2, message = "Amount must have at most 2 decimal places.")
+    @field:NotNull(message = "{validation.amount.required}")
+    @field:DecimalMin(value = "0.01", message = "{validation.amount.tooSmall}")
+    @field:DecimalMax(value = "9999999.99", message = "{validation.amount.tooLarge}")
+    @field:Digits(integer = 7, fraction = 2, message = "{validation.amount.fraction}")
     var amount: BigDecimal = BigDecimal.ZERO,
 
-    @field:NotNull(message = "Category is required.")
-    @field:Positive(message = "Category id must be positive.")
+    @field:NotNull(message = "{validation.category.required}")
+    @field:Positive(message = "{validation.category.positive}")
     var categoryId: Long = 0L,
 
-    @field:NotBlank(message = "Description is required.")
-    @field:Size(min = 1, max = 255, message = "Description must be 1-255 characters.")
+    @field:NotBlank(message = "{validation.description.required}")
+    @field:Size(min = 1, max = 255, message = "{validation.description.range}")
     var description: String = "",
 
-    @field:NotNull(message = "Transaction date is required.")
+    @field:NotNull(message = "{validation.transactionDate.required}")
     var transactionDate: LocalDate = LocalDate.now(),
 )

@@ -19,6 +19,7 @@ const api = useApi();
 const transactionService = useTransactionService(api);
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const form = ref<TransactionForm>({
   amount: 0,
@@ -60,10 +61,10 @@ async function handleEdit() {
       }
     );
     emit('updated');
-    toasts.success('Transaction updated successfully.', 'Your transaction has been updated.');
+    toasts.success(t('transactions.edit.toastSuccessTitle'), t('transactions.edit.toastSuccessBody'));
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Transaction not updated.', 'Your transaction could not be updated, please try again.');
+    useApiErrors().toastError(error, t('transactions.edit.toastErrorTitle'), t('transactions.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -76,8 +77,8 @@ onMounted(() => {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Edit your transaction for your active account."
-          title="Edit Transaction">
+          :description="t('transactions.edit.description')"
+          :title="t('transactions.edit.title')">
     <template #body>
       <TransactionFormFields ref="formRef" v-model="form"/>
     </template>
@@ -85,7 +86,7 @@ onMounted(() => {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleEdit">Edit</UButton>
+        <UButton :loading="loading" @click="handleEdit">{{ t('transactions.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

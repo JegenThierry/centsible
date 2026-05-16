@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+const {t} = useI18n();
 </script>
 
 <template>
@@ -6,10 +7,10 @@
     <UContainer>
       <UPageCard
         class="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-default"
-        description="Spin up an account and start tracking in under a minute. Your data stays on your server."
+        :description="t('landing.cta.description')"
         spotlight
         spotlight-color="primary"
-        title="Ready to plan smarter?">
+        :title="t('landing.cta.title')">
         <template #footer>
           <div class="flex flex-col sm:flex-row gap-3 sm:justify-end">
             <UButton color="primary"
@@ -17,14 +18,14 @@
                      size="lg"
                      to="/auth"
                      trailing-icon="i-lucide-arrow-right">
-              Create an account
+              {{ t('landing.cta.createAccount') }}
             </UButton>
             <UButton color="neutral"
                      icon="i-lucide-log-in"
                      size="lg"
                      to="/auth"
                      variant="outline">
-              I already have one
+              {{ t('landing.cta.alreadyHave') }}
             </UButton>
           </div>
         </template>

@@ -2,40 +2,33 @@
 import CreateForm from "~/components/_organisms/auth/create-form.vue";
 import LoginForm from "~/components/_organisms/auth/login-form.vue";
 
-const tabs = [
+const {t} = useI18n();
+
+const tabs = computed(() => [
   {
-    label: 'Login',
+    label: t('auth.tabs.login'),
     icon: 'i-lucide-user',
-    slot: 'login',
-    value: 'login',
+    slot: 'login' as const,
+    value: 'login' as const,
   },
   {
-    label: 'Register',
+    label: t('auth.tabs.register'),
     icon: 'i-lucide-lock',
-    slot: 'register',
-    value: 'register',
+    slot: 'register' as const,
+    value: 'register' as const,
   }
-]
+]);
 
 const activeTab = ref<'login' | 'register'>('login');
-const activeHeader = computed(() => {
-  switch (activeTab.value) {
-    case 'login':
-      return 'Welcome back!';
-    case 'register':
-      return 'Register!';
-  }
-})
-
-const activeDescription = computed(() => {
-  return activeTab.value === 'login'
-    ? 'Login to your account to manage your budget.'
-    : 'Create a new account to start planning your finances.';
-})
-
-const activeIcon = computed(() => {
-  return activeTab.value === 'login' ? 'i-lucide-log-in' : 'i-lucide-user-plus';
-})
+const activeHeader = computed(() =>
+  activeTab.value === 'login' ? t('auth.login.title') : t('auth.register.title')
+);
+const activeDescription = computed(() =>
+  activeTab.value === 'login' ? t('auth.login.description') : t('auth.register.description')
+);
+const activeIcon = computed(() =>
+  activeTab.value === 'login' ? 'i-lucide-log-in' : 'i-lucide-user-plus'
+);
 </script>
 
 <template>

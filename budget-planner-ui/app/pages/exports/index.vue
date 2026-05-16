@@ -9,8 +9,10 @@ definePageMeta({
   middleware: ['auth-guard'],
 });
 
+const {t} = useI18n();
+
 useHead({
-  title: 'My Documents',
+  title: t('exports.page.title'),
 });
 
 const {
@@ -33,8 +35,8 @@ onMounted(async () => {
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="Track and download your generated exports. Re-trigger to refresh with current data."
-      title="My Documents"
+      :description="t('exports.page.description')"
+      :title="t('exports.page.title')"
     >
       <template #actions>
         <RefreshButton @refresh="refresh"/>

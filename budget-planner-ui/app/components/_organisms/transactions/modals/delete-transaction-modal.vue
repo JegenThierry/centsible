@@ -18,6 +18,7 @@ const emit = defineEmits<{
 const api = useApi();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 async function deleteTransaction() {
   if (!props.transaction || !budgetAccountsStore.activeAccount?.id) {
@@ -35,5 +36,5 @@ async function deleteTransaction() {
 <template>
   <ConfirmationModal v-model:open="isOpen"
                      :delete-callback="deleteTransaction"
-                     entity="transaction"/>
+                     :entity="t('transactions.delete.entity')"/>
 </template>

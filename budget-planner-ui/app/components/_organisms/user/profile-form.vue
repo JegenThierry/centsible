@@ -4,8 +4,8 @@
       ref="firstNameInput"
       v-model="state.firstName"
       :max-length="100"
-      label="First Name"
-      placeholder="First Name"
+      :label="t('profile.form.firstNameLabel')"
+      :placeholder="t('profile.form.firstNamePlaceholder')"
       required
       type="text"
     />
@@ -14,8 +14,8 @@
       ref="lastNameInput"
       v-model="state.lastName"
       :max-length="100"
-      label="Last Name"
-      placeholder="Last Name"
+      :label="t('profile.form.lastNameLabel')"
+      :placeholder="t('profile.form.lastNamePlaceholder')"
       required
       type="text"
     />
@@ -24,14 +24,14 @@
       ref="emailInput"
       v-model="state.email"
       :max-length="255"
-      label="Email"
-      placeholder="Email"
+      :label="t('profile.form.emailLabel')"
+      :placeholder="t('profile.form.emailPlaceholder')"
       required
       type="email"
     />
 
     <UButton :loading="loading" class="ml-auto" type="submit">
-      Save Changes
+      {{ t('profile.form.submit') }}
     </UButton>
   </UForm>
 </template>
@@ -51,6 +51,8 @@ const emit = defineEmits<{
   (e: 'save', value: UserProfileForm): void;
   (e: 'validation-failed'): void;
 }>();
+
+const {t} = useI18n();
 
 const firstNameInput = ref<InstanceType<typeof BaseInput>>();
 const lastNameInput = ref<InstanceType<typeof BaseInput>>();

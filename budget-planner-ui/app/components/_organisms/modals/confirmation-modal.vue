@@ -9,6 +9,7 @@ const props = defineProps<{
 }>();
 
 const toasts = useToasts();
+const {t} = useI18n();
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const loading = ref(false);
@@ -18,9 +19,9 @@ async function onDelete() {
   try {
     await props.deleteCallback();
     isOpen.value = false;
-    toasts.success(`Deleted ${props.entity}.`, `Your ${props.entity} has been deleted.`)
+    toasts.success(t('common.confirmDelete.successTitle', {entity: props.entity}), t('common.confirmDelete.successBody', {entity: props.entity}))
   } catch (error) {
-    toasts.error(`Error ${props.entity}.`, `Your ${props.entity} could not be deleted, please try again.`)
+    toasts.error(t('common.confirmDelete.errorTitle', {entity: props.entity}), t('common.confirmDelete.errorBody', {entity: props.entity}))
     console.error(`Failed to delete ${props.entity}:`, error);
   } finally {
     loading.value = false;
@@ -33,11 +34,11 @@ function onCancel() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" title="Confirm Delete">
+  <UModal v-model:open="isOpen" :title="t('common.confirmDelete.title')">
     <template #body>
-      <p>Are you sure you want to delete this <strong>{{ entity }}</strong>?</p>
+      <p>{{ t('common.confirmDelete.question', {entity}) }}</p>
       <p class="text-sm text-neutral-500 mt-2">
-        This action cannot be undone.
+        {{ t('common.confirmDelete.irreversible') }}
       </p>
     </template>
 

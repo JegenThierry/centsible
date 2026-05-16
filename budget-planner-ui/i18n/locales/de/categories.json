@@ -1,0 +1,51 @@
+{
+  "categories": {
+    "page": {
+      "title": "Kategorien",
+      "description": "Verwalte deine Einnahmen- und Ausgabenkategorien",
+      "createAction": "Kategorie erstellen"
+    },
+    "sections": {
+      "yours": "Deine Kategorien",
+      "system": "Systemkategorien"
+    },
+    "empty": {
+      "title": "Keine Kategorien gefunden",
+      "description": "Erstelle deine erste Kategorie, um dein Budget zu verfolgen.",
+      "action": "Kategorie erstellen"
+    },
+    "card": {
+      "systemBadge": "System",
+      "editAria": "Kategorie bearbeiten",
+      "deleteAria": "Kategorie löschen"
+    },
+    "type": {
+      "income": "Einnahme",
+      "expense": "Ausgabe",
+      "legend": "Kategorietyp"
+    },
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "z. B. Lebensmittel, Gehalt",
+      "iconLabel": "Symbol (Lucide-Name)",
+      "iconPlaceholder": "i-lucide-tag",
+      "iconPatternMessage": "Das Symbol muss ein Lucide-Name wie „i-lucide-tag“ sein.",
+      "iconHelp": "Finde Symbole auf lucide.dev. Verwende das Format i-lucide-[name].",
+      "colorLabel": "Farbe"
+    },
+    "create": {
+      "title": "Kategorie erstellen",
+      "description": "Erstelle eine neue Kategorie für deine Transaktionen.",
+      "submit": "Erstellen"
+    },
+    "edit": {
+      "title": "Kategorie bearbeiten",
+      "description": "Aktualisiere die Details deiner Kategorie.",
+      "submit": "Änderungen speichern"
+    },
+    "delete": {
+      "title": "Kategorie löschen",
+      "description": "Möchtest du die Kategorie „{name}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  }
+}

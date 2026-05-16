@@ -20,4 +20,5 @@ interface IUserRepository {
     ): User?
     fun confirmUser(id: UUID): Boolean
     fun updateUserProfile(id: UUID, firstName: String, lastName: String, email: String, profilePicture: String?): User?
+    fun updateUserLocale(id: UUID, locale: String): User?
 }

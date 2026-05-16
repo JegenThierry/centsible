@@ -24,9 +24,15 @@ export function useUserService(api: AxiosInstance) {
     return validateRequest(response);
   }
 
+  async function updateLocale(locale: string): Promise<UserDto> {
+    const response = await api.put<UserDto>('/users/locale', {locale});
+    return validateRequest(response);
+  }
+
   return {
     fetchMyself,
     updateProfile,
     updateProfilePicture,
+    updateLocale,
   }
 }

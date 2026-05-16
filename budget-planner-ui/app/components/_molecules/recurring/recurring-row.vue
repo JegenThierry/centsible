@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type {RecurringTransaction} from "~/models/recurring/recurring-transaction";
-import {FREQUENCY_LABELS} from "~/models/recurring/recurring-transaction";
 import {Currency} from "~/models/budget-account/currency";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
@@ -16,6 +15,8 @@ defineEmits<{
   (e: 'delete', rule: RecurringTransaction): void;
   (e: 'toggle', rule: RecurringTransaction): void;
 }>();
+
+const {t} = useI18n();
 </script>
 
 <template>
@@ -26,15 +27,15 @@ defineEmits<{
           <CategoryBadge :color="rule.category.color"
                          :icon="rule.category.icon"
                          :name="rule.category.name"/>
-          <UBadge v-if="!rule.active" color="neutral" variant="subtle">Paused</UBadge>
+          <UBadge v-if="!rule.active" color="neutral" variant="subtle">{{ t('transactions.recurring.paused') }}</UBadge>
         </div>
         <p class="font-medium truncate">{{ rule.description }}</p>
         <p class="text-sm text-neutral-500 mt-1">
-          {{ FREQUENCY_LABELS[rule.frequency] }}
-          · next on
+          {{ t(`transactions.recurring.frequency.${rule.frequency}`) }}
+          · {{ t('transactions.recurring.nextOn') }}
           <FormattedDate :date="rule.nextRunAt" format="full"/>
           <template v-if="rule.endDate">
-            · ends
+            · {{ t('transactions.recurring.ends') }}
             <FormattedDate :date="rule.endDate" format="full"/>
           </template>
         </p>
@@ -45,17 +46,17 @@ defineEmits<{
                            :currency="currency"
                            :type="rule.category.type"/>
         <div class="flex items-center gap-1">
-          <UButton :aria-label="rule.active ? 'Pause rule' : 'Resume rule'"
+          <UButton :aria-label="rule.active ? t('transactions.recurring.ariaPause') : t('transactions.recurring.ariaResume')"
                    :icon="rule.active ? 'i-lucide-pause' : 'i-lucide-play'"
                    color="neutral"
                    variant="ghost"
                    @click="$emit('toggle', rule)"/>
-          <UButton aria-label="Edit rule"
+          <UButton :aria-label="t('transactions.recurring.ariaEdit')"
                    color="neutral"
                    icon="i-lucide-pencil"
                    variant="ghost"
                    @click="$emit('edit', rule)"/>
-          <UButton aria-label="Delete rule"
+          <UButton :aria-label="t('transactions.recurring.ariaDelete')"
                    color="error"
                    icon="i-lucide-trash"
                    variant="ghost"

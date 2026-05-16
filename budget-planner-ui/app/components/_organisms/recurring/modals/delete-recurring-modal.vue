@@ -15,6 +15,7 @@ const emit = defineEmits<{
 
 const api = useApi();
 const service = useRecurringTransactionService(api);
+const {t} = useI18n();
 
 async function deleteRule() {
   if (!props.rule) throw new Error("Missing rule");
@@ -26,5 +27,5 @@ async function deleteRule() {
 <template>
   <ConfirmationModal v-model:open="isOpen"
                      :delete-callback="deleteRule"
-                     entity="recurring rule"/>
+                     :entity="t('transactions.recurring.delete.entity')"/>
 </template>

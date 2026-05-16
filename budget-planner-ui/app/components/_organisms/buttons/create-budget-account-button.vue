@@ -3,6 +3,7 @@ import CreateAccountModal from "~/components/_organisms/accounts/modals/create-a
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
 const accountStore = useBudgetAccountsStore();
+const {t} = useI18n();
 const isCreateAccountModalVisible = ref(false);
 
 function onCreateAccount(): void {
@@ -16,7 +17,7 @@ function onRefresh(): void {
 
 <template>
   <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="onCreateAccount()">
-    Create Budget Account
+    {{ t('accounts.buttons.createAccount') }}
   </UButton>
 
   <CreateAccountModal v-model="isCreateAccountModalVisible"

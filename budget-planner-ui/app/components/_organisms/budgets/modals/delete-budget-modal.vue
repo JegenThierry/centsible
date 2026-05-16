@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const service = useBudgetService(useApi());
+const {t} = useI18n();
 
 async function deleteBudget() {
   if (!props.budget) throw new Error("Missing budget");
@@ -25,5 +26,5 @@ async function deleteBudget() {
 <template>
   <ConfirmationModal v-model:open="isOpen"
                      :delete-callback="deleteBudget"
-                     entity="budget"/>
+                     :entity="t('budgets.delete.entity')"/>
 </template>

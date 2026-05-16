@@ -3,9 +3,9 @@ package beer.thierry.budgetplanner.api.model.auth
 import jakarta.validation.constraints.NotBlank
 
 data class AuthRequest(
-    @field:NotBlank(message = "Username is required.")
+    @field:NotBlank(message = "{validation.username.required}")
     var username: String = "",
 
-    @field:NotBlank(message = "Password is required.")
+    @field:NotBlank(message = "{validation.password.required}")
     var password: String = "",
 )

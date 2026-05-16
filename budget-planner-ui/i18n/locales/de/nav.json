@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "toggleSidebar": "Seitenleiste umschalten",
+    "closeSidebar": "Seitenleiste schließen",
+    "brandHome": "Centsible Startseite",
+    "sidebar": {
+      "accounts": "Konten",
+      "dashboard": "Übersicht",
+      "transactions": "Transaktionen",
+      "plan": "Planung",
+      "budgets": "Budgets",
+      "recurring": "Wiederkehrend",
+      "categories": "Kategorien",
+      "contacts": "Kontakte",
+      "myDocuments": "Meine Dokumente",
+      "integrations": "Integrationen",
+      "profile": "Profil"
+    },
+    "footer": {
+      "copyright": "Copyright © {year}",
+      "about": "Über",
+      "activity": "Aktivität",
+      "instagram": "Instagram",
+      "twitter": "X",
+      "codeberg": "Codeberg"
+    }
+  }
+}

@@ -7,6 +7,7 @@ import {useContactsStore} from "~/stores/contactsStore";
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const contactsStore = useContactsStore();
+const {t} = useI18n();
 
 const form = ref<ContactFormModel>({firstName: '', lastName: ''});
 const formRef = ref<InstanceType<typeof ContactForm>>();
@@ -37,8 +38,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Track someone you've lent money to."
-          title="Add Contact">
+          :description="t('contacts.create.description')"
+          :title="t('contacts.create.title')">
     <template #body>
       <ContactForm ref="formRef" v-model="form"/>
     </template>
@@ -46,7 +47,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Add</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('contacts.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

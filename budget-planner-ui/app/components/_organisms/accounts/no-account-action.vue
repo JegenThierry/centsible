@@ -7,6 +7,8 @@ const emit = defineEmits([
   'refresh-accounts',
 ])
 
+const {t} = useI18n();
+
 function onRefreshAccounts() {
   emit('refresh-accounts');
 }
@@ -15,9 +17,9 @@ function onRefreshAccounts() {
 <template>
   <AppEmptyState
     class="max-w-2xl"
-    description="It looks like you haven't created any account yet. Create one to get started."
+    :description="t('accounts.list.emptyDescription')"
     icon="i-lucide-bar-chart-big"
-    title="No accounts found"
+    :title="t('accounts.list.emptyTitle')"
   >
     <template #actions>
       <RefreshButton @refresh="onRefreshAccounts"/>

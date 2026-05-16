@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class ContactForm(
-    @field:NotBlank(message = "First name is required.")
-    @field:Size(max = 100, message = "First name must be at most 100 characters.")
+    @field:NotBlank(message = "{validation.firstName.required}")
+    @field:Size(max = 100, message = "{validation.firstName.tooLong}")
     var firstName: String = "",
 
-    @field:Size(max = 100, message = "Last name must be at most 100 characters.")
+    @field:Size(max = 100, message = "{validation.lastName.tooLong}")
     var lastName: String? = null,
 )

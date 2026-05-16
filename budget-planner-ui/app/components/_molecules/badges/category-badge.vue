@@ -8,6 +8,8 @@ const props = withDefaults(defineProps<{
   size: 'sm'
 });
 
+const {t} = useI18n();
+
 const defaultColor = '#a3a3a3';
 const iconSize = computed(() => {
   if (props.size === 'xs') return 'w-3 h-3';
@@ -32,6 +34,6 @@ const iconSize = computed(() => {
     <span>{{ name }}</span>
   </UBadge>
   <UBadge v-else :size="size" color="neutral" variant="subtle">
-    No category
+    {{ t('transactions.category.noCategory') }}
   </UBadge>
 </template>

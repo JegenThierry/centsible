@@ -21,6 +21,7 @@ const route = useRoute();
 const accountStore = useBudgetAccountsStore();
 const historyStore = useAccountHistoryStore();
 const transactionStore = useTransactionStore();
+const {t} = useI18n();
 
 const isCreateTransactionModalVisible = ref(false);
 
@@ -32,8 +33,8 @@ const isLoading = computed(
   () => !isAccountReady.value || accountStore.pending || historyStore.pending || transactionStore.pending,
 );
 const headerDescription = computed(() => {
-  if (!isAccountReady.value || !accountStore.activeAccount) return 'Loading account…';
-  return `Overview for account: ${accountStore.activeAccount.name}`;
+  if (!isAccountReady.value || !accountStore.activeAccount) return t('accounts.dashboard.headerLoading');
+  return t('accounts.dashboard.headerOverview', {name: accountStore.activeAccount.name});
 });
 
 async function fetchData() {
@@ -67,7 +68,7 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
   <UContainer class="py-6 sm:py-10 space-y-4 sm:space-y-6">
     <PageHeader
       :description="headerDescription"
-      title="Dashboard"
+      :title="t('accounts.dashboard.title')"
     />
 
     <div v-if="isLoading" class="space-y-4 sm:space-y-6">

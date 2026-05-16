@@ -22,6 +22,7 @@ const contactsStore = useContactsStore();
 const loansStore = useLoansStore();
 const budgetAccountsStore = useBudgetAccountsStore();
 const toasts = useToasts();
+const {t} = useI18n();
 
 const isCreateContactOpen = ref(false);
 const isEditContactOpen = ref(false);
@@ -56,33 +57,33 @@ onMounted(async () => {
     ]);
   } catch (error) {
     console.error('Failed to load contacts data', error);
-    toasts.error('Failed to load contacts', 'Please refresh the page to try again.');
+    toasts.error(t('contacts.toasts.loadFailedTitle'), t('contacts.toasts.loadFailedBody'));
   }
 });
 </script>
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <PageHeader description="Track people who owe you money."
-                title="Contacts">
+    <PageHeader :description="t('contacts.page.description')"
+                :title="t('contacts.page.title')">
       <template #actions>
         <ExportButton
           v-if="contactsStore.contacts.length > 0"
-          :default-title="`All Lendings ${todayIsoDate()}`"
+          :default-title="t('contacts.page.exportDefaultTitle', {date: todayIsoDate()})"
           :params-builder="() => ({ kind: 'LENDINGS_ALL', includeSettled: true })"
-          label="Export lendings"
+          :label="t('contacts.page.exportLabel')"
           type="LENDINGS_ALL"
         />
         <UButton class="w-full sm:w-auto justify-center"
                  icon="i-lucide-hand-coins"
                  variant="outline"
                  @click="isCreateLoanOpen = true">
-          Record Lending
+          {{ t('contacts.page.recordLending') }}
         </UButton>
         <UButton class="w-full sm:w-auto justify-center"
                  icon="i-lucide-plus"
                  @click="isCreateContactOpen = true">
-          Add Contact
+          {{ t('contacts.page.addContact') }}
         </UButton>
       </template>
     </PageHeader>
@@ -92,7 +93,7 @@ onMounted(async () => {
         <div class="flex items-center gap-3">
           <UIcon class="w-8 h-8 text-warning" name="i-lucide-hand-coins"/>
           <div>
-            <p class="text-sm text-muted">People owe you</p>
+            <p class="text-sm text-muted">{{ t('contacts.summary.peopleOweYou') }}</p>
             <p class="text-2xl font-bold text-warning">
               <BalanceNumberFormat :balance="Number(loansStore.totalOutstanding)" :currency="currency"/>
             </p>
@@ -106,11 +107,13 @@ onMounted(async () => {
     </div>
 
     <AppEmptyState v-if="contactsStore.contacts.length === 0 && !contactsStore.pending"
-                   description="Add a contact or record your first loan to start tracking."
+                   :description="t('contacts.empty.description')"
                    icon="i-lucide-users"
-                   title="No contacts yet">
+                   :title="t('contacts.empty.title')">
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateContactOpen = true">Add Contact</UButton>
+        <UButton class="w-full sm:w-auto justify-center" @click="isCreateContactOpen = true">
+          {{ t('contacts.empty.action') }}
+        </UButton>
       </template>
     </AppEmptyState>
 

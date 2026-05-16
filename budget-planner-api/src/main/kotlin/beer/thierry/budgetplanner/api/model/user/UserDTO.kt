@@ -14,6 +14,7 @@ data class UserDTO(
     var lastName: String = "",
     var name: String = "",
     var profilePicture: String? = null,
+    var locale: String = "en",
     var authoritiesList: Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
 ) : UserDetails {

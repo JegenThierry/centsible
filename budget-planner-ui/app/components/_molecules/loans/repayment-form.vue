@@ -15,6 +15,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue']);
 
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const form = computed({
   get: () => props.modelValue,
@@ -30,6 +31,11 @@ const accountSelect = ref<InstanceType<typeof AccountSelect>>();
 const amountInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
 const dateInput = ref<InstanceType<typeof DateInput>>();
+
+const amountDescription = computed(() => {
+  if (props.maxAmount === undefined) return undefined;
+  return t('contacts.loans.repayment.form.outstandingHelp', {amount: props.maxAmount.toFixed(2)});
+});
 
 onMounted(async () => {
   if (budgetAccountsStore.availableAccounts.length === 0) {
@@ -52,37 +58,37 @@ defineExpose({
 <template>
   <div class="space-y-4">
     <UCheckbox v-model="form.affectBalance"
-               label="Add to an account"
-               description="Uncheck if the money was received outside your tracked accounts (e.g. handed back in cash) and you only want to mark it repaid."/>
+               :label="t('contacts.loans.repayment.form.affectBalanceLabel')"
+               :description="t('contacts.loans.repayment.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
                    ref="accountSelect"
                    v-model="selectedAccount"
                    :options="budgetAccountsStore.availableAccounts"
-                   description="The account the money is paid back into."
-                   label="To account"
+                   :description="t('contacts.loans.repayment.form.toAccountDescription')"
+                   :label="t('contacts.loans.repayment.form.toAccountLabel')"
                    required/>
 
     <BaseInput ref="amountInput"
                v-model="form.amount"
-               :description="maxAmount !== undefined ? `Outstanding: ${maxAmount.toFixed(2)}` : undefined"
+               :description="amountDescription"
                :max="maxAmount ?? 9999999.99"
                :min="0.01"
-               label="Amount"
-               placeholder="0.00"
+               :label="t('contacts.loans.repayment.form.amountLabel')"
+               :placeholder="t('contacts.loans.repayment.form.amountPlaceholder')"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
-               label="Description (optional)"
-               placeholder="Repayment"
+               :label="t('contacts.loans.repayment.form.descriptionLabel')"
+               :placeholder="t('contacts.loans.repayment.form.descriptionPlaceholder')"
                type="text"/>
 
     <DateInput ref="dateInput"
                v-model="form.repaidAt"
-               label="Repayment date"
+               :label="t('contacts.loans.repayment.form.dateLabel')"
                required/>
   </div>
 </template>
