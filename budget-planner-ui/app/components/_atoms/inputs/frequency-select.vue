@@ -6,6 +6,7 @@ const props = defineProps<{
   description?: string;
   hint?: string;
   required?: boolean;
+  disabled?: boolean;
 }>();
 
 const model = defineModel<Frequency>();
@@ -36,6 +37,7 @@ defineExpose({validate});
               :label="label"
               :required="required">
     <USelect v-model="model"
+             :disabled="disabled"
              :items="options"
              class="w-full"
              :placeholder="t('transactions.selects.selectFrequency')"

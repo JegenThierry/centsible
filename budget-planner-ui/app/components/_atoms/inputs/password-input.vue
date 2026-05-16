@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const props = defineProps<{
   required?: boolean;
+  disabled?: boolean;
   label?: string;
   placeholder?: string;
   description?: string;
@@ -49,6 +50,7 @@ defineExpose({
               :required="required">
     <UInput
       v-model="password"
+      :disabled="disabled"
       :placeholder="placeholder"
       :type="show ? 'text' : 'password'"
       :ui="{ trailing: 'pe-1' }"
@@ -58,6 +60,7 @@ defineExpose({
         <UButton
           :aria-label="show ? t('auth.password.hide') : t('auth.password.show')"
           :aria-pressed="show"
+          :disabled="disabled"
           :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
           aria-controls="password"
           color="neutral"

@@ -5,6 +5,7 @@ const props = defineProps<{
   hint?: string;
   type: 'email' | 'number' | 'text';
   required?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   additionalValidator?: () => string | undefined;
   autofocus?: boolean;
@@ -14,6 +15,7 @@ const props = defineProps<{
   maxLength?: number;
   pattern?: RegExp;
   patternMessage?: string;
+  trailingText?: string;
 }>();
 
 const model = defineModel<string | number>();
@@ -103,9 +105,17 @@ defineExpose({
               :label="label"
               :required="required">
     <UInput v-model="model"
+            :disabled="disabled"
             :placeholder="placeholder"
             :type="type"
-            class="w-full"/>
+            :ui="trailingText ? { trailing: 'pe-2' } : undefined"
+            class="w-full">
+      <template v-if="trailingText" #trailing>
+        <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          {{ trailingText }}
+        </span>
+      </template>
+    </UInput>
   </UFormField>
 </template>
 

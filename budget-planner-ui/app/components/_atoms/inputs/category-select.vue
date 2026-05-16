@@ -6,6 +6,7 @@ const props = defineProps<{
   description?: string;
   hint?: string;
   required?: boolean;
+  disabled?: boolean;
   options: Category[];
 }>();
 
@@ -35,6 +36,7 @@ defineExpose({
               :required="required">
     <USelectMenu
       v-model="model"
+      :disabled="disabled"
       :items="options"
       class="w-full"
       label-key="name"

@@ -60,6 +60,10 @@
       "errorTitle": "Fehler beim Löschen von {entity}.",
       "errorBody": "Ihr/Ihre {entity} konnte nicht gelöscht werden, bitte versuchen Sie es erneut."
     },
+    "unsavedChanges": {
+      "confirmLeave": "Sie haben ungespeicherte Änderungen. Trotzdem verlassen?",
+      "confirmDiscard": "Ungespeicherte Änderungen verwerfen?"
+    },
     "language": {
       "label": "Sprache",
       "english": "English",

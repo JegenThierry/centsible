@@ -32,6 +32,7 @@ const passwordsInput = ref<InstanceType<typeof RegisterPasswordInput>>();
 const loading = ref<boolean>(false);
 
 function onSubmit() {
+  if (loading.value) return;
   if (!validate()) {
     return;
   }
@@ -90,6 +91,7 @@ function validate(): boolean {
                :min-length="3"
                :pattern="USERNAME_PATTERN"
                autofocus
+               :disabled="loading"
                :label="t('auth.fields.username')"
                :pattern-message="t('auth.register.usernamePattern')"
                :placeholder="t('auth.placeholders.username')"
@@ -99,6 +101,7 @@ function validate(): boolean {
     <BaseInput ref="emailInput"
                v-model="state.email"
                :max-length="255"
+               :disabled="loading"
                :label="t('auth.fields.email')"
                :placeholder="t('auth.placeholders.email')"
                required
@@ -107,6 +110,7 @@ function validate(): boolean {
     <BaseInput ref="firstnameInput"
                v-model="state.firstName"
                :max-length="100"
+               :disabled="loading"
                :label="t('auth.fields.firstName')"
                :placeholder="t('auth.placeholders.firstName')"
                required
@@ -115,6 +119,7 @@ function validate(): boolean {
     <BaseInput ref="lastnameInput"
                v-model="state.lastName"
                :max-length="100"
+               :disabled="loading"
                :label="t('auth.fields.lastName')"
                :placeholder="t('auth.placeholders.lastName')"
                required
@@ -122,7 +127,8 @@ function validate(): boolean {
 
     <RegisterPasswordInput ref="passwordsInput"
                            v-model:confirm-password="state.confirmPassword"
-                           v-model:password="state.password"/>
+                           v-model:password="state.password"
+                           :disabled="loading"/>
 
     <UButton :loading="loading" class="ml-auto" type="submit">
       {{ t('auth.register.submit') }}

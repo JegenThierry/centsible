@@ -13,6 +13,7 @@ import {useValidator} from "~/composables/use-validator";
 const props = defineProps<{
   modelValue: LoanForm;
   lockContact?: boolean;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -37,6 +38,8 @@ const selectedAccount = computed<BudgetAccount | undefined>({
   get: () => budgetAccountsStore.availableAccounts.find(a => a.id === form.value.accountId),
   set: (a) => { form.value = {...form.value, accountId: a?.id}; },
 });
+
+const amountCurrency = computed(() => selectedAccount.value?.currency);
 
 const contactSelect = ref<InstanceType<typeof ContactSelect>>();
 const firstNameInput = ref<InstanceType<typeof BaseInput>>();
@@ -98,6 +101,7 @@ defineExpose({validate});
   <div class="space-y-4">
     <div v-if="!lockContact">
       <URadioGroup v-model="mode"
+                   :disabled="disabled"
                    :items="modeOptions"
                    :legend="t('contacts.loans.form.modeLegend')"
                    orientation="horizontal"/>
@@ -106,6 +110,7 @@ defineExpose({validate});
     <ContactSelect v-if="mode === 'existing' && !lockContact"
                    ref="contactSelect"
                    v-model="selectedContact"
+                   :disabled="disabled"
                    :options="contactsStore.contacts"
                    :label="t('contacts.loans.form.pickContact')"
                    required/>
@@ -115,6 +120,7 @@ defineExpose({validate});
                  v-model="form.newContactFirstName"
                  :max-length="100"
                  :description="t('contacts.loans.form.newFirstNameDescription')"
+                 :disabled="disabled"
                  :label="t('contacts.loans.form.newFirstNameLabel')"
                  :placeholder="t('contacts.loans.form.newFirstNamePlaceholder')"
                  required
@@ -122,18 +128,21 @@ defineExpose({validate});
       <BaseInput ref="lastNameInput"
                  v-model="form.newContactLastName"
                  :max-length="100"
+                 :disabled="disabled"
                  :label="t('contacts.loans.form.newLastNameLabel')"
                  :placeholder="t('contacts.loans.form.newLastNamePlaceholder')"
                  type="text"/>
     </template>
 
     <UCheckbox v-model="form.affectBalance"
+               :disabled="disabled"
                :label="t('contacts.loans.form.affectBalanceLabel')"
                :description="t('contacts.loans.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
                    ref="accountSelect"
                    v-model="selectedAccount"
+                   :disabled="disabled"
                    :options="budgetAccountsStore.availableAccounts"
                    :description="t('contacts.loans.form.fromAccountDescription')"
                    :label="t('contacts.loans.form.fromAccountLabel')"
@@ -143,8 +152,10 @@ defineExpose({validate});
                v-model="form.lentAmount"
                :max="9999999.99"
                :min="0.01"
+               :disabled="disabled"
                :label="t('contacts.loans.form.lentLabel')"
                :placeholder="t('contacts.loans.form.lentPlaceholder')"
+               :trailing-text="amountCurrency"
                required
                type="number"/>
 
@@ -153,14 +164,17 @@ defineExpose({validate});
                :max="9999999.99"
                :min="0"
                :description="t('contacts.loans.form.owedDescription')"
+               :disabled="disabled"
                :label="t('contacts.loans.form.owedLabel')"
                :placeholder="t('contacts.loans.form.owedPlaceholder')"
+               :trailing-text="amountCurrency"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
+               :disabled="disabled"
                :label="t('contacts.loans.form.descriptionLabel')"
                :placeholder="t('contacts.loans.form.descriptionPlaceholder')"
                required
@@ -168,6 +182,7 @@ defineExpose({validate});
 
     <DateInput ref="dateInput"
                v-model="form.transactionDate"
+               :disabled="disabled"
                :label="t('contacts.loans.form.dateLabel')"
                required/>
   </div>

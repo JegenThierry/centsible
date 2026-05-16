@@ -4,6 +4,7 @@ const props = defineProps<{
   description?: string;
   hint?: string;
   required?: boolean;
+  disabled?: boolean;
 }>();
 
 const model = defineModel<string | undefined>();
@@ -31,6 +32,7 @@ defineExpose({
               :label="label"
               :required="required">
     <UInput v-model="model"
+            :disabled="disabled"
             class="w-full"
             type="date"/>
   </UFormField>

@@ -4,6 +4,7 @@
       ref="firstNameInput"
       v-model="state.firstName"
       :max-length="100"
+      :disabled="loading"
       :label="t('profile.form.firstNameLabel')"
       :placeholder="t('profile.form.firstNamePlaceholder')"
       required
@@ -14,6 +15,7 @@
       ref="lastNameInput"
       v-model="state.lastName"
       :max-length="100"
+      :disabled="loading"
       :label="t('profile.form.lastNameLabel')"
       :placeholder="t('profile.form.lastNamePlaceholder')"
       required
@@ -24,6 +26,7 @@
       ref="emailInput"
       v-model="state.email"
       :max-length="255"
+      :disabled="loading"
       :label="t('profile.form.emailLabel')"
       :placeholder="t('profile.form.emailPlaceholder')"
       required
@@ -40,6 +43,7 @@
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 import {useValidator} from "~/composables/use-validator";
+import {useUnsavedChangesGuard} from "~/composables/use-unsaved-changes-guard";
 
 interface Props {
   initialValues?: UserProfileForm;
@@ -71,11 +75,23 @@ watch(
   },
 );
 
+const isDirty = computed(() => {
+  const base = props.initialValues;
+  if (!base) return false;
+  if (props.loading) return false;
+  return state.firstName !== base.firstName
+    || state.lastName !== base.lastName
+    || state.email !== base.email;
+});
+
+useUnsavedChangesGuard(isDirty);
+
 function validate(): boolean {
   return useValidator().validateInputs([firstNameInput, lastNameInput, emailInput]);
 }
 
 async function onSubmit() {
+  if (props.loading) return;
   if (!validate()) {
     emit('validation-failed');
     return;

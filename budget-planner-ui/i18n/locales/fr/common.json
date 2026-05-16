@@ -60,6 +60,10 @@
       "errorTitle": "Erreur lors de la suppression de {entity}.",
       "errorBody": "Votre {entity} n'a pas pu être supprimé, veuillez réessayer."
     },
+    "unsavedChanges": {
+      "confirmLeave": "Vous avez des modifications non enregistrées. Quitter quand même ?",
+      "confirmDiscard": "Abandonner les modifications non enregistrées ?"
+    },
     "language": {
       "label": "Langue",
       "english": "English",

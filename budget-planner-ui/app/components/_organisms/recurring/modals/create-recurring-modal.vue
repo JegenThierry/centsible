@@ -5,6 +5,7 @@ import RecurringFormFields from "~/components/_molecules/recurring/recurring-for
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -22,6 +23,8 @@ const {t} = useI18n();
 const form = ref<RecurringTransactionForm>(makeBlankForm());
 const formRef = ref<InstanceType<typeof RecurringFormFields>>();
 const loading = ref(false);
+const formId = useId();
+const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
 function makeBlankForm(): RecurringTransactionForm {
   return {
@@ -35,11 +38,15 @@ function makeBlankForm(): RecurringTransactionForm {
   };
 }
 
-watch(isOpen, (open) => {
-  if (open) form.value = makeBlankForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: () => { form.value = makeBlankForm(); },
 });
 
 async function handleSave() {
+  if (loading.value) return;
   if (!formRef.value?.validate()) return;
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (!form.value.category?.id || !form.value.startDate) return;
@@ -67,17 +74,23 @@ async function handleSave() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t('transactions.recurring.create.description')"
-          :title="t('transactions.recurring.create.title')">
+          :title="t('transactions.recurring.create.title')"
+          @update:open="requestClose">
     <template #body>
-      <RecurringFormFields ref="formRef" v-model="form"/>
+      <UForm :id="formId" :state="form" @submit="handleSave">
+        <RecurringFormFields ref="formRef"
+                             v-model="form"
+                             :currency="activeCurrency"
+                             :disabled="loading"/>
+      </UForm>
     </template>
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('transactions.recurring.create.submit') }}</UButton>
+        <CancelButton :disabled="loading" @click="requestClose(false)"/>
+        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.recurring.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

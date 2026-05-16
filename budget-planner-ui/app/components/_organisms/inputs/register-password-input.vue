@@ -2,6 +2,10 @@
 
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 
+defineProps<{
+  disabled?: boolean;
+}>();
+
 const {t} = useI18n();
 const password = defineModel<string>('password', {required: true});
 const passwordInput = ref<InstanceType<typeof PasswordInput>>();
@@ -68,6 +72,7 @@ defineExpose({
                   v-model="password"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
+                  :disabled="disabled"
                   :label="t('auth.fields.password')"
                   :placeholder="t('auth.placeholders.password')"
                   required/>
@@ -87,6 +92,7 @@ defineExpose({
                   v-model="confirmPassword"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
+                  :disabled="disabled"
                   :label="t('auth.fields.confirmPassword')"
                   :placeholder="t('auth.placeholders.confirmPassword')"
                   required/>

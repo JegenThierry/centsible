@@ -26,6 +26,7 @@ function validate(): boolean {
 }
 
 function onSubmit() {
+  if (loading.value) return;
   if (!validate()) {
     return;
   }
@@ -51,12 +52,14 @@ function onSubmit() {
     <BaseInput ref="usernameInput"
                v-model="state.username"
                autofocus
+               :disabled="loading"
                :label="t('auth.fields.username')"
                required
                type="text"/>
 
     <PasswordInput ref="passwordInput"
                    v-model="state.password"
+                   :disabled="loading"
                    :label="t('auth.fields.password')"
                    required/>
 

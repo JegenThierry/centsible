@@ -60,6 +60,10 @@
       "errorTitle": "Error deleting {entity}.",
       "errorBody": "Your {entity} could not be deleted, please try again."
     },
+    "unsavedChanges": {
+      "confirmLeave": "You have unsaved changes. Leave anyway?",
+      "confirmDiscard": "Discard unsaved changes?"
+    },
     "language": {
       "label": "Language",
       "english": "English",

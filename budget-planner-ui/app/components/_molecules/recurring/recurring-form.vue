@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {type Category} from "~/models/category/category";
 import {type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
+import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
@@ -10,6 +11,8 @@ import {useCategoryService} from "~/services/category/category-service";
 
 const props = defineProps<{
   modelValue: RecurringTransactionForm;
+  currency?: Currency;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -57,6 +60,7 @@ defineExpose({
   <div class="space-y-4">
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
+                    :disabled="disabled"
                     :options="categories"
                     :label="t('transactions.recurring.form.category')"
                     required/>
@@ -70,14 +74,17 @@ defineExpose({
                v-model="form.amount"
                :max="9999999.99"
                :min="0.01"
+               :disabled="disabled"
                :label="t('transactions.recurring.form.amount')"
                :placeholder="t('transactions.recurring.form.amountPlaceholder')"
+               :trailing-text="currency"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
+               :disabled="disabled"
                :label="t('transactions.recurring.form.description')"
                :placeholder="t('transactions.recurring.form.descriptionPlaceholder')"
                required
@@ -85,17 +92,20 @@ defineExpose({
 
     <FrequencySelect ref="frequencyInput"
                      v-model="form.frequency"
+                     :disabled="disabled"
                      :label="t('transactions.recurring.form.frequency')"
                      required/>
 
     <DateInput ref="startDateInput"
                v-model="form.startDate"
                :description="t('transactions.recurring.form.startDateHelp')"
+               :disabled="disabled"
                :label="t('transactions.recurring.form.startDate')"
                required/>
 
     <DateInput v-model="form.endDate"
                :description="t('transactions.recurring.form.endDateHelp')"
+               :disabled="disabled"
                :label="t('transactions.recurring.form.endDate')"/>
   </div>
 </template>

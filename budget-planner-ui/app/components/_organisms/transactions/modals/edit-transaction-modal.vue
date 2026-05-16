@@ -5,6 +5,7 @@ import TransactionFormFields from "~/components/_molecules/transactions/transact
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -30,17 +31,27 @@ const form = ref<TransactionForm>({
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
 const loading = ref(false);
+const formId = useId();
+const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
 function loadTransaction(transaction: Transaction) {
   form.value = {
     amount: transaction.amount,
     description: transaction.description,
     category: transaction.category,
-    transactionDate: props.transaction.transactionDate.split('T')[0],
+    transactionDate: transaction.transactionDate.split('T')[0],
   };
 }
 
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: () => loadTransaction(props.transaction),
+});
+
 async function handleEdit() {
+  if (loading.value) return;
   if (!formRef.value?.validate()) {
     return;
   }
@@ -70,23 +81,26 @@ async function handleEdit() {
   }
 }
 
-onMounted(() => {
-  loadTransaction(props.transaction)
-});
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t('transactions.edit.description')"
-          :title="t('transactions.edit.title')">
+          :title="t('transactions.edit.title')"
+          @update:open="requestClose">
     <template #body>
-      <TransactionFormFields ref="formRef" v-model="form"/>
+      <UForm :id="formId" :state="form" @submit="handleEdit">
+        <TransactionFormFields ref="formRef"
+                               v-model="form"
+                               :currency="activeCurrency"
+                               :disabled="loading"/>
+      </UForm>
     </template>
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleEdit">{{ t('transactions.edit.submit') }}</UButton>
+        <CancelButton :disabled="loading" @click="requestClose(false)"/>
+        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

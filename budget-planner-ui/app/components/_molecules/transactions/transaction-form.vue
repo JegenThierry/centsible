@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {type Category, CategoryType} from "~/models/category/category";
 import {type TransactionForm} from "~/models/transactions/transaction";
+import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
@@ -10,6 +11,8 @@ import {useCategoryService} from "~/services/category/category-service";
 const props = defineProps<{
   modelValue: TransactionForm;
   filterType?: CategoryType;
+  currency?: Currency;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -63,6 +66,7 @@ defineExpose({
   <div class="space-y-4">
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
+                    :disabled="disabled"
                     :options="categories"
                     :label="t('transactions.form.category')"
                     required/>
@@ -76,14 +80,17 @@ defineExpose({
                v-model="form.amount"
                :max="9999999.99"
                :min="0.01"
+               :disabled="disabled"
                :label="t('transactions.form.amount')"
                :placeholder="t('transactions.form.amountPlaceholder')"
+               :trailing-text="currency"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
+               :disabled="disabled"
                :label="t('transactions.form.description')"
                :placeholder="t('transactions.form.descriptionPlaceholder')"
                required
@@ -91,6 +98,7 @@ defineExpose({
 
     <DateInput ref="dateInput"
                v-model="form.transactionDate"
+               :disabled="disabled"
                :label="t('transactions.form.date')"
                required/>
   </div>
