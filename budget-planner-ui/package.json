@@ -1,5 +1,6 @@
 {
   "name": "budget-planner-ui",
+  "version": "0.1.2",
   "type": "module",
   "private": true,
   "scripts": {
