@@ -70,7 +70,9 @@
         "bugLabel": "Signaler un bug",
         "bugDescription": "Quelque chose cloche ? Faites-le nous savoir sur le suivi des tickets.",
         "activityLabel": "Activité",
-        "activityDescription": "Voyez ce qui a changé récemment."
+        "activityDescription": "Voyez ce qui a changé récemment.",
+        "donateLabel": "Soutenir le développement",
+        "donateDescription": "Offrez-moi un café sur Ko-fi pour faire grandir Centsible."
       }
     }
   }

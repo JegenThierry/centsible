@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <ULink class="flex items-start gap-3 p-3 rounded-md bg-elevated hover:bg-accented transition-colors"
+  <ULink class="flex items-start gap-3 p-3 rounded-md bg-elevated hover:bg-accented transition-colors h-full"
          :to="to"
          target="_blank">
     <UIcon class="w-5 h-5 text-primary shrink-0 mt-0.5" :name="icon"/>

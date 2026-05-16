@@ -70,7 +70,9 @@
         "bugLabel": "Report a bug",
         "bugDescription": "Found something off? Let us know on the issue tracker.",
         "activityLabel": "Activity",
-        "activityDescription": "See what has changed recently."
+        "activityDescription": "See what has changed recently.",
+        "donateLabel": "Support development",
+        "donateDescription": "Buy me a coffee on Ko-fi to keep Centsible growing."
       }
     }
   }

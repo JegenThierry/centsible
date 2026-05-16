@@ -70,7 +70,9 @@
         "bugLabel": "Fehler melden",
         "bugDescription": "Etwas funktioniert nicht? Melden Sie es im Issue-Tracker.",
         "activityLabel": "Aktivität",
-        "activityDescription": "Sehen Sie, was sich kürzlich geändert hat."
+        "activityDescription": "Sehen Sie, was sich kürzlich geändert hat.",
+        "donateLabel": "Entwicklung unterstützen",
+        "donateDescription": "Spendieren Sie mir einen Kaffee auf Ko-fi, damit Centsible wachsen kann."
       }
     }
   }
