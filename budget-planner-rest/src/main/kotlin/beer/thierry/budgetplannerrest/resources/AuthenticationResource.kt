@@ -3,6 +3,8 @@ package beer.thierry.budgetplannerrest.resources
 import beer.thierry.budgetplanner.api.model.auth.AuthRegisterRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthRequest
 import beer.thierry.budgetplanner.api.model.auth.AuthResponse
+import beer.thierry.budgetplanner.api.model.auth.PasswordResetConfirmRequest
+import beer.thierry.budgetplanner.api.model.auth.PasswordResetRequest
 import beer.thierry.budgetplanner.api.model.user.UserDTO
 import beer.thierry.budgetplanner.api.services.authentication.IAuthService
 import beer.thierry.budgetplanner.api.services.users.IUserService
@@ -55,6 +57,19 @@ class AuthenticationResource(
     fun logout(response: HttpServletResponse): ResponseEntity<Void> {
         authCookieIssuer.clear(response)
         return ResponseEntity.noContent().build()
+    }
+
+    // Always 204 regardless of whether the username exists — prevents account enumeration.
+    @PostMapping("/forgot-password")
+    fun forgotPassword(@Valid @RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
+        authService.requestPasswordReset(request.username)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/reset-password")
+    fun resetPassword(@Valid @RequestBody request: PasswordResetConfirmRequest): ResponseEntity<Void> {
+        val ok = authService.resetPassword(request.token, request.password)
+        return if (ok) ResponseEntity.noContent().build() else ResponseEntity.badRequest().build()
     }
 
     @GetMapping("/verify")

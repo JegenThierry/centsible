@@ -60,6 +60,8 @@ class SecurityConfig(
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/auth/confirm", permitAll)
                 authorize("/api/auth/logout", permitAll)
+                authorize("/api/auth/forgot-password", permitAll)
+                authorize("/api/auth/reset-password", permitAll)
                 authorize("/api/system", permitAll)
                 authorize("/api/integrations/oauth/callback/**", permitAll)
                 authorize(EndpointRequest.to("health"), permitAll)

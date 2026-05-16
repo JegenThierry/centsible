@@ -7,6 +7,7 @@ import beer.thierry.budgetplanner.api.model.auth.AuthResponse
 import beer.thierry.budgetplanner.api.model.user.User
 import beer.thierry.budgetplanner.api.repository.IUserRepository
 import beer.thierry.budgetplanner.api.services.authentication.IAuthService
+import beer.thierry.budgetplanner.api.services.email.IPasswordResetEmailService
 import beer.thierry.budgetplanner.api.services.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -32,6 +33,7 @@ class AuthenticationService(
     private val userRepository: IUserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
+    private val passwordResetEmailService: IPasswordResetEmailService,
     @Value("\${skip.email.verification}") private val skipEmailVerification: Boolean,
     @Value("\${jwt.secret}") private val jwtSecret: String,
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
@@ -95,6 +97,41 @@ class AuthenticationService(
         return userRepository.confirmUser(user.id)
     }
 
+    override fun requestPasswordReset(username: String) {
+        // Always silent: don't leak which usernames exist. Trim only — no other normalisation,
+        // since findUserByUsername is case-sensitive on the username column.
+        val trimmed = username.trim()
+        if (trimmed.isBlank()) return
+        val user = userRepository.findUserByUsername(trimmed) ?: return
+
+        // Only registered (email-confirmed) accounts can reset; otherwise the confirmation flow applies.
+        if (!user.registered) {
+            log.info("Password reset requested for unconfirmed account username='{}'; skipping email", trimmed)
+            return
+        }
+
+        val rawToken = generateRegistrationToken()
+        val tokenHash = sha256(rawToken)
+        val expiresAt = OffsetDateTime.now().plusMinutes(PASSWORD_RESET_TOKEN_TTL_MINUTES)
+
+        if (!userRepository.setPasswordResetToken(user.id, tokenHash, expiresAt)) {
+            log.warn("Failed to persist password reset token for user id='{}'", user.id)
+            return
+        }
+
+        passwordResetEmailService.sendPasswordResetEmail(user, rawToken, resolveEmailLocale(user.locale))
+    }
+
+    override fun resetPassword(token: String, newPassword: String): Boolean {
+        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) return false
+        assertPasswordMatchesSecuritySettings(newPassword)
+
+        val user = userRepository.findUserByValidPasswordResetTokenHash(sha256(token)) ?: return false
+        val passwordHash = passwordEncoder.encode(newPassword)
+            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        return userRepository.resetPassword(user.id, passwordHash)
+    }
+
     private fun generateRegistrationToken(): String {
         val bytes = ByteArray(REGISTRATION_TOKEN_BYTES).also { SecureRandom().nextBytes(it) }
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
@@ -108,6 +145,7 @@ class AuthenticationService(
         // 32 bytes base64url-encoded (no padding) is exactly 43 chars; cap a bit higher for safety.
         private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
         private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
+        private const val PASSWORD_RESET_TOKEN_TTL_MINUTES = 15L
     }
 
     private fun generateJwt(user: User): String {

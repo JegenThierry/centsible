@@ -41,7 +41,18 @@ export function useAuthService(api: AxiosInstance) {
     await api.post('/auth/logout');
   }
 
+  async function forgotPassword(username: string): Promise<void> {
+    await api.post('/auth/forgot-password', {username});
+  }
+
+  async function resetPassword(token: string, password: string): Promise<boolean> {
+    const response = await api.post('/auth/reset-password', {token, password}, {
+      validateStatus: (status) => status === 204 || status === 400,
+    });
+    return response.status === 204;
+  }
+
   return {
-    login, register, verify, confirm, logout
+    login, register, verify, confirm, logout, forgotPassword, resetPassword
   }
 }

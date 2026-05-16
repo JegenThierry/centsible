@@ -13,6 +13,8 @@ import java.util.*
 
 private val REGISTRATION_TOKEN_HASH = field("registration_token_hash", ByteArray::class.java)
 private val REGISTRATION_TOKEN_EXPIRES_AT = field("registration_token_expires_at", OffsetDateTime::class.java)
+private val PASSWORD_RESET_TOKEN_HASH = field("password_reset_token_hash", ByteArray::class.java)
+private val PASSWORD_RESET_TOKEN_EXPIRES_AT = field("password_reset_token_expires_at", OffsetDateTime::class.java)
 // LOCALE isn't in the generated USERS metadata yet; declared manually until the next jOOQ regen.
 private val LOCALE = field("locale", String::class.java)
 private val USER_FIELDS: Array<Field<*>> = arrayOf(*USERS.fields(), LOCALE)
@@ -112,5 +114,31 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .where(USERS.ID.eq(id))
             .returningResult(*USER_FIELDS)
             .fetchOneInto(User::class.java)
+    }
+
+    override fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean {
+        return dsl.update(USERS)
+            .set(PASSWORD_RESET_TOKEN_HASH, tokenHash)
+            .set(PASSWORD_RESET_TOKEN_EXPIRES_AT, expiresAt)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun findUserByValidPasswordResetTokenHash(tokenHash: ByteArray): User? {
+        return dsl.select(*USER_FIELDS).from(USERS)
+            .where(PASSWORD_RESET_TOKEN_HASH.eq(tokenHash))
+            .and(PASSWORD_RESET_TOKEN_EXPIRES_AT.gt(OffsetDateTime.now()))
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun resetPassword(id: UUID, newPasswordHash: String): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.PASSWORD_HASH, newPasswordHash)
+            .set(PASSWORD_RESET_TOKEN_HASH, null as ByteArray?)
+            .set(PASSWORD_RESET_TOKEN_EXPIRES_AT, null as OffsetDateTime?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
     }
 }

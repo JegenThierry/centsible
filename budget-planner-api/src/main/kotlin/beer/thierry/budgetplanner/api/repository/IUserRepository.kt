@@ -21,4 +21,13 @@ interface IUserRepository {
     fun confirmUser(id: UUID): Boolean
     fun updateUserProfile(id: UUID, firstName: String, lastName: String, email: String, profilePicture: String?): User?
     fun updateUserLocale(id: UUID, locale: String): User?
+
+    /** Stores a hashed password reset token + expiry on the user, replacing any existing one. */
+    fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean
+
+    /** Returns the user whose stored password reset hash equals [tokenHash] AND whose token has not yet expired. */
+    fun findUserByValidPasswordResetTokenHash(tokenHash: ByteArray): User?
+
+    /** Sets a new password hash and clears the reset token in one atomic update. */
+    fun resetPassword(id: UUID, newPasswordHash: String): Boolean
 }

@@ -60,6 +60,16 @@ function onSubmit() {
                    :label="t('auth.fields.password')"
                    required/>
 
+    <div class="flex justify-end">
+      <UButton color="neutral"
+               size="sm"
+               to="/auth/forgot-password"
+               variant="link"
+               class="px-0">
+        {{ t('auth.login.forgotPassword') }}
+      </UButton>
+    </div>
+
     <UButton :loading="loading" class="ml-auto" type="submit">
       {{ t('auth.login.submit') }}
     </UButton>

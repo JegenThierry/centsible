@@ -23,7 +23,11 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val path = request.requestURI
-        return path != "/api/auth/login" && path != "/api/auth/register" && path != "/api/auth/confirm"
+        return path != "/api/auth/login" &&
+                path != "/api/auth/register" &&
+                path != "/api/auth/confirm" &&
+                path != "/api/auth/forgot-password" &&
+                path != "/api/auth/reset-password"
     }
 
     override fun doFilterInternal(
