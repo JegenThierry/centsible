@@ -4,6 +4,7 @@ import {useUserStore} from '~/stores/userStore';
 import UserAvatar from '~/components/_atoms/user/user-avatar.vue';
 import ProfileForm from '~/components/_organisms/user/profile-form.vue';
 import {useUserNotifications} from "~/components/_organisms/user/notifications";
+import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 const userStore = useUserStore();
@@ -56,10 +57,10 @@ async function onFileChange(event: Event) {
                 title="Profile"/>
 
     <div v-if="userStore.pending && !userStore.user" class="flex justify-center py-8">
-      <UIcon class="w-8 h-8 animate-spin text-primary" name="i-heroicons-arrow-path"/>
+      <LoadingAnimation/>
     </div>
 
-    <UCard v-else-if="userStore.user" class="max-w-2xl mx-auto" variant="soft">
+    <UCard v-else-if="userStore.user" class="max-w-2xl mx-auto">
       <div class="space-y-12 mt-8">
         <div class="flex flex-col items-center gap-6">
           <div class="relative">

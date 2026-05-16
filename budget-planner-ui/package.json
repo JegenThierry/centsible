@@ -16,6 +16,7 @@
     "chart.js": "4.5.1",
     "date-fns": "4.1.0",
     "nuxt": "4.4.2",
+    "papaparse": "5.5.3",
     "tailwindcss": "4.2.2",
     "vue": "3.5.32",
     "vue-chartjs": "5.3.3",
@@ -23,7 +24,8 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "1.2.101",
-    "@types/node": "25.5.0"
+    "@types/node": "25.5.0",
+    "@types/papaparse": "5.5.2"
   },
   "overrides": {
     "vue-router": "$vue-router"

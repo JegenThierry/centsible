@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {h, resolveComponent} from 'vue'
+import {h} from 'vue'
 import type {TableColumn} from '@nuxt/ui'
 import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
@@ -15,11 +15,8 @@ import {useTransactionList} from "~/components/_organisms/transactions/utils/use
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
-
-const UButton = resolveComponent('UButton')
-const UBadge = resolveComponent('UBadge')
-const UIcon = resolveComponent('UIcon')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
+import BaseTable from "~/components/_molecules/tables/base-table.vue";
+import TableRowActionsMenu from "~/components/_molecules/tables/table-row-actions-menu.vue";
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -105,37 +102,22 @@ const columns: TableColumn<Transaction>[] = [
         td: 'text-right'
       }
     },
-    cell: ({row}) => {
-      return h(
-        UDropdownMenu,
+    cell: ({row}) => h(TableRowActionsMenu, {
+      label: 'Transaction actions',
+      items: [
         {
-          content: {
-            align: 'end'
-          },
-          items: [
-            {
-              label: 'Edit',
-              icon: 'i-lucide-pencil',
-              onSelect: () => openEditModal(row.original)
-            },
-            {
-              label: 'Delete',
-              icon: 'i-lucide-trash',
-              color: 'error' as any,
-              onSelect: () => openDeleteModal(row.original)
-            }
-          ],
-          'aria-label': 'Actions dropdown'
+          label: 'Edit',
+          icon: 'i-lucide-pencil',
+          onSelect: () => openEditModal(row.original)
         },
-        () =>
-          h(UButton, {
-            icon: 'i-lucide-ellipsis-vertical',
-            color: 'neutral',
-            variant: 'ghost',
-            'aria-label': 'Actions dropdown'
-          })
-      )
-    }
+        {
+          label: 'Delete',
+          icon: 'i-lucide-trash',
+          color: 'error' as any,
+          onSelect: () => openDeleteModal(row.original)
+        }
+      ],
+    })
   }
 ]
 
@@ -157,22 +139,12 @@ watch(
 </script>
 
 <template>
-  <div class="border rounded-lg overflow-hidden border-neutral-200 dark:border-neutral-800">
-    <UTable :columns="columns" :data="transactions" :loading="loading" class="flex-1 overflow-y-auto">
-      <template #loading>
-        <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <LoadingAnimation/>
-          <p class="text-sm text-neutral-500">Loading transactions...</p>
-        </div>
-      </template>
-      <template #empty>
-        <div class="flex flex-col items-center justify-center py-10 gap-3">
-          <UIcon class="w-8 h-8 text-neutral-400" name="i-lucide-inbox"/>
-          <p class="text-sm text-neutral-500">No transactions found.</p>
-        </div>
-      </template>
-    </UTable>
-  </div>
+  <BaseTable :columns="columns"
+             :data="transactions"
+             :loading="loading"
+             empty-title="No transactions found."
+             loading-message="Loading transactions..."
+             class="flex-1 overflow-y-auto"/>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
     <LoadingAnimation v-if="loadingMore || loading"/>

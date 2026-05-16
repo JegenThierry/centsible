@@ -6,8 +6,10 @@ import {Currency} from "~/models/budget-account/currency";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
+import BaseTable from "~/components/_molecules/tables/base-table.vue";
+import TableRowActionsMenu from "~/components/_molecules/tables/table-row-actions-menu.vue";
 
-const props = defineProps<{
+defineProps<{
   loans: Loan[];
   loading?: boolean;
 }>();
@@ -17,9 +19,7 @@ const emit = defineEmits<{
   delete: [loan: Loan];
 }>();
 
-const UButton = resolveComponent('UButton');
 const UBadge = resolveComponent('UBadge');
-const UDropdownMenu = resolveComponent('UDropdownMenu');
 
 const budgetAccountsStore = useBudgetAccountsStore();
 const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? Currency.EUR);
@@ -110,44 +110,27 @@ const columns: TableColumn<Loan>[] = [
   {
     id: 'actions',
     meta: {class: {td: 'text-right'}},
-    cell: ({row}) => h(
-      UDropdownMenu,
-      {
-        content: {align: 'end'},
-        items: [
-          {
-            label: 'Record repayment',
-            icon: 'i-lucide-hand-helping',
-            disabled: Number(row.original.outstanding) <= 0,
-            onSelect: () => emit('repay', row.original),
-          },
-          {
-            label: 'Delete loan',
-            icon: 'i-lucide-trash',
-            color: 'error' as any,
-            onSelect: () => emit('delete', row.original),
-          },
-        ],
-        'aria-label': 'Actions dropdown',
-      },
-      () => h(UButton, {
-        icon: 'i-lucide-ellipsis-vertical',
-        color: 'neutral',
-        variant: 'ghost',
-        'aria-label': 'Loan actions',
-      }),
-    ),
+    cell: ({row}) => h(TableRowActionsMenu, {
+      label: 'Loan actions',
+      items: [
+        {
+          label: 'Record repayment',
+          icon: 'i-lucide-hand-helping',
+          disabled: Number(row.original.outstanding) <= 0,
+          onSelect: () => emit('repay', row.original),
+        },
+        {
+          label: 'Delete loan',
+          icon: 'i-lucide-trash',
+          color: 'error' as any,
+          onSelect: () => emit('delete', row.original),
+        },
+      ],
+    }),
   },
 ];
 </script>
 
 <template>
-  <UTable :columns="columns" :data="loans" :loading="loading">
-    <template #empty>
-      <div class="flex flex-col items-center justify-center py-10 gap-3">
-        <UIcon class="w-8 h-8 text-dimmed" name="i-lucide-inbox"/>
-        <p class="text-sm text-muted">No loans yet.</p>
-      </div>
-    </template>
-  </UTable>
+  <BaseTable :columns="columns" :data="loans" :loading="loading" empty-title="No loans yet."/>
 </template>

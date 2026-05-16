@@ -1,55 +1,12 @@
+import Papa from 'papaparse';
 import type {CsvParseResult, CsvPreviewRow} from "~/models/transactions/csv-import";
 
-/**
- * Parse a small CSV string into headers + rows. Handles quoted fields and escaped quotes.
- * Not RFC 4180 strict; sufficient for typical bank exports.
- */
 export function parseCsv(text: string, delimiter: string = ','): CsvParseResult {
-  const lines: string[][] = [];
-  let current: string[] = [];
-  let buffer = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-
-    if (inQuotes) {
-      if (ch === '"' && text[i + 1] === '"') {
-        buffer += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        buffer += ch;
-      }
-      continue;
-    }
-
-    if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === delimiter) {
-      current.push(buffer);
-      buffer = '';
-    } else if (ch === '\n' || ch === '\r') {
-      if (buffer.length > 0 || current.length > 0) {
-        current.push(buffer);
-        lines.push(current);
-        current = [];
-        buffer = '';
-      }
-      if (ch === '\r' && text[i + 1] === '\n') i++;
-    } else {
-      buffer += ch;
-    }
-  }
-  if (buffer.length > 0 || current.length > 0) {
-    current.push(buffer);
-    lines.push(current);
-  }
-
-  if (lines.length === 0) return {headers: [], rows: []};
-  const headers = (lines[0] ?? []).map(h => h.trim());
-  const rows: CsvPreviewRow[] = lines.slice(1).map(cells => ({cells}));
+  const {data} = Papa.parse<string[]>(text, {delimiter, skipEmptyLines: true});
+  const [headerRow, ...dataRows] = data;
+  if (!headerRow) return {headers: [], rows: []};
+  const headers = headerRow.map(h => h.trim());
+  const rows: CsvPreviewRow[] = dataRows.map(cells => ({cells}));
   return {headers, rows};
 }
 

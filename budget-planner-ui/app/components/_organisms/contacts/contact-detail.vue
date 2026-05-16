@@ -178,21 +178,17 @@ onMounted(async () => {
         </UCard>
       </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold">Loans</h3>
-            <UButton icon="i-lucide-plus" size="sm" @click="isCreateLoanOpen = true">
-              Record Lending
-            </UButton>
-          </div>
-        </template>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold">Loans</h3>
+        <UButton icon="i-lucide-plus" size="sm" @click="isCreateLoanOpen = true">
+          Record Lending
+        </UButton>
+      </div>
 
-        <LoanTable :loans="loans"
-                   :loading="loansStore.pending"
-                   @repay="openRepayment"
-                   @delete="openDeleteLoan"/>
-      </UCard>
+      <LoanTable :loans="loans"
+                 :loading="loansStore.pending"
+                 @repay="openRepayment"
+                 @delete="openDeleteLoan"/>
 
       <EditContactModal v-model:open="isEditContactOpen" :contact="contact"/>
       <DeleteContactModal v-model:open="isDeleteContactOpen" :contact="contact" @deleted="onContactDeleted"/>
