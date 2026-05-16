@@ -37,6 +37,10 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  async function updateLocale(locale: string) {
+    user.value = await userService.updateLocale(locale);
+  }
+
   function clear() {
     user.value = null;
     pending.value = false;
@@ -48,6 +52,7 @@ export const useUserStore = defineStore('userStore', () => {
     fetchMyself,
     updateProfile,
     updateProfilePicture,
+    updateLocale,
     clear,
   }
 });

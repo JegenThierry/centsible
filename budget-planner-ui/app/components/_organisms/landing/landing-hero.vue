@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+const {t} = useI18n();
 </script>
 
 <template>
@@ -10,17 +11,16 @@
       <div class="flex flex-col items-center text-center gap-6 max-w-3xl mx-auto">
         <UBadge color="primary" size="lg" variant="subtle">
           <UIcon class="w-4 h-4" name="i-lucide-sparkles"/>
-          Open source · Self-hosted
+          {{ t('landing.hero.badge') }}
         </UBadge>
 
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-highlighted">
-          Take control of your money,
-          <span class="text-primary">without the bloat.</span>
+          {{ t('landing.hero.title') }}
+          <span class="text-primary">{{ t('landing.hero.titleHighlight') }}</span>
         </h1>
 
         <p class="text-base sm:text-lg md:text-xl text-muted leading-relaxed max-w-2xl">
-          A clean, self-hosted budget tracker with multiple accounts, smart categories,
-          monthly budgets, and dashboards that actually help you decide.
+          {{ t('landing.hero.subtitle') }}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 mt-2">
@@ -29,19 +29,19 @@
                    size="xl"
                    to="/auth"
                    trailing-icon="i-lucide-arrow-right">
-            Get started
+            {{ t('landing.hero.getStarted') }}
           </UButton>
           <UButton color="neutral"
                    icon="i-lucide-info"
                    size="xl"
                    to="/about"
                    variant="outline">
-            Learn more
+            {{ t('landing.hero.learnMore') }}
           </UButton>
         </div>
 
         <p class="text-xs text-muted mt-2">
-          Your data lives on your server. No tracking, no ads, no nonsense.
+          {{ t('landing.hero.tagline') }}
         </p>
       </div>
     </UContainer>

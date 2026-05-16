@@ -11,11 +11,12 @@ const props = defineProps<{
 
 const model = defineModel<Contact | undefined>();
 const error = ref<string | undefined>(undefined);
+const {t} = useI18n();
 
 function validate(): boolean {
   error.value = undefined;
   if (props.required && !model.value) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field: props.label});
     return false;
   }
   return true;
@@ -34,7 +35,7 @@ defineExpose({validate})
                  :items="options"
                  class="w-full"
                  label-key="name"
-                 placeholder="Select a contact"
+                 :placeholder="t('transactions.selects.selectContact')"
                  searchable>
       <template #label>
         <div v-if="model" class="flex items-center gap-2">
@@ -42,7 +43,7 @@ defineExpose({validate})
           <UIcon v-else class="w-4 h-4" name="i-lucide-user"/>
           <span>{{ model.name }}</span>
         </div>
-        <span v-else>Select a contact</span>
+        <span v-else>{{ t('transactions.selects.selectContact') }}</span>
       </template>
 
       <template #item-leading="{ item }">

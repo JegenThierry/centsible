@@ -1,0 +1,51 @@
+{
+  "integrations": {
+    "page": {
+      "title": "Integrations",
+      "description": "Connect external sources of accounts, transactions, or quotes."
+    },
+    "available": {
+      "heading": "Available providers",
+      "emptyTitle": "No providers",
+      "emptyDescription": "No provider plugins are enabled on this server.",
+      "connect": "Connect"
+    },
+    "connections": {
+      "heading": "Your connections",
+      "emptyTitle": "No connections yet",
+      "emptyDescription": "Connect a provider above to start tracking external data.",
+      "lastSynced": "Last synced: {date}",
+      "lastError": "Last error: {error}",
+      "syncNow": "Sync now",
+      "disconnect": "Disconnect",
+      "confirmDisconnect": "Disconnect \"{name}\"?",
+      "status": {
+        "ACTIVE": "active",
+        "NEW": "new",
+        "ERROR": "error",
+        "REVOKED": "revoked"
+      }
+    },
+    "modal": {
+      "titleWithName": "Connect {name}",
+      "titleFallback": "Connect",
+      "descriptionFallback": "Configure this integration.",
+      "displayNameLabel": "Connection name",
+      "displayNameHelp": "A name you'll see in the connection list.",
+      "displayNameRequired": "Display name is required.",
+      "submit": "Connect"
+    },
+    "form": {
+      "selectPlaceholder": "Select…",
+      "secret": {
+        "showAria": "Show value",
+        "hideAria": "Hide value"
+      },
+      "errors": {
+        "required": "{field} is required.",
+        "number": "{field} must be a number.",
+        "select": "{field} must be one of: {options}."
+      }
+    }
+  }
+}

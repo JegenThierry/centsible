@@ -14,6 +14,7 @@ const emit = defineEmits<{
 
 const service = useBudgetService(useApi());
 const toasts = useToasts();
+const {t} = useI18n();
 
 const form = ref<BudgetForm>(makeBlank());
 const formRef = ref<InstanceType<typeof BudgetFormFields>>();
@@ -37,11 +38,11 @@ async function handleSave() {
       categoryId: form.value.category.id,
       amountLimit: form.value.amountLimit,
     });
-    toasts.success('Budget created.', 'Track your spending against this limit each month.');
+    toasts.success(t('budgets.create.toastSuccessTitle'), t('budgets.create.toastSuccessBody'));
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Budget not created.', 'Could not create the budget. A budget for this category may already exist.');
+    useApiErrors().toastError(error, t('budgets.create.toastErrorTitle'), t('budgets.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -50,8 +51,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Set a monthly spending limit for an expense category."
-          title="New budget">
+          :description="t('budgets.create.description')"
+          :title="t('budgets.create.title')">
     <template #body>
       <BudgetFormFields ref="formRef" v-model="form"/>
     </template>
@@ -59,7 +60,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Create</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('budgets.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

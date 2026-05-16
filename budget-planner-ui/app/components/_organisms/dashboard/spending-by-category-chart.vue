@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode();
 const service = useTransactionService(useApi());
+const {t} = useI18n();
+const localeTag = useLocaleTag();
 
 const aggregates = ref<CategoryAggregate[]>([]);
 const loading = ref(false);
@@ -47,6 +49,7 @@ const chartData = computed<ChartData<'doughnut'>>(() => ({
 const chartOptions = computed<ChartOptions<'doughnut'>>(() => {
   const isDark = colorMode.value === 'dark';
   const labelColor = isDark ? '#a3a3a3' : '#737373';
+  const currencyFmt = new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency});
 
   return {
     responsive: true,
@@ -58,10 +61,7 @@ const chartOptions = computed<ChartOptions<'doughnut'>>(() => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => new Intl.NumberFormat('de-DE', {
-            style: 'currency',
-            currency: props.currency,
-          }).format(context.parsed),
+          label: (context) => currencyFmt.format(context.parsed),
         },
       },
     },
@@ -78,19 +78,19 @@ const total = computed(() =>
   <UCard>
     <template #header>
       <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-        Spending by category (this month)
+        {{ t('accounts.dashboard.spendingByCategory') }}
       </h3>
     </template>
 
     <div class="relative h-64">
       <div v-if="aggregates.length === 0 && !loading"
            class="absolute inset-0 flex items-center justify-center text-sm text-neutral-500">
-        No expenses yet this month.
+        {{ t('accounts.dashboard.noExpenses') }}
       </div>
       <template v-else>
         <Doughnut :data="chartData" :options="chartOptions"/>
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10">
-          <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium">Total</span>
+          <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium">{{ t('accounts.dashboard.total') }}</span>
           <span class="text-lg font-bold text-gray-900 dark:text-white">
             <BalanceNumberFormat :balance="total" :currency="currency"/>
           </span>

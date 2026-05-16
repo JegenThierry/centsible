@@ -10,6 +10,7 @@ import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {todayIsoDate} from "~/utils/date";
 
 const accountStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 function onRefresh(): void {
   accountStore.updateAvailableAccounts();
@@ -22,16 +23,16 @@ accountStore.updateAvailableAccounts();
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="Select an account to manage your budget"
-      title="Accounts"
+      :description="t('accounts.list.description')"
+      :title="t('accounts.list.title')"
     >
       <template #actions>
         <div class="flex gap-2">
           <ExportButton
             v-if="accountStore.availableAccounts.length > 0"
-            :default-title="`Accounts Summary ${todayIsoDate()}`"
+            :default-title="t('accounts.list.exportSummaryTitle', {date: todayIsoDate()})"
             :params-builder="() => ({ kind: 'ACCOUNTS_SUMMARY' })"
-            label="Export summary"
+            :label="t('accounts.list.exportSummaryLabel')"
             type="ACCOUNTS_SUMMARY"
           />
           <CreateBudgetAccountButton/>

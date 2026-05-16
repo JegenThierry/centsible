@@ -12,8 +12,9 @@ definePageMeta({
   ],
 });
 
+const {t} = useI18n();
 useHead({
-  title: 'Check your inbox',
+  title: t('auth.pageTitle.checkEmail'),
 });
 
 const route = useRoute();

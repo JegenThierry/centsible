@@ -4,12 +4,13 @@ import ThemeModeToggle from "~/components/_molecules/theme/theme-mode-toggle.vue
 import {swatchFor, useTheme} from "~/composables/use-theme";
 
 const {themes, current, mode, setTheme} = useTheme();
+const {t} = useI18n();
 const open = ref(false);
 </script>
 
 <template>
   <UPopover v-model:open="open">
-    <UButton aria-label="Change theme"
+    <UButton :aria-label="t('profile.theme.buttonAria')"
              color="neutral"
              icon="i-lucide-palette"
              variant="ghost"/>
@@ -18,14 +19,14 @@ const open = ref(false);
       <div class="p-3 w-72 flex flex-col gap-4">
         <div class="flex flex-col gap-1.5">
           <div class="text-xs font-semibold text-muted uppercase tracking-wide px-0.5">
-            Appearance
+            {{ t('profile.theme.appearance') }}
           </div>
           <ThemeModeToggle v-model="mode"/>
         </div>
 
         <div class="flex flex-col gap-1.5">
           <div class="text-xs font-semibold text-muted uppercase tracking-wide px-0.5">
-            Theme
+            {{ t('profile.theme.title') }}
           </div>
           <div class="grid grid-cols-2 gap-1">
             <ThemeOption v-for="theme in themes"

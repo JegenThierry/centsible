@@ -1,0 +1,77 @@
+{
+  "landing": {
+    "pageTitle": "Centsible",
+    "aboutPageTitle": "Über",
+    "hero": {
+      "badge": "Open Source · Selbst gehostet",
+      "title": "Übernehmen Sie die Kontrolle über Ihr Geld —",
+      "titleHighlight": "ohne Ballast.",
+      "subtitle": "Ein klarer, selbst gehosteter Budgettracker mit mehreren Konten, intelligenten Kategorien, Monatsbudgets und Dashboards, die wirklich bei Entscheidungen helfen.",
+      "getStarted": "Loslegen",
+      "learnMore": "Mehr erfahren",
+      "tagline": "Ihre Daten bleiben auf Ihrem Server. Kein Tracking, keine Werbung, kein Unsinn."
+    },
+    "features": {
+      "eyebrow": "Funktionen",
+      "title": "Alles, was Sie zum Budgetieren brauchen — nichts darüber hinaus.",
+      "subtitle": "Das Wesentliche, gut gemacht. Kein Upsell, kein Premium-Tarif.",
+      "accounts": {
+        "title": "Mehrere Konten",
+        "description": "Verfolgen Sie Giro-, Spar- und Kartenkonten nebeneinander — jedes mit eigener Währung und laufendem Saldo."
+      },
+      "categories": {
+        "title": "Intelligente Kategorien",
+        "description": "Versehen Sie Einnahmen und Ausgaben mit Tags, um genau zu sehen, woher Ihr Geld kommt und wohin es geht."
+      },
+      "budgets": {
+        "title": "Monatsbudgets",
+        "description": "Legen Sie Ausgabenziele je Kategorie fest und erkennen Sie Überschreitungen, bevor der Monat zu Ende ist."
+      },
+      "recurring": {
+        "title": "Wiederkehrende Transaktionen",
+        "description": "Automatisieren Sie das Vorhersehbare: Miete, Gehalt, Abos — einmal erfassen und vergessen."
+      },
+      "csv": {
+        "title": "CSV-Import",
+        "description": "Importieren Sie Kontoauszüge direkt von Ihrer Bank mit Spaltenzuordnung und integrierter Duplikat-Erkennung."
+      },
+      "dashboards": {
+        "title": "Aufschlussreiche Dashboards",
+        "description": "Diagramme und Kennzahlen, die Trends, Aufschlüsselungen und das Endergebnis auf einen Blick zeigen."
+      }
+    },
+    "cta": {
+      "title": "Bereit, smarter zu planen?",
+      "description": "Erstellen Sie in unter einer Minute ein Konto und legen Sie los. Ihre Daten bleiben auf Ihrem Server.",
+      "createAccount": "Konto erstellen",
+      "alreadyHave": "Ich habe schon eines"
+    },
+    "about": {
+      "title": "Über",
+      "description": "Versions- und Build-Details zu dieser Centsible-Instanz.",
+      "loadingUnavailable": "Systeminformationen sind derzeit nicht verfügbar.",
+      "loadingTitle": "Nichts anzuzeigen",
+      "tryAgain": "Erneut versuchen",
+      "sections": {
+        "release": "Release-Details",
+        "techStack": "Erstellt mit",
+        "resources": "Ressourcen"
+      },
+      "fields": {
+        "version": "Version",
+        "released": "Veröffentlicht",
+        "license": "Lizenz",
+        "repository": "Repository",
+        "openLink": "Öffnen"
+      },
+      "resources": {
+        "sourceLabel": "Quell-Repository",
+        "sourceDescription": "Code durchsuchen, Tickets öffnen oder beitragen.",
+        "bugLabel": "Fehler melden",
+        "bugDescription": "Etwas funktioniert nicht? Melden Sie es im Issue-Tracker.",
+        "activityLabel": "Aktivität",
+        "activityDescription": "Sehen Sie, was sich kürzlich geändert hat."
+      }
+    }
+  }
+}

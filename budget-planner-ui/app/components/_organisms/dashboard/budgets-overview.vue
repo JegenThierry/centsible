@@ -8,6 +8,7 @@ const props = defineProps<{
 }>();
 
 const store = useBudgetsStore();
+const {t} = useI18n();
 
 const top = computed(() => {
   return [...store.items]
@@ -28,8 +29,8 @@ onMounted(() => {
   <UCard v-if="store.items.length > 0" variant="outline">
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold">Budgets this month</h3>
-        <NuxtLink class="text-sm text-primary-500 hover:underline" to="/budgets">View all</NuxtLink>
+        <h3 class="font-semibold">{{ t('accounts.dashboard.budgetsThisMonth') }}</h3>
+        <NuxtLink class="text-sm text-primary-500 hover:underline" to="/budgets">{{ t('accounts.dashboard.budgetsViewAll') }}</NuxtLink>
       </div>
     </template>
     <div class="space-y-4">

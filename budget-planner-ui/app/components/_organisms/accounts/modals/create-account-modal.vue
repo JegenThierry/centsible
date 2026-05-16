@@ -16,6 +16,7 @@ const accountService = useBudgetAccountService(api);
 const accountStore = useBudgetAccountsStore();
 
 const toast = useToasts();
+const {t} = useI18n();
 
 const isOpen = defineModel<boolean>({required: true})
 const loading = ref(false);
@@ -37,7 +38,7 @@ const activeIcon = computed(() => currencyOptions.find(item => item.value === st
 
 async function onSubmit() {
   if (!useValidator().validateInputs([nameInput, balanceInput])) {
-    toast.error("Validation errors", "Please correct the highlighted fields.");
+    toast.error(t('accounts.modals.create.validationErrorTitle'), t('accounts.modals.create.validationErrorBody'));
     return;
   }
 
@@ -49,13 +50,13 @@ async function onSubmit() {
       initialBalance: initialBalance as number,
       currency
     })
-    toast.success("BudgetAccount created successfully.", `Your account: ${createdAccount.name} has been created`);
+    toast.success(t('accounts.modals.create.toastSuccessTitle'), t('accounts.modals.create.toastSuccessBody', {name: createdAccount.name}));
 
     isOpen.value = false;
     navigateTo(`/${createdAccount.id}/dashboard`);
     emit('created');
   } catch (error) {
-    useApiErrors().toastError(error, "BudgetAccount not created.", "Account could not be created, please try again.");
+    useApiErrors().toastError(error, t('accounts.modals.create.toastErrorTitle'), t('accounts.modals.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -75,8 +76,8 @@ function onCloseModal() {
         class: 'rounded-full',
         onClick: onCloseModal,
       }"
-    description="An account allows you to manage your budget."
-    title="Create Budget Account"
+    :description="t('accounts.modals.create.description')"
+    :title="t('accounts.modals.create.title')"
   >
     <template #body>
       <UForm id="account-form" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit">
@@ -84,24 +85,24 @@ function onCloseModal() {
                    v-model="state.name"
                    :max-length="100"
                    autofocus
-                   label="Budget Account Name"
-                   placeholder="Budget Account Name"
+                   :label="t('accounts.modals.create.fieldNameLabel')"
+                   :placeholder="t('accounts.modals.create.fieldNamePlaceholder')"
                    required
                    type="text"/>
 
         <BaseInput ref="balanceInput"
                    v-model="state.initialBalance"
-                   label="Balance"
-                   placeholder="Balance"
+                   :label="t('accounts.modals.create.fieldBalanceLabel')"
+                   :placeholder="t('accounts.modals.create.fieldBalancePlaceholder')"
                    required
                    type="number"/>
 
-        <UFormField label="Currency" name="currency" required>
+        <UFormField :label="t('accounts.modals.create.fieldCurrencyLabel')" name="currency" required>
           <USelect v-model="state.currency"
                    :icon="activeIcon"
                    :items="currencyOptions"
                    class="w-full"
-                   placeholder="Currency"
+                   :placeholder="t('accounts.modals.create.fieldCurrencyPlaceholder')"
                    required/>
         </UFormField>
       </UForm>
@@ -109,7 +110,7 @@ function onCloseModal() {
     <template #footer>
       <CancelButton class="ml-auto" type="button" variant="subtle" @click="onCloseModal()"/>
       <UButton :loading="loading" form="account-form" type="submit">
-        Create BudgetAccount
+        {{ t('accounts.modals.create.submit') }}
       </UButton>
     </template>
   </UModal>

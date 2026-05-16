@@ -16,12 +16,19 @@ const emit = defineEmits<{
   (e: 'delete', jobId: string): void;
 }>();
 
-const TYPE_LABELS: Record<ExportType, string> = {
-  TRANSACTIONS: 'Transactions',
-  LENDINGS_PER_CONTACT: 'Lendings (one contact)',
-  LENDINGS_ALL: 'Lendings (all)',
-  ACCOUNTS_SUMMARY: 'Accounts summary',
-};
+const {t} = useI18n();
+
+const typeLabel = (type: ExportType): string => t(`exports.types.${type}`);
+
+const columns = computed(() => [
+  {id: 'title', accessorKey: 'title', header: t('exports.table.title')},
+  {id: 'type', accessorKey: 'type', header: t('exports.table.type')},
+  {id: 'status', accessorKey: 'status', header: t('exports.table.status')},
+  {id: 'postProcessing', header: t('exports.table.followUp')},
+  {id: 'createdAt', accessorKey: 'createdAt', header: t('exports.table.created')},
+  {id: 'completedAt', accessorKey: 'completedAt', header: t('exports.table.completed')},
+  {id: 'actions', header: '', meta: {class: {td: 'text-right'}}},
+]);
 
 function postProcessingLabel(job: ExportJob): string {
   if (job.postProcessing.length === 0) return '—';
@@ -33,16 +40,8 @@ function postProcessingLabel(job: ExportJob): string {
   <BaseTable
     :data="exports"
     :loading="loading"
-    empty-title="No exports yet."
-    :columns="[
-      { id: 'title', accessorKey: 'title', header: 'Title' },
-      { id: 'type', accessorKey: 'type', header: 'Type' },
-      { id: 'status', accessorKey: 'status', header: 'Status' },
-      { id: 'postProcessing', header: 'Follow-up' },
-      { id: 'createdAt', accessorKey: 'createdAt', header: 'Created' },
-      { id: 'completedAt', accessorKey: 'completedAt', header: 'Completed' },
-      { id: 'actions', header: '', meta: { class: { td: 'text-right' } } },
-    ]"
+    :empty-title="t('exports.table.empty')"
+    :columns="columns"
   >
     <template #title-cell="{ row }">
       <div class="font-medium">{{ row.original.title }}</div>
@@ -52,7 +51,7 @@ function postProcessingLabel(job: ExportJob): string {
     </template>
 
     <template #type-cell="{ row }">
-      <span class="text-sm">{{ TYPE_LABELS[row.original.type] }}</span>
+      <span class="text-sm">{{ typeLabel(row.original.type) }}</span>
     </template>
 
     <template #status-cell="{ row }">
@@ -76,21 +75,21 @@ function postProcessingLabel(job: ExportJob): string {
 
     <template #actions-cell="{ row }">
       <TableRowActionsMenu
-        label="Export actions"
+        :label="t('exports.table.actionsAria')"
         :items="[
           {
-            label: 'Download',
+            label: t('exports.table.download'),
             icon: 'i-lucide-download',
             disabled: row.original.status !== 'COMPLETED',
             onSelect: () => emit('download', row.original),
           },
           {
-            label: 'Retrigger',
+            label: t('exports.table.retrigger'),
             icon: 'i-lucide-refresh-cw',
             onSelect: () => emit('retrigger', row.original.id),
           },
           {
-            label: 'Delete',
+            label: t('exports.table.delete'),
             icon: 'i-lucide-trash-2',
             color: 'error',
             onSelect: () => emit('delete', row.original.id),

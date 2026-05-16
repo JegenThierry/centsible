@@ -11,11 +11,12 @@ const props = defineProps<{
 
 const model = defineModel<Category | undefined>();
 const error = ref<string | undefined>(undefined);
+const {t} = useI18n();
 
 function validate(): boolean {
   error.value = undefined;
   if (props.required && !model.value) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field: props.label});
     return false;
   }
   return true;
@@ -37,7 +38,7 @@ defineExpose({
       :items="options"
       class="w-full"
       label-key="name"
-      placeholder="Select a category"
+      :placeholder="t('transactions.selects.selectCategory')"
       searchable
     >
       <template #label>
@@ -45,7 +46,7 @@ defineExpose({
           <UIcon :name="model.icon" :style="{ color: model.color }" class="w-4 h-4"/>
           <span>{{ model.name }}</span>
         </div>
-        <span v-else>Select a category</span>
+        <span v-else>{{ t('transactions.selects.selectCategory') }}</span>
       </template>
 
       <template #item-leading="{ item: category }">

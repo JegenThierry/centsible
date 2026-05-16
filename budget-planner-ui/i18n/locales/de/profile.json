@@ -1,0 +1,57 @@
+{
+  "profile": {
+    "page": {
+      "title": "Profil",
+      "description": "Verwalte deine Kontoeinstellungen und Profilinformationen"
+    },
+    "avatar": {
+      "alt": "Profilbild",
+      "change": "Bild ändern"
+    },
+    "form": {
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "Vorname",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "Nachname",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "E-Mail",
+      "submit": "Änderungen speichern"
+    },
+    "toasts": {
+      "avatarSuccessTitle": "Profilbild aktualisiert",
+      "avatarSuccessBody": "Dein Profilbild wurde erfolgreich aktualisiert.",
+      "avatarErrorTitle": "Aktualisierung des Profilbilds fehlgeschlagen",
+      "avatarErrorFallback": "Dein Profilbild konnte nicht aktualisiert werden. Bitte versuche es später erneut.",
+      "validationErrorTitle": "Validierung fehlgeschlagen",
+      "validationErrorBody": "Bitte überprüfe das Formular auf Fehler.",
+      "profileSuccessTitle": "Profil aktualisiert",
+      "profileSuccessBody": "Deine Profildaten wurden erfolgreich gespeichert.",
+      "profileErrorTitle": "Fehler beim Aktualisieren des Profils",
+      "profileErrorFallback": "Deine Profildaten konnten nicht aktualisiert werden. Bitte versuche es später erneut."
+    },
+    "dropdown": {
+      "profile": "Profil",
+      "settings": "Einstellungen",
+      "about": "Über",
+      "logout": "Abmelden"
+    },
+    "language": {
+      "title": "Sprache",
+      "description": "Wähle die Sprache der Oberfläche.",
+      "current": "Aktuelle Sprache",
+      "en": "English",
+      "fr": "Français",
+      "de": "Deutsch"
+    },
+    "theme": {
+      "buttonAria": "Design ändern",
+      "appearance": "Erscheinungsbild",
+      "title": "Design",
+      "modes": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
+      }
+    }
+  }
+}

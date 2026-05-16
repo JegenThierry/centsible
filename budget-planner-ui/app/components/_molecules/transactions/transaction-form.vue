@@ -17,6 +17,7 @@ const emit = defineEmits(['update:modelValue']);
 const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
+const {t} = useI18n();
 
 const amountInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
@@ -63,11 +64,11 @@ defineExpose({
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
                     :options="categories"
-                    label="Category"
+                    :label="t('transactions.form.category')"
                     required/>
 
     <div v-if="form.category" class="flex items-center gap-2 text-sm">
-      <span class="text-neutral-500">Transaction Type:</span>
+      <span class="text-neutral-500">{{ t('transactions.form.transactionType') }}</span>
       <CategoryTypeBadge :type="form.category.type"/>
     </div>
 
@@ -75,22 +76,22 @@ defineExpose({
                v-model="form.amount"
                :max="9999999.99"
                :min="0.01"
-               label="Amount"
-               placeholder="0.00"
+               :label="t('transactions.form.amount')"
+               :placeholder="t('transactions.form.amountPlaceholder')"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
-               label="Description"
-               placeholder="Lunch, Groceries, etc."
+               :label="t('transactions.form.description')"
+               :placeholder="t('transactions.form.descriptionPlaceholder')"
                required
                type="text"/>
 
     <DateInput ref="dateInput"
                v-model="form.transactionDate"
-               label="Date"
+               :label="t('transactions.form.date')"
                required/>
   </div>
 </template>

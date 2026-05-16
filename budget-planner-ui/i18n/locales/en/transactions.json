@@ -1,0 +1,189 @@
+{
+  "transactions": {
+    "pageTitle": "Transactions",
+    "title": "Transactions",
+    "description": "View and manage your transactions",
+    "importCsvButton": "Import CSV",
+    "exportLabel": "Export transactions",
+    "exportDefaultTitle": "Transactions {date}",
+    "emptyTitle": "No transactions found.",
+    "loadingMessage": "Loading transactions...",
+    "noDescription": "No description",
+    "uncategorized": "Uncategorized",
+    "table": {
+      "date": "Date",
+      "description": "Description",
+      "category": "Category",
+      "amount": "Amount",
+      "actionsLabel": "Transaction actions",
+      "actionEdit": "Edit",
+      "actionDelete": "Delete"
+    },
+    "category": {
+      "noCategory": "No category",
+      "type": {
+        "INCOME": "Income",
+        "EXPENSE": "Expense"
+      }
+    },
+    "form": {
+      "category": "Category",
+      "transactionType": "Transaction Type:",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "description": "Description",
+      "descriptionPlaceholder": "Lunch, Groceries, etc.",
+      "date": "Date"
+    },
+    "selects": {
+      "selectAccount": "Select an account",
+      "selectCategory": "Select a category",
+      "selectContact": "Select a contact",
+      "selectFrequency": "Select a frequency"
+    },
+    "create": {
+      "title": "Create Transaction",
+      "description": "Create a new transaction for your active account.",
+      "modeStandard": "Standard",
+      "modeLending": "Lending",
+      "modeLegend": "Type",
+      "submit": "Create",
+      "toastSuccessTitle": "Transaction created successfully.",
+      "toastSuccessBody": "Your transaction has been created.",
+      "toastErrorTitle": "Transaction not created.",
+      "toastErrorBody": "Your transaction could not be created, please try again."
+    },
+    "edit": {
+      "title": "Edit Transaction",
+      "description": "Edit your transaction for your active account.",
+      "submit": "Edit",
+      "toastSuccessTitle": "Transaction updated successfully.",
+      "toastSuccessBody": "Your transaction has been updated.",
+      "toastErrorTitle": "Transaction not updated.",
+      "toastErrorBody": "Your transaction could not be updated, please try again."
+    },
+    "delete": {
+      "entity": "transaction"
+    },
+    "confirm": {
+      "title": "Confirm Delete",
+      "questionPrefix": "Are you sure you want to delete this",
+      "questionSuffix": "?",
+      "warning": "This action cannot be undone.",
+      "successTitle": "Deleted {entity}.",
+      "successBody": "Your {entity} has been deleted.",
+      "errorTitle": "Error {entity}.",
+      "errorBody": "Your {entity} could not be deleted, please try again."
+    },
+    "import": {
+      "titleUpload": "Import transactions",
+      "titleMap": "Map columns",
+      "titleConfirm": "Confirm import",
+      "descUpload": "Upload a CSV exported from your bank.",
+      "descMap": "Tell us which column is which.",
+      "descConfirm": "Review the rows we'll create.",
+      "uploadHint": "The first row must contain column headers. Date, amount, and description columns are required. You'll pick the category to assign to all imported rows in the next step.",
+      "assignCategoryLabel": "Assign category",
+      "assignCategoryHelp": "All imported rows will use this category.",
+      "dateFormatLabel": "Date format",
+      "dateFormatHelp": "How dates are written in your CSV. Pick the right one to avoid swapping day and month.",
+      "dateFormat": {
+        "dayFirst": "Day first (31/12/2026)",
+        "monthFirst": "Month first (12/31/2026)",
+        "iso": "ISO (2026-12-31)",
+        "auto": "Auto-detect (best effort)"
+      },
+      "missingMappingsTitle": "Missing required mappings",
+      "missingMappingsDescription": "Mark which columns hold the date, amount, and description.",
+      "readyToImport": "Ready to import {count} row(s).",
+      "skippedRows": "{count} row(s) skipped (missing/invalid data)",
+      "previewExample": "e.g.",
+      "previewShowingFirst": "Showing first 50 of {count} rows. All will be imported.",
+      "importRows": "Import {count} row(s)",
+      "fileEmptyTitle": "Empty CSV.",
+      "fileEmptyBody": "No rows were detected. Please check the file.",
+      "fileErrorTitle": "Could not read file.",
+      "fileErrorBody": "Please upload a valid CSV file.",
+      "successTitle": "Import complete.",
+      "successBody": "{imported} imported, {skipped} skipped as duplicates.",
+      "errorTitle": "Import failed.",
+      "errorBody": "Could not import transactions, please try again.",
+      "columnFields": {
+        "date": "Date",
+        "amount": "Amount",
+        "description": "Description",
+        "category": "Category (optional)",
+        "ignore": "Ignore"
+      }
+    },
+    "recurring": {
+      "pageTitle": "Recurring",
+      "title": "Recurring transactions",
+      "description": "Schedule transactions that repeat automatically — rent, salary, subscriptions.",
+      "emptyTitle": "No recurring rules yet",
+      "emptyDescription": "Create a recurring rule to auto-generate transactions like rent, salary, or subscriptions.",
+      "newRule": "New recurring rule",
+      "paused": "Paused",
+      "nextOn": "next on",
+      "ends": "ends",
+      "ariaPause": "Pause rule",
+      "ariaResume": "Resume rule",
+      "ariaEdit": "Edit rule",
+      "ariaDelete": "Delete rule",
+      "delete": {
+        "entity": "recurring rule"
+      },
+      "toastPausedTitle": "Rule paused.",
+      "toastPausedBody": "No new occurrences will be generated.",
+      "toastResumedTitle": "Rule resumed.",
+      "toastResumedBody": "Occurrences will be generated from the next due date.",
+      "toastToggleErrorTitle": "Action failed.",
+      "toastToggleErrorBody": "Could not change the rule status.",
+      "form": {
+        "category": "Category",
+        "transactionType": "Transaction Type:",
+        "amount": "Amount",
+        "amountPlaceholder": "0.00",
+        "description": "Description",
+        "descriptionPlaceholder": "Rent, Salary, Netflix, etc.",
+        "frequency": "Frequency",
+        "startDate": "Start date",
+        "startDateHelp": "First occurrence date. Future dates are fine.",
+        "endDate": "End date (optional)",
+        "endDateHelp": "Leave empty to repeat indefinitely."
+      },
+      "frequency": {
+        "DAILY": "Daily",
+        "WEEKLY": "Weekly",
+        "MONTHLY": "Monthly",
+        "YEARLY": "Yearly"
+      },
+      "create": {
+        "title": "New recurring rule",
+        "description": "Schedule a transaction to be generated automatically.",
+        "submit": "Create",
+        "toastSuccessTitle": "Recurring rule created.",
+        "toastSuccessBody": "The next occurrence will be generated on its due date.",
+        "toastErrorTitle": "Rule not created.",
+        "toastErrorBody": "Could not create the recurring rule, please try again."
+      },
+      "edit": {
+        "title": "Edit recurring rule",
+        "description": "Update this recurring rule. Already-generated transactions are not changed.",
+        "submit": "Save",
+        "toastSuccessTitle": "Recurring rule updated.",
+        "toastSuccessBody": "Future occurrences will use the new values.",
+        "toastErrorTitle": "Rule not updated.",
+        "toastErrorBody": "Could not update the recurring rule, please try again."
+      }
+    },
+    "table_meta": {
+      "openRowActions": "Open row actions",
+      "rowActions": "Row actions",
+      "emptyDefault": "Nothing here yet."
+    },
+    "fab": {
+      "create": "Create"
+    }
+  }
+}

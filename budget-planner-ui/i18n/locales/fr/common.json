@@ -1,0 +1,79 @@
+{
+  "common": {
+    "actions": {
+      "save": "Enregistrer",
+      "saveChanges": "Enregistrer les modifications",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "create": "Créer",
+      "add": "Ajouter",
+      "submit": "Valider",
+      "confirm": "Confirmer",
+      "close": "Fermer",
+      "back": "Retour",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "search": "Rechercher",
+      "refresh": "Actualiser",
+      "loading": "Chargement…",
+      "retry": "Réessayer",
+      "import": "Importer",
+      "export": "Exporter",
+      "download": "Télécharger",
+      "upload": "Téléverser",
+      "select": "Sélectionner",
+      "clear": "Effacer",
+      "yes": "Oui",
+      "no": "Non",
+      "open": "Ouvrir",
+      "view": "Voir",
+      "more": "Plus"
+    },
+    "validation": {
+      "required": "{field} est requis.",
+      "email": "{field} doit être une adresse e-mail valide.",
+      "minLength": "{field} doit contenir au moins {min} caractères.",
+      "maxLength": "{field} doit contenir au plus {max} caractères.",
+      "invalidFormat": "{field} a un format invalide.",
+      "number": "{field} doit être un nombre.",
+      "min": "{field} doit être au moins {min}.",
+      "max": "{field} doit être au plus {max}."
+    },
+    "empty": {
+      "title": "Rien à afficher pour le moment",
+      "description": "Dès que vous ajouterez des données, elles apparaîtront ici."
+    },
+    "states": {
+      "loading": "Chargement…",
+      "saving": "Enregistrement…",
+      "deleting": "Suppression…",
+      "error": "Une erreur est survenue.",
+      "noResults": "Aucun résultat trouvé."
+    },
+    "confirmDelete": {
+      "title": "Confirmer la suppression",
+      "question": "Êtes-vous sûr de vouloir supprimer ce {entity} ?",
+      "irreversible": "Cette action est irréversible.",
+      "successTitle": "{entity} supprimé.",
+      "successBody": "Votre {entity} a été supprimé.",
+      "errorTitle": "Erreur lors de la suppression de {entity}.",
+      "errorBody": "Votre {entity} n'a pas pu être supprimé, veuillez réessayer."
+    },
+    "language": {
+      "label": "Langue",
+      "english": "English",
+      "french": "Français",
+      "german": "Deutsch"
+    },
+    "currency": {
+      "label": "Devise"
+    },
+    "category": {
+      "system": "Système",
+      "outstanding": "En cours",
+      "loanCount": "{count} prêt",
+      "loansCount": "{count} prêts"
+    }
+  }
+}

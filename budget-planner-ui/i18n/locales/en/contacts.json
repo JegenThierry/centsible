@@ -1,0 +1,143 @@
+{
+  "contacts": {
+    "page": {
+      "title": "Contacts",
+      "description": "Track people who owe you money.",
+      "exportLabel": "Export lendings",
+      "exportDefaultTitle": "All Lendings {date}",
+      "recordLending": "Record lending",
+      "addContact": "Add contact"
+    },
+    "summary": {
+      "peopleOweYou": "People owe you"
+    },
+    "empty": {
+      "title": "No contacts yet",
+      "description": "Add a contact or record your first loan to start tracking.",
+      "action": "Add contact"
+    },
+    "card": {
+      "loanCount": "{count} loan | {count} loans",
+      "outstanding": "Outstanding",
+      "editAria": "Edit contact",
+      "deleteAria": "Delete contact"
+    },
+    "detail": {
+      "back": "Back to contacts",
+      "loanCount": "{count} loan | {count} loans",
+      "exportLabel": "Export",
+      "exportDefaultTitle": "Lendings — {name}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "stats": {
+        "totalLent": "Total lent",
+        "totalOwed": "Total owed",
+        "totalRepaid": "Total repaid",
+        "outstanding": "Outstanding"
+      },
+      "loansHeading": "Loans",
+      "recordLending": "Record lending"
+    },
+    "form": {
+      "firstNameLabel": "First name",
+      "firstNamePlaceholder": "e.g. Alex",
+      "lastNameLabel": "Last name",
+      "lastNamePlaceholder": "e.g. Smith (optional)"
+    },
+    "create": {
+      "title": "Add contact",
+      "description": "Track someone you've lent money to.",
+      "submit": "Add"
+    },
+    "edit": {
+      "title": "Edit contact",
+      "description": "Update this contact's details.",
+      "submit": "Save"
+    },
+    "delete": {
+      "title": "Delete contact",
+      "descriptionWithName": "This will remove {name} from your list. Contacts with outstanding loans cannot be deleted.",
+      "descriptionGeneric": "This will remove this contact from your list. Contacts with outstanding loans cannot be deleted.",
+      "submit": "Delete"
+    },
+    "toasts": {
+      "loadFailedTitle": "Failed to load contacts",
+      "loadFailedBody": "Please refresh the page to try again.",
+      "loadDetailFailedTitle": "Failed to load contact",
+      "removedTitle": "Contact removed",
+      "removedBody": "Returning to contacts list."
+    },
+    "loans": {
+      "table": {
+        "date": "Date",
+        "description": "Description",
+        "lent": "Lent",
+        "owed": "Owed",
+        "repaid": "Repaid",
+        "outstanding": "Outstanding",
+        "status": "Status",
+        "actionsAria": "Loan actions",
+        "trackingOnly": "Tracking only",
+        "statusSettled": "Settled",
+        "statusPartial": "Partially paid",
+        "statusOpen": "Open",
+        "recordRepayment": "Record repayment",
+        "deleteLoan": "Delete loan",
+        "empty": "No loans yet."
+      },
+      "form": {
+        "modeLegend": "Contact",
+        "modeExisting": "Existing contact",
+        "modeNew": "New person",
+        "pickContact": "Pick a contact",
+        "newFirstNameLabel": "First name",
+        "newFirstNameDescription": "A contact will be created and the loan attached to it.",
+        "newFirstNamePlaceholder": "e.g. Alex",
+        "newLastNameLabel": "Last name (optional)",
+        "newLastNamePlaceholder": "e.g. Smith",
+        "affectBalanceLabel": "Deduct from an account",
+        "affectBalanceDescription": "Uncheck if the money already left your tracked accounts (e.g. handed over in cash) and you only want to track the loan.",
+        "fromAccountLabel": "From account",
+        "fromAccountDescription": "The account the money leaves from.",
+        "lentLabel": "Lent amount",
+        "lentPlaceholder": "0.00",
+        "owedLabel": "Amount owed back",
+        "owedDescription": "Defaults to the lent amount. Increase it if they owe you more (e.g. interest).",
+        "owedPlaceholder": "0.00",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "What was the loan for?",
+        "dateLabel": "Date"
+      },
+      "create": {
+        "title": "Record lending",
+        "description": "Record money you've lent to someone.",
+        "submit": "Record"
+      },
+      "delete": {
+        "title": "Delete loan",
+        "description": "This will delete the loan, its originating transaction, and all repayments. This cannot be undone.",
+        "submit": "Delete"
+      },
+      "repayment": {
+        "title": "Record repayment",
+        "descriptionWithContact": "Record a repayment from {name}.",
+        "submit": "Record",
+        "form": {
+          "affectBalanceLabel": "Add to an account",
+          "affectBalanceDescription": "Uncheck if the money was received outside your tracked accounts (e.g. handed back in cash) and you only want to mark it repaid.",
+          "toAccountLabel": "To account",
+          "toAccountDescription": "The account the money is paid back into.",
+          "amountLabel": "Amount",
+          "amountPlaceholder": "0.00",
+          "outstandingHelp": "Outstanding: {amount}",
+          "descriptionLabel": "Description (optional)",
+          "descriptionPlaceholder": "Repayment",
+          "dateLabel": "Repayment date"
+        }
+      }
+    },
+    "avatar": {
+      "changeAria": "Change picture for {name}"
+    }
+  }
+}

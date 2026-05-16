@@ -6,22 +6,24 @@ const props = defineProps<{
   repository: string;
 }>();
 
+const {t} = useI18n();
+
 const resources = computed(() => [
   {
-    label: 'Source repository',
-    description: 'Browse the code, open issues, or contribute.',
+    label: t('landing.about.resources.sourceLabel'),
+    description: t('landing.about.resources.sourceDescription'),
     icon: 'i-simple-icons-codeberg',
     to: props.repository,
   },
   {
-    label: 'Report a bug',
-    description: 'Found something off? Let us know on the issue tracker.',
+    label: t('landing.about.resources.bugLabel'),
+    description: t('landing.about.resources.bugDescription'),
     icon: 'i-lucide-bug',
     to: `${props.repository}/issues`,
   },
   {
-    label: 'Activity',
-    description: 'See what has changed recently.',
+    label: t('landing.about.resources.activityLabel'),
+    description: t('landing.about.resources.activityDescription'),
     icon: 'i-lucide-activity',
     to: `${props.repository}/activity`,
   },
@@ -31,7 +33,7 @@ const resources = computed(() => [
 <template>
   <UCard>
     <template #header>
-      <AboutSectionHeader icon="i-lucide-link" title="Resources"/>
+      <AboutSectionHeader icon="i-lucide-link" :title="t('landing.about.sections.resources')"/>
     </template>
 
     <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3">

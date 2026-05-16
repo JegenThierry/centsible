@@ -14,7 +14,6 @@ const props = withDefaults(defineProps<{
   size?: 'xs' | 'sm' | 'md' | 'lg';
   icon?: string;
 }>(), {
-  label: 'Export',
   variant: 'subtle',
   size: 'sm',
   icon: 'i-lucide-file-down',
@@ -22,13 +21,16 @@ const props = withDefaults(defineProps<{
 
 const {create, submitting} = useExports();
 const toasts = useToasts();
+const {t} = useI18n();
+
+const resolvedLabel = computed(() => props.label ?? t('exports.trigger.defaultLabel'));
 
 async function onSubmit(payload: CreateExportRequest) {
   const job = await create(payload);
   if (job) {
-    toasts.success('Export started', `${payload.title} is being prepared. Check My Documents when it\'s ready.`);
+    toasts.success(t('exports.toasts.startedTitle'), t('exports.toasts.startedBody', {title: payload.title}));
   } else {
-    toasts.error('Export failed', 'Could not start the export. Please try again.');
+    toasts.error(t('exports.toasts.failedTitle'), t('exports.toasts.failedBody'));
   }
 }
 </script>
@@ -41,6 +43,6 @@ async function onSubmit(payload: CreateExportRequest) {
     :type="type"
     @submit="onSubmit"
   >
-    <ExportTriggerButton :icon="icon" :label="label" :size="size" :variant="variant"/>
+    <ExportTriggerButton :icon="icon" :label="resolvedLabel" :size="size" :variant="variant"/>
   </ExportOptionsPopover>
 </template>

@@ -9,6 +9,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue']);
 
+const {t} = useI18n();
+
 const firstNameInput = ref<InstanceType<typeof BaseInput>>();
 const lastNameInput = ref<InstanceType<typeof BaseInput>>();
 
@@ -27,16 +29,16 @@ defineExpose({
     <BaseInput ref="firstNameInput"
                v-model="form.firstName"
                :max-length="100"
-               label="First name"
-               placeholder="e.g. Alex"
+               :label="t('contacts.form.firstNameLabel')"
+               :placeholder="t('contacts.form.firstNamePlaceholder')"
                required
                type="text"/>
 
     <BaseInput ref="lastNameInput"
                v-model="form.lastName"
                :max-length="100"
-               label="Last name"
-               placeholder="e.g. Smith (optional)"
+               :label="t('contacts.form.lastNameLabel')"
+               :placeholder="t('contacts.form.lastNamePlaceholder')"
                type="text"/>
   </div>
 </template>

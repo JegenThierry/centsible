@@ -9,6 +9,8 @@ const props = defineProps<{
   initialBalance: number,
   currency: Currency,
 }>();
+
+const {t} = useI18n();
 </script>
 
 <template>
@@ -30,7 +32,7 @@ const props = defineProps<{
 
       <div class="space-y-1">
         <p class="text-xs tracking-widest uppercase text-neutral-500 dark:text-neutral-400 font-medium">
-          Available Balance
+          {{ t('accounts.dashboard.availableBalance') }}
         </p>
         <div class="flex items-end gap-1">
           <span

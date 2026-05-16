@@ -11,12 +11,24 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const providersStore = useProvidersStore();
+const {t} = useI18n();
 
 const displayName = ref<string>('');
 const values = ref<Record<string, unknown>>({});
 const displayNameError = ref<string | undefined>();
 const formRef = ref<InstanceType<typeof DynamicConfigForm>>();
 const loading = ref(false);
+
+const modalTitle = computed(() => {
+  if (props.descriptor) {
+    return t('integrations.modal.titleWithName', {name: props.descriptor.displayName});
+  }
+  return t('integrations.modal.titleFallback');
+});
+
+const modalDescription = computed(() => {
+  return props.descriptor?.description ?? t('integrations.modal.descriptionFallback');
+});
 
 function reset() {
   displayName.value = props.descriptor?.displayName ?? '';
@@ -31,7 +43,7 @@ watch(isOpen, (open) => {
 async function handleSave() {
   if (!props.descriptor) return;
   displayNameError.value = displayName.value.trim().length === 0
-    ? 'Display name is required.'
+    ? t('integrations.modal.displayNameRequired')
     : undefined;
   const configValid = formRef.value?.validate() ?? true;
   if (displayNameError.value || !configValid) return;
@@ -54,13 +66,13 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="descriptor?.description ?? 'Configure this integration.'"
-          :title="descriptor ? `Connect ${descriptor.displayName}` : 'Connect'">
+          :description="modalDescription"
+          :title="modalTitle">
     <template #body>
       <div v-if="descriptor" class="space-y-4">
         <UFormField :error="displayNameError"
-                    help="A name you'll see in the connection list."
-                    label="Connection name"
+                    :help="t('integrations.modal.displayNameHelp')"
+                    :label="t('integrations.modal.displayNameLabel')"
                     required>
           <UInput v-model="displayName"
                   :placeholder="descriptor.displayName"
@@ -76,7 +88,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Connect</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('integrations.modal.submit') }}</UButton>
       </div>
     </template>
   </UModal>

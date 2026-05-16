@@ -15,7 +15,7 @@ import {
 import {Line} from 'vue-chartjs';
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
 import type {Currency} from "~/models/budget-account/currency";
-import {format, parseISO} from 'date-fns';
+import {parseISO} from 'date-fns';
 
 ChartJS.register(
   Title,
@@ -34,6 +34,8 @@ const props = defineProps<{
 }>();
 
 const colorMode = useColorMode();
+const {t} = useI18n();
+const localeTag = useLocaleTag();
 
 const chartData = computed<ChartData<'line'>>(() => {
   const isDark = colorMode.value === 'dark';
@@ -56,11 +58,12 @@ const chartData = computed<ChartData<'line'>>(() => {
     };
   }
 
+  const dateFmt = new Intl.DateTimeFormat(localeTag.value, {day: '2-digit', month: '2-digit', year: 'numeric'});
   return {
-    labels: sorted.map(s => format(parseISO(s.createdAt), 'dd.MM.yyyy')),
+    labels: sorted.map(s => dateFmt.format(parseISO(s.createdAt))),
     datasets: [
       {
-        label: 'Balance',
+        label: t('accounts.dashboard.balance'),
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         borderColor: '#10b981',
         borderWidth: 2,
@@ -84,6 +87,11 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
   const isDark = colorMode.value === 'dark';
   const gridColor = isDark ? '#262626' : '#e5e5e5';
   const tickColor = isDark ? '#a3a3a3' : '#737373';
+  const currencyFmt = new Intl.NumberFormat(localeTag.value, {
+    style: 'currency',
+    currency: props.currency,
+    maximumFractionDigits: 0,
+  });
 
   return {
     responsive: true,
@@ -94,13 +102,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => {
-            return new Intl.NumberFormat('de-DE', {
-              style: 'currency',
-              currency: props.currency,
-              maximumFractionDigits: 0
-            }).format(context.parsed.y as number);
-          }
+          label: (context) => currencyFmt.format(context.parsed.y as number)
         }
       }
     },
@@ -111,13 +113,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
         },
         ticks: {
           color: tickColor,
-          callback: (value) => {
-            return new Intl.NumberFormat('de-DE', {
-              style: 'currency',
-              currency: props.currency,
-              maximumFractionDigits: 0
-            }).format(value as number);
-          }
+          callback: (value) => currencyFmt.format(value as number)
         }
       },
       x: {
@@ -138,7 +134,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
     <template #header>
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-          Balance Over Time
+          {{ t('accounts.dashboard.balanceOverTime') }}
         </h3>
       </div>
     </template>

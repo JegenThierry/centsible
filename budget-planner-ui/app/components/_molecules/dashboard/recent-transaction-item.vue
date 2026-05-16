@@ -9,6 +9,8 @@ defineProps<{
   transaction: Transaction;
   currency: Currency;
 }>();
+
+const {t} = useI18n();
 </script>
 
 <template>
@@ -17,10 +19,10 @@ defineProps<{
       <CategoryIcon :color="transaction.category?.color" :icon="transaction.category?.icon" size="md"/>
       <div class="flex flex-col overflow-hidden">
         <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {{ transaction.description || 'No description' }}
+          {{ transaction.description || t('transactions.noDescription') }}
         </span>
         <span class="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-          {{ transaction.category?.name || 'Uncategorized' }}
+          {{ transaction.category?.name || t('transactions.uncategorized') }}
         </span>
       </div>
     </div>

@@ -19,6 +19,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const contactsStore = useContactsStore();
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const form = computed({
   get: () => props.modelValue,
@@ -46,10 +47,10 @@ const owedInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
 const dateInput = ref<InstanceType<typeof DateInput>>();
 
-const modeOptions = [
-  {label: 'Existing contact', value: 'existing'},
-  {label: 'New person', value: 'new'},
-];
+const modeOptions = computed(() => [
+  {label: t('contacts.loans.form.modeExisting'), value: 'existing'},
+  {label: t('contacts.loans.form.modeNew'), value: 'new'},
+]);
 
 watch(mode, (m) => {
   if (m === 'existing') {
@@ -98,7 +99,7 @@ defineExpose({validate});
     <div v-if="!lockContact">
       <URadioGroup v-model="mode"
                    :items="modeOptions"
-                   legend="Contact"
+                   :legend="t('contacts.loans.form.modeLegend')"
                    orientation="horizontal"/>
     </div>
 
@@ -106,44 +107,44 @@ defineExpose({validate});
                    ref="contactSelect"
                    v-model="selectedContact"
                    :options="contactsStore.contacts"
-                   label="Pick a contact"
+                   :label="t('contacts.loans.form.pickContact')"
                    required/>
 
     <template v-if="mode === 'new' && !lockContact">
       <BaseInput ref="firstNameInput"
                  v-model="form.newContactFirstName"
                  :max-length="100"
-                 description="A contact will be created and the loan attached to it."
-                 label="First name"
-                 placeholder="e.g. Alex"
+                 :description="t('contacts.loans.form.newFirstNameDescription')"
+                 :label="t('contacts.loans.form.newFirstNameLabel')"
+                 :placeholder="t('contacts.loans.form.newFirstNamePlaceholder')"
                  required
                  type="text"/>
       <BaseInput ref="lastNameInput"
                  v-model="form.newContactLastName"
                  :max-length="100"
-                 label="Last name (optional)"
-                 placeholder="e.g. Smith"
+                 :label="t('contacts.loans.form.newLastNameLabel')"
+                 :placeholder="t('contacts.loans.form.newLastNamePlaceholder')"
                  type="text"/>
     </template>
 
     <UCheckbox v-model="form.affectBalance"
-               label="Deduct from an account"
-               description="Uncheck if the money already left your tracked accounts (e.g. handed over in cash) and you only want to track the loan."/>
+               :label="t('contacts.loans.form.affectBalanceLabel')"
+               :description="t('contacts.loans.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
                    ref="accountSelect"
                    v-model="selectedAccount"
                    :options="budgetAccountsStore.availableAccounts"
-                   description="The account the money leaves from."
-                   label="From account"
+                   :description="t('contacts.loans.form.fromAccountDescription')"
+                   :label="t('contacts.loans.form.fromAccountLabel')"
                    required/>
 
     <BaseInput ref="lentInput"
                v-model="form.lentAmount"
                :max="9999999.99"
                :min="0.01"
-               label="Lent amount"
-               placeholder="0.00"
+               :label="t('contacts.loans.form.lentLabel')"
+               :placeholder="t('contacts.loans.form.lentPlaceholder')"
                required
                type="number"/>
 
@@ -151,23 +152,23 @@ defineExpose({validate});
                v-model="form.owedAmount"
                :max="9999999.99"
                :min="0"
-               description="Defaults to the lent amount. Increase it if they owe you more (e.g. interest)."
-               label="Amount owed back"
-               placeholder="0.00"
+               :description="t('contacts.loans.form.owedDescription')"
+               :label="t('contacts.loans.form.owedLabel')"
+               :placeholder="t('contacts.loans.form.owedPlaceholder')"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
-               label="Description"
-               placeholder="What was the loan for?"
+               :label="t('contacts.loans.form.descriptionLabel')"
+               :placeholder="t('contacts.loans.form.descriptionPlaceholder')"
                required
                type="text"/>
 
     <DateInput ref="dateInput"
                v-model="form.transactionDate"
-               label="Date"
+               :label="t('contacts.loans.form.dateLabel')"
                required/>
   </div>
 </template>

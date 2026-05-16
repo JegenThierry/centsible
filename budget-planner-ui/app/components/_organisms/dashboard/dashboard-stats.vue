@@ -10,6 +10,7 @@ const props = defineProps<{
   currency: Currency
 }>();
 
+const {t} = useI18n();
 const now = new Date();
 
 const monthlyIncome = computed(() => {
@@ -36,7 +37,7 @@ const netSavings = computed(() => {
       :currency="currency"
       color="success"
       icon="i-lucide-trending-up"
-      label="Monthly Income"
+      :label="t('accounts.dashboard.monthlyIncome')"
       tone="positive"
     />
 
@@ -45,7 +46,7 @@ const netSavings = computed(() => {
       :currency="currency"
       color="error"
       icon="i-lucide-trending-down"
-      label="Monthly Expenses"
+      :label="t('accounts.dashboard.monthlyExpenses')"
       tone="negative"
     />
 
@@ -54,7 +55,7 @@ const netSavings = computed(() => {
       :currency="currency"
       color="primary"
       icon="i-lucide-piggy-bank"
-      label="Net Savings"
+      :label="t('accounts.dashboard.netSavings')"
       tone="signed"
     />
   </div>

@@ -25,6 +25,7 @@ const contactsStore = useContactsStore();
 const loansStore = useLoansStore();
 const budgetAccountsStore = useBudgetAccountsStore();
 const toasts = useToasts();
+const {t} = useI18n();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const isCreateLoanOpen = ref(false);
@@ -72,7 +73,7 @@ async function reloadAll() {
 }
 
 function onContactDeleted() {
-  toasts.success('Contact removed', 'Returning to contacts list.');
+  toasts.success(t('contacts.toasts.removedTitle'), t('contacts.toasts.removedBody'));
   navigateTo('/contacts');
 }
 
@@ -87,7 +88,7 @@ onMounted(async () => {
     ]);
   } catch (error) {
     console.error('Failed to load contact detail', error);
-    toasts.error('Failed to load contact', 'Please refresh the page to try again.');
+    toasts.error(t('contacts.toasts.loadDetailFailedTitle'), t('contacts.toasts.loadFailedBody'));
   }
 });
 </script>
@@ -105,7 +106,7 @@ onMounted(async () => {
                size="sm"
                variant="ghost"
                @click="navigateTo('/contacts')">
-        Back to contacts
+        {{ t('contacts.detail.back') }}
       </UButton>
 
       <UCard class="mb-6">
@@ -124,28 +125,28 @@ onMounted(async () => {
             <div>
               <h2 class="text-2xl font-bold">{{ contact.name }}</h2>
               <p class="text-sm text-neutral-500">
-                {{ contact.openLoanCount }} {{ contact.openLoanCount === 1 ? 'loan' : 'loans' }}
+                {{ t('contacts.detail.loanCount', {count: contact.openLoanCount}, contact.openLoanCount) }}
               </p>
             </div>
           </div>
           <div class="flex gap-2">
             <ExportButton
-              :default-title="`Lendings — ${contact.name}`"
+              :default-title="t('contacts.detail.exportDefaultTitle', {name: contact.name})"
               :params-builder="() => ({ kind: 'LENDINGS_PER_CONTACT', contactId: contactId })"
-              label="Export"
+              :label="t('contacts.detail.exportLabel')"
               type="LENDINGS_PER_CONTACT"
             />
             <UButton color="neutral"
                      icon="i-lucide-pencil"
                      variant="outline"
                      @click="isEditContactOpen = true">
-              Edit
+              {{ t('contacts.detail.edit') }}
             </UButton>
             <UButton color="error"
                      icon="i-lucide-trash"
                      variant="outline"
                      @click="isDeleteContactOpen = true">
-              Delete
+              {{ t('contacts.detail.delete') }}
             </UButton>
           </div>
         </div>
@@ -153,25 +154,25 @@ onMounted(async () => {
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <UCard>
-          <p class="text-xs text-muted">Total lent</p>
+          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalLent') }}</p>
           <p class="text-lg font-bold">
             <BalanceNumberFormat :balance="Number(contact.totalLent)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">Total owed</p>
+          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalOwed') }}</p>
           <p class="text-lg font-bold">
             <BalanceNumberFormat :balance="Number(contact.totalOwed)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">Total repaid</p>
+          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalRepaid') }}</p>
           <p class="text-lg font-bold text-success">
             <BalanceNumberFormat :balance="Number(contact.totalRepaid)" :currency="currency"/>
           </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">Outstanding</p>
+          <p class="text-xs text-muted">{{ t('contacts.detail.stats.outstanding') }}</p>
           <p class="text-lg font-bold text-warning">
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
@@ -179,9 +180,9 @@ onMounted(async () => {
       </div>
 
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold">Loans</h3>
+        <h3 class="font-semibold">{{ t('contacts.detail.loansHeading') }}</h3>
         <UButton icon="i-lucide-plus" size="sm" @click="isCreateLoanOpen = true">
-          Record Lending
+          {{ t('contacts.detail.recordLending') }}
         </UButton>
       </div>
 

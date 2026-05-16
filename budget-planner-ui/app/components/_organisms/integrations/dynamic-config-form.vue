@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const values = defineModel<Record<string, unknown>>({required: true});
 
+const {t} = useI18n();
+
 const errors = ref<Record<string, string>>({});
 const showSecret = ref<Record<string, boolean>>({});
 
@@ -26,18 +28,18 @@ function validate(): boolean {
   for (const field of props.fields) {
     const raw = values.value[field.name];
     if (field.required && field.type !== 'BOOLEAN' && isEmpty(raw)) {
-      errors.value[field.name] = `${field.label} is required.`;
+      errors.value[field.name] = t('integrations.form.errors.required', {field: field.label});
       ok = false;
       continue;
     }
     if (field.type === 'NUMBER' && !isEmpty(raw) && Number.isNaN(Number(raw))) {
-      errors.value[field.name] = `${field.label} must be a number.`;
+      errors.value[field.name] = t('integrations.form.errors.number', {field: field.label});
       ok = false;
     }
     if (field.type === 'SELECT' && !isEmpty(raw) && field.options.length > 0) {
       const allowed = field.options.map(o => o.value);
       if (!allowed.includes(String(raw))) {
-        errors.value[field.name] = `${field.label} must be one of: ${allowed.join(', ')}.`;
+        errors.value[field.name] = t('integrations.form.errors.select', {field: field.label, options: allowed.join(', ')});
         ok = false;
       }
     }
@@ -68,7 +70,7 @@ defineExpose({validate});
                   :required="field.required">
         <USelectMenu v-model="values[field.name]"
                      :items="field.options"
-                     :placeholder="field.placeholder ?? 'Select…'"
+                     :placeholder="field.placeholder ?? t('integrations.form.selectPlaceholder')"
                      class="w-full"
                      label-key="label"
                      value-key="value"/>
@@ -98,7 +100,7 @@ defineExpose({validate});
                 :ui="{ trailing: 'pe-1' }"
                 class="w-full">
           <template #trailing>
-            <UButton :aria-label="showSecret[field.name] ? 'Hide value' : 'Show value'"
+            <UButton :aria-label="showSecret[field.name] ? t('integrations.form.secret.hideAria') : t('integrations.form.secret.showAria')"
                      :icon="showSecret[field.name] ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                      color="neutral"
                      size="sm"

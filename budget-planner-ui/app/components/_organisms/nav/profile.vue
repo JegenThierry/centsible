@@ -8,28 +8,29 @@ defineProps<{
 }>()
 
 const authStore = useAuthStore();
+const {t} = useI18n();
 
 const items = computed(() => [
   [
     {
-      label: 'Profile',
+      label: t('profile.dropdown.profile'),
       icon: 'i-lucide-user',
       onSelect: () => navigateTo('/profile')
     },
     {
-      label: 'Settings',
+      label: t('profile.dropdown.settings'),
       icon: 'i-lucide-settings',
       onSelect: () => navigateTo('/settings')
     },
     {
-      label: 'About',
+      label: t('profile.dropdown.about'),
       icon: 'i-lucide-info',
       onSelect: () => navigateTo('/about')
     }
   ],
   [
     {
-      label: 'Logout',
+      label: t('profile.dropdown.logout'),
       icon: 'i-lucide-log-out',
       color: 'error' as any,
       onSelect: () => authStore.logout()

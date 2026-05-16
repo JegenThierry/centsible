@@ -17,6 +17,7 @@ const api = useApi();
 const service = useRecurringTransactionService(api);
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const form = ref<RecurringTransactionForm>(makeBlankForm());
 const formRef = ref<InstanceType<typeof RecurringFormFields>>();
@@ -54,11 +55,11 @@ async function handleSave() {
       endDate: form.value.endDate || null,
       active: form.value.active,
     });
-    toasts.success('Recurring rule created.', 'The next occurrence will be generated on its due date.');
+    toasts.success(t('transactions.recurring.create.toastSuccessTitle'), t('transactions.recurring.create.toastSuccessBody'));
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Rule not created.', 'Could not create the recurring rule, please try again.');
+    useApiErrors().toastError(error, t('transactions.recurring.create.toastErrorTitle'), t('transactions.recurring.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -67,8 +68,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Schedule a transaction to be generated automatically."
-          title="New recurring rule">
+          :description="t('transactions.recurring.create.description')"
+          :title="t('transactions.recurring.create.title')">
     <template #body>
       <RecurringFormFields ref="formRef" v-model="form"/>
     </template>
@@ -76,7 +77,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Create</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('transactions.recurring.create.submit') }}</UButton>
       </div>
     </template>
   </UModal>

@@ -8,6 +8,9 @@ import LoadingAnimation from "~/components/_atoms/animations/loading-animation.v
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 
 const userStore = useUserStore();
+const {t, locale, locales} = useI18n();
+const localeSwitcher = useLocaleSwitcher();
+
 const {
   onAvatarUpdateSuccess,
   onAvatarUpdateError,
@@ -23,6 +26,13 @@ const initialFormValues = computed<UserProfileForm | undefined>(() => {
   const {firstName, lastName, email} = userStore.user;
   return {firstName, lastName, email};
 });
+
+const languageOptions = computed(() =>
+  (locales.value as Array<{code: string}>).map((l) => ({
+    label: t(`profile.language.${l.code}`),
+    value: l.code,
+  })),
+);
 
 async function onSaveProfile(data: UserProfileForm) {
   try {
@@ -49,12 +59,16 @@ async function onFileChange(event: Event) {
     onAvatarUpdateError(error.message);
   }
 }
+
+async function onLanguageChange(code: string) {
+  await localeSwitcher.apply(code);
+}
 </script>
 
 <template>
   <UContainer class="py-6 sm:py-10">
-    <PageHeader description="Manage your account settings and profile information"
-                title="Profile"/>
+    <PageHeader :description="t('profile.page.description')"
+                :title="t('profile.page.title')"/>
 
     <div v-if="userStore.pending && !userStore.user" class="flex justify-center py-8">
       <LoadingAnimation/>
@@ -78,7 +92,7 @@ async function onFileChange(event: Event) {
             </div>
 
             <UButton icon="i-heroicons-camera"
-                     label="Change Picture"
+                     :label="t('profile.avatar.change')"
                      variant="soft"
                      @click="onEditAvatar"/>
           </div>
@@ -95,6 +109,19 @@ async function onFileChange(event: Event) {
                        :loading="userStore.pending"
                        @save="onSaveProfile"
                        @validation-failed="onValidationError"/>
+        </div>
+
+        <div class="max-w-2xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-6">
+          <h3 class="text-lg font-semibold">{{ t('profile.language.title') }}</h3>
+          <p class="text-sm text-muted mt-1">{{ t('profile.language.description') }}</p>
+          <USelectMenu
+            class="mt-4 w-full"
+            :model-value="locale"
+            :items="languageOptions"
+            label-key="label"
+            value-key="value"
+            @update:model-value="onLanguageChange"
+          />
         </div>
       </div>
     </UCard>

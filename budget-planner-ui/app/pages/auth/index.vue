@@ -15,8 +15,9 @@ definePageMeta({
   ]
 })
 
+const {t} = useI18n();
 useHead({
-  title: 'Welcome',
+  title: t('auth.pageTitle.welcome'),
 });
 </script>
 

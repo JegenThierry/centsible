@@ -6,25 +6,25 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class CategoryForm(
-    @field:NotBlank(message = "Category name is required.")
-    @field:Size(max = 50, message = "Category name must be at most 50 characters.")
+    @field:NotBlank(message = "{validation.category.name.required}")
+    @field:Size(max = 50, message = "{validation.category.name.tooLong}")
     var name: String = "",
 
-    @field:NotBlank(message = "Icon is required.")
-    @field:Size(max = 50, message = "Icon must be at most 50 characters.")
+    @field:NotBlank(message = "{validation.category.icon.required}")
+    @field:Size(max = 50, message = "{validation.category.icon.tooLong}")
     @field:Pattern(
         regexp = "^i-lucide-[a-z0-9-]+$",
-        message = "Icon must be a Lucide name like 'i-lucide-tag'."
+        message = "{validation.category.icon.pattern}"
     )
     var icon: String = "",
 
-    @field:NotBlank(message = "Color is required.")
+    @field:NotBlank(message = "{validation.category.color.required}")
     @field:Pattern(
         regexp = "^#[0-9a-fA-F]{6}$",
-        message = "Color must be a hex value like '#3b82f6'."
+        message = "{validation.category.color.pattern}"
     )
     var color: String = "",
 
-    @field:NotNull(message = "Category type is required.")
+    @field:NotNull(message = "{validation.category.type.required}")
     var type: CategoryType = CategoryType.EXPENSE
 )

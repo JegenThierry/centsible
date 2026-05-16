@@ -11,6 +11,7 @@ const props = defineProps<{
 const show = ref<boolean>(false)
 const error = ref<string | undefined>(undefined)
 const password = defineModel<string>({required: true});
+const {t} = useI18n();
 
 function resetValidation(): void {
   error.value = undefined;
@@ -20,12 +21,12 @@ function validate(): boolean {
   resetValidation();
 
   if (props.required && !password.value) {
-    error.value = `${props.label} is required.`;
+    error.value = t('common.validation.required', {field: props.label ?? ''});
     return false;
   }
 
   if (props.additionalValidation && !props.additionalValidation()) {
-    error.value = props.additionalValidationMessage ?? 'Unknown error occurred.';
+    error.value = props.additionalValidationMessage ?? t('common.states.error');
     return false;
   }
 
@@ -55,7 +56,7 @@ defineExpose({
     >
       <template #trailing>
         <UButton
-          :aria-label="show ? 'Hide password' : 'Show password'"
+          :aria-label="show ? t('auth.password.hide') : t('auth.password.show')"
           :aria-pressed="show"
           :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
           aria-controls="password"

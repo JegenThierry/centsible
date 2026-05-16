@@ -16,10 +16,16 @@ const emit = defineEmits<{
 }>();
 
 const loansStore = useLoansStore();
+const {t} = useI18n();
 
 const form = ref<RepaymentFormModel>(makeBlankForm());
 const formRef = ref<InstanceType<typeof RepaymentForm>>();
 const loading = ref(false);
+
+const description = computed(() => {
+  if (!props.loan) return '';
+  return t('contacts.loans.repayment.descriptionWithContact', {name: props.loan.contact.name});
+});
 
 function makeBlankForm(): RepaymentFormModel {
   return {
@@ -54,8 +60,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="loan ? `Record a repayment from ${loan.contact.name}.` : ''"
-          title="Record Repayment">
+          :description="description"
+          :title="t('contacts.loans.repayment.title')">
     <template #body>
       <RepaymentForm v-if="loan" ref="formRef" v-model="form" :max-amount="Number(loan.outstanding)"/>
     </template>
@@ -63,7 +69,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Record</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('contacts.loans.repayment.submit') }}</UButton>
       </div>
     </template>
   </UModal>

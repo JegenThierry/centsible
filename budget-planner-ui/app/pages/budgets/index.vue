@@ -6,16 +6,18 @@ definePageMeta({
   middleware: ['auth-guard'],
 });
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Budgets',
+  title: t('budgets.page.title'),
 });
 </script>
 
 <template>
   <UContainer class="py-6 sm:py-10">
     <PageHeader
-      description="Set monthly spending limits per category. Resets on the 1st of each month."
-      title="Budgets"
+      :description="t('budgets.page.description')"
+      :title="t('budgets.page.title')"
     />
     <BudgetsList/>
   </UContainer>

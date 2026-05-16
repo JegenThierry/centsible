@@ -1,0 +1,77 @@
+{
+  "landing": {
+    "pageTitle": "Centsible",
+    "aboutPageTitle": "À propos",
+    "hero": {
+      "badge": "Open source · Auto-hébergé",
+      "title": "Reprenez le contrôle de vos finances,",
+      "titleHighlight": "sans le superflu.",
+      "subtitle": "Un suivi de budget épuré et auto-hébergé avec plusieurs comptes, des catégories intelligentes, des budgets mensuels et des tableaux de bord qui vous aident vraiment à décider.",
+      "getStarted": "Commencer",
+      "learnMore": "En savoir plus",
+      "tagline": "Vos données restent sur votre serveur. Aucun pistage, aucune publicité, aucune absurdité."
+    },
+    "features": {
+      "eyebrow": "Fonctionnalités",
+      "title": "Tout ce dont vous avez besoin pour budgéter, rien de superflu.",
+      "subtitle": "L'essentiel, bien fait. Pas de surenchère, pas d'offre premium.",
+      "accounts": {
+        "title": "Plusieurs comptes",
+        "description": "Suivez vos comptes courants, épargnes et cartes côte à côte — chacun avec sa devise et son solde courant."
+      },
+      "categories": {
+        "title": "Catégories intelligentes",
+        "description": "Étiquetez revenus et dépenses pour voir exactement d'où vient et où va votre argent."
+      },
+      "budgets": {
+        "title": "Budgets mensuels",
+        "description": "Fixez des objectifs de dépenses par catégorie et repérez les dépassements avant la fin du mois."
+      },
+      "recurring": {
+        "title": "Transactions récurrentes",
+        "description": "Automatisez le prévisible : loyer, salaire, abonnements — saisissez-les une fois et oubliez-les."
+      },
+      "csv": {
+        "title": "Import CSV",
+        "description": "Importez les relevés directement de votre banque avec mappage de colonnes et déduplication intégrée."
+      },
+      "dashboards": {
+        "title": "Tableaux de bord pertinents",
+        "description": "Graphiques et statistiques qui montrent tendances, répartitions et résultat net en un clin d'œil."
+      }
+    },
+    "cta": {
+      "title": "Prêt à planifier plus intelligemment ?",
+      "description": "Créez un compte et commencez à suivre vos finances en moins d'une minute. Vos données restent sur votre serveur.",
+      "createAccount": "Créer un compte",
+      "alreadyHave": "J'en ai déjà un"
+    },
+    "about": {
+      "title": "À propos",
+      "description": "Détails de version et de build de cette instance de Centsible.",
+      "loadingUnavailable": "Les informations système sont actuellement indisponibles.",
+      "loadingTitle": "Rien à afficher",
+      "tryAgain": "Réessayer",
+      "sections": {
+        "release": "Détails de la version",
+        "techStack": "Construit avec",
+        "resources": "Ressources"
+      },
+      "fields": {
+        "version": "Version",
+        "released": "Publié le",
+        "license": "Licence",
+        "repository": "Dépôt",
+        "openLink": "Ouvrir"
+      },
+      "resources": {
+        "sourceLabel": "Dépôt source",
+        "sourceDescription": "Parcourez le code, ouvrez des tickets ou contribuez.",
+        "bugLabel": "Signaler un bug",
+        "bugDescription": "Quelque chose cloche ? Faites-le nous savoir sur le suivi des tickets.",
+        "activityLabel": "Activité",
+        "activityDescription": "Voyez ce qui a changé récemment."
+      }
+    }
+  }
+}

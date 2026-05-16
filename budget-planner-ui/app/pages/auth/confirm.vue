@@ -12,43 +12,46 @@ definePageMeta({
   ],
 });
 
+const {t} = useI18n();
 useHead({
-  title: 'Confirm your account',
+  title: t('auth.pageTitle.confirm'),
 });
 
 type ConfirmState = 'pending' | 'success' | 'error';
 
-const CARDS: Record<ConfirmState, { icon: string; title: string; description: string; iconClass: string }> = {
+const CARD_META: Record<ConfirmState, { icon: string; iconClass: string }> = {
   pending: {
     icon: 'i-lucide-loader-circle',
-    title: 'Confirming your account…',
-    description: 'Hang tight — this only takes a second.',
     iconClass: 'animate-spin text-primary',
   },
   success: {
     icon: 'i-lucide-circle-check',
-    title: "You're all set",
-    description: 'Your account is confirmed. Sign in to start tracking your money with Centsible.',
     iconClass: 'text-(--ui-success)',
   },
   error: {
     icon: 'i-lucide-circle-alert',
-    title: 'This link is invalid or expired',
-    description: "We couldn't confirm your account. Confirmation links expire after 24 hours — request a new one by registering again.",
     iconClass: 'text-(--ui-error)',
   },
 };
 
-const CTAS: Record<'success' | 'error', { icon: string; label: string }> = {
-  success: {icon: 'i-lucide-log-in', label: 'Continue to sign in'},
-  error: {icon: 'i-lucide-user-plus', label: 'Register again'},
+const CTA_ICONS: Record<'success' | 'error', string> = {
+  success: 'i-lucide-log-in',
+  error: 'i-lucide-user-plus',
 };
 
 const route = useRoute();
 const api = useApi();
 const state = ref<ConfirmState>('pending');
 
-const card = computed(() => CARDS[state.value]);
+const card = computed(() => ({
+  ...CARD_META[state.value],
+  title: t(`auth.confirm.${state.value}Title`),
+  description: t(`auth.confirm.${state.value}Description`),
+}));
+
+const ctaLabel = computed(() =>
+  state.value === 'success' ? t('auth.confirm.continueToSignIn') : t('auth.confirm.registerAgain')
+);
 
 onMounted(async () => {
   const token = route.query.token;
@@ -82,14 +85,14 @@ onMounted(async () => {
                    size="lg"
                    to="/"
                    variant="outline">
-            Back to home
+            {{ t('auth.confirm.backToHome') }}
           </UButton>
-          <UButton :icon="CTAS[state].icon"
+          <UButton :icon="CTA_ICONS[state]"
                    color="primary"
                    size="lg"
                    to="/auth"
                    trailing-icon="i-lucide-arrow-right">
-            {{ CTAS[state].label }}
+            {{ ctaLabel }}
           </UButton>
         </div>
       </template>

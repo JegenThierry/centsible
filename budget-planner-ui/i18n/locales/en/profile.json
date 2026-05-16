@@ -1,0 +1,57 @@
+{
+  "profile": {
+    "page": {
+      "title": "Profile",
+      "description": "Manage your account settings and profile information"
+    },
+    "avatar": {
+      "alt": "Profile picture",
+      "change": "Change picture"
+    },
+    "form": {
+      "firstNameLabel": "First name",
+      "firstNamePlaceholder": "First name",
+      "lastNameLabel": "Last name",
+      "lastNamePlaceholder": "Last name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Email",
+      "submit": "Save changes"
+    },
+    "toasts": {
+      "avatarSuccessTitle": "Profile picture updated",
+      "avatarSuccessBody": "Your profile picture has been updated successfully.",
+      "avatarErrorTitle": "Profile picture update failed",
+      "avatarErrorFallback": "Failed to update your profile picture. Please try again later.",
+      "validationErrorTitle": "Validation failed",
+      "validationErrorBody": "Please check the form for errors.",
+      "profileSuccessTitle": "Profile updated",
+      "profileSuccessBody": "Your profile information has been saved successfully.",
+      "profileErrorTitle": "Error updating profile",
+      "profileErrorFallback": "Your profile information could not be updated. Please try again later."
+    },
+    "dropdown": {
+      "profile": "Profile",
+      "settings": "Settings",
+      "about": "About",
+      "logout": "Logout"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose the language used across the interface.",
+      "current": "Current language",
+      "en": "English",
+      "fr": "Français",
+      "de": "Deutsch"
+    },
+    "theme": {
+      "buttonAria": "Change theme",
+      "appearance": "Appearance",
+      "title": "Theme",
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    }
+  }
+}

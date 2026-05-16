@@ -11,6 +11,7 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const contactsStore = useContactsStore();
+const {t} = useI18n();
 
 const form = ref<ContactFormModel>({firstName: '', lastName: ''});
 const formRef = ref<InstanceType<typeof ContactForm>>();
@@ -40,8 +41,8 @@ async function handleSave() {
 
 <template>
   <UModal v-model:open="isOpen"
-          description="Update this contact's details."
-          title="Edit Contact">
+          :description="t('contacts.edit.description')"
+          :title="t('contacts.edit.title')">
     <template #body>
       <ContactForm ref="formRef" v-model="form"/>
     </template>
@@ -49,7 +50,7 @@ async function handleSave() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">Save</UButton>
+        <UButton :loading="loading" @click="handleSave">{{ t('contacts.edit.submit') }}</UButton>
       </div>
     </template>
   </UModal>

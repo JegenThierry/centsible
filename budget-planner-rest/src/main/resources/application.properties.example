@@ -20,6 +20,12 @@ management.endpoint.health.show-details=never
 #Application Configuration
 skip.email.verification=true
 
+# i18n — validation/error messages and email copy resolve through the bundle named
+# `messages_{en,fr,de}.properties` on the classpath; the active locale comes from
+# Accept-Language (UI sends it on every request) or the user's stored preference.
+spring.messages.basename=messages
+spring.messages.encoding=UTF-8
+
 cors.allowed-origins=http://localhost:3000
 
 spring.servlet.multipart.max-file-size=2MB

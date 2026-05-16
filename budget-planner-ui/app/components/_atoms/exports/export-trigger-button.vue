@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-withDefaults(defineProps<{
+const {t} = useI18n();
+
+const props = withDefaults(defineProps<{
   label?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   variant?: 'solid' | 'subtle' | 'ghost' | 'outline';
@@ -7,11 +9,12 @@ withDefaults(defineProps<{
   loading?: boolean;
   disabled?: boolean;
 }>(), {
-  label: 'Export',
   size: 'sm',
   variant: 'subtle',
   icon: 'i-lucide-file-down',
 });
+
+const resolvedLabel = computed(() => props.label ?? t('exports.trigger.defaultLabel'));
 
 const emit = defineEmits<{ (e: 'trigger'): void }>();
 </script>
@@ -26,6 +29,6 @@ const emit = defineEmits<{ (e: 'trigger'): void }>();
     color="primary"
     @click="emit('trigger')"
   >
-    {{ label }}
+    {{ resolvedLabel }}
   </UButton>
 </template>

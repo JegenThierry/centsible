@@ -8,8 +8,10 @@ definePageMeta({
 const route = useRoute();
 const contactId = computed(() => String(route.params.id ?? ''));
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Contact',
+  title: t('contacts.page.title'),
 });
 </script>
 

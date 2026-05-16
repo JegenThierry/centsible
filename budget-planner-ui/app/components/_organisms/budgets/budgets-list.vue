@@ -13,6 +13,7 @@ import DeleteBudgetModal from "~/components/_organisms/budgets/modals/delete-bud
 
 const store = useBudgetsStore();
 const accountsStore = useBudgetAccountsStore();
+const {t} = useI18n();
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -45,12 +46,12 @@ onMounted(() => refresh());
     </div>
 
     <AppEmptyState v-else-if="store.items.length === 0"
-                   description="Set a monthly limit on a category to track your spending against it."
+                   :description="t('budgets.list.emptyDescription')"
                    icon="i-lucide-target"
-                   title="No budgets yet">
+                   :title="t('budgets.list.emptyTitle')">
       <template #actions>
         <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
-          New budget
+          {{ t('budgets.list.emptyAction') }}
         </UButton>
       </template>
     </AppEmptyState>
@@ -65,12 +66,12 @@ onMounted(() => refresh());
             <BudgetProgressBar :budget="budget" :currency="currency"/>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <UButton aria-label="Edit budget"
+            <UButton :aria-label="t('budgets.list.editAria')"
                      color="neutral"
                      icon="i-lucide-pencil"
                      variant="ghost"
                      @click="openEdit(budget)"/>
-            <UButton aria-label="Delete budget"
+            <UButton :aria-label="t('budgets.list.deleteAria')"
                      color="error"
                      icon="i-lucide-trash"
                      variant="ghost"

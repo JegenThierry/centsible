@@ -5,16 +5,16 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class ProfileUpdateDTO(
-    @field:NotBlank(message = "First name is required.")
-    @field:Size(max = 100, message = "First name must be at most 100 characters.")
+    @field:NotBlank(message = "{validation.firstName.required}")
+    @field:Size(max = 100, message = "{validation.firstName.tooLong}")
     var firstName: String = "",
 
-    @field:NotBlank(message = "Last name is required.")
-    @field:Size(max = 100, message = "Last name must be at most 100 characters.")
+    @field:NotBlank(message = "{validation.lastName.required}")
+    @field:Size(max = 100, message = "{validation.lastName.tooLong}")
     var lastName: String = "",
 
-    @field:NotBlank(message = "Email is required.")
-    @field:Email(message = "Email must be a valid address.")
-    @field:Size(max = 255, message = "Email must be at most 255 characters.")
+    @field:NotBlank(message = "{validation.email.required}")
+    @field:Email(message = "{validation.email.invalid}")
+    @field:Size(max = 255, message = "{validation.email.tooLong}")
     var email: String = ""
 )

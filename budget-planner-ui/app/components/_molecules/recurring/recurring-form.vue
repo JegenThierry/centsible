@@ -17,6 +17,7 @@ const emit = defineEmits(['update:modelValue']);
 const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
+const {t} = useI18n();
 
 const amountInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
@@ -57,11 +58,11 @@ defineExpose({
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
                     :options="categories"
-                    label="Category"
+                    :label="t('transactions.recurring.form.category')"
                     required/>
 
     <div v-if="form.category" class="flex items-center gap-2 text-sm">
-      <span class="text-neutral-500">Transaction Type:</span>
+      <span class="text-neutral-500">{{ t('transactions.recurring.form.transactionType') }}</span>
       <CategoryTypeBadge :type="form.category.type"/>
     </div>
 
@@ -69,32 +70,32 @@ defineExpose({
                v-model="form.amount"
                :max="9999999.99"
                :min="0.01"
-               label="Amount"
-               placeholder="0.00"
+               :label="t('transactions.recurring.form.amount')"
+               :placeholder="t('transactions.recurring.form.amountPlaceholder')"
                required
                type="number"/>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
                :max-length="255"
-               label="Description"
-               placeholder="Rent, Salary, Netflix, etc."
+               :label="t('transactions.recurring.form.description')"
+               :placeholder="t('transactions.recurring.form.descriptionPlaceholder')"
                required
                type="text"/>
 
     <FrequencySelect ref="frequencyInput"
                      v-model="form.frequency"
-                     label="Frequency"
+                     :label="t('transactions.recurring.form.frequency')"
                      required/>
 
     <DateInput ref="startDateInput"
                v-model="form.startDate"
-               description="First occurrence date. Future dates are fine."
-               label="Start date"
+               :description="t('transactions.recurring.form.startDateHelp')"
+               :label="t('transactions.recurring.form.startDate')"
                required/>
 
     <DateInput v-model="form.endDate"
-               description="Leave empty to repeat indefinitely."
-               label="End date (optional)"/>
+               :description="t('transactions.recurring.form.endDateHelp')"
+               :label="t('transactions.recurring.form.endDate')"/>
   </div>
 </template>

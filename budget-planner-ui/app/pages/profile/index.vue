@@ -5,8 +5,10 @@ definePageMeta({
   middleware: ['auth-guard']
 })
 
+const {t} = useI18n();
+
 useHead({
-  title: 'Profile',
+  title: t('profile.page.title'),
 });
 </script>
 

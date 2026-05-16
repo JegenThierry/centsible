@@ -4,19 +4,16 @@ import type {Currency} from "~/models/budget-account/currency";
 const props = defineProps<{
   currency: Currency;
   balance: number;
-  format?: string;
+  locale?: string;
 }>();
 
-const locale = computed(() => {
-  if (props.format) return props.format;
-  if (typeof navigator !== 'undefined' && navigator.language) return navigator.language;
-  return 'en-US';
-});
+const localeTag = useLocaleTag();
+const activeLocale = computed(() => props.locale ?? localeTag.value);
 </script>
 
 <template>
   <span>
-    {{ new Intl.NumberFormat(locale, {style: 'currency', currency: currency}).format(balance) }}
+    {{ new Intl.NumberFormat(activeLocale, {style: 'currency', currency: currency}).format(balance) }}
   </span>
 </template>
 

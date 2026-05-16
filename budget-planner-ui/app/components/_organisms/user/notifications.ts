@@ -3,51 +3,52 @@ import {hasKey, isString} from "~/composables/use-type-helper";
 
 export function useUserNotifications() {
   const {success, error: showError} = useToasts();
+  const {t} = useI18n();
 
   function onAvatarUpdateSuccess() {
-    success('Profile picture updated', 'Your profile picture has been updated successfully.');
+    success(t('profile.toasts.avatarSuccessTitle'), t('profile.toasts.avatarSuccessBody'));
   }
 
   function onAvatarUpdateError(error?: unknown) {
     if (hasKey(error, 'message', isString)) {
       showError(
-        'Profile picture update failed',
-        error.message
+        t('profile.toasts.avatarErrorTitle'),
+        error.message,
       );
       return;
     }
 
     showError(
-      'Profile picture update failed',
-      'Failed to update your profile picture. Please try again later.'
+      t('profile.toasts.avatarErrorTitle'),
+      t('profile.toasts.avatarErrorFallback'),
     );
   }
 
   function onValidationError() {
     showError(
-      'Validation failed',
-      'Please check the form for errors.'
+      t('profile.toasts.validationErrorTitle'),
+      t('profile.toasts.validationErrorBody'),
     );
   }
 
   function onProfileUpdateSuccess() {
     success(
-      'Profile updated',
-      'Your profile information has been saved successfully.'
+      t('profile.toasts.profileSuccessTitle'),
+      t('profile.toasts.profileSuccessBody'),
     );
   }
 
   function onProfileUpdateError(error?: unknown) {
     if (hasKey(error, 'message', isString)) {
       showError(
-        'Error updating profile',
-        error.message
+        t('profile.toasts.profileErrorTitle'),
+        error.message,
       );
       return;
     }
     showError(
-      'Error updating profile',
-      'Your profile information could not be updated. Please try again later.'
+      t('profile.toasts.profileErrorTitle'),
+      t('profile.toasts.profileErrorFallback'),
     );
   }
 

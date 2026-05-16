@@ -27,6 +27,7 @@ const service = useTransactionService(api);
 const categoryService = useCategoryService(api);
 const accountsStore = useBudgetAccountsStore();
 const toasts = useToasts();
+const {t} = useI18n();
 
 type Step = 'upload' | 'map' | 'confirm';
 const step = ref<Step>('upload');
@@ -40,23 +41,23 @@ const previewRows = ref<ImportPayloadRow[]>([]);
 const invalidRowCount = ref(0);
 const dateFormat = ref<DateFormat>('dd/MM/yyyy');
 
-const dateFormatOptions: { value: DateFormat; label: string }[] = [
-  {value: 'dd/MM/yyyy', label: 'Day first (31/12/2026)'},
-  {value: 'MM/dd/yyyy', label: 'Month first (12/31/2026)'},
-  {value: 'yyyy-MM-dd', label: 'ISO (2026-12-31)'},
-  {value: 'auto', label: 'Auto-detect (best effort)'},
-];
+const dateFormatOptions = computed<{ value: DateFormat; label: string }[]>(() => [
+  {value: 'dd/MM/yyyy', label: t('transactions.import.dateFormat.dayFirst')},
+  {value: 'MM/dd/yyyy', label: t('transactions.import.dateFormat.monthFirst')},
+  {value: 'yyyy-MM-dd', label: t('transactions.import.dateFormat.iso')},
+  {value: 'auto', label: t('transactions.import.dateFormat.auto')},
+]);
 
 const modalTitle = computed(() => {
-  if (step.value === 'upload') return 'Import transactions';
-  if (step.value === 'map') return 'Map columns';
-  return 'Confirm import';
+  if (step.value === 'upload') return t('transactions.import.titleUpload');
+  if (step.value === 'map') return t('transactions.import.titleMap');
+  return t('transactions.import.titleConfirm');
 });
 
 const modalDescription = computed(() => {
-  if (step.value === 'upload') return 'Upload a CSV exported from your bank.';
-  if (step.value === 'map') return 'Tell us which column is which.';
-  return "Review the rows we'll create.";
+  if (step.value === 'upload') return t('transactions.import.descUpload');
+  if (step.value === 'map') return t('transactions.import.descMap');
+  return t('transactions.import.descConfirm');
 });
 
 watch(isOpen, async (open) => {
@@ -84,7 +85,7 @@ async function onFileChange(event: Event) {
     const text = await file.text();
     const result = parseCsv(text);
     if (result.headers.length === 0 || result.rows.length === 0) {
-      toasts.error('Empty CSV.', 'No rows were detected. Please check the file.');
+      toasts.error(t('transactions.import.fileEmptyTitle'), t('transactions.import.fileEmptyBody'));
       return;
     }
     parsed.value = result;
@@ -92,7 +93,7 @@ async function onFileChange(event: Event) {
     step.value = 'map';
   } catch (error) {
     console.error(error);
-    toasts.error('Could not read file.', 'Please upload a valid CSV file.');
+    toasts.error(t('transactions.import.fileErrorTitle'), t('transactions.import.fileErrorBody'));
   }
 }
 
@@ -173,13 +174,13 @@ async function handleImport() {
   try {
     const result = await service.importBatch(accountsStore.activeAccount.id, previewRows.value);
     toasts.success(
-      'Import complete.',
-      `${result.imported} imported, ${result.skippedDuplicates} skipped as duplicates.`,
+      t('transactions.import.successTitle'),
+      t('transactions.import.successBody', {imported: result.imported, skipped: result.skippedDuplicates}),
     );
     emit('imported');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, 'Import failed.', 'Could not import transactions, please try again.');
+    useApiErrors().toastError(error, t('transactions.import.errorTitle'), t('transactions.import.errorBody'));
   } finally {
     loading.value = false;
   }
@@ -195,8 +196,7 @@ async function handleImport() {
       <!-- Step 1: upload -->
       <div v-if="step === 'upload'" class="space-y-4">
         <p class="text-sm text-neutral-500">
-          The first row must contain column headers. Date, amount, and description columns are required.
-          You'll pick the category to assign to all imported rows in the next step.
+          {{ t('transactions.import.uploadHint') }}
         </p>
         <UInput accept=".csv,text/csv"
                 class="w-full"
@@ -216,12 +216,12 @@ async function handleImport() {
 
         <CategorySelect v-model="defaultCategory"
                         :options="expenseCategories"
-                        description="All imported rows will use this category."
-                        label="Assign category"
+                        :description="t('transactions.import.assignCategoryHelp')"
+                        :label="t('transactions.import.assignCategoryLabel')"
                         required/>
 
-        <UFormField description="How dates are written in your CSV. Pick the right one to avoid swapping day and month."
-                    label="Date format">
+        <UFormField :description="t('transactions.import.dateFormatHelp')"
+                    :label="t('transactions.import.dateFormatLabel')">
           <USelect v-model="dateFormat"
                    :items="dateFormatOptions"
                    class="w-full"
@@ -230,26 +230,26 @@ async function handleImport() {
 
         <UAlert v-if="!mappingValid"
                 color="warning"
-                description="Mark which columns hold the date, amount, and description."
-                title="Missing required mappings"
+                :description="t('transactions.import.missingMappingsDescription')"
+                :title="t('transactions.import.missingMappingsTitle')"
                 variant="subtle"/>
       </div>
 
       <!-- Step 3: confirm -->
       <div v-else class="space-y-4">
         <div class="flex items-center justify-between gap-4 text-sm">
-          <p>Ready to import <strong>{{ previewRows.length }}</strong> row(s).</p>
+          <p>{{ t('transactions.import.readyToImport', {count: previewRows.length}) }}</p>
           <p v-if="invalidRowCount > 0" class="text-warning">
-            {{ invalidRowCount }} row(s) skipped (missing/invalid data)
+            {{ t('transactions.import.skippedRows', {count: invalidRowCount}) }}
           </p>
         </div>
         <div class="max-h-64 overflow-y-auto border border-default rounded-md">
           <table class="w-full text-sm">
             <thead class="bg-muted sticky top-0">
               <tr>
-                <th class="text-left p-2">Date</th>
-                <th class="text-left p-2">Description</th>
-                <th class="text-right p-2">Amount</th>
+                <th class="text-left p-2">{{ t('transactions.table.date') }}</th>
+                <th class="text-left p-2">{{ t('transactions.table.description') }}</th>
+                <th class="text-right p-2">{{ t('transactions.table.amount') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -262,7 +262,7 @@ async function handleImport() {
           </table>
         </div>
         <p v-if="previewRows.length > 50" class="text-xs text-neutral-500">
-          Showing first 50 of {{ previewRows.length }} rows. All will be imported.
+          {{ t('transactions.import.previewShowingFirst', {count: previewRows.length}) }}
         </p>
       </div>
     </template>
@@ -273,7 +273,7 @@ async function handleImport() {
                  color="neutral"
                  variant="ghost"
                  @click="step = step === 'confirm' ? 'map' : 'upload'">
-          Back
+          {{ t('common.actions.back') }}
         </UButton>
         <div v-else></div>
         <div class="flex gap-2">
@@ -281,13 +281,13 @@ async function handleImport() {
           <UButton v-if="step === 'map'"
                    :disabled="!mappingValid || !defaultCategory"
                    @click="goToConfirm">
-            Next
+            {{ t('common.actions.next') }}
           </UButton>
           <UButton v-if="step === 'confirm'"
                    :disabled="previewRows.length === 0"
                    :loading="loading"
                    @click="handleImport">
-            Import {{ previewRows.length }} row(s)
+            {{ t('transactions.import.importRows', {count: previewRows.length}) }}
           </UButton>
         </div>
       </div>

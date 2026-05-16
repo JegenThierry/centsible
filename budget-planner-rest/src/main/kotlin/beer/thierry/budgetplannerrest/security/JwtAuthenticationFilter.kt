@@ -60,6 +60,8 @@ class JwtAuthenticationFilter(
         val lastName = claims["lastName"] as? String ?: ""
         val name = claims["name"] as? String ?: ""
         val profilePicture = claims["profilePicture"] as? String
+        // Pre-locale tokens won't carry the claim; default to English so legacy sessions still work.
+        val locale = claims["locale"] as? String ?: "en"
 
         UserDTO(
             id = UUID.fromString(userId),
@@ -69,6 +71,7 @@ class JwtAuthenticationFilter(
             lastName = lastName,
             name = name,
             profilePicture = profilePicture,
+            locale = locale,
         )
     } catch (ex: JwtException) {
         logger.warn("JWT validation failed: ${ex.message}")

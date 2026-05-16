@@ -2,6 +2,7 @@
 
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 
+const {t} = useI18n();
 const password = defineModel<string>('password', {required: true});
 const passwordInput = ref<InstanceType<typeof PasswordInput>>();
 
@@ -23,10 +24,10 @@ function arePasswordsEqual(): boolean {
  * - Needs to contain at least 1 of the following special characters: @ $ ! % * ? &
  */
 const passwordRules = computed(() => [
-  {label: '8+ characters', met: password.value.length >= 8},
-  {label: 'Upper & lowercase', met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},
-  {label: 'At least one number', met: /\d/.test(password.value)},
-  {label: 'Special symbol (@$!%*?&)', met: /[@$!%*?&]/.test(password.value)}
+  {label: t('auth.password.rules.length'), met: password.value.length >= 8},
+  {label: t('auth.password.rules.case'), met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},
+  {label: t('auth.password.rules.digit'), met: /\d/.test(password.value)},
+  {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(password.value)}
 ])
 
 function passwordMatchesSecuritySettings() {
@@ -35,12 +36,12 @@ function passwordMatchesSecuritySettings() {
 
 function validatePasswordData() {
   if (!arePasswordsEqual()) {
-    validationMessage.value = "Passwords do not match";
+    validationMessage.value = t('auth.password.doNotMatch');
     return false;
   }
 
   if (!passwordMatchesSecuritySettings()) {
-    validationMessage.value = "Password does not meet requirements";
+    validationMessage.value = t('auth.password.doesNotMeetRequirements');
     return false;
   }
 
@@ -67,8 +68,8 @@ defineExpose({
                   v-model="password"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
-                  label="Password"
-                  placeholder="Enter a password"
+                  :label="t('auth.fields.password')"
+                  :placeholder="t('auth.placeholders.password')"
                   required/>
 
   <div class="grid grid-cols-2 gap-2">
@@ -86,8 +87,8 @@ defineExpose({
                   v-model="confirmPassword"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
-                  label="Confirm Password"
-                  placeholder="Confirm your password"
+                  :label="t('auth.fields.confirmPassword')"
+                  :placeholder="t('auth.placeholders.confirmPassword')"
                   required/>
 </template>
 
