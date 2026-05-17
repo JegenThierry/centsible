@@ -113,6 +113,16 @@ open class Budgets(
      */
     val MODIFIED_AT: TableField<BudgetsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    /**
+     * The column <code>public.budgets.period_type</code>.
+     */
+    val PERIOD_TYPE: TableField<BudgetsRecord, String?> = createField(DSL.name("period_type"), SQLDataType.VARCHAR(16).nullable(false).defaultValue(DSL.field(DSL.raw("'MONTHLY'::character varying"), SQLDataType.VARCHAR)), this, "")
+
+    /**
+     * The column <code>public.budgets.rollover_enabled</code>.
+     */
+    val ROLLOVER_ENABLED: TableField<BudgetsRecord, Boolean?> = createField(DSL.name("rollover_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
     private constructor(alias: Name, aliased: Table<BudgetsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<BudgetsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<BudgetsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -180,7 +190,8 @@ open class Budgets(
     val users: UsersPath
         get(): UsersPath = users()
     override fun getChecks(): List<Check<BudgetsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("budgets_amount_limit_check"), "((amount_limit > (0)::numeric))", true)
+        Internal.createCheck(this, DSL.name("budgets_amount_limit_check"), "((amount_limit > (0)::numeric))", true),
+        Internal.createCheck(this, DSL.name("chk_budgets_period_type"), "(((period_type)::text = ANY ((ARRAY['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'ANNUAL'::character varying])::text[])))", true)
     )
     override fun `as`(alias: String): Budgets = Budgets(DSL.name(alias), this)
     override fun `as`(alias: Name): Budgets = Budgets(alias, this)

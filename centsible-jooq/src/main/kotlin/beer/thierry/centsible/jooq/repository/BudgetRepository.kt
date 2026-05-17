@@ -23,9 +23,6 @@ import java.util.*
 @Repository
 class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
 
-    private val periodTypeField = DSL.field("period_type", String::class.java)
-    private val rolloverField = DSL.field("rollover_enabled", Boolean::class.java)
-
     override fun fetchAllWithSpentForMonth(authenticatedUser: UserDTO, yearMonth: YearMonth): List<BudgetDTO> {
         val rows = dsl.select(
             BUDGETS.ID,
@@ -38,8 +35,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             CATEGORIES.ICON,
             CATEGORIES.TYPE,
             CATEGORIES.COLOR,
-            periodTypeField,
-            rolloverField,
+            BUDGETS.PERIOD_TYPE,
+            BUDGETS.ROLLOVER_ENABLED,
         )
             .from(BUDGETS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID))
@@ -47,7 +44,7 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .orderBy(CATEGORIES.NAME.asc())
             .fetch()
 
-        val byType = rows.groupBy { parsePeriodType(it[periodTypeField]) }
+        val byType = rows.groupBy { parsePeriodType(it[BUDGETS.PERIOD_TYPE]) }
         val currentSums = mutableMapOf<Long, BigDecimal>()
         val previousSums = mutableMapOf<Long, BigDecimal>()
 
@@ -56,22 +53,23 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             val (curFrom, curTo) = periodWindow(periodType, yearMonth)
             currentSums.putAll(sumByCategory(authenticatedUser, categoryIds, curFrom, curTo))
 
-            if (group.any { it[rolloverField] == true }) {
+            if (group.any { it[BUDGETS.ROLLOVER_ENABLED] == true }) {
                 val (prevFrom, prevTo) = previousPeriod(periodType, yearMonth)
                 previousSums.putAll(sumByCategory(authenticatedUser, categoryIds, prevFrom, prevTo))
             }
         }
 
         return rows.map { record ->
-            val periodType = parsePeriodType(record[periodTypeField])
+            val periodType = parsePeriodType(record[BUDGETS.PERIOD_TYPE])
             val categoryId = record[BUDGETS.CATEGORY_ID]!!
             val spent = currentSums[categoryId] ?: BigDecimal.ZERO
-            val rollover = if (record[rolloverField] == true) {
+            val rolloverEnabled = record[BUDGETS.ROLLOVER_ENABLED] == true
+            val rollover = if (rolloverEnabled) {
                 val leftover = record[BUDGETS.AMOUNT_LIMIT]!!.subtract(previousSums[categoryId] ?: BigDecimal.ZERO)
                 if (leftover.signum() > 0) leftover else BigDecimal.ZERO
             } else BigDecimal.ZERO
 
-            mapToDTO(record, periodKeyFor(periodType, yearMonth), spent, periodType, record[rolloverField] == true, rollover)
+            mapToDTO(record, periodKeyFor(periodType, yearMonth), spent, periodType, rolloverEnabled, rollover)
         }
     }
 
@@ -107,15 +105,15 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             CATEGORIES.ICON,
             CATEGORIES.TYPE,
             CATEGORIES.COLOR,
-            periodTypeField,
-            rolloverField,
+            BUDGETS.PERIOD_TYPE,
+            BUDGETS.ROLLOVER_ENABLED,
         )
             .from(BUDGETS)
             .join(CATEGORIES).on(CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID))
             .where(BUDGETS.ID.eq(id).and(BUDGETS.USER_ID.eq(authenticatedUser.id)))
             .fetchSingle { record ->
-                val pt = parsePeriodType(record[periodTypeField])
-                mapToDTO(record, null, BigDecimal.ZERO, pt, record[rolloverField] == true, BigDecimal.ZERO)
+                val pt = parsePeriodType(record[BUDGETS.PERIOD_TYPE])
+                mapToDTO(record, null, BigDecimal.ZERO, pt, record[BUDGETS.ROLLOVER_ENABLED] == true, BigDecimal.ZERO)
             }
     }
 
@@ -127,8 +125,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .set(BUDGETS.AMOUNT_LIMIT, form.amountLimit)
             .set(BUDGETS.CREATED_AT, now)
             .set(BUDGETS.MODIFIED_AT, now)
-            .set(periodTypeField, form.periodType.name)
-            .set(rolloverField, form.rolloverEnabled)
+            .set(BUDGETS.PERIOD_TYPE, form.periodType.name)
+            .set(BUDGETS.ROLLOVER_ENABLED, form.rolloverEnabled)
             .returning(BUDGETS.ID)
             .fetchOne()
             ?: throw IllegalStateException("Failed to insert budget")
@@ -141,8 +139,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .set(BUDGETS.CATEGORY_ID, form.categoryId)
             .set(BUDGETS.AMOUNT_LIMIT, form.amountLimit)
             .set(BUDGETS.MODIFIED_AT, OffsetDateTime.now())
-            .set(periodTypeField, form.periodType.name)
-            .set(rolloverField, form.rolloverEnabled)
+            .set(BUDGETS.PERIOD_TYPE, form.periodType.name)
+            .set(BUDGETS.ROLLOVER_ENABLED, form.rolloverEnabled)
             .where(BUDGETS.ID.eq(id).and(BUDGETS.USER_ID.eq(authenticatedUser.id)))
             .execute()
         if (updated == 0) throw IllegalArgumentException("Budget not found or not owned by user")
