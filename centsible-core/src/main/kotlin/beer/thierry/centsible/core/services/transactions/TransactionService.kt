@@ -11,6 +11,7 @@ import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
+import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
@@ -25,14 +26,18 @@ import java.util.*
 class TransactionService(
     private val transactionRepository: ITransactionRepository,
     private val accountRepository: IBudgetAccountsRepository,
+    private val categoriesRepository: ICategoriesRepository,
     private val notificationService: INotificationService,
 ) : ITransactionService {
 
-    private fun checkBudgetAlerts(user: UserDTO) {
+    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+
+    // Alerting must never fail a transaction commit, so swallow with a log instead of letting it propagate.
+    private fun checkBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>? = null) {
         try {
-            notificationService.maybeRaiseBudgetAlerts(user)
+            notificationService.maybeRaiseBudgetAlerts(user, categoryIds)
         } catch (e: Exception) {
-            // Don't fail the transaction because alerting failed.
+            log.warn("Budget alert evaluation failed for user {}", user.id, e)
         }
     }
 
@@ -58,7 +63,7 @@ class TransactionService(
         val transaction = transactionRepository.createTransaction(accountId, transactionForm, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
-        checkBudgetAlerts(authenticatedUser)
+        checkBudgetAlerts(authenticatedUser, listOf(transactionForm.categoryId))
         return transaction
     }
 
@@ -77,7 +82,7 @@ class TransactionService(
         val newAdjustment = calculateAdjustment(updatedTransaction.category.type, updatedTransaction.amount)
 
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
-        checkBudgetAlerts(authenticatedUser)
+        checkBudgetAlerts(authenticatedUser, setOf(oldTransaction.category.id, updatedTransaction.category.id).filterNotNull())
         return updatedTransaction
     }
 
@@ -104,6 +109,7 @@ class TransactionService(
             acc + calculateAdjustment(tx.category.type, tx.amount)
         }
         if (net.signum() != 0) accountRepository.updateBalance(accountId, net.negate(), authenticatedUser)
+        checkBudgetAlerts(authenticatedUser, transactions.mapNotNull { it.category.id }.distinct())
         return deleted
     }
 
@@ -118,26 +124,25 @@ class TransactionService(
         )
         if (updated == 0) return 0
 
-        val newTransactions = transactionRepository.fetchTransactionsByIds(
-            accountId, oldTransactions.map { it.id!! }, authenticatedUser
-        )
-        val byId = newTransactions.associateBy { it.id!! }
+        val newType = categoriesRepository.fetchCategoryById(authenticatedUser, categoryId)?.type
+            ?: throw IllegalArgumentException("Category not found or not owned by user")
+
         val net = oldTransactions.fold(BigDecimal.ZERO) { acc, old ->
-            val new = byId[old.id!!] ?: return@fold acc
             val oldAdj = calculateAdjustment(old.category.type, old.amount)
-            val newAdj = calculateAdjustment(new.category.type, new.amount)
+            val newAdj = calculateAdjustment(newType, old.amount)
             acc + newAdj.subtract(oldAdj)
         }
         if (net.signum() != 0) accountRepository.updateBalance(accountId, net, authenticatedUser)
+
+        val touched = (oldTransactions.mapNotNull { it.category.id } + categoryId).distinct()
+        checkBudgetAlerts(authenticatedUser, touched)
         return updated
     }
 
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate
-    ): List<CategoryAggregateDTO> {
-        require(!to.isBefore(from)) { "to must be on or after from" }
-        return transactionRepository.aggregateByCategory(accountId, authenticatedUser, from, to)
-    }
+    ): List<CategoryAggregateDTO> =
+        transactionRepository.aggregateByCategory(accountId, authenticatedUser, from, to)
 
     override fun aggregateByMonth(
         accountId: UUID, authenticatedUser: UserDTO, months: Int
@@ -158,7 +163,7 @@ class TransactionService(
 
         if (outcome.netBalanceAdjustment.signum() != 0) {
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-            checkBudgetAlerts(authenticatedUser)
+            checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
         }
 
         return ImportResult(

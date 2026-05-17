@@ -1,16 +1,14 @@
 <script lang="ts" setup>
 import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {useNotificationsStore} from "~/stores/notificationsStore";
+import type {NotificationType} from "~/models/notification/notification";
+import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 
 const store = useNotificationsStore();
-const {t, locale} = useI18n();
+const {t} = useI18n();
 const open = ref(false);
 
 const items = computed(() => store.notifications);
-
-const dateFmt = computed(() =>
-  new Intl.DateTimeFormat(locale.value, {dateStyle: 'medium', timeStyle: 'short'})
-);
 
 async function onOpen(value: boolean) {
   open.value = value;
@@ -26,11 +24,11 @@ onUnmounted(() => {
   store.stopPolling();
 });
 
-function iconFor(type: string) {
+function iconFor(type: NotificationType): string {
   return type === 'BUDGET_EXCEEDED' ? 'i-lucide-alert-circle' : 'i-lucide-bell-ring';
 }
 
-function colorFor(type: string) {
+function colorFor(type: NotificationType): string {
   return type === 'BUDGET_EXCEEDED' ? 'text-error' : 'text-warning';
 }
 </script>
@@ -76,7 +74,9 @@ function colorFor(type: string) {
                 <span v-if="!n.readAt" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-1.5"/>
               </div>
               <p class="text-sm text-muted">{{ n.body }}</p>
-              <p class="text-xs text-dimmed mt-1">{{ dateFmt.format(new Date(n.createdAt)) }}</p>
+              <p class="text-xs text-dimmed mt-1">
+                <FormattedDate :date="n.createdAt" format="full"/>
+              </p>
             </div>
             <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <UButton v-if="!n.readAt"

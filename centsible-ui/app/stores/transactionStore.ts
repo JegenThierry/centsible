@@ -7,10 +7,10 @@ export const useTransactionStore = defineStore('transactionStore', () => {
   const transactions = ref<Transaction[]>([]);
   const pending = ref(false);
 
-  async function fetchTransactions(accountId: string) {
+  async function fetchTransactions(accountId: string, size: number = 25) {
     pending.value = true;
     try {
-      transactions.value = await transactionService.fetchTransactions(accountId, 1, 100);
+      transactions.value = await transactionService.fetchTransactions(accountId, 1, size);
     } catch (error) {
       console.error("Failed to fetch transactions", error);
     } finally {

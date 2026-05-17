@@ -47,48 +47,53 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .orderBy(CATEGORIES.NAME.asc())
             .fetch()
 
+        val byType = rows.groupBy { parsePeriodType(it[periodTypeField]) }
+        val currentSums = mutableMapOf<Long, BigDecimal>()
+        val previousSums = mutableMapOf<Long, BigDecimal>()
+
+        for ((periodType, group) in byType) {
+            val categoryIds = group.map { it[BUDGETS.CATEGORY_ID]!! }
+            val (curFrom, curTo) = periodWindow(periodType, yearMonth)
+            currentSums.putAll(sumByCategory(authenticatedUser, categoryIds, curFrom, curTo))
+
+            if (group.any { it[rolloverField] == true }) {
+                val (prevFrom, prevTo) = previousPeriod(periodType, yearMonth)
+                previousSums.putAll(sumByCategory(authenticatedUser, categoryIds, prevFrom, prevTo))
+            }
+        }
+
         return rows.map { record ->
             val periodType = parsePeriodType(record[periodTypeField])
-            val window = periodWindow(periodType, yearMonth)
-            val spent = sumExpenses(authenticatedUser, record[BUDGETS.CATEGORY_ID]!!, window.first, window.second)
+            val categoryId = record[BUDGETS.CATEGORY_ID]!!
+            val spent = currentSums[categoryId] ?: BigDecimal.ZERO
             val rollover = if (record[rolloverField] == true) {
-                computeRollover(
-                    authenticatedUser,
-                    record[BUDGETS.CATEGORY_ID]!!,
-                    record[BUDGETS.AMOUNT_LIMIT]!!,
-                    periodType,
-                    yearMonth,
-                )
+                val leftover = record[BUDGETS.AMOUNT_LIMIT]!!.subtract(previousSums[categoryId] ?: BigDecimal.ZERO)
+                if (leftover.signum() > 0) leftover else BigDecimal.ZERO
             } else BigDecimal.ZERO
 
             mapToDTO(record, periodKeyFor(periodType, yearMonth), spent, periodType, record[rolloverField] == true, rollover)
         }
     }
 
-    private fun sumExpenses(user: UserDTO, categoryId: Long, from: LocalDate, to: LocalDate): BigDecimal {
-        val total = dsl.select(DSL.sum(TRANSACTIONS.AMOUNT))
+    private fun sumByCategory(
+        user: UserDTO,
+        categoryIds: List<Long>,
+        from: LocalDate,
+        to: LocalDate,
+    ): Map<Long, BigDecimal> {
+        if (categoryIds.isEmpty()) return emptyMap()
+        val total = DSL.sum(TRANSACTIONS.AMOUNT)
+        return dsl.select(TRANSACTIONS.CATEGORY_ID, total)
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
-                TRANSACTIONS.CATEGORY_ID.eq(categoryId)
+                TRANSACTIONS.CATEGORY_ID.`in`(categoryIds)
                     .and(ACCOUNTS.USER_ID.eq(user.id))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
             )
-            .fetchOne(0, BigDecimal::class.java)
-        return total ?: BigDecimal.ZERO
-    }
-
-    private fun computeRollover(
-        user: UserDTO,
-        categoryId: Long,
-        currentLimit: BigDecimal,
-        periodType: BudgetPeriodType,
-        yearMonth: YearMonth,
-    ): BigDecimal {
-        val previous = previousPeriod(periodType, yearMonth)
-        val prevSpent = sumExpenses(user, categoryId, previous.first, previous.second)
-        val leftover = currentLimit.subtract(prevSpent)
-        return if (leftover.signum() > 0) leftover else BigDecimal.ZERO
+            .groupBy(TRANSACTIONS.CATEGORY_ID)
+            .fetch()
+            .associate { it[TRANSACTIONS.CATEGORY_ID]!! to (it[total] ?: BigDecimal.ZERO) }
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): BudgetDTO {
@@ -151,11 +156,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         if (deleted == 0) throw IllegalArgumentException("Budget not found or not owned by user")
     }
 
-    private fun parsePeriodType(raw: String?): BudgetPeriodType = try {
-        BudgetPeriodType.valueOf(raw ?: "MONTHLY")
-    } catch (_: IllegalArgumentException) {
-        BudgetPeriodType.MONTHLY
-    }
+    private fun parsePeriodType(raw: String?): BudgetPeriodType =
+        BudgetPeriodType.valueOf(raw ?: BudgetPeriodType.MONTHLY.name)
 
     private fun periodWindow(type: BudgetPeriodType, ym: YearMonth): Pair<LocalDate, LocalDate> = when (type) {
         BudgetPeriodType.MONTHLY -> ym.atDay(1) to ym.atEndOfMonth()

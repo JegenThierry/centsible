@@ -12,11 +12,18 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
 
+  function fingerprint(xs: Notification[]): string {
+    return xs.map((n) => `${n.id}|${n.readAt ?? ''}`).join(',');
+  }
+
   async function refresh() {
     loading.value = true;
     try {
-      notifications.value = await service.list(50);
-      unreadCount.value = notifications.value.filter((n) => !n.readAt).length;
+      const next = await service.list(50);
+      if (fingerprint(next) !== fingerprint(notifications.value)) {
+        notifications.value = next;
+      }
+      unreadCount.value = next.filter((n) => !n.readAt).length;
     } catch (e) {
       console.error('Failed to load notifications', e);
     } finally {

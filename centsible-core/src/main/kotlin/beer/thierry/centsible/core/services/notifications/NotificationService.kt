@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.services.notifications
 
+import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.notification.NotificationDTO
 import beer.thierry.centsible.api.model.notification.NotificationType
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -31,51 +32,50 @@ class NotificationService(
 
     override fun delete(id: UUID, user: UserDTO): Boolean = notifications.delete(id, user)
 
-    override fun maybeRaiseBudgetAlerts(user: UserDTO) {
-        val now = YearMonth.now()
-        val list = budgets.fetchAllWithSpentForMonth(user, now)
-        for (b in list) {
-            val limit = b.amountLimit + b.rolloverAmount
-            if (limit.signum() <= 0) continue
+    override fun maybeRaiseBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>?) {
+        val all = budgets.fetchAllWithSpentForMonth(user, YearMonth.now())
+        val scoped = if (categoryIds == null) all else all.filter { it.category.id in categoryIds }
+        scoped.forEach { evaluate(user, it) }
+    }
 
-            val ratio = b.amountSpent.divide(limit, 4, RoundingMode.HALF_UP)
-            val budgetId = b.id?.toString() ?: continue
-            val periodKey = b.period ?: continue
-            val categoryName = b.category.name ?: ""
+    private fun evaluate(user: UserDTO, b: BudgetDTO) {
+        val limit = b.amountLimit + b.rolloverAmount
+        if (limit.signum() <= 0) return
 
-            if (ratio >= EXCEEDED) {
-                if (!notifications.hasRecent(user, NotificationType.BUDGET_EXCEEDED, budgetId, periodKey)) {
-                    notifications.create(
-                        user,
-                        NotificationType.BUDGET_EXCEEDED,
-                        "Budget exceeded: $categoryName",
-                        "You've spent more than your $categoryName budget for this period.",
-                        mapOf(
-                            "budgetId" to budgetId,
-                            "periodKey" to periodKey,
-                            "categoryName" to categoryName,
-                            "spent" to b.amountSpent.toPlainString(),
-                            "limit" to limit.toPlainString(),
-                        ),
-                    )
-                }
-            } else if (ratio >= THRESHOLD) {
-                if (!notifications.hasRecent(user, NotificationType.BUDGET_THRESHOLD, budgetId, periodKey)) {
-                    val percent = ratio.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP).toPlainString()
-                    notifications.create(
-                        user,
-                        NotificationType.BUDGET_THRESHOLD,
-                        "Approaching budget: $categoryName",
-                        "You're at $percent% of your $categoryName budget for this period.",
-                        mapOf(
-                            "budgetId" to budgetId,
-                            "periodKey" to periodKey,
-                            "categoryName" to categoryName,
-                            "percent" to percent,
-                        ),
-                    )
-                }
+        val ratio = b.amountSpent.divide(limit, 4, RoundingMode.HALF_UP)
+        val budgetId = b.id?.toString() ?: return
+        val periodKey = b.period ?: return
+        val category = b.category.name ?: ""
+
+        when {
+            ratio >= EXCEEDED -> raise(
+                user, NotificationType.BUDGET_EXCEEDED, budgetId, periodKey,
+                title = "Budget exceeded: $category",
+                body = "You've spent more than your $category budget for this period.",
+                extras = mapOf("categoryName" to category, "spent" to b.amountSpent.toPlainString(), "limit" to limit.toPlainString()),
+            )
+            ratio >= THRESHOLD -> {
+                val percent = ratio.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP).toPlainString()
+                raise(
+                    user, NotificationType.BUDGET_THRESHOLD, budgetId, periodKey,
+                    title = "Approaching budget: $category",
+                    body = "You're at $percent% of your $category budget for this period.",
+                    extras = mapOf("categoryName" to category, "percent" to percent),
+                )
             }
         }
+    }
+
+    private fun raise(
+        user: UserDTO,
+        type: NotificationType,
+        budgetId: String,
+        periodKey: String,
+        title: String,
+        body: String,
+        extras: Map<String, String>,
+    ) {
+        if (notifications.hasRecent(user, type, budgetId, periodKey)) return
+        notifications.create(user, type, title, body, mapOf("budgetId" to budgetId, "periodKey" to periodKey) + extras)
     }
 }

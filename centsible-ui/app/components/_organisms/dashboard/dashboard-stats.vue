@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
-import type {MonthlyAggregate} from "~/models/transactions/transaction";
 import StatCard from "~/components/_molecules/dashboard/stat-card.vue";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
-import {useTransactionService} from "~/services/transactions/transaction-service";
+import {useMonthlyAggregates} from "~/composables/use-monthly-aggregates";
 
 const props = defineProps<{
   accountId: string,
@@ -12,21 +11,11 @@ const props = defineProps<{
 
 const {t} = useI18n();
 const {window, period} = useDashboardPeriod();
-const service = useTransactionService(useApi());
 
-const aggregates = ref<MonthlyAggregate[]>([]);
-
-async function load() {
-  if (!props.accountId) return;
-  try {
-    aggregates.value = await service.aggregateByMonth(props.accountId, window.value.months);
-  } catch (error) {
-    console.error('Failed to load monthly aggregates for stats', error);
-    aggregates.value = [];
-  }
-}
-
-watch(() => [props.accountId, window.value.months], load, {immediate: true});
+const {data: aggregates} = useMonthlyAggregates(
+  () => props.accountId,
+  () => window.value.months,
+);
 
 const income = computed(() =>
   aggregates.value.reduce((sum, m) => sum + (Number(m.income) || 0), 0)

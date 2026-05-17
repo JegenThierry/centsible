@@ -4,21 +4,9 @@ import type {TransactionFilters, TransactionSort} from "~/models/transactions/tr
 import TransactionCategoryFilter from "~/components/_molecules/transactions/transaction-category-filter.vue";
 import TransactionDateRangeFilter from "~/components/_molecules/transactions/transaction-date-range-filter.vue";
 
-const props = defineProps<{
-  modelValue: TransactionFilters;
-}>();
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: TransactionFilters): void;
-}>();
+const model = defineModel<TransactionFilters>({required: true});
 
 const {t} = useI18n();
-
-const search = ref(props.modelValue.search ?? '');
-const categoryIds = ref<number[]>(props.modelValue.categoryIds ?? []);
-const fromDate = ref(props.modelValue.fromDate ?? '');
-const toDate = ref(props.modelValue.toDate ?? '');
-const sort = ref<TransactionSort>(props.modelValue.sort ?? 'DATE_DESC');
 
 const sortOptions = computed(() => [
   {value: 'DATE_DESC', label: t('transactions.filters.sort.DATE_DESC')},
@@ -27,36 +15,53 @@ const sortOptions = computed(() => [
   {value: 'AMOUNT_ASC', label: t('transactions.filters.sort.AMOUNT_ASC')},
 ]);
 
-const hasFilters = computed(() =>
-  !!search.value || categoryIds.value.length > 0 || !!fromDate.value || !!toDate.value || sort.value !== 'DATE_DESC',
-);
+function patch(partial: Partial<TransactionFilters>) {
+  model.value = {...model.value, ...partial};
+}
+
+// Debounce search-text input only: every other control is a discrete pick that should fire instantly.
+const searchDraft = ref(model.value.search ?? '');
+watch(() => model.value.search, (v) => { if ((v ?? '') !== searchDraft.value) searchDraft.value = v ?? ''; });
 
 let debounce: ReturnType<typeof setTimeout> | null = null;
-watch([search, categoryIds, fromDate, toDate, sort], () => {
+watch(searchDraft, (v) => {
   if (debounce) clearTimeout(debounce);
-  debounce = setTimeout(() => {
-    emit('update:modelValue', {
-      search: search.value || undefined,
-      categoryIds: categoryIds.value.length ? categoryIds.value : undefined,
-      fromDate: fromDate.value || undefined,
-      toDate: toDate.value || undefined,
-      sort: sort.value,
-    });
-  }, 250);
-}, {deep: true});
+  debounce = setTimeout(() => patch({search: v || undefined}), 250);
+});
+
+const categoryIds = computed({
+  get: () => model.value.categoryIds ?? [],
+  set: (v) => patch({categoryIds: v.length ? v : undefined}),
+});
+
+const fromDate = computed({
+  get: () => model.value.fromDate ?? '',
+  set: (v) => patch({fromDate: v || undefined}),
+});
+
+const toDate = computed({
+  get: () => model.value.toDate ?? '',
+  set: (v) => patch({toDate: v || undefined}),
+});
+
+const sort = computed({
+  get: () => model.value.sort ?? 'DATE_DESC',
+  set: (v: TransactionSort) => patch({sort: v}),
+});
+
+const hasFilters = computed(() =>
+  !!searchDraft.value || categoryIds.value.length > 0 || !!fromDate.value || !!toDate.value || sort.value !== 'DATE_DESC',
+);
 
 function reset() {
-  search.value = '';
-  categoryIds.value = [];
-  fromDate.value = '';
-  toDate.value = '';
-  sort.value = 'DATE_DESC';
+  searchDraft.value = '';
+  model.value = {sort: 'DATE_DESC'};
 }
 </script>
 
 <template>
   <div class="flex flex-wrap items-center gap-2 mb-4">
-    <UInput v-model="search"
+    <UInput v-model="searchDraft"
             :placeholder="t('transactions.filters.searchPlaceholder')"
             class="flex-1 min-w-[200px] max-w-md"
             icon="i-lucide-search"

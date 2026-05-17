@@ -202,16 +202,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     ): Int {
         if (ids.isEmpty()) return 0
         return dsl.deleteFrom(TRANSACTIONS)
-            .where(
-                TRANSACTIONS.ID.`in`(ids)
-                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
-                    .and(
-                        TRANSACTIONS.ACCOUNT_ID.`in`(
-                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
-                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                        )
-                    )
-            ).execute()
+            .where(bulkOwnershipCondition(accountId, ids, authenticatedUser))
+            .execute()
     }
 
     override fun updateCategoryForTransactions(
@@ -221,17 +213,18 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return dsl.update(TRANSACTIONS)
             .set(TRANSACTIONS.CATEGORY_ID, categoryId)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
-            .where(
-                TRANSACTIONS.ID.`in`(ids)
-                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
-                    .and(
-                        TRANSACTIONS.ACCOUNT_ID.`in`(
-                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
-                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                        )
-                    )
-            ).execute()
+            .where(bulkOwnershipCondition(accountId, ids, authenticatedUser))
+            .execute()
     }
+
+    private fun bulkOwnershipCondition(accountId: UUID, ids: List<UUID>, user: UserDTO) =
+        TRANSACTIONS.ID.`in`(ids)
+            .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+            .and(
+                TRANSACTIONS.ACCOUNT_ID.`in`(
+                    dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(user.id))
+                )
+            )
 
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate

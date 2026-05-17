@@ -11,6 +11,9 @@ interface INotificationService {
     fun markAllRead(user: UserDTO): Int
     fun delete(id: UUID, user: UserDTO): Boolean
 
-    /** Inspects budgets for [user] and emits notifications when thresholds are crossed. Idempotent per budget+period. */
-    fun maybeRaiseBudgetAlerts(user: UserDTO)
+    /**
+     * Inspects budgets for [user] and emits notifications when thresholds are crossed. Idempotent per
+     * budget+period. If [categoryIds] is non-null, only budgets for those categories are evaluated.
+     */
+    fun maybeRaiseBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>? = null)
 }

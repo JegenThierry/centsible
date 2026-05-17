@@ -56,10 +56,11 @@ export function useTransactionList(
 
   if (filters) {
     watch(
-      () => JSON.stringify(filters.value),
+      filters,
       () => {
         if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
       },
+      {deep: true},
     )
   }
 
