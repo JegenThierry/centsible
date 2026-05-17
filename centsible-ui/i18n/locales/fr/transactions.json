@@ -1,0 +1,227 @@
+{
+  "transactions": {
+    "pageTitle": "Transactions",
+    "title": "Transactions",
+    "description": "Consultez et gérez vos transactions",
+    "importCsvButton": "Importer un CSV",
+    "exportLabel": "Exporter les transactions",
+    "exportDefaultTitle": "Transactions {date}",
+    "emptyTitle": "Aucune transaction trouvée.",
+    "loadingMessage": "Chargement des transactions...",
+    "noDescription": "Sans description",
+    "uncategorized": "Sans catégorie",
+    "table": {
+      "date": "Date",
+      "description": "Description",
+      "category": "Catégorie",
+      "amount": "Montant",
+      "actionsLabel": "Actions de la transaction",
+      "actionEdit": "Modifier",
+      "actionDelete": "Supprimer"
+    },
+    "bulk": {
+      "selectAll": "Tout sélectionner sur cette page",
+      "selectRow": "Sélectionner la transaction",
+      "selectedCount": "{count} sélectionnée(s)",
+      "recategorize": "Recatégoriser",
+      "delete": "Supprimer",
+      "clear": "Effacer",
+      "recategorizeTitle": "Recatégoriser les transactions",
+      "recategorizeBody": "Choisissez une catégorie à appliquer à {count} transactions.",
+      "recategorizeConfirm": "Appliquer",
+      "deleteConfirm": "Supprimer {count} transactions ? Cette action est irréversible.",
+      "deleteToastTitle": "Transactions supprimées",
+      "deleteToastBody": "{count} transactions supprimées.",
+      "recategorizeToastTitle": "Catégorie mise à jour",
+      "recategorizeToastBody": "{count} transactions recatégorisées.",
+      "errorTitle": "Action en masse échouée",
+      "errorBody": "L'opération n'a pas pu être effectuée. Veuillez réessayer."
+    },
+    "filters": {
+      "searchLabel": "Recherche",
+      "searchPlaceholder": "Rechercher dans les descriptions...",
+      "categoryLabel": "Catégories",
+      "categoryPlaceholder": "Toutes les catégories",
+      "noCategories": "Aucune catégorie.",
+      "dateRangeLabel": "Période",
+      "fromShort": "Depuis {date}",
+      "toShort": "Jusqu'au {date}",
+      "fromLabel": "Du",
+      "toLabel": "Au",
+      "sortLabel": "Tri",
+      "clear": "Effacer",
+      "sort": {
+        "DATE_DESC": "Date (plus récent)",
+        "DATE_ASC": "Date (plus ancien)",
+        "AMOUNT_DESC": "Montant (décroissant)",
+        "AMOUNT_ASC": "Montant (croissant)"
+      }
+    },
+    "category": {
+      "noCategory": "Aucune catégorie",
+      "type": {
+        "INCOME": "Revenu",
+        "EXPENSE": "Dépense"
+      }
+    },
+    "form": {
+      "category": "Catégorie",
+      "transactionType": "Type de transaction :",
+      "amount": "Montant",
+      "amountPlaceholder": "0,00",
+      "description": "Description",
+      "descriptionPlaceholder": "Déjeuner, courses, etc.",
+      "date": "Date"
+    },
+    "selects": {
+      "selectAccount": "Sélectionner un compte",
+      "selectCategory": "Sélectionner une catégorie",
+      "selectContact": "Sélectionner un contact",
+      "selectFrequency": "Sélectionner une fréquence"
+    },
+    "create": {
+      "title": "Créer une transaction",
+      "description": "Créer une nouvelle transaction pour votre compte actif.",
+      "modeStandard": "Standard",
+      "modeLending": "Prêt",
+      "modeLegend": "Type",
+      "submit": "Créer",
+      "toastSuccessTitle": "Transaction créée avec succès.",
+      "toastSuccessBody": "Votre transaction a été créée.",
+      "toastErrorTitle": "Transaction non créée.",
+      "toastErrorBody": "Impossible de créer la transaction, veuillez réessayer."
+    },
+    "edit": {
+      "title": "Modifier la transaction",
+      "description": "Modifier votre transaction pour le compte actif.",
+      "submit": "Modifier",
+      "toastSuccessTitle": "Transaction mise à jour avec succès.",
+      "toastSuccessBody": "Votre transaction a été mise à jour.",
+      "toastErrorTitle": "Transaction non mise à jour.",
+      "toastErrorBody": "Impossible de mettre à jour la transaction, veuillez réessayer."
+    },
+    "delete": {
+      "entity": "transaction"
+    },
+    "confirm": {
+      "title": "Confirmer la suppression",
+      "questionPrefix": "Êtes-vous sûr de vouloir supprimer cette",
+      "questionSuffix": " ?",
+      "warning": "Cette action est irréversible.",
+      "successTitle": "{entity} supprimé(e).",
+      "successBody": "Votre {entity} a bien été supprimé(e).",
+      "errorTitle": "Erreur {entity}.",
+      "errorBody": "Impossible de supprimer votre {entity}, veuillez réessayer."
+    },
+    "import": {
+      "titleUpload": "Importer des transactions",
+      "titleMap": "Associer les colonnes",
+      "titleConfirm": "Confirmer l'import",
+      "descUpload": "Importez un fichier CSV exporté depuis votre banque.",
+      "descMap": "Indiquez à quoi correspond chaque colonne.",
+      "descConfirm": "Vérifiez les lignes qui seront créées.",
+      "uploadHint": "La première ligne doit contenir les en-têtes de colonnes. Les colonnes date, montant et description sont obligatoires. Vous choisirez la catégorie à appliquer à toutes les lignes importées à l'étape suivante.",
+      "assignCategoryLabel": "Catégorie à attribuer",
+      "assignCategoryHelp": "Toutes les lignes importées utiliseront cette catégorie.",
+      "dateFormatLabel": "Format de date",
+      "dateFormatHelp": "Comment les dates sont écrites dans votre CSV. Choisissez le bon format pour éviter d'inverser le jour et le mois.",
+      "dateFormat": {
+        "dayFirst": "Jour en premier (31/12/2026)",
+        "monthFirst": "Mois en premier (12/31/2026)",
+        "iso": "ISO (2026-12-31)",
+        "auto": "Détection automatique (au mieux)"
+      },
+      "missingMappingsTitle": "Associations requises manquantes",
+      "missingMappingsDescription": "Indiquez les colonnes correspondant à la date, au montant et à la description.",
+      "readyToImport": "Prêt à importer {count} ligne(s).",
+      "skippedRows": "{count} ligne(s) ignorée(s) (données manquantes/invalides)",
+      "previewExample": "ex.",
+      "previewShowingFirst": "Affichage des 50 premières sur {count} lignes. Toutes seront importées.",
+      "importRows": "Importer {count} ligne(s)",
+      "fileEmptyTitle": "CSV vide.",
+      "fileEmptyBody": "Aucune ligne détectée. Veuillez vérifier le fichier.",
+      "fileErrorTitle": "Impossible de lire le fichier.",
+      "fileErrorBody": "Veuillez importer un fichier CSV valide.",
+      "successTitle": "Import terminé.",
+      "successBody": "{imported} importée(s), {skipped} ignorée(s) car en doublon.",
+      "errorTitle": "Échec de l'import.",
+      "errorBody": "Impossible d'importer les transactions, veuillez réessayer.",
+      "columnFields": {
+        "date": "Date",
+        "amount": "Montant",
+        "description": "Description",
+        "category": "Catégorie (facultatif)",
+        "ignore": "Ignorer"
+      }
+    },
+    "recurring": {
+      "pageTitle": "Récurrents",
+      "title": "Transactions récurrentes",
+      "description": "Programmez des transactions qui se répètent automatiquement — loyer, salaire, abonnements.",
+      "emptyTitle": "Aucune règle récurrente",
+      "emptyDescription": "Créez une règle récurrente pour générer automatiquement des transactions comme le loyer, le salaire ou les abonnements.",
+      "newRule": "Nouvelle règle récurrente",
+      "paused": "En pause",
+      "nextOn": "prochaine le",
+      "ends": "se termine le",
+      "ariaPause": "Mettre la règle en pause",
+      "ariaResume": "Reprendre la règle",
+      "ariaEdit": "Modifier la règle",
+      "ariaDelete": "Supprimer la règle",
+      "delete": {
+        "entity": "règle récurrente"
+      },
+      "toastPausedTitle": "Règle mise en pause.",
+      "toastPausedBody": "Aucune nouvelle occurrence ne sera générée.",
+      "toastResumedTitle": "Règle réactivée.",
+      "toastResumedBody": "Les occurrences seront générées à partir de la prochaine échéance.",
+      "toastToggleErrorTitle": "Action échouée.",
+      "toastToggleErrorBody": "Impossible de modifier le statut de la règle.",
+      "form": {
+        "category": "Catégorie",
+        "transactionType": "Type de transaction :",
+        "amount": "Montant",
+        "amountPlaceholder": "0,00",
+        "description": "Description",
+        "descriptionPlaceholder": "Loyer, salaire, Netflix, etc.",
+        "frequency": "Fréquence",
+        "startDate": "Date de début",
+        "startDateHelp": "Date de la première occurrence. Une date future est possible.",
+        "endDate": "Date de fin (facultative)",
+        "endDateHelp": "Laissez vide pour répéter indéfiniment."
+      },
+      "frequency": {
+        "DAILY": "Quotidienne",
+        "WEEKLY": "Hebdomadaire",
+        "MONTHLY": "Mensuelle",
+        "YEARLY": "Annuelle"
+      },
+      "create": {
+        "title": "Nouvelle règle récurrente",
+        "description": "Programmez une transaction à générer automatiquement.",
+        "submit": "Créer",
+        "toastSuccessTitle": "Règle récurrente créée.",
+        "toastSuccessBody": "La prochaine occurrence sera générée à sa date d'échéance.",
+        "toastErrorTitle": "Règle non créée.",
+        "toastErrorBody": "Impossible de créer la règle récurrente, veuillez réessayer."
+      },
+      "edit": {
+        "title": "Modifier la règle récurrente",
+        "description": "Mettez à jour cette règle récurrente. Les transactions déjà générées ne seront pas modifiées.",
+        "submit": "Enregistrer",
+        "toastSuccessTitle": "Règle récurrente mise à jour.",
+        "toastSuccessBody": "Les prochaines occurrences utiliseront les nouvelles valeurs.",
+        "toastErrorTitle": "Règle non mise à jour.",
+        "toastErrorBody": "Impossible de mettre à jour la règle récurrente, veuillez réessayer."
+      }
+    },
+    "table_meta": {
+      "openRowActions": "Ouvrir les actions de la ligne",
+      "rowActions": "Actions de la ligne",
+      "emptyDefault": "Rien à afficher pour le moment."
+    },
+    "fab": {
+      "create": "Créer"
+    }
+  }
+}

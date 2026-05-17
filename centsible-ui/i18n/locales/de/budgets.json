@@ -1,0 +1,51 @@
+{
+  "budgets": {
+    "page": {
+      "title": "Budgets",
+      "description": "Lege monatliche Ausgabengrenzen pro Kategorie fest. Wird am 1. jedes Monats zurückgesetzt."
+    },
+    "list": {
+      "emptyTitle": "Noch keine Budgets",
+      "emptyDescription": "Lege ein Monatslimit für eine Kategorie fest, um deine Ausgaben dagegen zu verfolgen.",
+      "emptyAction": "Neues Budget",
+      "editAria": "Budget bearbeiten",
+      "deleteAria": "Budget löschen",
+      "overBadge": "Überschritten"
+    },
+    "form": {
+      "categoryLabel": "Kategorie",
+      "limitLabel": "Ausgabenlimit",
+      "limitDescription": "Wird zu Beginn jeder Periode zurückgesetzt.",
+      "limitPlaceholder": "0,00",
+      "periodLabel": "Periode",
+      "rolloverLabel": "Nicht genutzten Betrag übertragen",
+      "rolloverDescription": "Wenn du unter Budget bleibst, wird der Restbetrag zur nächsten Periode hinzugefügt."
+    },
+    "periods": {
+      "MONTHLY": "Monatlich",
+      "QUARTERLY": "Vierteljährlich",
+      "ANNUAL": "Jährlich"
+    },
+    "create": {
+      "title": "Neues Budget",
+      "description": "Lege ein monatliches Ausgabenlimit für eine Ausgabenkategorie fest.",
+      "submit": "Erstellen",
+      "toastSuccessTitle": "Budget erstellt.",
+      "toastSuccessBody": "Verfolge deine Ausgaben jeden Monat gegen dieses Limit.",
+      "toastErrorTitle": "Budget nicht erstellt.",
+      "toastErrorBody": "Das Budget konnte nicht erstellt werden. Möglicherweise existiert bereits ein Budget für diese Kategorie."
+    },
+    "edit": {
+      "title": "Budget bearbeiten",
+      "description": "Aktualisiere die Kategorie oder das Monatslimit dieses Budgets.",
+      "submit": "Speichern",
+      "toastSuccessTitle": "Budget aktualisiert.",
+      "toastSuccessBody": "Dein Monatslimit wurde gespeichert.",
+      "toastErrorTitle": "Budget nicht aktualisiert.",
+      "toastErrorBody": "Das Budget konnte nicht aktualisiert werden, bitte versuche es erneut."
+    },
+    "delete": {
+      "entity": "Budget"
+    }
+  }
+}

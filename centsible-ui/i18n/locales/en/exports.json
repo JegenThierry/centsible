@@ -1,0 +1,60 @@
+{
+  "exports": {
+    "page": {
+      "title": "My documents",
+      "description": "Track and download your generated exports. Re-trigger to refresh with current data."
+    },
+    "table": {
+      "title": "Title",
+      "type": "Type",
+      "status": "Status",
+      "followUp": "Follow-up",
+      "created": "Created",
+      "completed": "Completed",
+      "empty": "No exports yet.",
+      "actionsAria": "Export actions",
+      "download": "Download",
+      "retrigger": "Retrigger",
+      "delete": "Delete"
+    },
+    "types": {
+      "TRANSACTIONS": "Transactions",
+      "LENDINGS_PER_CONTACT": "Lendings (one contact)",
+      "LENDINGS_ALL": "Lendings (all)",
+      "ACCOUNTS_SUMMARY": "Accounts summary"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "IN_PROGRESS": "Rendering",
+      "COMPLETED": "Ready",
+      "FAILED": "Failed"
+    },
+    "trigger": {
+      "defaultLabel": "Export"
+    },
+    "options": {
+      "titleLabel": "Title",
+      "rangeLabel": "Date range",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "presets": {
+        "CURRENT_MONTH": "Current month",
+        "PAST_3_MONTHS": "Past 3 months",
+        "YEAR": "This year",
+        "ALL_TIME": "All time",
+        "CUSTOM": "Custom"
+      },
+      "emailMe": "Email me a copy when ready",
+      "recipientLabel": "Recipient",
+      "recipientHelp": "Leave blank to use your account email.",
+      "cancel": "Cancel",
+      "start": "Start export"
+    },
+    "toasts": {
+      "startedTitle": "Export started",
+      "startedBody": "{title} is being prepared. Check My documents when it's ready.",
+      "failedTitle": "Export failed",
+      "failedBody": "Could not start the export. Please try again."
+    }
+  }
+}

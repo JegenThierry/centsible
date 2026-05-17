@@ -1,0 +1,6 @@
+ALTER TABLE budgets
+    ADD COLUMN IF NOT EXISTS period_type      VARCHAR(16) NOT NULL DEFAULT 'MONTHLY',
+    ADD COLUMN IF NOT EXISTS rollover_enabled BOOLEAN     NOT NULL DEFAULT FALSE;
+
+ALTER TABLE budgets
+    ADD CONSTRAINT chk_budgets_period_type CHECK (period_type IN ('MONTHLY', 'QUARTERLY', 'ANNUAL'));

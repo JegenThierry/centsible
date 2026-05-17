@@ -1,0 +1,83 @@
+{
+  "accounts": {
+    "pageTitle": "Comptes",
+    "list": {
+      "title": "Comptes",
+      "description": "Sélectionnez un compte pour gérer votre budget",
+      "exportSummaryLabel": "Exporter le récapitulatif",
+      "exportSummaryTitle": "Récapitulatif des comptes {date}",
+      "emptyTitle": "Aucun compte trouvé",
+      "emptyDescription": "Il semble que vous n'ayez encore créé aucun compte. Créez-en un pour commencer."
+    },
+    "buttons": {
+      "createAccount": "Créer un compte budgétaire"
+    },
+    "card": {
+      "currentBalance": "Solde courant"
+    },
+    "modals": {
+      "create": {
+        "title": "Créer un compte budgétaire",
+        "description": "Un compte vous permet de gérer votre budget.",
+        "fieldNameLabel": "Nom du compte budgétaire",
+        "fieldNamePlaceholder": "Nom du compte budgétaire",
+        "fieldBalanceLabel": "Solde",
+        "fieldBalancePlaceholder": "Solde",
+        "fieldCurrencyLabel": "Devise",
+        "fieldCurrencyPlaceholder": "Devise",
+        "submit": "Créer le compte",
+        "validationErrorTitle": "Erreurs de validation",
+        "validationErrorBody": "Veuillez corriger les champs en surbrillance.",
+        "toastSuccessTitle": "Compte créé avec succès.",
+        "toastSuccessBody": "Votre compte : {name} a bien été créé",
+        "toastErrorTitle": "Compte non créé.",
+        "toastErrorBody": "Impossible de créer le compte, veuillez réessayer."
+      }
+    },
+    "dashboard": {
+      "pageTitle": "Tableau de bord",
+      "title": "Tableau de bord",
+      "headerLoading": "Chargement du compte…",
+      "headerOverview": "Vue d'ensemble du compte : {name}",
+      "balance": "Solde",
+      "availableBalance": "Solde disponible",
+      "balanceOverTime": "Évolution du solde",
+      "accountHistory": "Historique du compte",
+      "incomeVsExpense": "Revenus vs dépenses",
+      "spendingByCategory": "Dépenses par catégorie",
+      "income": "Revenus",
+      "expense": "Dépenses",
+      "noActivity": "Aucune activité enregistrée",
+      "noExpenses": "Aucune dépense enregistrée",
+      "total": "Total",
+      "recentTransactions": "Transactions récentes",
+      "viewAll": "Tout voir",
+      "noRecentTransactions": "Aucune transaction récente",
+      "monthlyIncome": "Revenus du mois",
+      "monthlyExpenses": "Dépenses du mois",
+      "netSavings": "Épargne nette",
+      "budgetsThisMonth": "Budgets ce mois-ci",
+      "budgetsViewAll": "Tout voir",
+      "periods": {
+        "CURRENT_MONTH": "Ce mois-ci",
+        "PAST_3_MONTHS": "3 derniers mois",
+        "YEAR": "Cette année",
+        "ALL_TIME": "Tout l'historique"
+      },
+      "stats": {
+        "income": {
+          "CURRENT_MONTH": "Revenus du mois",
+          "PAST_3_MONTHS": "Revenus (3 mois)",
+          "YEAR": "Revenus de l'année",
+          "ALL_TIME": "Revenus (tout l'historique)"
+        },
+        "expenses": {
+          "CURRENT_MONTH": "Dépenses du mois",
+          "PAST_3_MONTHS": "Dépenses (3 mois)",
+          "YEAR": "Dépenses de l'année",
+          "ALL_TIME": "Dépenses (tout l'historique)"
+        }
+      }
+    }
+  }
+}

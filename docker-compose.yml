@@ -1,8 +1,8 @@
 services:
 
-  budget-planner-db:
+  centsible-db:
     image: postgres:18.3-alpine
-    container_name: budget-planner-db
+    container_name: centsible-db
 
     restart: unless-stopped
 
@@ -16,11 +16,11 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql
-      - ./budget-planner-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
-      - ./budget-planner-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
-      - ./budget-planner-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
-      - ./budget-planner-db/migrations:/migrations:ro,z
-      - ./budget-planner-db/run-migrations.sh:/docker-entrypoint-initdb.d/03_run-migrations.sh:ro,z
+      - ./centsible-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
+      - ./centsible-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
+      - ./centsible-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
+      - ./centsible-db/migrations:/migrations:ro,z
+      - ./centsible-db/run-migrations.sh:/docker-entrypoint-initdb.d/03_run-migrations.sh:ro,z
 
     # 127.0.0.1 only — host-local access (jooqCodegen, psql), never public.
     ports:
@@ -47,57 +47,57 @@ services:
         max-file: "3"
 
     networks:
-      - budget-planner-net
+      - centsible-net
 
-  budget-planner-migrations:
+  centsible-migrations:
     image: postgres:18.3-alpine
-    container_name: budget-planner-migrations
+    container_name: centsible-migrations
     depends_on:
-      budget-planner-db:
+      centsible-db:
         condition: service_healthy
     volumes:
-      - ./budget-planner-db/migrations:/migrations:ro,z
-      - ./budget-planner-db/run-migrations.sh:/run-migrations.sh:ro,z
+      - ./centsible-db/migrations:/migrations:ro,z
+      - ./centsible-db/run-migrations.sh:/run-migrations.sh:ro,z
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      PGHOST: budget-planner-db
+      PGHOST: centsible-db
       TZ: ${TZ:-UTC}
     entrypoint: [ "/bin/bash", "/run-migrations.sh" ]
     networks:
-      - budget-planner-net
+      - centsible-net
 
-  budget-planner-rest:
+  centsible-rest:
     build:
       context: .
-      dockerfile: budget-planner-rest/Dockerfile
-    container_name: budget-planner-rest
+      dockerfile: centsible-rest/Dockerfile
+    container_name: centsible-rest
 
     develop:
       watch:
         - action: rebuild
-          path: ./budget-planner-rest/src
+          path: ./centsible-rest/src
         - action: rebuild
-          path: ./budget-planner-core/src
+          path: ./centsible-core/src
         - action: rebuild
-          path: ./budget-planner-api/src
+          path: ./centsible-api/src
         - action: rebuild
-          path: ./budget-planner-jooq/src
+          path: ./centsible-jooq/src
         - action: rebuild
           path: ./build.gradle.kts
 
     restart: unless-stopped
 
     depends_on:
-      budget-planner-migrations:
+      centsible-migrations:
         condition: service_completed_successfully
 
     environment:
       # Set to "prod" in .env for public deployments — activates ProductionGuard.
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://budget-planner-db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
@@ -145,35 +145,35 @@ services:
         max-file: "3"
 
     networks:
-      - budget-planner-net
+      - centsible-net
 
-  budget-planner-export:
+  centsible-export:
     build:
       context: .
-      dockerfile: budget-planner-export/Dockerfile
-    container_name: budget-planner-export
+      dockerfile: centsible-export/Dockerfile
+    container_name: centsible-export
 
     develop:
       watch:
         - action: rebuild
-          path: ./budget-planner-export/src
+          path: ./centsible-export/src
         - action: rebuild
-          path: ./budget-planner-proto/src
+          path: ./centsible-proto/src
         - action: rebuild
-          path: ./budget-planner-api/src
+          path: ./centsible-api/src
         - action: rebuild
-          path: ./budget-planner-jooq/src
+          path: ./centsible-jooq/src
         - action: rebuild
           path: ./build.gradle.kts
 
     restart: unless-stopped
 
     depends_on:
-      budget-planner-migrations:
+      centsible-migrations:
         condition: service_completed_successfully
 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://budget-planner-db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       RESEND_API_KEY: ${RESEND_API_KEY}
@@ -205,39 +205,39 @@ services:
         max-file: "3"
 
     networks:
-      - budget-planner-net
+      - centsible-net
 
-  budget-planner-ui:
+  centsible-ui:
     build:
-      context: ./budget-planner-ui
+      context: ./centsible-ui
       dockerfile: Dockerfile
       target: dev
-    container_name: budget-planner-ui
+    container_name: centsible-ui
 
     develop:
       watch:
         - action: sync
-          path: ./budget-planner-ui/app
+          path: ./centsible-ui/app
           target: /app/app
         - action: rebuild
-          path: ./budget-planner-ui/package.json
+          path: ./centsible-ui/package.json
 
     restart: unless-stopped
 
     depends_on:
-      budget-planner-rest:
+      centsible-rest:
         condition: service_healthy
 
     environment:
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8080/api}
-      NUXT_API_BASE_SSR: ${NUXT_API_BASE_SSR:-http://budget-planner-rest:8080/api}
+      NUXT_API_BASE_SSR: ${NUXT_API_BASE_SSR:-http://centsible-rest:8080/api}
       TZ: ${TZ:-UTC}
 
     ports:
       - "${UI_HOST_PORT:-3000}:3000"
 
     volumes:
-      - ./budget-planner-ui:/app:z
+      - ./centsible-ui:/app:z
       - node_modules_ui:/app/node_modules
 
     logging:
@@ -247,10 +247,10 @@ services:
         max-file: "3"
 
     networks:
-      - budget-planner-net
+      - centsible-net
 
 networks:
-  budget-planner-net:
+  centsible-net:
     driver: bridge
 
 volumes:

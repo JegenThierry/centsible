@@ -1,0 +1,26 @@
+import axios from 'axios';
+import {useToasts} from '~/services/toasts/toast-service';
+
+interface BackendErrorResponse {
+  message?: string;
+  details?: string;
+  fieldErrors?: Record<string, string>;
+}
+
+export function useApiErrors() {
+  function extractMessage(err: unknown, fallback: string): string {
+    if (!axios.isAxiosError<BackendErrorResponse>(err) || !err.response?.data) return fallback;
+
+    const {message, fieldErrors} = err.response.data;
+    const base = message ?? fallback;
+    if (!fieldErrors || Object.keys(fieldErrors).length === 0) return base;
+    return `${base} ${Object.values(fieldErrors).join(' ')}`.trim();
+  }
+
+  function toastError(err: unknown, title: string, fallback: string): void {
+    console.error(err);
+    useToasts().error(title, extractMessage(err, fallback));
+  }
+
+  return {extractMessage, toastError};
+}

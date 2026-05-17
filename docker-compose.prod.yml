@@ -7,9 +7,9 @@
 #   - The UI source bind-mount is removed (otherwise it would shadow `.output/`).
 #   - `develop:` watch blocks are stripped (no hot-reload in prod).
 #   - REST, UI, and Postgres ports are NOT published to the host. The reverse proxy
-#     reaches `budget-planner-rest:8080` and `budget-planner-ui:3000` by service
+#     reaches `centsible-rest:8080` and `centsible-ui:3000` by service
 #     name over the shared `proxy-net` Docker network. Postgres stays internal to
-#     `budget-planner-net` and is unreachable from outside the compose stack.
+#     `centsible-net` and is unreachable from outside the compose stack.
 #
 # Reverse-proxy assumptions (nginx-proxy-manager, Caddy, Traefik, …):
 #   - The proxy runs in its own compose stack and is attached to a Docker network
@@ -22,8 +22,8 @@
 #
 # Two topology options (pick one in your proxy config):
 #   A. Two subdomains:
-#      - app.example.com  -> http://budget-planner-ui:3000
-#      - api.example.com  -> http://budget-planner-rest:8080
+#      - app.example.com  -> http://centsible-ui:3000
+#      - api.example.com  -> http://centsible-rest:8080
 #      Set in .env:
 #        APP_BASE_URL=https://app.example.com
 #        CORS_ALLOWED_ORIGINS=https://app.example.com
@@ -31,8 +31,8 @@
 #        NUXT_PUBLIC_API_BASE=https://api.example.com/api
 #
 #   B. Single host with path-based routing:
-#      - example.com/api/*  -> http://budget-planner-rest:8080
-#      - example.com/*      -> http://budget-planner-ui:3000
+#      - example.com/api/*  -> http://centsible-rest:8080
+#      - example.com/*      -> http://centsible-ui:3000
 #      Set in .env:
 #        APP_BASE_URL=https://example.com
 #        CORS_ALLOWED_ORIGINS=https://example.com
@@ -41,32 +41,32 @@
 
 services:
 
-  budget-planner-db:
+  centsible-db:
     ports: !reset []
 
-  budget-planner-migrations:
+  centsible-migrations:
     develop: !reset null
 
-  budget-planner-rest:
+  centsible-rest:
     develop: !reset null
     ports: !reset []
     networks:
-      - budget-planner-net
+      - centsible-net
       - proxy-net
 
-  budget-planner-export:
+  centsible-export:
     develop: !reset null
 
-  budget-planner-ui:
+  centsible-ui:
     build:
-      context: ./budget-planner-ui
+      context: ./centsible-ui
       dockerfile: Dockerfile
       target: release
     develop: !reset null
     volumes: !reset []
     ports: !reset []
     networks:
-      - budget-planner-net
+      - centsible-net
       - proxy-net
 
 networks:

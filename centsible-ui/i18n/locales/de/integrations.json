@@ -1,0 +1,51 @@
+{
+  "integrations": {
+    "page": {
+      "title": "Integrationen",
+      "description": "Verbinde externe Quellen für Konten, Transaktionen oder Kurse."
+    },
+    "available": {
+      "heading": "Verfügbare Anbieter",
+      "emptyTitle": "Keine Anbieter",
+      "emptyDescription": "Auf diesem Server sind keine Anbieter-Plugins aktiviert.",
+      "connect": "Verbinden"
+    },
+    "connections": {
+      "heading": "Deine Verbindungen",
+      "emptyTitle": "Noch keine Verbindungen",
+      "emptyDescription": "Verbinde oben einen Anbieter, um externe Daten zu erfassen.",
+      "lastSyncedLabel": "Zuletzt synchronisiert:",
+      "lastError": "Letzter Fehler: {error}",
+      "syncNow": "Jetzt synchronisieren",
+      "disconnect": "Trennen",
+      "confirmDisconnect": "„{name}“ wirklich trennen?",
+      "status": {
+        "ACTIVE": "aktiv",
+        "NEW": "neu",
+        "ERROR": "fehler",
+        "REVOKED": "widerrufen"
+      }
+    },
+    "modal": {
+      "titleWithName": "{name} verbinden",
+      "titleFallback": "Verbinden",
+      "descriptionFallback": "Konfiguriere diese Integration.",
+      "displayNameLabel": "Verbindungsname",
+      "displayNameHelp": "Ein Name, der in der Verbindungsliste angezeigt wird.",
+      "displayNameRequired": "Anzeigename ist erforderlich.",
+      "submit": "Verbinden"
+    },
+    "form": {
+      "selectPlaceholder": "Auswählen…",
+      "secret": {
+        "showAria": "Wert anzeigen",
+        "hideAria": "Wert ausblenden"
+      },
+      "errors": {
+        "required": "{field} ist erforderlich.",
+        "number": "{field} muss eine Zahl sein.",
+        "select": "{field} muss einer der folgenden Werte sein: {options}."
+      }
+    }
+  }
+}

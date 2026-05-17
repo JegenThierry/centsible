@@ -1,0 +1,51 @@
+{
+  "budgets": {
+    "page": {
+      "title": "Budgets",
+      "description": "Définissez des plafonds mensuels par catégorie. Réinitialisation le 1er de chaque mois."
+    },
+    "list": {
+      "emptyTitle": "Aucun budget pour le moment",
+      "emptyDescription": "Fixez un plafond mensuel sur une catégorie pour suivre vos dépenses.",
+      "emptyAction": "Nouveau budget",
+      "editAria": "Modifier le budget",
+      "deleteAria": "Supprimer le budget",
+      "overBadge": "Dépassé"
+    },
+    "form": {
+      "categoryLabel": "Catégorie",
+      "limitLabel": "Plafond",
+      "limitDescription": "Réinitialisé au début de chaque période.",
+      "limitPlaceholder": "0,00",
+      "periodLabel": "Période",
+      "rolloverLabel": "Reporter le montant non utilisé",
+      "rolloverDescription": "Si vous restez sous le budget, le montant non utilisé est ajouté à la période suivante."
+    },
+    "periods": {
+      "MONTHLY": "Mensuel",
+      "QUARTERLY": "Trimestriel",
+      "ANNUAL": "Annuel"
+    },
+    "create": {
+      "title": "Nouveau budget",
+      "description": "Définissez un plafond mensuel pour une catégorie de dépense.",
+      "submit": "Créer",
+      "toastSuccessTitle": "Budget créé.",
+      "toastSuccessBody": "Suivez vos dépenses par rapport à ce plafond chaque mois.",
+      "toastErrorTitle": "Budget non créé.",
+      "toastErrorBody": "Impossible de créer le budget. Un budget existe peut-être déjà pour cette catégorie."
+    },
+    "edit": {
+      "title": "Modifier le budget",
+      "description": "Mettez à jour la catégorie ou le plafond mensuel de ce budget.",
+      "submit": "Enregistrer",
+      "toastSuccessTitle": "Budget mis à jour.",
+      "toastSuccessBody": "Votre plafond mensuel a été enregistré.",
+      "toastErrorTitle": "Budget non mis à jour.",
+      "toastErrorBody": "Impossible de mettre à jour le budget, veuillez réessayer."
+    },
+    "delete": {
+      "entity": "budget"
+    }
+  }
+}

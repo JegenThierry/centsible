@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cut a release of Centsible / budget-planner.
+# Cut a release of Centsible.
 #
 # Usage:   scripts/release.sh <version>
 # Example: scripts/release.sh 0.2.0
@@ -9,9 +9,9 @@
 #      do not already exist.
 #   2. Forks branch  releases/<version>  off the current HEAD.
 #   3. Bumps  build.gradle.kts                     ->  version = "<version>"
-#   4. Bumps  budget-planner-ui/package.json       ->  "version": "<version>"
+#   4. Bumps  centsible-ui/package.json       ->  "version": "<version>"
 #      (inserts the field after "name" if absent).
-#   5. Writes budget-planner-db/migrations/NN_SetVersion_<slug>.sql, which
+#   5. Writes centsible-db/migrations/NN_SetVersion_<slug>.sql, which
 #      updates system_information.version + released_at so /api/system and the
 #      About page report the running build.
 #   6. Commits as  chore(release): v<version>  and creates annotated tag v<version>.
@@ -78,11 +78,11 @@ p.write_text(new)
 PY
 echo "  build.gradle.kts            -> ${VERSION}"
 
-# 2. budget-planner-ui/package.json
+# 2. centsible-ui/package.json
 python3 - "$VERSION" <<'PY'
 import re, sys, pathlib
 target = sys.argv[1]
-p = pathlib.Path("budget-planner-ui/package.json")
+p = pathlib.Path("centsible-ui/package.json")
 text = p.read_text()
 if re.search(r'"version"\s*:\s*"', text):
     new, _ = re.subn(r'("version"\s*:\s*")[^"]+(")', rf'\g<1>{target}\g<2>', text, count=1)
@@ -99,10 +99,10 @@ else:
         new = re.sub(r'^\{\n', '{\n  "version": "%s",\n' % target, text, count=1)
 p.write_text(new)
 PY
-echo "  budget-planner-ui/package.json -> ${VERSION}"
+echo "  centsible-ui/package.json -> ${VERSION}"
 
 # 3. DB migration that syncs system_information.
-MIGRATIONS_DIR="budget-planner-db/migrations"
+MIGRATIONS_DIR="centsible-db/migrations"
 LAST_NUM="$(ls "${MIGRATIONS_DIR}" | grep -E '^[0-9]+_' | sed -E 's/^([0-9]+)_.*/\1/' | sort -n | tail -1)"
 NEXT_NUM="$(printf "%02d" "$((10#${LAST_NUM} + 1))")"
 SLUG="$(echo "${VERSION}" | tr '.-' '__')"
@@ -121,13 +121,13 @@ SQL
 echo "  ${MIGRATION_FILE}"
 
 # 4. Commit + tag.
-git add build.gradle.kts budget-planner-ui/package.json "${MIGRATION_FILE}"
+git add build.gradle.kts centsible-ui/package.json "${MIGRATION_FILE}"
 git commit -m "chore(release): v${VERSION}
 
 Cut release v${VERSION} (from ${CURRENT_VERSION}).
 
   - build.gradle.kts                ${CURRENT_VERSION} -> ${VERSION}
-  - budget-planner-ui/package.json  ${VERSION}
+  - centsible-ui/package.json  ${VERSION}
   - ${MIGRATION_FILE}
     syncs system_information.version + released_at on next deploy."
 

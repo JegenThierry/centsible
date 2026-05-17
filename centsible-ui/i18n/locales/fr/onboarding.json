@@ -1,0 +1,31 @@
+{
+  "onboarding": {
+    "pageTitle": "Bienvenue",
+    "welcome": "Bienvenue sur Centsible",
+    "tagline": "Configurons votre budget en 3 étapes rapides.",
+    "continue": "Continuer",
+    "back": "Retour",
+    "skip": "Ignorer la configuration",
+    "account": {
+      "title": "Créez votre premier compte",
+      "description": "Un compte contient votre solde et vos transactions — par exemple un compte courant, une épargne ou un portefeuille.",
+      "namePlaceholder": "Nom du compte (ex. Compte courant)",
+      "balancePlaceholder": "Solde initial",
+      "errorTitle": "Impossible de créer le compte",
+      "errorBody": "Vérifiez le nom et réessayez."
+    },
+    "categories": {
+      "title": "Choisissez quelques catégories",
+      "description": "Les catégories regroupent vos transactions. Vous pourrez les modifier à tout moment.",
+      "expenses": "Dépenses",
+      "income": "Revenus",
+      "errorTitle": "Impossible d'enregistrer les catégories",
+      "errorBody": "Veuillez réessayer."
+    },
+    "done": {
+      "title": "Tout est prêt !",
+      "description": "Ouvrez votre tableau de bord pour commencer à suivre vos transactions.",
+      "cta": "Aller au tableau de bord"
+    }
+  }
+}

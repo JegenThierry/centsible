@@ -1,0 +1,31 @@
+{
+  "onboarding": {
+    "pageTitle": "Willkommen",
+    "welcome": "Willkommen bei Centsible",
+    "tagline": "Richten wir dein Budget in 3 schnellen Schritten ein.",
+    "continue": "Weiter",
+    "back": "Zurück",
+    "skip": "Einrichtung überspringen",
+    "account": {
+      "title": "Erstelle dein erstes Konto",
+      "description": "Ein Konto enthält deinen Saldo und deine Transaktionen — z. B. ein Girokonto, Sparkonto oder Bargeld.",
+      "namePlaceholder": "Kontoname (z. B. Girokonto)",
+      "balancePlaceholder": "Anfangssaldo",
+      "errorTitle": "Konto konnte nicht erstellt werden",
+      "errorBody": "Überprüfe den Namen und versuche es erneut."
+    },
+    "categories": {
+      "title": "Wähle ein paar Kategorien",
+      "description": "Kategorien gruppieren deine Transaktionen. Du kannst sie jederzeit ändern.",
+      "expenses": "Ausgaben",
+      "income": "Einnahmen",
+      "errorTitle": "Kategorien konnten nicht gespeichert werden",
+      "errorBody": "Bitte erneut versuchen."
+    },
+    "done": {
+      "title": "Alles bereit!",
+      "description": "Öffne dein Dashboard, um Transaktionen zu verfolgen.",
+      "cta": "Zum Dashboard"
+    }
+  }
+}

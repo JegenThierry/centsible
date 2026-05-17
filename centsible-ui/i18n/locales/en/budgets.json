@@ -1,0 +1,51 @@
+{
+  "budgets": {
+    "page": {
+      "title": "Budgets",
+      "description": "Set monthly spending limits per category. Resets on the 1st of each month."
+    },
+    "list": {
+      "emptyTitle": "No budgets yet",
+      "emptyDescription": "Set a monthly limit on a category to track your spending against it.",
+      "emptyAction": "New budget",
+      "editAria": "Edit budget",
+      "deleteAria": "Delete budget",
+      "overBadge": "Over"
+    },
+    "form": {
+      "categoryLabel": "Category",
+      "limitLabel": "Spending limit",
+      "limitDescription": "Resets at the start of each period.",
+      "limitPlaceholder": "0.00",
+      "periodLabel": "Period",
+      "rolloverLabel": "Roll over unused amount",
+      "rolloverDescription": "If you stay under budget, the unused amount is added to the next period."
+    },
+    "periods": {
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "ANNUAL": "Annual"
+    },
+    "create": {
+      "title": "New budget",
+      "description": "Set a monthly spending limit for an expense category.",
+      "submit": "Create",
+      "toastSuccessTitle": "Budget created.",
+      "toastSuccessBody": "Track your spending against this limit each month.",
+      "toastErrorTitle": "Budget not created.",
+      "toastErrorBody": "Could not create the budget. A budget for this category may already exist."
+    },
+    "edit": {
+      "title": "Edit budget",
+      "description": "Update this budget's category or monthly limit.",
+      "submit": "Save",
+      "toastSuccessTitle": "Budget updated.",
+      "toastSuccessBody": "Your monthly limit has been saved.",
+      "toastErrorTitle": "Budget not updated.",
+      "toastErrorBody": "Could not update the budget, please try again."
+    },
+    "delete": {
+      "entity": "budget"
+    }
+  }
+}

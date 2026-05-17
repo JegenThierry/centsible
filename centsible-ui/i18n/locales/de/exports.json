@@ -1,0 +1,60 @@
+{
+  "exports": {
+    "page": {
+      "title": "Meine Dokumente",
+      "description": "Verfolge und lade deine erzeugten Exporte herunter. Erneut auslösen, um sie mit aktuellen Daten zu aktualisieren."
+    },
+    "table": {
+      "title": "Titel",
+      "type": "Typ",
+      "status": "Status",
+      "followUp": "Folgeaktion",
+      "created": "Erstellt",
+      "completed": "Abgeschlossen",
+      "empty": "Noch keine Exporte.",
+      "actionsAria": "Aktionen für Export",
+      "download": "Herunterladen",
+      "retrigger": "Erneut auslösen",
+      "delete": "Löschen"
+    },
+    "types": {
+      "TRANSACTIONS": "Transaktionen",
+      "LENDINGS_PER_CONTACT": "Verleihungen (ein Kontakt)",
+      "LENDINGS_ALL": "Verleihungen (alle)",
+      "ACCOUNTS_SUMMARY": "Kontenübersicht"
+    },
+    "status": {
+      "PENDING": "Ausstehend",
+      "IN_PROGRESS": "Wird erstellt",
+      "COMPLETED": "Bereit",
+      "FAILED": "Fehlgeschlagen"
+    },
+    "trigger": {
+      "defaultLabel": "Exportieren"
+    },
+    "options": {
+      "titleLabel": "Titel",
+      "rangeLabel": "Zeitraum",
+      "fromLabel": "Von",
+      "toLabel": "Bis",
+      "presets": {
+        "CURRENT_MONTH": "Aktueller Monat",
+        "PAST_3_MONTHS": "Letzte 3 Monate",
+        "YEAR": "Dieses Jahr",
+        "ALL_TIME": "Gesamter Zeitraum",
+        "CUSTOM": "Benutzerdefiniert"
+      },
+      "emailMe": "Mir eine Kopie per E-Mail senden, wenn fertig",
+      "recipientLabel": "Empfänger",
+      "recipientHelp": "Leer lassen, um deine Konto-E-Mail zu verwenden.",
+      "cancel": "Abbrechen",
+      "start": "Export starten"
+    },
+    "toasts": {
+      "startedTitle": "Export gestartet",
+      "startedBody": "{title} wird vorbereitet. Schau unter „Meine Dokumente“ nach, sobald er bereit ist.",
+      "failedTitle": "Export fehlgeschlagen",
+      "failedBody": "Der Export konnte nicht gestartet werden. Bitte versuche es erneut."
+    }
+  }
+}
