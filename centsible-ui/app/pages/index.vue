@@ -6,6 +6,7 @@ import {useAuthService} from "~/services/auth/auth-service";
 definePageMeta({
   middleware: [
     async () => {
+      const nuxtApp = useNuxtApp();
       const authStore = useAuthStore();
       const api = useApi();
       const authService = useAuthService(api);
@@ -18,7 +19,7 @@ definePageMeta({
         const isVerified = await authService.verify();
         if (isVerified) {
           authStore.setAuthenticated(true);
-          return navigateTo('/accounts');
+          return await nuxtApp.runWithContext(() => navigateTo('/accounts'));
         }
       } catch (error) {
         console.warn('Session verification failed; staying on landing', error);

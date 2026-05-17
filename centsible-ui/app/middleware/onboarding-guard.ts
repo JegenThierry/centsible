@@ -8,13 +8,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (localStorage.getItem('centsible.onboarded') === '1') return;
 
+  const nuxtApp = useNuxtApp();
   const accountsStore = useBudgetAccountsStore();
   if (accountsStore.availableAccounts.length === 0) {
     await accountsStore.updateAvailableAccounts();
   }
 
   if (accountsStore.availableAccounts.length === 0) {
-    return navigateTo('/onboarding');
+    return await nuxtApp.runWithContext(() => navigateTo('/onboarding'));
   }
 
   localStorage.setItem('centsible.onboarded', '1');
