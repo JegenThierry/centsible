@@ -8,7 +8,7 @@ enum class TransactionSort {
 
 data class TransactionFilters(
     val search: String? = null,
-    val categoryIds: List<Int>? = null,
+    val categoryIds: List<Long>? = null,
     val from: LocalDate? = null,
     val to: LocalDate? = null,
     val sort: TransactionSort = TransactionSort.DATE_DESC,

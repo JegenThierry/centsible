@@ -96,7 +96,7 @@ class NotificationRepository(
     override fun hasRecent(user: UserDTO, type: NotificationType, budgetId: String, sincePeriodKey: String): Boolean {
         val periodField = DSL.field("data->>'periodKey'", String::class.java)
         val budgetField = DSL.field("data->>'budgetId'", String::class.java)
-        return dsl.selectCount()
+        val count = dsl.selectCount()
             .from(table)
             .where(
                 userIdField.eq(user.id)
@@ -104,7 +104,8 @@ class NotificationRepository(
                     .and(budgetField.eq(budgetId))
                     .and(periodField.eq(sincePeriodKey))
             )
-            .fetchOne(0, Int::class.java) ?: 0 > 0
+            .fetchOne(0, Int::class.java) ?: 0
+        return count > 0
     }
 
     private fun parseData(jsonb: JSONB?): Map<String, String> {

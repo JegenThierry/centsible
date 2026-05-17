@@ -215,7 +215,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     }
 
     override fun updateCategoryForTransactions(
-        accountId: UUID, ids: List<UUID>, categoryId: Int, authenticatedUser: UserDTO
+        accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO
     ): Int {
         if (ids.isEmpty()) return 0
         return dsl.update(TRANSACTIONS)

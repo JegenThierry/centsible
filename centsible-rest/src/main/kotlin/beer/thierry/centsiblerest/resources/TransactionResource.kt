@@ -28,7 +28,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "25") size: Int,
         @RequestParam(required = false) search: String?,
-        @RequestParam(required = false) categoryIds: List<Int>?,
+        @RequestParam(required = false) categoryIds: List<Long>?,
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
         @RequestParam(required = false) sort: TransactionSort?,
@@ -128,5 +128,5 @@ class TransactionResource(private val transactionService: ITransactionService) {
 }
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())
-data class BulkCategorizeRequest(val ids: List<UUID> = emptyList(), val categoryId: Int = 0)
+data class BulkCategorizeRequest(val ids: List<UUID> = emptyList(), val categoryId: Long = 0L)
 data class BulkResult(val affected: Int)

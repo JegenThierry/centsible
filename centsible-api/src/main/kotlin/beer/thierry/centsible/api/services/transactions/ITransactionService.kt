@@ -33,7 +33,7 @@ interface ITransactionService {
 
     fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int
 
-    fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Int, authenticatedUser: UserDTO): Int
+    fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO): Int
 
     fun aggregateByCategory(
         accountId: UUID,

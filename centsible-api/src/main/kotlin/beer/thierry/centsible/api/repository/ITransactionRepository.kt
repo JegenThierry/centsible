@@ -48,7 +48,7 @@ interface ITransactionRepository {
     fun updateCategoryForTransactions(
         accountId: UUID,
         ids: List<UUID>,
-        categoryId: Int,
+        categoryId: Long,
         authenticatedUser: UserDTO,
     ): Int
 

@@ -109,7 +109,7 @@ class TransactionService(
 
     @Transactional
     override fun bulkUpdateCategory(
-        accountId: UUID, ids: List<UUID>, categoryId: Int, authenticatedUser: UserDTO
+        accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO
     ): Int {
         if (ids.isEmpty()) return 0
         val oldTransactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
