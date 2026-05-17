@@ -1,0 +1,19 @@
+{
+  "reports": {
+    "page": {
+      "title": "Berichte",
+      "description": "Sieh, wie sich dein Nettovermögen über alle Konten hinweg entwickelt hat."
+    },
+    "ranges": {
+      "3m": "Letzte 3 Monate",
+      "6m": "Letzte 6 Monate",
+      "12m": "Letzte 12 Monate",
+      "24m": "Letzte 24 Monate"
+    },
+    "netWorth": {
+      "title": "Nettovermögen im Zeitverlauf",
+      "legend": "Nettovermögen",
+      "empty": "Noch keine Daten. Erfasse ein paar Transaktionen und schau später wieder vorbei."
+    }
+  }
+}

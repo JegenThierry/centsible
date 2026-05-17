@@ -1,18 +1,14 @@
 <script lang="ts" setup>
-import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
+import type {NetWorthPoint} from "~/models/reports/net-worth-point";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceLineChart from "~/components/_molecules/charts/balance-line-chart.vue";
 
 const props = defineProps<{
-  snapshots: BudgetAccountSnapshot[],
+  points: NetWorthPoint[],
   currency: Currency
 }>();
 
 const {t} = useI18n();
-
-const points = computed(() =>
-  (props.snapshots ?? []).map(s => ({date: s.createdAt, balance: s.balance}))
-);
 </script>
 
 <template>
@@ -20,17 +16,23 @@ const points = computed(() =>
     <template #header>
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold text-highlighted">
-          {{ t('accounts.dashboard.balanceOverTime') }}
+          {{ t('reports.netWorth.title') }}
         </h3>
       </div>
     </template>
 
     <BalanceLineChart
       :currency="currency"
-      :legend-label="t('accounts.dashboard.balance')"
-      :points="points"
-      color="#10b981"
-      fill-color="rgba(16, 185, 129, 0.1)"
+      :legend-label="t('reports.netWorth.legend')"
+      :points="props.points"
+      :tension="0.3"
+      color="#ee387e"
+      fill-color="rgba(238, 56, 126, 0.12)"
+      height-class="h-72"
     />
+
+    <div v-if="props.points.length === 0" class="text-sm text-muted py-4 text-center">
+      {{ t('reports.netWorth.empty') }}
+    </div>
   </UCard>
 </template>

@@ -1,0 +1,19 @@
+{
+  "reports": {
+    "page": {
+      "title": "Rapports",
+      "description": "Visualisez l'évolution de votre patrimoine net sur l'ensemble de vos comptes."
+    },
+    "ranges": {
+      "3m": "3 derniers mois",
+      "6m": "6 derniers mois",
+      "12m": "12 derniers mois",
+      "24m": "24 derniers mois"
+    },
+    "netWorth": {
+      "title": "Patrimoine net dans le temps",
+      "legend": "Patrimoine net",
+      "empty": "Aucune donnée pour le moment. Ajoutez quelques transactions et revenez plus tard."
+    }
+  }
+}

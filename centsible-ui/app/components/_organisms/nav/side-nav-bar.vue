@@ -57,6 +57,12 @@ const items = computed(() => {
 
   menuItems.push(
     {
+      label: t('nav.sidebar.reports'),
+      to: '/reports',
+      icon: 'i-lucide-trending-up',
+      target: '_self'
+    },
+    {
       label: t('nav.sidebar.categories'),
       to: '/categories',
       icon: 'i-lucide-tag',

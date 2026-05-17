@@ -15,7 +15,6 @@ import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
-import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
@@ -30,7 +29,6 @@ import beer.thierry.jooq.generated.tables.records.LoansRecord
 import beer.thierry.jooq.generated.tables.records.NotificationsRecord
 import beer.thierry.jooq.generated.tables.records.ProviderConnectionsRecord
 import beer.thierry.jooq.generated.tables.records.RecurringTransactionsRecord
-import beer.thierry.jooq.generated.tables.records.SchemaMigrationsRecord
 import beer.thierry.jooq.generated.tables.records.SystemInformationRecord
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 import beer.thierry.jooq.generated.tables.records.UsersRecord
@@ -61,7 +59,6 @@ val LOANS_TRANSACTION_ID_KEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(
 val NOTIFICATIONS_PKEY: UniqueKey<NotificationsRecord> = Internal.createUniqueKey(Notifications.NOTIFICATIONS, DSL.name("notifications_pkey"), arrayOf(Notifications.NOTIFICATIONS.ID), true)
 val PROVIDER_CONNECTIONS_PKEY: UniqueKey<ProviderConnectionsRecord> = Internal.createUniqueKey(ProviderConnections.PROVIDER_CONNECTIONS, DSL.name("provider_connections_pkey"), arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.ID), true)
 val RECURRING_TRANSACTIONS_PKEY: UniqueKey<RecurringTransactionsRecord> = Internal.createUniqueKey(RecurringTransactions.RECURRING_TRANSACTIONS, DSL.name("recurring_transactions_pkey"), arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ID), true)
-val SCHEMA_MIGRATIONS_PKEY: UniqueKey<SchemaMigrationsRecord> = Internal.createUniqueKey(SchemaMigrations.SCHEMA_MIGRATIONS, DSL.name("schema_migrations_pkey"), arrayOf(SchemaMigrations.SCHEMA_MIGRATIONS.VERSION), true)
 val SYSTEM_INFORMATION_PKEY: UniqueKey<SystemInformationRecord> = Internal.createUniqueKey(SystemInformation.SYSTEM_INFORMATION, DSL.name("system_information_pkey"), arrayOf(SystemInformation.SYSTEM_INFORMATION.ID), true)
 val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(Transactions.TRANSACTIONS, DSL.name("transactions_pkey"), arrayOf(Transactions.TRANSACTIONS.ID), true)
 val USERS_EMAIL_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
