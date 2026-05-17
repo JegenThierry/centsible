@@ -1,7 +1,7 @@
 spring.application.name=centsible-export
 server.port=8081
 
-spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/budget_planner}
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/centsible-db}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:postgres}
 spring.datasource.driver-class-name=org.postgresql.Driver
