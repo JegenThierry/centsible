@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Block commits that include any application.properties file.
+# These files often contain secrets (JWT, DB credentials, API keys).
+# To bypass deliberately: git commit --no-verify
+set -e
+
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)application\.properties$' || true)
+
+if [ -n "$blocked" ]; then
+  echo "" >&2
+  echo "pre-commit: refusing to commit application.properties:" >&2
+  echo "$blocked" | sed 's/^/  /' >&2
+  echo "" >&2
+  echo "These files typically contain secrets and are gitignored on purpose." >&2
+  echo "If you truly need to commit one, run: git commit --no-verify" >&2
+  exit 1
+fi
