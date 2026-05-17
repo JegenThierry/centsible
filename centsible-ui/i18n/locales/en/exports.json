@@ -34,6 +34,16 @@
     },
     "options": {
       "titleLabel": "Title",
+      "rangeLabel": "Date range",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "presets": {
+        "CURRENT_MONTH": "Current month",
+        "PAST_3_MONTHS": "Past 3 months",
+        "YEAR": "This year",
+        "ALL_TIME": "All time",
+        "CUSTOM": "Custom"
+      },
       "emailMe": "Email me a copy when ready",
       "recipientLabel": "Recipient",
       "recipientHelp": "Leave blank to use your account email.",

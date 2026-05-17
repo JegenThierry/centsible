@@ -21,7 +21,7 @@ const formRef = ref<InstanceType<typeof BudgetFormFields>>();
 const loading = ref(false);
 
 function makeBlank(): BudgetForm {
-  return {category: undefined, amountLimit: 0};
+  return {category: undefined, amountLimit: 0, periodType: 'MONTHLY', rolloverEnabled: false};
 }
 
 watch(isOpen, (open) => {
@@ -37,6 +37,8 @@ async function handleSave() {
     await service.create({
       categoryId: form.value.category.id,
       amountLimit: form.value.amountLimit,
+      periodType: form.value.periodType,
+      rolloverEnabled: form.value.rolloverEnabled,
     });
     toasts.success(t('budgets.create.toastSuccessTitle'), t('budgets.create.toastSuccessBody'));
     emit('created');

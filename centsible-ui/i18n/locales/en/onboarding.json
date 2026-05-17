@@ -1,0 +1,31 @@
+{
+  "onboarding": {
+    "pageTitle": "Welcome",
+    "welcome": "Welcome to Centsible",
+    "tagline": "Let's set up your budget in 3 quick steps.",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip setup",
+    "account": {
+      "title": "Create your first account",
+      "description": "An account holds your balance and transactions — for example a checking account, savings, or cash wallet.",
+      "namePlaceholder": "Account name (e.g. Checking)",
+      "balancePlaceholder": "Starting balance",
+      "errorTitle": "Could not create account",
+      "errorBody": "Check the name and try again."
+    },
+    "categories": {
+      "title": "Pick a few categories",
+      "description": "Categories group your transactions. You can change them anytime.",
+      "expenses": "Expenses",
+      "income": "Income",
+      "errorTitle": "Could not save categories",
+      "errorBody": "Please try again."
+    },
+    "done": {
+      "title": "You're all set!",
+      "description": "Open your dashboard to start tracking transactions.",
+      "cta": "Go to dashboard"
+    }
+  }
+}

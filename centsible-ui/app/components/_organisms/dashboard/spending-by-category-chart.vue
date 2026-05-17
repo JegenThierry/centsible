@@ -5,6 +5,7 @@ import {useTransactionService} from "~/services/transactions/transaction-service
 import type {CategoryAggregate} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -17,6 +18,7 @@ const colorMode = useColorMode();
 const service = useTransactionService(useApi());
 const {t} = useI18n();
 const localeTag = useLocaleTag();
+const {window} = useDashboardPeriod();
 
 const aggregates = ref<CategoryAggregate[]>([]);
 const loading = ref(false);
@@ -25,7 +27,11 @@ async function load() {
   if (!props.accountId) return;
   loading.value = true;
   try {
-    aggregates.value = await service.aggregateByCategory(props.accountId);
+    const {fromIso, toIso} = window.value;
+    aggregates.value = await service.aggregateByCategory(props.accountId, {
+      fromDate: fromIso ?? undefined,
+      toDate: toIso ?? undefined,
+    });
   } catch (error) {
     console.error('Failed to load category aggregates', error);
     aggregates.value = [];
@@ -34,7 +40,7 @@ async function load() {
   }
 }
 
-watch(() => props.accountId, load, {immediate: true});
+watch(() => [props.accountId, window.value.fromIso, window.value.toIso], load, {immediate: true});
 
 const chartData = computed<ChartData<'doughnut'>>(() => ({
   labels: aggregates.value.map(a => a.categoryName),

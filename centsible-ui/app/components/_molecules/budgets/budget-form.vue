@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {type Category, CategoryType} from "~/models/category/category";
-import type {BudgetForm} from "~/models/budget/budget";
+import {BUDGET_PERIOD_TYPES, type BudgetForm} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import {useCategoryService} from "~/services/category/category-service";
@@ -33,6 +33,10 @@ const form = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
+const periodOptions = computed(() =>
+  BUDGET_PERIOD_TYPES.map((value) => ({value, label: t(`budgets.periods.${value}`)})),
+);
+
 onMounted(() => loadCategories());
 
 defineExpose({
@@ -57,5 +61,16 @@ defineExpose({
                :placeholder="t('budgets.form.limitPlaceholder')"
                required
                type="number"/>
+
+    <div>
+      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+        {{ t('budgets.form.periodLabel') }}
+      </label>
+      <USelect v-model="form.periodType" :items="periodOptions" class="w-full mt-1"/>
+    </div>
+
+    <UCheckbox v-model="form.rolloverEnabled"
+               :label="t('budgets.form.rolloverLabel')"
+               :description="t('budgets.form.rolloverDescription')"/>
   </div>
 </template>

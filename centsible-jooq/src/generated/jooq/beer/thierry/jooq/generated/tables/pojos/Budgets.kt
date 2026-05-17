@@ -20,7 +20,9 @@ data class Budgets(
     val categoryId: Long? = null,
     val amountLimit: BigDecimal? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val periodType: String? = null,
+    val rolloverEnabled: Boolean? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -67,6 +69,18 @@ data class Budgets(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.periodType == null) {
+            if (o.periodType != null)
+                return false
+        }
+        else if (this.periodType != o.periodType)
+            return false
+        if (this.rolloverEnabled == null) {
+            if (o.rolloverEnabled != null)
+                return false
+        }
+        else if (this.rolloverEnabled != o.rolloverEnabled)
+            return false
         return true
     }
 
@@ -79,6 +93,8 @@ data class Budgets(
         result = prime * result + (if (this.amountLimit == null) 0 else this.amountLimit.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.periodType == null) 0 else this.periodType.hashCode())
+        result = prime * result + (if (this.rolloverEnabled == null) 0 else this.rolloverEnabled.hashCode())
         return result
     }
 
@@ -91,6 +107,8 @@ data class Budgets(
         sb.append(", ").append(amountLimit)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(periodType)
+        sb.append(", ").append(rolloverEnabled)
 
         sb.append(")")
         return sb.toString()

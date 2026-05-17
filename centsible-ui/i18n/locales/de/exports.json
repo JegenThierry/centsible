@@ -34,6 +34,16 @@
     },
     "options": {
       "titleLabel": "Titel",
+      "rangeLabel": "Zeitraum",
+      "fromLabel": "Von",
+      "toLabel": "Bis",
+      "presets": {
+        "CURRENT_MONTH": "Aktueller Monat",
+        "PAST_3_MONTHS": "Letzte 3 Monate",
+        "YEAR": "Dieses Jahr",
+        "ALL_TIME": "Gesamter Zeitraum",
+        "CUSTOM": "Benutzerdefiniert"
+      },
       "emailMe": "Mir eine Kopie per E-Mail senden, wenn fertig",
       "recipientLabel": "Empfänger",
       "recipientHelp": "Leer lassen, um deine Konto-E-Mail zu verwenden.",

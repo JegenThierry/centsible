@@ -44,6 +44,14 @@ open class BudgetsRecord() : UpdatableRecordImpl<BudgetsRecord>(Budgets.BUDGETS)
         set(value): Unit = set(5, value)
         get(): OffsetDateTime? = get(5) as OffsetDateTime?
 
+    open var periodType: String?
+        set(value): Unit = set(6, value)
+        get(): String? = get(6) as String?
+
+    open var rolloverEnabled: Boolean?
+        set(value): Unit = set(7, value)
+        get(): Boolean? = get(7) as Boolean?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -53,13 +61,15 @@ open class BudgetsRecord() : UpdatableRecordImpl<BudgetsRecord>(Budgets.BUDGETS)
     /**
      * Create a detached, initialised BudgetsRecord
      */
-    constructor(id: UUID? = null, userId: UUID? = null, categoryId: Long? = null, amountLimit: BigDecimal? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, userId: UUID? = null, categoryId: Long? = null, amountLimit: BigDecimal? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, periodType: String? = null, rolloverEnabled: Boolean? = null): this() {
         this.id = id
         this.userId = userId
         this.categoryId = categoryId
         this.amountLimit = amountLimit
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.periodType = periodType
+        this.rolloverEnabled = rolloverEnabled
         resetChangedOnNotNull()
     }
 
@@ -74,6 +84,8 @@ open class BudgetsRecord() : UpdatableRecordImpl<BudgetsRecord>(Budgets.BUDGETS)
             this.amountLimit = value.amountLimit
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.periodType = value.periodType
+            this.rolloverEnabled = value.rolloverEnabled
             resetChangedOnNotNull()
         }
     }

@@ -14,6 +14,7 @@ import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SchemaMigrations
@@ -72,6 +73,11 @@ val LOAN_REPAYMENTS: LoanRepayments = LoanRepayments.LOAN_REPAYMENTS
  * The table <code>public.loans</code>.
  */
 val LOANS: Loans = Loans.LOANS
+
+/**
+ * The table <code>public.notifications</code>.
+ */
+val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
 
 /**
  * The table <code>public.provider_connections</code>.

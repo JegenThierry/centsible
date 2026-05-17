@@ -10,8 +10,12 @@ const props = defineProps<{
 
 const {t} = useI18n();
 
-const ratio = computed(() => props.budget.amountLimit > 0
-  ? props.budget.amountSpent / props.budget.amountLimit
+const effectiveLimit = computed(() =>
+  props.budget.amountLimit + (props.budget.rolloverAmount ?? 0)
+);
+
+const ratio = computed(() => effectiveLimit.value > 0
+  ? props.budget.amountSpent / effectiveLimit.value
   : 0);
 
 const percent = computed(() => Math.min(100, Math.round(ratio.value * 100)));
@@ -24,22 +28,30 @@ const barColor = computed(() => {
 });
 
 const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
+const periodLabel = computed(() => t(`budgets.periods.${props.budget.periodType ?? 'MONTHLY'}`));
 </script>
 
 <template>
   <div class="space-y-2">
     <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
+      <div class="flex items-center gap-2 min-w-0 flex-wrap">
         <UIcon :name="budget.category.icon"
                :style="{color: budget.category.color}"
                class="w-4 h-4 shrink-0"/>
         <span class="font-medium truncate">{{ budget.category.name }}</span>
+        <UBadge color="neutral" size="sm" variant="subtle">{{ periodLabel }}</UBadge>
+        <UBadge v-if="budget.rolloverEnabled && budget.rolloverAmount > 0"
+                color="info"
+                size="sm"
+                variant="subtle">
+          +<BalanceNumberFormat :balance="budget.rolloverAmount" :currency="resolvedCurrency"/>
+        </UBadge>
         <UBadge v-if="overBudget" color="error" size="sm" variant="subtle">{{ t('budgets.list.overBadge') }}</UBadge>
       </div>
       <div class="text-sm tabular-nums whitespace-nowrap">
         <BalanceNumberFormat :balance="budget.amountSpent" :currency="resolvedCurrency"/>
         <span class="text-neutral-400 mx-1">/</span>
-        <BalanceNumberFormat :balance="budget.amountLimit" :currency="resolvedCurrency"/>
+        <BalanceNumberFormat :balance="effectiveLimit" :currency="resolvedCurrency"/>
       </div>
     </div>
     <div class="h-2 w-full rounded-full bg-elevated overflow-hidden">

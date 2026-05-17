@@ -14,9 +14,17 @@
     },
     "form": {
       "categoryLabel": "Catégorie",
-      "limitLabel": "Plafond mensuel",
-      "limitDescription": "Réinitialisé chaque mois civil.",
-      "limitPlaceholder": "0,00"
+      "limitLabel": "Plafond",
+      "limitDescription": "Réinitialisé au début de chaque période.",
+      "limitPlaceholder": "0,00",
+      "periodLabel": "Période",
+      "rolloverLabel": "Reporter le montant non utilisé",
+      "rolloverDescription": "Si vous restez sous le budget, le montant non utilisé est ajouté à la période suivante."
+    },
+    "periods": {
+      "MONTHLY": "Mensuel",
+      "QUARTERLY": "Trimestriel",
+      "ANNUAL": "Annuel"
     },
     "create": {
       "title": "Nouveau budget",

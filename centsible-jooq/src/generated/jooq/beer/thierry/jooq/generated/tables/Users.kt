@@ -5,6 +5,7 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
+import beer.thierry.jooq.generated.indexes.IDX_USERS_PASSWORD_RESET_TOKEN_HASH
 import beer.thierry.jooq.generated.indexes.IDX_USERS_REGISTRATION_TOKEN_HASH
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
@@ -12,6 +13,7 @@ import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
@@ -22,6 +24,7 @@ import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
+import beer.thierry.jooq.generated.tables.Notifications.NotificationsPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
@@ -31,6 +34,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -157,6 +161,21 @@ open class Users(
      */
     val REGISTRATION_TOKEN_EXPIRES_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("registration_token_expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    /**
+     * The column <code>public.users.locale</code>.
+     */
+    val LOCALE: TableField<UsersRecord, String?> = createField(DSL.name("locale"), SQLDataType.CHAR(2).nullable(false).defaultValue(DSL.field(DSL.raw("'en'::bpchar"), SQLDataType.CHAR)), this, "")
+
+    /**
+     * The column <code>public.users.password_reset_token_hash</code>.
+     */
+    val PASSWORD_RESET_TOKEN_HASH: TableField<UsersRecord, ByteArray?> = createField(DSL.name("password_reset_token_hash"), SQLDataType.BLOB, this, "")
+
+    /**
+     * The column <code>public.users.password_reset_token_expires_at</code>.
+     */
+    val PASSWORD_RESET_TOKEN_EXPIRES_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("password_reset_token_expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -189,7 +208,7 @@ open class Users(
         override fun `as`(alias: Table<*>): UsersPath = UsersPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_USERS_REGISTRATION_TOKEN_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_USERS_PASSWORD_RESET_TOKEN_HASH, IDX_USERS_REGISTRATION_TOKEN_HASH)
     override fun getPrimaryKey(): UniqueKey<UsersRecord> = USERS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<UsersRecord>> = listOf(USERS_EMAIL_KEY, USERS_USERNAME_KEY)
 
@@ -288,6 +307,22 @@ open class Users(
     val loans: LoansPath
         get(): LoansPath = loans()
 
+    private lateinit var _notifications: NotificationsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.notifications</code> table
+     */
+    fun notifications(): NotificationsPath {
+        if (!this::_notifications.isInitialized)
+            _notifications = NotificationsPath(this, null, NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY.inverseKey)
+
+        return _notifications;
+    }
+
+    val notifications: NotificationsPath
+        get(): NotificationsPath = notifications()
+
     private lateinit var _providerConnections: ProviderConnectionsPath
 
     /**
@@ -303,6 +338,9 @@ open class Users(
 
     val providerConnections: ProviderConnectionsPath
         get(): ProviderConnectionsPath = providerConnections()
+    override fun getChecks(): List<Check<UsersRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("users_locale_supported"), "((locale = ANY (ARRAY['en'::bpchar, 'fr'::bpchar, 'de'::bpchar])))", true)
+    )
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)
     override fun `as`(alias: Name): Users = Users(alias, this)
     override fun `as`(alias: Table<*>): Users = Users(alias.qualifiedName, this)

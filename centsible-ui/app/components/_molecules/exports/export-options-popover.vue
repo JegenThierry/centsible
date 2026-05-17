@@ -2,6 +2,7 @@
 import {computed, ref} from 'vue';
 import {useAuthStore} from "~/stores/authStore";
 import type {CreateExportRequest, ExportRequestParams, ExportType} from "~/models/export/export-job";
+import {type DateRangePreset, DATE_RANGE_PRESETS, resolvePreset} from "~/utils/date-range";
 
 const props = defineProps<{
   type: ExportType;
@@ -20,13 +21,23 @@ const open = ref(false);
 const sendEmail = ref(false);
 const recipient = ref('');
 const title = ref('');
+const preset = ref<DateRangePreset>('CURRENT_MONTH');
+const customFrom = ref('');
+const customTo = ref('');
 
 const userEmail = computed(() => authStore.user?.email ?? '');
+const supportsDateRange = computed(() => props.type === 'TRANSACTIONS');
+const presetOptions = computed(() =>
+  DATE_RANGE_PRESETS.map((value) => ({value, label: t(`exports.options.presets.${value}`)}))
+);
 
 function reset() {
   sendEmail.value = false;
   recipient.value = '';
   title.value = props.defaultTitle;
+  preset.value = 'CURRENT_MONTH';
+  customFrom.value = '';
+  customTo.value = '';
 }
 
 function onOpen(value: boolean) {
@@ -34,11 +45,27 @@ function onOpen(value: boolean) {
   if (value) reset();
 }
 
+function dateRangeFromSelection() {
+  if (preset.value === 'CUSTOM') {
+    return {fromDate: customFrom.value || null, toDate: customTo.value || null};
+  }
+  return resolvePreset(preset.value);
+}
+
+function buildParams(): ExportRequestParams {
+  const base = props.paramsBuilder();
+  if (supportsDateRange.value && base.kind === 'TRANSACTIONS') {
+    const {fromDate, toDate} = dateRangeFromSelection();
+    return {...base, fromDate, toDate};
+  }
+  return base;
+}
+
 function submit() {
   const payload: CreateExportRequest = {
     type: props.type,
     title: title.value || props.defaultTitle,
-    params: props.paramsBuilder(),
+    params: buildParams(),
     postProcessing: sendEmail.value
       ? [{type: 'SEND_EMAIL', config: recipient.value ? {recipient: recipient.value} : {}}]
       : [],
@@ -57,6 +84,22 @@ function submit() {
         <div>
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.titleLabel') }}</label>
           <UInput v-model="title" :placeholder="defaultTitle" class="w-full mt-1"/>
+        </div>
+
+        <div v-if="supportsDateRange">
+          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.rangeLabel') }}</label>
+          <USelect v-model="preset" :items="presetOptions" class="w-full mt-1"/>
+        </div>
+
+        <div v-if="supportsDateRange && preset === 'CUSTOM'" class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.fromLabel') }}</label>
+            <UInput v-model="customFrom" class="w-full mt-1" type="date"/>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.toLabel') }}</label>
+            <UInput v-model="customTo" class="w-full mt-1" type="date"/>
+          </div>
         </div>
 
         <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3">

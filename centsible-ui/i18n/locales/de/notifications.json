@@ -1,0 +1,10 @@
+{
+  "notifications": {
+    "aria": "Benachrichtigungen öffnen",
+    "title": "Benachrichtigungen",
+    "empty": "Alles erledigt.",
+    "markAllRead": "Alle als gelesen markieren",
+    "markRead": "Als gelesen markieren",
+    "delete": "Benachrichtigung löschen"
+  }
+}

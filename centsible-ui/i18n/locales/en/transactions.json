@@ -19,6 +19,44 @@
       "actionEdit": "Edit",
       "actionDelete": "Delete"
     },
+    "bulk": {
+      "selectAll": "Select all on this page",
+      "selectRow": "Select transaction",
+      "selectedCount": "{count} selected",
+      "recategorize": "Re-categorize",
+      "delete": "Delete",
+      "clear": "Clear",
+      "recategorizeTitle": "Re-categorize transactions",
+      "recategorizeBody": "Choose a category to apply to {count} transactions.",
+      "recategorizeConfirm": "Apply",
+      "deleteConfirm": "Delete {count} transactions? This cannot be undone.",
+      "deleteToastTitle": "Transactions deleted",
+      "deleteToastBody": "{count} transactions removed.",
+      "recategorizeToastTitle": "Category updated",
+      "recategorizeToastBody": "{count} transactions re-categorized.",
+      "errorTitle": "Bulk action failed",
+      "errorBody": "The operation could not be completed. Please try again."
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search description...",
+      "categoryLabel": "Categories",
+      "categoryPlaceholder": "All categories",
+      "noCategories": "No categories yet.",
+      "dateRangeLabel": "Date range",
+      "fromShort": "From {date}",
+      "toShort": "Until {date}",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "sortLabel": "Sort",
+      "clear": "Clear",
+      "sort": {
+        "DATE_DESC": "Date (newest first)",
+        "DATE_ASC": "Date (oldest first)",
+        "AMOUNT_DESC": "Amount (high to low)",
+        "AMOUNT_ASC": "Amount (low to high)"
+      }
+    },
     "category": {
       "noCategory": "No category",
       "type": {

@@ -1,5 +1,6 @@
-import {ref} from 'vue'
+import {ref, type Ref, watch} from 'vue'
 import type {Transaction} from '~/models/transactions/transaction'
+import type {TransactionFilters} from '~/models/transactions/transaction-filters'
 import type {useBudgetAccountsStore} from '~/stores/budgetAccountsStore'
 import type {useTransactionService} from '~/services/transactions/transaction-service'
 
@@ -9,7 +10,8 @@ type BudgetAccountsStore = ReturnType<typeof useBudgetAccountsStore>
 export function useTransactionList(
   transactionService: TransactionService,
   budgetAccountsStore: BudgetAccountsStore,
-  pageSizeValue = 25
+  pageSizeValue = 25,
+  filters?: Ref<TransactionFilters>,
 ) {
   const transactions = ref<Transaction[]>([])
   const page = ref(1)
@@ -34,7 +36,8 @@ export function useTransactionList(
       const data = await transactionService.fetchTransactions(
         budgetAccountsStore.activeAccount.id,
         page.value,
-        pageSize.value
+        pageSize.value,
+        filters?.value ?? {},
       )
 
       if (data.length < pageSize.value) {
@@ -49,6 +52,16 @@ export function useTransactionList(
       loading.value = false
       loadingMore.value = false
     }
+  }
+
+  if (filters) {
+    watch(
+      filters,
+      () => {
+        if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
+      },
+      {deep: true},
+    )
   }
 
   return {

@@ -9,7 +9,9 @@ import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
+import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.core.services.transactions.TransactionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -37,6 +39,12 @@ class TransactionServiceTest {
 
     @Mock
     private lateinit var accountHistoryRepository: IBudgetAccountHistoryRepository
+
+    @Mock
+    private lateinit var notificationService: INotificationService
+
+    @Mock
+    private lateinit var categoriesRepository: ICategoriesRepository
 
     @InjectMocks
     private lateinit var service: TransactionService

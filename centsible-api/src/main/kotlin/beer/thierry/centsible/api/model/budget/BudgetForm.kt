@@ -17,4 +17,8 @@ data class BudgetForm(
     @field:DecimalMax(value = "9999999.99", message = "{validation.budget.limit.tooLarge}")
     @field:Digits(integer = 7, fraction = 2, message = "{validation.budget.limit.fraction}")
     var amountLimit: BigDecimal = BigDecimal.ZERO,
+
+    var periodType: BudgetPeriodType = BudgetPeriodType.MONTHLY,
+
+    var rolloverEnabled: Boolean = false,
 )

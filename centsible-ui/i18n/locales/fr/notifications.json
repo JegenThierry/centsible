@@ -1,0 +1,10 @@
+{
+  "notifications": {
+    "aria": "Ouvrir les notifications",
+    "title": "Notifications",
+    "empty": "Tout est à jour.",
+    "markAllRead": "Tout marquer comme lu",
+    "markRead": "Marquer comme lu",
+    "delete": "Supprimer la notification"
+  }
+}

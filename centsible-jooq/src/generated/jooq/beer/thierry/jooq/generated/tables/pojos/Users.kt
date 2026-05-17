@@ -27,7 +27,10 @@ data class Users(
     val registrationToken: UUID? = null,
     val profilePicture: String? = null,
     val registrationTokenHash: ByteArray? = null,
-    val registrationTokenExpiresAt: OffsetDateTime? = null
+    val registrationTokenExpiresAt: OffsetDateTime? = null,
+    val locale: String? = null,
+    val passwordResetTokenHash: ByteArray? = null,
+    val passwordResetTokenExpiresAt: OffsetDateTime? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -116,6 +119,24 @@ data class Users(
         }
         else if (this.registrationTokenExpiresAt != o.registrationTokenExpiresAt)
             return false
+        if (this.locale == null) {
+            if (o.locale != null)
+                return false
+        }
+        else if (this.locale != o.locale)
+            return false
+        if (this.passwordResetTokenHash == null) {
+            if (o.passwordResetTokenHash != null)
+                return false
+        }
+        else if (!Arrays.equals(this.passwordResetTokenHash, o.passwordResetTokenHash))
+            return false
+        if (this.passwordResetTokenExpiresAt == null) {
+            if (o.passwordResetTokenExpiresAt != null)
+                return false
+        }
+        else if (this.passwordResetTokenExpiresAt != o.passwordResetTokenExpiresAt)
+            return false
         return true
     }
 
@@ -135,6 +156,9 @@ data class Users(
         result = prime * result + (if (this.profilePicture == null) 0 else this.profilePicture.hashCode())
         result = prime * result + (if (this.registrationTokenHash == null) 0 else Arrays.hashCode(this.registrationTokenHash))
         result = prime * result + (if (this.registrationTokenExpiresAt == null) 0 else this.registrationTokenExpiresAt.hashCode())
+        result = prime * result + (if (this.locale == null) 0 else this.locale.hashCode())
+        result = prime * result + (if (this.passwordResetTokenHash == null) 0 else Arrays.hashCode(this.passwordResetTokenHash))
+        result = prime * result + (if (this.passwordResetTokenExpiresAt == null) 0 else this.passwordResetTokenExpiresAt.hashCode())
         return result
     }
 
@@ -154,6 +178,9 @@ data class Users(
         sb.append(", ").append(profilePicture)
         sb.append(", ").append("[binary...]")
         sb.append(", ").append(registrationTokenExpiresAt)
+        sb.append(", ").append(locale)
+        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(passwordResetTokenExpiresAt)
 
         sb.append(")")
         return sb.toString()

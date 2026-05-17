@@ -19,6 +19,44 @@
       "actionEdit": "Bearbeiten",
       "actionDelete": "Löschen"
     },
+    "bulk": {
+      "selectAll": "Alle auf dieser Seite auswählen",
+      "selectRow": "Transaktion auswählen",
+      "selectedCount": "{count} ausgewählt",
+      "recategorize": "Neu kategorisieren",
+      "delete": "Löschen",
+      "clear": "Auswahl löschen",
+      "recategorizeTitle": "Transaktionen neu kategorisieren",
+      "recategorizeBody": "Wählen Sie eine Kategorie, die auf {count} Transaktionen angewendet werden soll.",
+      "recategorizeConfirm": "Anwenden",
+      "deleteConfirm": "{count} Transaktionen löschen? Diese Aktion ist unumkehrbar.",
+      "deleteToastTitle": "Transaktionen gelöscht",
+      "deleteToastBody": "{count} Transaktionen entfernt.",
+      "recategorizeToastTitle": "Kategorie aktualisiert",
+      "recategorizeToastBody": "{count} Transaktionen neu kategorisiert.",
+      "errorTitle": "Bulk-Aktion fehlgeschlagen",
+      "errorBody": "Der Vorgang konnte nicht abgeschlossen werden. Bitte erneut versuchen."
+    },
+    "filters": {
+      "searchLabel": "Suche",
+      "searchPlaceholder": "Beschreibung durchsuchen...",
+      "categoryLabel": "Kategorien",
+      "categoryPlaceholder": "Alle Kategorien",
+      "noCategories": "Noch keine Kategorien.",
+      "dateRangeLabel": "Zeitraum",
+      "fromShort": "Ab {date}",
+      "toShort": "Bis {date}",
+      "fromLabel": "Von",
+      "toLabel": "Bis",
+      "sortLabel": "Sortierung",
+      "clear": "Zurücksetzen",
+      "sort": {
+        "DATE_DESC": "Datum (neueste zuerst)",
+        "DATE_ASC": "Datum (älteste zuerst)",
+        "AMOUNT_DESC": "Betrag (absteigend)",
+        "AMOUNT_ASC": "Betrag (aufsteigend)"
+      }
+    },
     "category": {
       "noCategory": "Keine Kategorie",
       "type": {
