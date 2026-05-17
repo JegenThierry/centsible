@@ -24,7 +24,12 @@ const formRef = ref<InstanceType<typeof BudgetFormFields>>();
 const loading = ref(false);
 
 function toForm(budget: Budget): BudgetForm {
-  return {category: budget.category, amountLimit: budget.amountLimit};
+  return {
+    category: budget.category,
+    amountLimit: budget.amountLimit,
+    periodType: budget.periodType ?? 'MONTHLY',
+    rolloverEnabled: budget.rolloverEnabled ?? false,
+  };
 }
 
 watch(() => props.budget, (b) => {
@@ -40,6 +45,8 @@ async function handleSave() {
     await service.update(props.budget.id, {
       categoryId: form.value.category.id,
       amountLimit: form.value.amountLimit,
+      periodType: form.value.periodType,
+      rolloverEnabled: form.value.rolloverEnabled,
     });
     toasts.success(t('budgets.edit.toastSuccessTitle'), t('budgets.edit.toastSuccessBody'));
     emit('updated');

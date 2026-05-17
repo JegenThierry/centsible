@@ -6,9 +6,10 @@ import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
+import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
-import java.time.YearMonth
+import java.time.LocalDate
 import java.util.*
 
 interface ITransactionService {
@@ -16,7 +17,8 @@ interface ITransactionService {
         accountId: UUID,
         authenticatedUser: UserDTO,
         page: Int,
-        size: Int = DEFAULT_PAGE_SIZE
+        size: Int = DEFAULT_PAGE_SIZE,
+        filters: TransactionFilters = TransactionFilters(),
     ): List<TransactionDTO>
 
     fun createTransaction(accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO): TransactionDTO
@@ -29,10 +31,15 @@ interface ITransactionService {
 
     fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
 
+    fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int
+
+    fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Int, authenticatedUser: UserDTO): Int
+
     fun aggregateByCategory(
         accountId: UUID,
         authenticatedUser: UserDTO,
-        yearMonth: YearMonth = YearMonth.now(),
+        from: LocalDate,
+        to: LocalDate,
     ): List<CategoryAggregateDTO>
 
     fun aggregateByMonth(

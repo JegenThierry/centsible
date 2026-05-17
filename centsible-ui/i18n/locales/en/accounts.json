@@ -57,7 +57,27 @@
       "monthlyExpenses": "Monthly Expenses",
       "netSavings": "Net Savings",
       "budgetsThisMonth": "Budgets this month",
-      "budgetsViewAll": "View all"
+      "budgetsViewAll": "View all",
+      "periods": {
+        "CURRENT_MONTH": "This month",
+        "PAST_3_MONTHS": "Past 3 months",
+        "YEAR": "This year",
+        "ALL_TIME": "All time"
+      },
+      "stats": {
+        "income": {
+          "CURRENT_MONTH": "Monthly Income",
+          "PAST_3_MONTHS": "Income (3 months)",
+          "YEAR": "Income this year",
+          "ALL_TIME": "Income (all time)"
+        },
+        "expenses": {
+          "CURRENT_MONTH": "Monthly Expenses",
+          "PAST_3_MONTHS": "Expenses (3 months)",
+          "YEAR": "Expenses this year",
+          "ALL_TIME": "Expenses (all time)"
+        }
+      }
     }
   }
 }

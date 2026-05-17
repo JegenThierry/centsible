@@ -57,7 +57,27 @@
       "monthlyExpenses": "Monatliche Ausgaben",
       "netSavings": "Nettoersparnis",
       "budgetsThisMonth": "Budgets diesen Monat",
-      "budgetsViewAll": "Alle anzeigen"
+      "budgetsViewAll": "Alle anzeigen",
+      "periods": {
+        "CURRENT_MONTH": "Dieser Monat",
+        "PAST_3_MONTHS": "Letzte 3 Monate",
+        "YEAR": "Dieses Jahr",
+        "ALL_TIME": "Gesamter Zeitraum"
+      },
+      "stats": {
+        "income": {
+          "CURRENT_MONTH": "Monatliche Einnahmen",
+          "PAST_3_MONTHS": "Einnahmen (3 Monate)",
+          "YEAR": "Einnahmen dieses Jahr",
+          "ALL_TIME": "Einnahmen (gesamt)"
+        },
+        "expenses": {
+          "CURRENT_MONTH": "Monatliche Ausgaben",
+          "PAST_3_MONTHS": "Ausgaben (3 Monate)",
+          "YEAR": "Ausgaben dieses Jahr",
+          "ALL_TIME": "Ausgaben (gesamt)"
+        }
+      }
     }
   }
 }

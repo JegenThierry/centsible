@@ -19,6 +19,40 @@
       "actionEdit": "Modifier",
       "actionDelete": "Supprimer"
     },
+    "bulk": {
+      "selectAll": "Tout sélectionner sur cette page",
+      "selectRow": "Sélectionner la transaction",
+      "selectedCount": "{count} sélectionnée(s)",
+      "recategorize": "Recatégoriser",
+      "delete": "Supprimer",
+      "clear": "Effacer",
+      "recategorizeTitle": "Recatégoriser les transactions",
+      "recategorizeBody": "Choisissez une catégorie à appliquer à {count} transactions.",
+      "recategorizeConfirm": "Appliquer",
+      "deleteConfirm": "Supprimer {count} transactions ? Cette action est irréversible.",
+      "deleteToastTitle": "Transactions supprimées",
+      "deleteToastBody": "{count} transactions supprimées.",
+      "recategorizeToastTitle": "Catégorie mise à jour",
+      "recategorizeToastBody": "{count} transactions recatégorisées.",
+      "errorTitle": "Action en masse échouée",
+      "errorBody": "L'opération n'a pas pu être effectuée. Veuillez réessayer."
+    },
+    "filters": {
+      "searchLabel": "Recherche",
+      "searchPlaceholder": "Rechercher dans les descriptions...",
+      "categoryLabel": "Catégories",
+      "categoryPlaceholder": "Toutes les catégories",
+      "fromLabel": "Du",
+      "toLabel": "Au",
+      "sortLabel": "Tri",
+      "clear": "Réinitialiser",
+      "sort": {
+        "DATE_DESC": "Date (plus récent)",
+        "DATE_ASC": "Date (plus ancien)",
+        "AMOUNT_DESC": "Montant (décroissant)",
+        "AMOUNT_ASC": "Montant (croissant)"
+      }
+    },
     "category": {
       "noCategory": "Aucune catégorie",
       "type": {

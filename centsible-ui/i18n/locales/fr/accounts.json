@@ -57,7 +57,27 @@
       "monthlyExpenses": "Dépenses du mois",
       "netSavings": "Épargne nette",
       "budgetsThisMonth": "Budgets ce mois-ci",
-      "budgetsViewAll": "Tout voir"
+      "budgetsViewAll": "Tout voir",
+      "periods": {
+        "CURRENT_MONTH": "Ce mois-ci",
+        "PAST_3_MONTHS": "3 derniers mois",
+        "YEAR": "Cette année",
+        "ALL_TIME": "Tout l'historique"
+      },
+      "stats": {
+        "income": {
+          "CURRENT_MONTH": "Revenus du mois",
+          "PAST_3_MONTHS": "Revenus (3 mois)",
+          "YEAR": "Revenus de l'année",
+          "ALL_TIME": "Revenus (tout l'historique)"
+        },
+        "expenses": {
+          "CURRENT_MONTH": "Dépenses du mois",
+          "PAST_3_MONTHS": "Dépenses (3 mois)",
+          "YEAR": "Dépenses de l'année",
+          "ALL_TIME": "Dépenses (tout l'historique)"
+        }
+      }
     }
   }
 }

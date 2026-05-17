@@ -5,6 +5,7 @@ import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.
 import ThemePicker from "~/components/_organisms/theme/theme-picker.vue";
 import LanguagePicker from "~/components/_atoms/language/language-picker.vue";
 import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
+import NotificationBell from "~/components/_organisms/notifications/notification-bell.vue";
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 import {useSidebar} from "~/composables/use-sidebar";
@@ -49,6 +50,7 @@ onMounted(async () => {
       <LanguagePicker/>
       <ThemePicker/>
       <template v-if="authStore.isAuthenticated">
+        <NotificationBell/>
         <Profile v-if="userStore.user" :user="userStore.user"/>
         <ProfileSkeleton v-else/>
       </template>

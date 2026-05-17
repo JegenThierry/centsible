@@ -13,6 +13,7 @@ import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
 import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
+import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
@@ -69,7 +70,11 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
     <PageHeader
       :description="headerDescription"
       :title="t('accounts.dashboard.title')"
-    />
+    >
+      <template #actions>
+        <PeriodSelector v-if="isAccountReady"/>
+      </template>
+    </PageHeader>
 
     <div v-if="isLoading" class="space-y-4 sm:space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
@@ -92,8 +97,8 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
     </div>
 
     <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
-      <DashboardStats :currency="accountStore.activeAccount.currency"
-                      :transactions="transactionStore.transactions"/>
+      <DashboardStats :account-id="accountStore.activeAccount.id"
+                      :currency="accountStore.activeAccount.currency"/>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         <AccountBalance :account-name="accountStore.activeAccount.name"

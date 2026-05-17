@@ -13,6 +13,7 @@ import {Bar} from 'vue-chartjs';
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {MonthlyAggregate} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
+import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -26,15 +27,18 @@ const colorMode = useColorMode();
 const service = useTransactionService(useApi());
 const {t} = useI18n();
 const localeTag = useLocaleTag();
+const {window} = useDashboardPeriod();
 
 const aggregates = ref<MonthlyAggregate[]>([]);
 const loading = ref(false);
+
+const resolvedMonths = computed(() => Math.max(1, Math.min(36, props.months ?? window.value.months)));
 
 async function load() {
   if (!props.accountId) return;
   loading.value = true;
   try {
-    aggregates.value = await service.aggregateByMonth(props.accountId, props.months ?? 6);
+    aggregates.value = await service.aggregateByMonth(props.accountId, resolvedMonths.value);
   } catch (error) {
     console.error('Failed to load monthly aggregates', error);
     aggregates.value = [];
@@ -43,7 +47,7 @@ async function load() {
   }
 }
 
-watch(() => [props.accountId, props.months], load, {immediate: true});
+watch(() => [props.accountId, resolvedMonths.value], load, {immediate: true});
 
 function formatLabel(yearMonth: string): string {
   const [year, month] = yearMonth.split('-');

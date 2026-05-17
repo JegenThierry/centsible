@@ -14,9 +14,17 @@
     },
     "form": {
       "categoryLabel": "Category",
-      "limitLabel": "Monthly limit",
-      "limitDescription": "Resets every calendar month.",
-      "limitPlaceholder": "0.00"
+      "limitLabel": "Spending limit",
+      "limitDescription": "Resets at the start of each period.",
+      "limitPlaceholder": "0.00",
+      "periodLabel": "Period",
+      "rolloverLabel": "Roll over unused amount",
+      "rolloverDescription": "If you stay under budget, the unused amount is added to the next period."
+    },
+    "periods": {
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "ANNUAL": "Annual"
     },
     "create": {
       "title": "New budget",

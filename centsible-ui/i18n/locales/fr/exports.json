@@ -34,6 +34,16 @@
     },
     "options": {
       "titleLabel": "Titre",
+      "rangeLabel": "Période",
+      "fromLabel": "Du",
+      "toLabel": "Au",
+      "presets": {
+        "CURRENT_MONTH": "Mois en cours",
+        "PAST_3_MONTHS": "3 derniers mois",
+        "YEAR": "Cette année",
+        "ALL_TIME": "Tout l'historique",
+        "CUSTOM": "Personnalisé"
+      },
       "emailMe": "M'envoyer une copie par e-mail quand c'est prêt",
       "recipientLabel": "Destinataire",
       "recipientHelp": "Laissez vide pour utiliser l'e-mail de votre compte.",

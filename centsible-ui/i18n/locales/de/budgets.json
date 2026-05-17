@@ -14,9 +14,17 @@
     },
     "form": {
       "categoryLabel": "Kategorie",
-      "limitLabel": "Monatslimit",
-      "limitDescription": "Wird jeden Kalendermonat zurückgesetzt.",
-      "limitPlaceholder": "0,00"
+      "limitLabel": "Ausgabenlimit",
+      "limitDescription": "Wird zu Beginn jeder Periode zurückgesetzt.",
+      "limitPlaceholder": "0,00",
+      "periodLabel": "Periode",
+      "rolloverLabel": "Nicht genutzten Betrag übertragen",
+      "rolloverDescription": "Wenn du unter Budget bleibst, wird der Restbetrag zur nächsten Periode hinzugefügt."
+    },
+    "periods": {
+      "MONTHLY": "Monatlich",
+      "QUARTERLY": "Vierteljährlich",
+      "ANNUAL": "Jährlich"
     },
     "create": {
       "title": "Neues Budget",

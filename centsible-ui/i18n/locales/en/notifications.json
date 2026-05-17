@@ -1,0 +1,10 @@
+{
+  "notifications": {
+    "aria": "Open notifications",
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark read",
+    "delete": "Delete notification"
+  }
+}

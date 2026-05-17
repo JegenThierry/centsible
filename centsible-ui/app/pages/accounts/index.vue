@@ -2,7 +2,7 @@
 import Accounts from "~/components/_organisms/accounts/accounts.vue";
 
 definePageMeta({
-  middleware: ['auth-guard']
+  middleware: ['auth-guard', 'onboarding-guard']
 })
 
 const {t} = useI18n();
