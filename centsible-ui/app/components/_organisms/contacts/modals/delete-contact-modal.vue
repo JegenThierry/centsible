@@ -32,8 +32,8 @@ async function handleDelete() {
     await contactsStore.deleteContact(props.contact.id);
     isOpen.value = false;
     emit('deleted');
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Delete contact failed', error);
   } finally {
     loading.value = false;
   }

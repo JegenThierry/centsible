@@ -4,7 +4,7 @@ import {Doughnut} from 'vue-chartjs';
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {CategoryAggregate} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -77,7 +77,7 @@ const total = computed(() =>
 <template>
   <UCard>
     <template #header>
-      <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+      <h3 class="text-base font-semibold text-highlighted">
         {{ t('accounts.dashboard.spendingByCategory') }}
       </h3>
     </template>
@@ -90,8 +90,8 @@ const total = computed(() =>
       <template v-else>
         <Doughnut :data="chartData" :options="chartOptions"/>
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10">
-          <span class="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-medium">{{ t('accounts.dashboard.total') }}</span>
-          <span class="text-lg font-bold text-gray-900 dark:text-white">
+          <span class="text-xs text-muted uppercase tracking-widest font-medium">{{ t('accounts.dashboard.total') }}</span>
+          <span class="text-lg font-bold text-highlighted">
             <BalanceNumberFormat :balance="total" :currency="currency"/>
           </span>
         </div>

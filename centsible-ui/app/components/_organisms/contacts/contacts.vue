@@ -11,12 +11,12 @@ import LoadingAnimation from "~/components/_atoms/animations/loading-animation.v
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {todayIsoDate} from "~/utils/date";
-import {Currency} from "~/models/budget-account/currency";
 import type {Contact} from "~/models/contact/contact";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 
 const contactsStore = useContactsStore();
 const loansStore = useLoansStore();
@@ -30,7 +30,7 @@ const isDeleteContactOpen = ref(false);
 const isCreateLoanOpen = ref(false);
 const selectedContact = ref<Contact>();
 
-const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? Currency.EUR);
+const currency = useActiveCurrency();
 
 function openDetail(contact: Contact) {
   navigateTo(`/contacts/${contact.id}`);
@@ -60,6 +60,8 @@ onMounted(async () => {
     toasts.error(t('contacts.toasts.loadFailedTitle'), t('contacts.toasts.loadFailedBody'));
   }
 });
+
+const contactsEmpty = computed(() => contactsStore.contacts.length === 0);
 </script>
 
 <template>
@@ -102,11 +104,11 @@ onMounted(async () => {
       </div>
     </UCard>
 
-    <div v-if="contactsStore.pending && contactsStore.contacts.length > 0" class="flex justify-center mb-6">
+    <div v-if="contactsStore.pending && !contactsEmpty" class="flex justify-center mb-6">
       <LoadingAnimation/>
     </div>
 
-    <AppEmptyState v-if="contactsStore.contacts.length === 0 && !contactsStore.pending"
+    <AppEmptyState v-if="contactsEmpty && !contactsStore.pending"
                    :description="t('contacts.empty.description')"
                    icon="i-lucide-users"
                    :title="t('contacts.empty.title')">
@@ -117,7 +119,7 @@ onMounted(async () => {
       </template>
     </AppEmptyState>
 
-    <template v-else-if="contactsStore.pending && contactsStore.contacts.length === 0">
+    <template v-else-if="contactsStore.pending && contactsEmpty">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <CardSkeleton v-for="i in 4" :key="i"/>
       </div>

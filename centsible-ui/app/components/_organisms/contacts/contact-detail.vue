@@ -12,10 +12,10 @@ import RecordRepaymentModal from "~/components/_organisms/loans/modals/record-re
 import DeleteLoanModal from "~/components/_organisms/loans/modals/delete-loan-modal.vue";
 import EditContactModal from "~/components/_organisms/contacts/modals/edit-contact-modal.vue";
 import DeleteContactModal from "~/components/_organisms/contacts/modals/delete-contact-modal.vue";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
-import {Currency} from "~/models/budget-account/currency";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 
 const props = defineProps<{
   contactId: string;
@@ -37,7 +37,17 @@ const selectedLoan = ref<Loan>();
 
 const contact = computed<Contact | undefined>(() => contactsStore.findContactById(props.contactId));
 const loans = computed<Loan[]>(() => loansStore.loansByContact[props.contactId] ?? []);
-const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? Currency.EUR);
+const currency = useActiveCurrency();
+
+const stats = computed(() => {
+  if (!contact.value) return [];
+  return [
+    {labelKey: 'contacts.detail.stats.totalLent', value: Number(contact.value.totalLent)},
+    {labelKey: 'contacts.detail.stats.totalOwed', value: Number(contact.value.totalOwed)},
+    {labelKey: 'contacts.detail.stats.totalRepaid', value: Number(contact.value.totalRepaid), valueClass: 'text-success'},
+    {labelKey: 'contacts.detail.stats.outstanding', value: Number(contact.value.outstanding), valueClass: 'text-warning'},
+  ];
+});
 
 function onEditAvatar() {
   fileInput.value?.click();
@@ -65,8 +75,8 @@ function openDeleteLoan(loan: Loan) {
   isDeleteLoanOpen.value = true;
 }
 
-async function reloadAll() {
-  await Promise.all([
+function reloadAll() {
+  return Promise.all([
     contactsStore.fetchContact(props.contactId),
     loansStore.refreshLoansForContact(props.contactId),
   ]);
@@ -80,8 +90,7 @@ function onContactDeleted() {
 onMounted(async () => {
   try {
     await Promise.all([
-      contactsStore.fetchContact(props.contactId),
-      loansStore.refreshLoansForContact(props.contactId),
+      reloadAll(),
       budgetAccountsStore.availableAccounts.length === 0
         ? budgetAccountsStore.updateAvailableAccounts()
         : Promise.resolve(),
@@ -153,28 +162,10 @@ onMounted(async () => {
       </UCard>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <UCard>
-          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalLent') }}</p>
-          <p class="text-lg font-bold">
-            <BalanceNumberFormat :balance="Number(contact.totalLent)" :currency="currency"/>
-          </p>
-        </UCard>
-        <UCard>
-          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalOwed') }}</p>
-          <p class="text-lg font-bold">
-            <BalanceNumberFormat :balance="Number(contact.totalOwed)" :currency="currency"/>
-          </p>
-        </UCard>
-        <UCard>
-          <p class="text-xs text-muted">{{ t('contacts.detail.stats.totalRepaid') }}</p>
-          <p class="text-lg font-bold text-success">
-            <BalanceNumberFormat :balance="Number(contact.totalRepaid)" :currency="currency"/>
-          </p>
-        </UCard>
-        <UCard>
-          <p class="text-xs text-muted">{{ t('contacts.detail.stats.outstanding') }}</p>
-          <p class="text-lg font-bold text-warning">
-            <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
+        <UCard v-for="stat in stats" :key="stat.labelKey">
+          <p class="text-xs text-muted">{{ t(stat.labelKey) }}</p>
+          <p :class="['text-lg font-bold', stat.valueClass]">
+            <BalanceNumberFormat :balance="stat.value" :currency="currency"/>
           </p>
         </UCard>
       </div>

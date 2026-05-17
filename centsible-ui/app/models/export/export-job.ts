@@ -4,11 +4,13 @@ export type ExportType =
   | 'LENDINGS_ALL'
   | 'ACCOUNTS_SUMMARY';
 
-export type ExportStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+export type JobStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+
+export type ExportStatus = JobStatus;
 
 export type PostProcessingType = 'SEND_EMAIL';
 
-export type PostProcessingStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+export type PostProcessingStatus = JobStatus;
 
 export interface ExportPostProcessing {
   id: string;

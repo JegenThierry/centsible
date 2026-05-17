@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import {computed} from "vue";
 import type {UserDto} from "~/models/user/user-dto";
 import {useAuthStore} from "~/stores/authStore";
 
@@ -46,7 +45,7 @@ const items = computed(() => [
       <UUser
         :avatar="{
             src: user.profilePicture || undefined,
-            icon: user.profilePicture ? undefined : 'i-heroicons-user'
+            icon: user.profilePicture ? undefined : 'i-lucide-user'
           }"
         :description="user.email"
         :name="user.name"
@@ -55,7 +54,3 @@ const items = computed(() => [
     </UButton>
   </UDropdownMenu>
 </template>
-
-<style scoped>
-
-</style>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {Budget} from "~/models/budget/budget";
 import {Currency} from "~/models/budget-account/currency";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 const props = defineProps<{
   budget: Budget;
@@ -10,10 +10,9 @@ const props = defineProps<{
 
 const {t} = useI18n();
 
-const ratio = computed(() => {
-  if (props.budget.amountLimit <= 0) return 0;
-  return props.budget.amountSpent / props.budget.amountLimit;
-});
+const ratio = computed(() => props.budget.amountLimit > 0
+  ? props.budget.amountSpent / props.budget.amountLimit
+  : 0);
 
 const percent = computed(() => Math.min(100, Math.round(ratio.value * 100)));
 const overBudget = computed(() => ratio.value > 1);
@@ -24,7 +23,7 @@ const barColor = computed(() => {
   return 'bg-success';
 });
 
-const cur = computed(() => props.currency ?? Currency.EUR);
+const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
 </script>
 
 <template>
@@ -38,9 +37,9 @@ const cur = computed(() => props.currency ?? Currency.EUR);
         <UBadge v-if="overBudget" color="error" size="sm" variant="subtle">{{ t('budgets.list.overBadge') }}</UBadge>
       </div>
       <div class="text-sm tabular-nums whitespace-nowrap">
-        <BalanceNumberFormat :balance="budget.amountSpent" :currency="cur"/>
+        <BalanceNumberFormat :balance="budget.amountSpent" :currency="resolvedCurrency"/>
         <span class="text-neutral-400 mx-1">/</span>
-        <BalanceNumberFormat :balance="budget.amountLimit" :currency="cur"/>
+        <BalanceNumberFormat :balance="budget.amountLimit" :currency="resolvedCurrency"/>
       </div>
     </div>
     <div class="h-2 w-full rounded-full bg-elevated overflow-hidden">

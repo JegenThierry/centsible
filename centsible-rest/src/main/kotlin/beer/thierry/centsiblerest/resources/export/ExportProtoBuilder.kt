@@ -10,6 +10,7 @@ import beer.thierry.centsible.export.proto.TransactionsRequest
 import com.google.protobuf.Timestamp
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.util.UUID
 
 @Component
 class ExportProtoBuilder {
@@ -27,14 +28,14 @@ class ExportProtoBuilder {
         val builder = ExportRequest.newBuilder().setMeta(meta)
         when (params) {
             is TransactionsExportParams -> builder.transactions = TransactionsRequest.newBuilder()
-                .addAllAccountIds(params.accountIds.orEmpty().map { it.toString() })
+                .addAllAccountIds(params.accountIds.orEmpty().map(UUID::toString))
                 .setFromDate(params.fromDate?.toString().orEmpty())
                 .setToDate(params.toDate?.toString().orEmpty())
                 .addAllCategoryIds(params.categoryIds.orEmpty())
                 .build()
 
             is LendingsPerContactExportParams -> builder.lendingsPerContact = LendingsPerContactRequest.newBuilder()
-                .setContactId(params.contactId!!.toString())
+                .setContactId(requireNotNull(params.contactId) { "contactId is required" }.toString())
                 .build()
 
             is LendingsAllExportParams -> builder.lendingsAll = LendingsAllRequest.newBuilder()

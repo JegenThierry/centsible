@@ -8,8 +8,6 @@ import beer.thierry.centsibleexport.render.PdfRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.UUID
 
 @Component
@@ -59,8 +57,6 @@ class LendingsAllRenderer(
             "groups" to grouped,
         )
 
-        val pdf = pdfRenderer.renderHtmlToPdf("lendings-all.peb", context)
-        val filename = "lendings-all-${OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()}.pdf"
-        return RenderedExport(pdf, filename)
+        return pdfRenderer.renderExport("lendings-all.peb", "lendings-all", context)
     }
 }

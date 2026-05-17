@@ -6,6 +6,7 @@ import {useTransactionService} from "~/services/transactions/transaction-service
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {todayIsoDate} from "~/utils/date";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -26,7 +27,7 @@ const form = ref<TransactionForm>({
   amount: 0,
   description: '',
   category: undefined,
-  transactionDate: new Date().toISOString().split('T')[0],
+  transactionDate: todayIsoDate(),
 });
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
@@ -52,11 +53,9 @@ const {requestClose} = useModalDirtyGuard({
 
 async function handleEdit() {
   if (loading.value) return;
-  if (!formRef.value?.validate()) {
-    return;
-  }
-
-  if (!budgetAccountsStore.activeAccount?.id || props.transaction.id == undefined) return;
+  if (!formRef.value?.validate()) return;
+  if (!budgetAccountsStore.activeAccount?.id) return;
+  if (props.transaction.id === undefined) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
 
   loading.value = true;

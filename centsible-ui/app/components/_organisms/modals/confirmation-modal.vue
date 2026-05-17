@@ -19,17 +19,13 @@ async function onDelete() {
   try {
     await props.deleteCallback();
     isOpen.value = false;
-    toasts.success(t('common.confirmDelete.successTitle', {entity: props.entity}), t('common.confirmDelete.successBody', {entity: props.entity}))
+    toasts.success(t('common.confirmDelete.successTitle', {entity: props.entity}), t('common.confirmDelete.successBody', {entity: props.entity}));
   } catch (error) {
-    toasts.error(t('common.confirmDelete.errorTitle', {entity: props.entity}), t('common.confirmDelete.errorBody', {entity: props.entity}))
+    toasts.error(t('common.confirmDelete.errorTitle', {entity: props.entity}), t('common.confirmDelete.errorBody', {entity: props.entity}));
     console.error(`Failed to delete ${props.entity}:`, error);
   } finally {
     loading.value = false;
   }
-}
-
-function onCancel() {
-  isOpen.value = false;
 }
 </script>
 
@@ -44,12 +40,9 @@ function onCancel() {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <CancelButton @click="onCancel"/>
+        <CancelButton @click="isOpen = false"/>
         <DeleteButton :loading="loading" @click="onDelete"/>
       </div>
     </template>
   </UModal>
 </template>
-
-<style scoped>
-</style>

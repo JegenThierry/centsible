@@ -112,7 +112,7 @@ const hasData = computed(() =>
 <template>
   <UCard>
     <template #header>
-      <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+      <h3 class="text-base font-semibold text-highlighted">
         {{ t('accounts.dashboard.incomeVsExpense') }}
       </h3>
     </template>

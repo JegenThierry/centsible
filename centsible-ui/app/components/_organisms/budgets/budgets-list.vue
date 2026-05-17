@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import {useBudgetsStore} from "~/stores/budgetsStore";
-import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import type {Budget} from "~/models/budget/budget";
-import {Currency} from "~/models/budget-account/currency";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-bar.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -10,9 +8,9 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import CreateBudgetModal from "~/components/_organisms/budgets/modals/create-budget-modal.vue";
 import EditBudgetModal from "~/components/_organisms/budgets/modals/edit-budget-modal.vue";
 import DeleteBudgetModal from "~/components/_organisms/budgets/modals/delete-budget-modal.vue";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 
 const store = useBudgetsStore();
-const accountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
 const isCreateModalOpen = ref(false);
@@ -20,7 +18,7 @@ const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selected = ref<Budget | null>(null);
 
-const currency = computed(() => accountsStore.activeAccount?.currency || Currency.EUR);
+const currency = useActiveCurrency();
 
 function openEdit(b: Budget) {
   selected.value = b;

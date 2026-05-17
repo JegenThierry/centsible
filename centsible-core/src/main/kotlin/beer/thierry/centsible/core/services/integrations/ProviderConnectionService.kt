@@ -133,7 +133,7 @@ class ProviderConnectionService(
                 }
                 continue
             }
-            val coerced = coerce(field, raw!!)
+            val coerced = coerce(field, raw)
             if (field.secret) secrets[field.name] = coerced.toString()
             else config[field.name] = coerced
         }
@@ -150,12 +150,8 @@ class ProviderConnectionService(
         }
         FieldType.BOOLEAN -> when (raw) {
             is Boolean -> raw
-            is String -> raw.lowercase().let {
-                when (it) {
-                    "true" -> true; "false" -> false
-                    else -> throw IllegalArgumentException("Field '${field.name}' must be true or false")
-                }
-            }
+            is String if raw.equals("true", ignoreCase = true) -> true
+            is String if raw.equals("false", ignoreCase = true) -> false
             else -> throw IllegalArgumentException("Field '${field.name}' must be true or false")
         }
         FieldType.SELECT -> {

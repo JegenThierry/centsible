@@ -12,19 +12,18 @@ const route = useRoute();
 const {t} = useI18n();
 const accountId = computed(() => route.params.accountId as string);
 
-const recentTransactions = computed(() => {
-  if (!props.transactions) return [];
-  return [...props.transactions]
+const recentTransactions = computed(() =>
+  [...props.transactions]
     .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
-    .slice(0, 5);
-});
+    .slice(0, 5),
+);
 </script>
 
 <template>
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+        <h3 class="text-base font-semibold text-highlighted">
           {{ t('accounts.dashboard.recentTransactions') }}
         </h3>
         <UButton :to="`/${accountId}/transactions`" color="neutral" size="xs" variant="ghost">

@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+type DateFormat = 'short' | 'long' | 'date' | 'time' | 'full';
+
 const props = withDefaults(defineProps<{
   date: string | Date;
-  format?: 'short' | 'long' | 'date' | 'time' | 'full';
+  format?: DateFormat;
   locale?: string;
 }>(), {
   format: 'full'
@@ -10,29 +12,15 @@ const props = withDefaults(defineProps<{
 const localeTag = useLocaleTag();
 const activeLocale = computed(() => props.locale ?? localeTag.value);
 
-const formattedDate = computed(() => {
-  const d = new Date(props.date);
-  const tag = activeLocale.value;
-  if (props.format === 'short') {
-    return d.toLocaleDateString(tag, {day: '2-digit', month: '2-digit'});
-  }
-  if (props.format === 'long') {
-    return d.toLocaleDateString(tag, {day: 'numeric', month: 'short'});
-  }
-  if (props.format === 'date') {
-    return d.toLocaleDateString(tag, {day: 'numeric', month: 'short', year: 'numeric'});
-  }
-  if (props.format === 'time') {
-    return d.toLocaleTimeString(tag, {hour: '2-digit', minute: '2-digit', hour12: false});
-  }
-  return d.toLocaleString(tag, {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-});
+const FORMATTERS: Record<DateFormat, (d: Date, tag: string) => string> = {
+  short: (d, tag) => d.toLocaleDateString(tag, {day: '2-digit', month: '2-digit'}),
+  long:  (d, tag) => d.toLocaleDateString(tag, {day: 'numeric', month: 'short'}),
+  date:  (d, tag) => d.toLocaleDateString(tag, {day: 'numeric', month: 'short', year: 'numeric'}),
+  time:  (d, tag) => d.toLocaleTimeString(tag, {hour: '2-digit', minute: '2-digit', hour12: false}),
+  full:  (d, tag) => d.toLocaleString(tag, {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false}),
+};
+
+const formattedDate = computed(() => FORMATTERS[props.format](new Date(props.date), activeLocale.value));
 </script>
 
 <template>

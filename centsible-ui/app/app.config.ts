@@ -1,14 +1,6 @@
-/*
- * Component theming for the blush palette. We re-route surfaces that Nuxt UI
- * defaults to neutral (`bg-default`, `bg-elevated`) toward `primary` tints so
- * cards, nav links, dropdown items, and popovers all feel part of the same theme.
- * Semantic states (success/warning/error) stay untouched.
- */
 export default defineAppConfig({
   ui: {
     colors: {
-      // Initial values match the default theme; `useTheme().setTheme` swaps
-      // both at runtime to keep neutrals tinted with the active theme's hue.
       primary: 'blush',
       neutral: 'blush-neutral',
     },
@@ -35,8 +27,6 @@ export default defineAppConfig({
 
     empty: {
       slots: {
-        // Tints the leading UAvatar so empty-state icons feel themed. The
-        // `*:text-primary` overrides UAvatar's inner `text-muted` icon slot.
         avatar: 'shrink-0 mb-2 bg-primary/10 dark:bg-primary/20 *:text-primary',
       },
       variants: {
@@ -50,7 +40,6 @@ export default defineAppConfig({
 
     navigationMenu: {
       compoundVariants: [
-        // Active pill — primary-tinted instead of neutral elevated.
         {
           variant: 'pill',
           active: true,
@@ -64,14 +53,12 @@ export default defineAppConfig({
           disabled: false,
           class: {link: 'hover:before:bg-primary/15 dark:hover:before:bg-primary/25'},
         },
-        // Inactive hover — soft primary wash.
         {
           disabled: false,
           active: false,
           variant: 'pill',
           class: {link: 'hover:before:bg-primary/5 dark:hover:before:bg-primary/10'},
         },
-        // Open state (parent of expanded submenu).
         {
           disabled: false,
           variant: 'pill',
@@ -115,9 +102,6 @@ export default defineAppConfig({
       },
     },
 
-    // Overlay surfaces that default to plain `bg-default` — give them the same
-    // translucent, primary-ringed treatment as `card` so they sit cohesively
-    // on top of the blush-tinted body background.
     modal: {
       slots: {
         content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25 divide-y divide-primary/10 dark:divide-primary/15',

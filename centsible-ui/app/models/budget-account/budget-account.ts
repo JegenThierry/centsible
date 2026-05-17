@@ -1,16 +1,13 @@
 import type {Currency} from "~/models/budget-account/currency";
 
-export interface CreateBudgetAccountForm {
+export interface BudgetAccountForm {
   name: string;
   initialBalance: number;
   currency: Currency;
 }
 
-export interface UpdateBudgetAccountForm {
-  name: string;
-  initialBalance: number;
-  currency: Currency;
-}
+export type CreateBudgetAccountForm = BudgetAccountForm;
+export type UpdateBudgetAccountForm = BudgetAccountForm;
 
 export interface BudgetAccount {
   id: string;

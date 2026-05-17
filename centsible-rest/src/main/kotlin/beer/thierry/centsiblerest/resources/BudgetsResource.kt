@@ -9,8 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.time.YearMonth
-import java.time.format.DateTimeParseException
-import java.util.*
+import java.util.UUID
 
 @RequestMapping("/api/budgets")
 @RestController
@@ -18,46 +17,32 @@ class BudgetsResource(private val service: IBudgetService) {
 
     @GetMapping
     fun list(
-        @RequestParam(required = false) month: String?,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?,
-    ): ResponseEntity<List<BudgetDTO>> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val yearMonth = month?.let {
-            try {
-                YearMonth.parse(it)
-            } catch (e: DateTimeParseException) {
-                return ResponseEntity.badRequest().build()
-            }
-        } ?: YearMonth.now()
-        return ResponseEntity.ok(service.fetchAllForMonth(authenticatedUser, yearMonth))
-    }
+        @RequestParam(required = false) month: YearMonth?,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<BudgetDTO>> =
+        ResponseEntity.ok(service.fetchAllForMonth(authenticatedUser, month ?: YearMonth.now()))
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: BudgetForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?,
-    ): ResponseEntity<BudgetDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(service.create(form, authenticatedUser))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<BudgetDTO> =
+        ResponseEntity.ok(service.create(form, authenticatedUser))
 
     @PutMapping("/{id}")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody form: BudgetForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?,
-    ): ResponseEntity<BudgetDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(service.update(UUID.fromString(id), form, authenticatedUser))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<BudgetDTO> =
+        ResponseEntity.ok(service.update(id, form, authenticatedUser))
 
     @DeleteMapping("/{id}")
     fun delete(
-        @PathVariable id: String,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        service.delete(UUID.fromString(id), authenticatedUser)
+        service.delete(id, authenticatedUser)
         return ResponseEntity.noContent().build()
     }
 }

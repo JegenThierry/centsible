@@ -9,8 +9,6 @@ import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.UUID
 
 @Component
@@ -56,8 +54,6 @@ class AccountsSummaryRenderer(
             "byCurrency" to byCurrency,
         )
 
-        val pdf = pdfRenderer.renderHtmlToPdf("accounts-summary.peb", context)
-        val filename = "accounts-summary-${OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()}.pdf"
-        return RenderedExport(pdf, filename)
+        return pdfRenderer.renderExport("accounts-summary.peb", "accounts-summary", context)
     }
 }

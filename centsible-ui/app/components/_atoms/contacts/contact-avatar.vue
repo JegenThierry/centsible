@@ -3,7 +3,7 @@ interface Props {
   src?: string | null;
   alt?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
-  ui?: any;
+  ui?: Record<string, unknown>;
   editable?: boolean;
 }
 
@@ -19,42 +19,27 @@ defineEmits(['edit']);
 
 const {t} = useI18n();
 
-const iconSizeClass = computed(() => {
-  switch (props.size) {
-    case 'sm':
-    case 'md':
-      return 'size-4';
-    case 'lg':
-      return 'size-5';
-    case 'xl':
-      return 'size-6';
-    case '2xl':
-      return 'size-8';
-    case '3xl':
-      return 'size-10';
-    default:
-      return 'size-5';
-  }
-});
+const ICON_SIZE_CLASS: Record<NonNullable<Props['size']>, string> = {
+  sm: 'size-4',
+  md: 'size-4',
+  lg: 'size-5',
+  xl: 'size-6',
+  '2xl': 'size-8',
+  '3xl': 'size-10',
+};
+
+const iconSizeClass = computed(() => ICON_SIZE_CLASS[props.size]);
 </script>
 
 <template>
   <div class="relative inline-block group" v-bind="$attrs">
     <UAvatar
-      v-if="src"
       :alt="alt"
+      :icon="src ? undefined : 'i-lucide-user'"
       :size="size"
-      :src="src"
+      :src="src ?? undefined"
       :ui="ui"
       class="ring-2 ring-primary/20"
-    />
-    <UAvatar
-      v-else
-      :alt="alt"
-      :size="size"
-      :ui="ui"
-      class="ring-2 ring-primary/20"
-      icon="i-lucide-user"
     />
     <button
       v-if="editable"

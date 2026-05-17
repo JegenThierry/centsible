@@ -8,15 +8,12 @@ const props = defineProps<{
 }>();
 
 const localeTag = useLocaleTag();
-const activeLocale = computed(() => props.locale ?? localeTag.value);
+const formatted = computed(() => new Intl.NumberFormat(
+  props.locale ?? localeTag.value,
+  {style: 'currency', currency: props.currency},
+).format(props.balance));
 </script>
 
 <template>
-  <span>
-    {{ new Intl.NumberFormat(activeLocale, {style: 'currency', currency: currency}).format(balance) }}
-  </span>
+  <span>{{ formatted }}</span>
 </template>
-
-<style scoped>
-
-</style>

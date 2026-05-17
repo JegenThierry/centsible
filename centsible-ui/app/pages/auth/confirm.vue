@@ -62,7 +62,8 @@ onMounted(async () => {
 
   try {
     state.value = (await useAuthService(api).confirm(token)) ? 'success' : 'error';
-  } catch {
+  } catch (error) {
+    console.error('Confirm token request failed', error);
     state.value = 'error';
   }
 });

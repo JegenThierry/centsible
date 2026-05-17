@@ -7,9 +7,13 @@ import MainContentWrapper from "~/components/_wrapper/main-content-wrapper.vue";
 
 const authStore = useAuthStore();
 
+function getTitle(title?: string): string {
+  if (!title || title === 'Centsible') return 'Centsible | Take control of your money';
+  return `${title} | Centsible`;
+}
+
 useHead({
-  titleTemplate: (title?: string) =>
-    title && title !== 'Centsible' ? `${title} | Centsible` : 'Centsible | Take control of your money',
+  titleTemplate: getTitle,
 });
 </script>
 

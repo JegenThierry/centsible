@@ -29,12 +29,8 @@ const dateInput = ref();
 
 async function loadCategories() {
   try {
-    const allCategories = await categoryService.fetchCategories();
-    if (props.filterType) {
-      categories.value = allCategories.filter(c => c.type === props.filterType);
-    } else {
-      categories.value = allCategories;
-    }
+    const all = await categoryService.fetchCategories();
+    categories.value = props.filterType ? all.filter(c => c.type === props.filterType) : all;
   } catch (error) {
     console.error('Failed to load categories:', error);
   }
@@ -45,20 +41,10 @@ const form = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
-onMounted(() => {
-  loadCategories();
-});
+onMounted(loadCategories);
 
 defineExpose({
-  validate: () => {
-    const inputs = [
-      amountInput,
-      descriptionInput,
-      categoryInput,
-      dateInput
-    ];
-    return useValidator().validateInputs(inputs);
-  }
+  validate: () => useValidator().validateInputs([amountInput, descriptionInput, categoryInput, dateInput]),
 });
 </script>
 

@@ -26,7 +26,7 @@ async function handleDelete() {
     isOpen.value = false;
     emit('deleted');
   } catch (error) {
-    // toast handled by store
+    console.error('Delete loan failed', error);
   } finally {
     loading.value = false;
   }

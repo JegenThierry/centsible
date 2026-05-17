@@ -16,19 +16,14 @@ import java.util.UUID
 class ContactsResource(private val contactService: IContactService) {
 
     @GetMapping
-    fun list(
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<List<ContactDTO>> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(contactService.fetchAllContacts(authenticatedUser))
-    }
+    fun list(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<ContactDTO>> =
+        ResponseEntity.ok(contactService.fetchAllContacts(authenticatedUser))
 
     @GetMapping("/{id}")
     fun get(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<ContactDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
         val contact = contactService.fetchContactById(authenticatedUser, id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(contact)
@@ -37,19 +32,16 @@ class ContactsResource(private val contactService: IContactService) {
     @PostMapping
     fun create(
         @Valid @RequestBody form: ContactForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<ContactDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(contactService.createContact(authenticatedUser, form))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<ContactDTO> =
+        ResponseEntity.ok(contactService.createContact(authenticatedUser, form))
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: UUID,
         @Valid @RequestBody form: ContactForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<ContactDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
         val updated = contactService.updateContact(authenticatedUser, id, form)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updated)
@@ -59,11 +51,9 @@ class ContactsResource(private val contactService: IContactService) {
     fun updatePicture(
         @PathVariable id: UUID,
         @RequestParam("file") file: MultipartFile,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<ContactDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val dataUrl = file.toValidatedImageDataUrl()
-        val updated = contactService.updateContactPicture(authenticatedUser, id, dataUrl)
+        val updated = contactService.updateContactPicture(authenticatedUser, id, file.toValidatedImageDataUrl())
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updated)
     }
@@ -71,9 +61,8 @@ class ContactsResource(private val contactService: IContactService) {
     @DeleteMapping("/{id}/picture")
     fun removePicture(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<ContactDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
         val updated = contactService.updateContactPicture(authenticatedUser, id, null)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updated)
@@ -82,10 +71,8 @@ class ContactsResource(private val contactService: IContactService) {
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<Void> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val deleted = contactService.deleteContact(authenticatedUser, id)
-        return if (deleted) ResponseEntity.ok().build() else ResponseEntity.notFound().build()
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<Void> =
+        if (contactService.deleteContact(authenticatedUser, id)) ResponseEntity.ok().build()
+        else ResponseEntity.notFound().build()
 }

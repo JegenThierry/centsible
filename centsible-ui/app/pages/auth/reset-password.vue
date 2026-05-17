@@ -64,7 +64,6 @@ function onSubmit() {
         success(t('auth.resetPassword.toastSuccessTitle'), t('auth.resetPassword.toastSuccessBody'));
         return;
       }
-      // 400 from the backend: token invalid or expired.
       linkInvalid.value = true;
       error(t('auth.resetPassword.toastErrorTitle'), t('auth.resetPassword.toastInvalidLinkBody'));
     })

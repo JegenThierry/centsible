@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import type {Contact} from "~/models/contact/contact";
 import ContactAvatar from "~/components/_atoms/contacts/contact-avatar.vue";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
-import {Currency} from "~/models/budget-account/currency";
-import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 
 defineProps<{
   contact: Contact;
@@ -15,9 +14,8 @@ const emit = defineEmits<{
   delete: [contact: Contact];
 }>();
 
-const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
-const currency = computed(() => budgetAccountsStore.activeAccount?.currency ?? Currency.EUR);
+const currency = useActiveCurrency();
 </script>
 
 <template>

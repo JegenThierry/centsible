@@ -9,16 +9,12 @@ interface BackendErrorResponse {
 
 export function useApiErrors() {
   function extractMessage(err: unknown, fallback: string): string {
-    if (axios.isAxiosError<BackendErrorResponse>(err) && err.response?.data) {
-      const data = err.response.data;
-      const baseMessage = data.message ?? fallback;
-      const fieldErrors = data.fieldErrors;
-      if (fieldErrors && Object.keys(fieldErrors).length > 0) {
-        return `${baseMessage} ${Object.values(fieldErrors).join(' ')}`.trim();
-      }
-      return baseMessage;
-    }
-    return fallback;
+    if (!axios.isAxiosError<BackendErrorResponse>(err) || !err.response?.data) return fallback;
+
+    const {message, fieldErrors} = err.response.data;
+    const base = message ?? fallback;
+    if (!fieldErrors || Object.keys(fieldErrors).length === 0) return base;
+    return `${base} ${Object.values(fieldErrors).join(' ')}`.trim();
   }
 
   function toastError(err: unknown, title: string, fallback: string): void {

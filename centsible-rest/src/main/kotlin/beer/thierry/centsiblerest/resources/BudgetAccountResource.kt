@@ -19,47 +19,27 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
     @PostMapping("")
     fun createAccount(
         @Valid @RequestBody createBudgetAccountRequest: CreateBudgetAccountRequest,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<BudgetAccountDTO> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val response = budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser)
-        return ResponseEntity.ok(response)
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<BudgetAccountDTO> =
+        ResponseEntity.ok(budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser))
 
     @GetMapping("")
-    fun fetchAccounts(@AuthenticationPrincipal authenticatedUser: UserDTO?): ResponseEntity<List<BudgetAccountDTO>> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val response = budgetAccountService.fetchAccounts(authenticatedUser)
-        return ResponseEntity.ok(response)
-    }
+    fun fetchAccounts(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<BudgetAccountDTO>> =
+        ResponseEntity.ok(budgetAccountService.fetchAccounts(authenticatedUser))
 
     @GetMapping("/{id}")
     fun findAccount(
         @PathVariable id: String,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<BudgetAccountDTO> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val response = budgetAccountService.fetchAccountById(id, authenticatedUser)
-        return ResponseEntity.ok(response)
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<BudgetAccountDTO> =
+        ResponseEntity.ok(budgetAccountService.fetchAccountById(id, authenticatedUser))
 
     @GetMapping("/{id}/snapshots")
     fun fetchSnapshots(
         @PathVariable id: String,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<List<BudgetAccountSnapshotDTO>> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val response = budgetAccountService.fetchAccountSnapshots(id, startDate, endDate, authenticatedUser)
-        return ResponseEntity.ok(response)
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<BudgetAccountSnapshotDTO>> =
+        ResponseEntity.ok(budgetAccountService.fetchAccountSnapshots(id, startDate, endDate, authenticatedUser))
 }

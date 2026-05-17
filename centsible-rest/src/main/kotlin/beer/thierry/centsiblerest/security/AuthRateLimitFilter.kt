@@ -21,19 +21,13 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
         .expireAfterAccess(Duration.ofMinutes(15))
         .build<String, Bucket>()
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
-        val path = request.requestURI
-        return path != "/api/auth/login" &&
-                path != "/api/auth/register" &&
-                path != "/api/auth/confirm" &&
-                path != "/api/auth/forgot-password" &&
-                path != "/api/auth/reset-password"
-    }
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean =
+        request.requestURI !in RATE_LIMITED_PATHS
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         val bucket = buckets.get(request.remoteAddr ?: "unknown") { newBucket() }
         val probe = bucket.tryConsumeAndReturnRemaining(1)
@@ -52,4 +46,14 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
     private fun newBucket(): Bucket = Bucket.builder()
         .addLimit(Bandwidth.builder().capacity(10).refillIntervally(10, Duration.ofMinutes(1)).build())
         .build()
+
+    private companion object {
+        val RATE_LIMITED_PATHS = setOf(
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/confirm",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
+        )
+    }
 }

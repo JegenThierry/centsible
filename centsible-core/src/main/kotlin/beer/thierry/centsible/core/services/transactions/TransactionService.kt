@@ -45,8 +45,7 @@ class TransactionService(
     ): TransactionDTO {
         val transaction = transactionRepository.createTransaction(accountId, transactionForm, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
-        updateAccountBalanceAndLogHistory(accountId, adjustment, authenticatedUser)
-
+        accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
         return transaction
     }
 
@@ -64,8 +63,7 @@ class TransactionService(
             transactionRepository.updateTransaction(transactionId, accountId, transactionForm, authenticatedUser)
         val newAdjustment = calculateAdjustment(updatedTransaction.category.type, updatedTransaction.amount)
 
-        updateAccountBalanceAndLogHistory(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
-
+        accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
         return updatedTransaction
     }
 
@@ -77,8 +75,7 @@ class TransactionService(
     ): TransactionDTO {
         val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
-        updateAccountBalanceAndLogHistory(accountId, adjustment.negate(), authenticatedUser)
-
+        accountRepository.updateBalance(accountId, adjustment.negate(), authenticatedUser)
         return transaction
     }
 
@@ -127,9 +124,5 @@ class TransactionService(
             CategoryType.EXPENSE -> value.negate()
             else -> throw IllegalArgumentException("Invalid transaction type: $type")
         }
-    }
-
-    private fun updateAccountBalanceAndLogHistory(accountId: UUID, adjustment: BigDecimal, authenticatedUser: UserDTO) {
-        accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
     }
 }

@@ -9,8 +9,6 @@ import beer.thierry.centsibleexport.render.PdfRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.Locale
 import java.util.UUID
 
@@ -46,9 +44,11 @@ class LendingsPerContactRenderer(
             "loans" to loans.map { it.asTemplateMap(locale) },
         )
 
-        val pdf = pdfRenderer.renderHtmlToPdf("lendings-per-contact.peb", context)
-        val filename = "lendings-${slug(summary.contactName)}-${OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()}.pdf"
-        return RenderedExport(pdf, filename)
+        return pdfRenderer.renderExport(
+            template = "lendings-per-contact.peb",
+            filenameStem = "lendings-${slug(summary.contactName)}",
+            context = context,
+        )
     }
 }
 
@@ -63,6 +63,3 @@ internal fun ExportLoanRow.asTemplateMap(locale: Locale): Map<String, Any?> = ma
     "isSettled" to (outstanding <= BigDecimal.ZERO),
     "contactName" to contactName,
 )
-
-internal fun slug(s: String): String =
-    s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').ifBlank { "export" }

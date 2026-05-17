@@ -25,17 +25,14 @@ class BudgetAccountService(
     override fun createAccount(
         createBudgetAccountRequest: CreateBudgetAccountRequest,
         authenticatedUser: UserDTO,
-    ): BudgetAccountDTO {
-        return accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
-    }
+    ): BudgetAccountDTO =
+        accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
 
-    override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> {
-        return accountRepository.fetchAllAccounts(authenticatedUser)
-    }
+    override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> =
+        accountRepository.fetchAllAccounts(authenticatedUser)
 
-    override fun fetchAccountById(id: String, authenticatedUser: UserDTO): BudgetAccountDTO {
-        return accountRepository.fetchAccountById(UUID.fromString(id), authenticatedUser)
-    }
+    override fun fetchAccountById(id: String, authenticatedUser: UserDTO): BudgetAccountDTO =
+        accountRepository.fetchAccountById(UUID.fromString(id), authenticatedUser)
 
     override fun fetchAccountSnapshots(
         accountId: String,

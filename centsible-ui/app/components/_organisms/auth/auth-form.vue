@@ -4,31 +4,23 @@ import LoginForm from "~/components/_organisms/auth/login-form.vue";
 
 const {t} = useI18n();
 
-const tabs = computed(() => [
-  {
-    label: t('auth.tabs.login'),
-    icon: 'i-lucide-user',
-    slot: 'login' as const,
-    value: 'login' as const,
-  },
-  {
-    label: t('auth.tabs.register'),
-    icon: 'i-lucide-lock',
-    slot: 'register' as const,
-    value: 'register' as const,
-  }
-]);
+type TabKey = 'login' | 'register';
+const TAB_META: Record<TabKey, {tabIcon: string; cardIcon: string}> = {
+  login:    {tabIcon: 'i-lucide-user', cardIcon: 'i-lucide-log-in'},
+  register: {tabIcon: 'i-lucide-lock', cardIcon: 'i-lucide-user-plus'},
+};
 
-const activeTab = ref<'login' | 'register'>('login');
-const activeHeader = computed(() =>
-  activeTab.value === 'login' ? t('auth.login.title') : t('auth.register.title')
-);
-const activeDescription = computed(() =>
-  activeTab.value === 'login' ? t('auth.login.description') : t('auth.register.description')
-);
-const activeIcon = computed(() =>
-  activeTab.value === 'login' ? 'i-lucide-log-in' : 'i-lucide-user-plus'
-);
+const tabs = computed(() => (Object.keys(TAB_META) as TabKey[]).map((value) => ({
+  label: t(`auth.tabs.${value}`),
+  icon: TAB_META[value].tabIcon,
+  slot: value,
+  value,
+})));
+
+const activeTab = ref<TabKey>('login');
+const activeHeader = computed(() => t(`auth.${activeTab.value}.title`));
+const activeDescription = computed(() => t(`auth.${activeTab.value}.description`));
+const activeIcon = computed(() => TAB_META[activeTab.value].cardIcon);
 </script>
 
 <template>

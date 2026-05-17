@@ -14,7 +14,7 @@
       "heading": "Your connections",
       "emptyTitle": "No connections yet",
       "emptyDescription": "Connect a provider above to start tracking external data.",
-      "lastSynced": "Last synced: {date}",
+      "lastSyncedLabel": "Last synced:",
       "lastError": "Last error: {error}",
       "syncNow": "Sync now",
       "disconnect": "Disconnect",

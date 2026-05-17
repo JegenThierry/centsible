@@ -4,7 +4,6 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import type {RecurringTransaction} from "~/models/recurring/recurring-transaction";
-import {Currency} from "~/models/budget-account/currency";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import RecurringRow from "~/components/_molecules/recurring/recurring-row.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -12,6 +11,7 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import CreateRecurringModal from "~/components/_organisms/recurring/modals/create-recurring-modal.vue";
 import EditRecurringModal from "~/components/_organisms/recurring/modals/edit-recurring-modal.vue";
 import DeleteRecurringModal from "~/components/_organisms/recurring/modals/delete-recurring-modal.vue";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 
 const store = useRecurringTransactionsStore();
 const accountsStore = useBudgetAccountsStore();
@@ -24,7 +24,7 @@ const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selected = ref<RecurringTransaction | null>(null);
 
-const currency = computed(() => accountsStore.activeAccount?.currency || Currency.EUR);
+const currency = useActiveCurrency();
 
 function refresh() {
   const id = accountsStore.activeAccount?.id;
@@ -42,14 +42,12 @@ function openDelete(rule: RecurringTransaction) {
 }
 
 async function toggle(rule: RecurringTransaction) {
+  const action = rule.active
+    ? {op: service.pause, titleKey: 'transactions.recurring.toastPausedTitle', bodyKey: 'transactions.recurring.toastPausedBody'}
+    : {op: service.resume, titleKey: 'transactions.recurring.toastResumedTitle', bodyKey: 'transactions.recurring.toastResumedBody'};
   try {
-    if (rule.active) {
-      await service.pause(rule.id);
-      toasts.success(t('transactions.recurring.toastPausedTitle'), t('transactions.recurring.toastPausedBody'));
-    } else {
-      await service.resume(rule.id);
-      toasts.success(t('transactions.recurring.toastResumedTitle'), t('transactions.recurring.toastResumedBody'));
-    }
+    await action.op(rule.id);
+    toasts.success(t(action.titleKey), t(action.bodyKey));
     refresh();
   } catch (error) {
     toasts.error(t('transactions.recurring.toastToggleErrorTitle'), t('transactions.recurring.toastToggleErrorBody'));

@@ -1,46 +1,13 @@
-<template>
-  <div class="relative inline-block" v-bind="$attrs">
-    <UAvatar
-      v-if="src"
-      :alt="alt"
-      :size="size"
-      :src="src"
-      :ui="ui"
-      class="cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-primary/20"
-      @click="editable && $emit('edit')"
-    />
-    <UAvatar
-      v-else
-      :alt="alt"
-      :size="size"
-      :ui="ui"
-      class="cursor-pointer hover:bg-elevated transition-colors ring-2 ring-primary/20"
-      icon="i-heroicons-user"
-      @click="editable && $emit('edit')"
-    />
-    <div v-if="editable" class="absolute bottom-1 right-1">
-      <UButton
-        class="rounded-full shadow-md"
-        color="white"
-        icon="i-heroicons-camera"
-        size="sm"
-        square
-        @click="$emit('edit')"
-      />
-    </div>
-  </div>
-</template>
-
 <script lang="ts" setup>
 interface Props {
   src?: string | null;
   alt?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
-  ui?: any;
+  ui?: Record<string, unknown>;
   editable?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   src: null,
   alt: 'User Avatar',
   size: 'xl',
@@ -48,5 +15,37 @@ withDefaults(defineProps<Props>(), {
   editable: false
 });
 
-defineEmits(['edit']);
+const emit = defineEmits(['edit']);
+
+const hoverClass = computed(() => props.src
+  ? 'transition-opacity hover:opacity-80'
+  : 'transition-colors hover:bg-elevated');
+
+function onAvatarClick() {
+  if (props.editable) emit('edit');
+}
 </script>
+
+<template>
+  <div class="relative inline-block" v-bind="$attrs">
+    <UAvatar
+      :alt="alt"
+      :class="['cursor-pointer ring-2 ring-primary/20', hoverClass]"
+      :icon="src ? undefined : 'i-lucide-user'"
+      :size="size"
+      :src="src ?? undefined"
+      :ui="ui"
+      @click="onAvatarClick"
+    />
+    <div v-if="editable" class="absolute bottom-1 right-1">
+      <UButton
+        class="rounded-full shadow-md"
+        color="white"
+        icon="i-lucide-camera"
+        size="sm"
+        square
+        @click="emit('edit')"
+      />
+    </div>
+  </div>
+</template>

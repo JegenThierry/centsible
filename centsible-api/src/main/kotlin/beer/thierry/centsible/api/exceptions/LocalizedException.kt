@@ -16,7 +16,7 @@ sealed class LocalizedException(
 ) : RuntimeException(messageKey), MessageSourceResolvable {
     override fun getCodes(): Array<String> = arrayOf(messageKey)
     override fun getArguments(): Array<out Any> = args
-    override fun getDefaultMessage(): String? = messageKey
+    override fun getDefaultMessage(): String = messageKey
 
     class BadRequest(key: String, vararg args: Any) : LocalizedException(key, args, 400)
     class Unauthorized(key: String, vararg args: Any) : LocalizedException(key, args, 401)

@@ -31,7 +31,7 @@ export function useTransactionService(api: AxiosInstance) {
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
     const response = await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`);
-    if (response.status !== 200) {
+    if (response.status !== 200 && response.status !== 204) {
       throw new Error(response.statusText);
     }
   }

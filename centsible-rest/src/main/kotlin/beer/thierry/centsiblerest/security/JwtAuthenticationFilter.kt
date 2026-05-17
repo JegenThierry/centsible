@@ -13,7 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.util.*
+import java.util.Base64
+import java.util.UUID
 
 @Component
 class JwtAuthenticationFilter(
@@ -24,12 +25,12 @@ class JwtAuthenticationFilter(
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         extractToken(request)
-            ?.let { token -> parseUserDTO(token) }
+            ?.let(::parseUserDTO)
             ?.let { user -> buildAuthentication(user, request) }
-            ?.also { auth -> SecurityContextHolder.getContext().authentication = auth }
+            ?.also { SecurityContextHolder.getContext().authentication = it }
 
         filterChain.doFilter(request, response)
     }
@@ -85,14 +86,9 @@ class JwtAuthenticationFilter(
 
     private fun buildAuthentication(
         user: UserDTO,
-        request: HttpServletRequest
-    ): UsernamePasswordAuthenticationToken {
-        return UsernamePasswordAuthenticationToken(
-            user,
-            null,
-            user.authorities
-        ).also {
+        request: HttpServletRequest,
+    ): UsernamePasswordAuthenticationToken =
+        UsernamePasswordAuthenticationToken(user, null, user.authorities).also {
             it.details = WebAuthenticationDetailsSource().buildDetails(request)
         }
-    }
 }

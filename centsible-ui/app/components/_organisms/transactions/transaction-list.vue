@@ -5,7 +5,7 @@ import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {Transaction} from "~/models/transactions/transaction";
-import {Currency} from "~/models/budget-account/currency";
+import {useActiveCurrency} from "~/composables/use-active-currency";
 import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
 import EditTransactionModal from "~/components/_organisms/transactions/modals/edit-transaction-modal.vue";
 import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
@@ -21,6 +21,7 @@ import TableRowActionsMenu from "~/components/_molecules/tables/table-row-action
 const api = useApi();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
+const currency = useActiveCurrency();
 const {t} = useI18n();
 
 const {
@@ -37,10 +38,6 @@ const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
-
-function onOpenCreateModal() {
-  isCreateModalOpen.value = true;
-}
 
 function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
@@ -92,7 +89,7 @@ const columns = computed<TableColumn<Transaction>[]>(() => [
       return h(TransactionAmount, {
         amount: Number.parseFloat(row.getValue('amount')),
         type: row.original.category?.type,
-        currency: budgetAccountsStore.activeAccount?.currency || Currency.EUR
+        currency: currency.value,
       })
     }
   },
@@ -104,7 +101,7 @@ const columns = computed<TableColumn<Transaction>[]>(() => [
       }
     },
     cell: ({row}) => h(TableRowActionsMenu, {
-      label: t('transactions.table.actionsLabel'),
+      menuLabel: t('transactions.table.actionsLabel'),
       items: [
         {
           label: t('transactions.table.actionEdit'),
@@ -151,7 +148,7 @@ watch(
     <LoadingAnimation v-if="loadingMore || loading"/>
   </div>
 
-  <CreateFab @create="onOpenCreateModal"/>
+  <CreateFab @create="isCreateModalOpen = true"/>
 
   <CreateTransactionModal v-if="isCreateModalOpen"
                           v-model:open="isCreateModalOpen"

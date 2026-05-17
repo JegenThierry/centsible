@@ -68,21 +68,19 @@ class LoanService(
         val existing = form.contactId
         val newFirstName = form.newContactFirstName?.takeIf { it.isNotBlank() }
 
-        if (existing != null && newFirstName != null) {
-            throw IllegalArgumentException("Provide either an existing contact or a new contact name, not both.")
+        require(existing == null || newFirstName == null) {
+            "Provide either an existing contact or a new contact name, not both."
         }
         if (existing != null) {
             contactsRepository.fetchContactById(authenticatedUser, existing)
                 ?: throw IllegalArgumentException("Contact not found.")
             return existing
         }
-        if (newFirstName != null) {
-            val created = contactsRepository.createContact(
-                authenticatedUser,
-                ContactForm(firstName = newFirstName, lastName = form.newContactLastName?.takeIf { it.isNotBlank() })
-            )
-            return created.id ?: throw IllegalStateException("Failed to create contact.")
-        }
-        throw IllegalArgumentException("Either contactId or newContactFirstName is required.")
+        requireNotNull(newFirstName) { "Either contactId or newContactFirstName is required." }
+        val created = contactsRepository.createContact(
+            authenticatedUser,
+            ContactForm(firstName = newFirstName, lastName = form.newContactLastName?.takeIf { it.isNotBlank() })
+        )
+        return created.id ?: throw IllegalStateException("Failed to create contact.")
     }
 }

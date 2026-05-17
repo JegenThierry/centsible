@@ -31,8 +31,8 @@ async function handleSave() {
   try {
     await contactsStore.updateContact(props.contact.id, form.value);
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Update contact failed', error);
   } finally {
     loading.value = false;
   }

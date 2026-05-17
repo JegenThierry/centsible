@@ -18,13 +18,9 @@ class ExportJobWorker(
 
     @Scheduled(fixedDelayString = "\${export.worker.poll-interval-ms:2000}")
     fun pollOnce() {
-        val claimed = try {
+        val claimed = log.claimOrLog("Failed to claim next export job") {
             jobRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
-        } catch (ex: Exception) {
-            log.error("Failed to claim next export job", ex)
-            return
         } ?: return
-
         process(claimed)
     }
 
@@ -38,7 +34,7 @@ class ExportJobWorker(
             log.info("Completed export job {} ({} bytes)", job.id, rendered.pdf.size)
         } catch (ex: Exception) {
             log.error("Failed to render export job {}", job.id, ex)
-            jobRepository.markFailed(job.id, ex.message ?: ex::class.qualifiedName ?: "unknown error")
+            jobRepository.markFailed(job.id, ex.failureReason())
         }
     }
 }

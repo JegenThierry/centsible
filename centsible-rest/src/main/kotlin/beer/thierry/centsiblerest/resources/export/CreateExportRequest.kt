@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.model.export.PostProcessingType
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -13,8 +14,8 @@ import java.util.UUID
 data class CreateExportRequest(
     @field:NotNull var type: ExportType? = null,
     @field:NotBlank @field:Size(max = 200) var title: String? = null,
-    @field:NotNull var params: ExportRequestParams? = null,
-    var postProcessing: List<PostProcessingRequest>? = null,
+    @field:NotNull @field:Valid var params: ExportRequestParams? = null,
+    @field:Valid var postProcessing: List<PostProcessingRequest>? = null,
 )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

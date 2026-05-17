@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 type StatColor = 'primary' | 'success' | 'error' | 'warning' | 'info';
 type StatTone = 'positive' | 'negative' | 'neutral' | 'signed';

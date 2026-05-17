@@ -50,8 +50,8 @@ async function handleSave() {
     await loansStore.recordRepayment(props.loan.id, props.loan.contact.id, form.value);
     emit('recorded');
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Record repayment failed', error);
   } finally {
     loading.value = false;
   }

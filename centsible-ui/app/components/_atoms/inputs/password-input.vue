@@ -9,20 +9,16 @@ const props = defineProps<{
   additionalValidationMessage?: string;
 }>();
 
-const show = ref<boolean>(false)
-const error = ref<string | undefined>(undefined)
+const show = ref(false);
+const error = ref<string | undefined>(undefined);
 const password = defineModel<string>({required: true});
 const {t} = useI18n();
 
-function resetValidation(): void {
-  error.value = undefined;
-}
-
 function validate(): boolean {
-  resetValidation();
+  error.value = undefined;
 
   if (props.required && !password.value) {
-    error.value = t('common.validation.required', {field: props.label ?? ''});
+    error.value = t('common.validation.required', {field: props.label ?? t('auth.password.label')});
     return false;
   }
 
@@ -34,13 +30,7 @@ function validate(): boolean {
   return true;
 }
 
-function onToggleShow(): void {
-  show.value = !show.value;
-}
-
-defineExpose({
-  validate,
-})
+defineExpose({validate});
 </script>
 
 <template>
@@ -66,13 +56,9 @@ defineExpose({
           color="neutral"
           size="sm"
           variant="link"
-          @click="onToggleShow()"
+          @click="show = !show"
         />
       </template>
     </UInput>
   </UFormField>
 </template>
-
-<style scoped>
-
-</style>

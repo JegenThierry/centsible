@@ -77,13 +77,11 @@ async function onLanguageChange(code: string) {
     <UCard v-else-if="userStore.user" class="max-w-2xl mx-auto">
       <div class="space-y-12 mt-8">
         <div class="flex flex-col items-center gap-6">
-          <div class="relative">
-            <UserAvatar :alt="userStore.user.name"
-                        :src="userStore.user.profilePicture"
-                        editable
-                        size="3xl"
-                        @edit="onEditAvatar"/>
-          </div>
+          <UserAvatar :alt="userStore.user.name"
+                      :src="userStore.user.profilePicture"
+                      editable
+                      size="3xl"
+                      @edit="onEditAvatar"/>
 
           <div class="flex flex-col items-center gap-2">
             <div class="text-center">
@@ -91,7 +89,7 @@ async function onLanguageChange(code: string) {
               <p class="text-gray-500">@{{ userStore.user.username }}</p>
             </div>
 
-            <UButton icon="i-heroicons-camera"
+            <UButton icon="i-lucide-camera"
                      :label="t('profile.avatar.change')"
                      variant="soft"
                      @click="onEditAvatar"/>

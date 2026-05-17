@@ -19,52 +19,54 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
 
     override fun userExists(id: UUID): Boolean = userRepository.findUserById(id) != null
 
-    override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
-        val user = userRepository.findUserById(userId)
-            ?: throw LocalizedException.NotFound("error.user.notFound")
+    override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO =
+        persistProfile(
+            userId = userId,
+            failureKey = "error.user.profileUpdateFailed",
+        ) { existing ->
+            existing.copy(
+                firstName = profile.firstName,
+                lastName = profile.lastName,
+                email = profile.email,
+            )
+        }
 
-        val updatedUser = userRepository.updateUserProfile(
+    override fun updateProfilePicture(userId: UUID, profilePicture: String?): UserDTO =
+        persistProfile(
+            userId = userId,
+            failureKey = "error.user.pictureUpdateFailed",
+        ) { existing ->
+            existing.copy(profilePicture = profilePicture)
+        }
+
+    override fun updateUserLocale(userId: UUID, locale: String): UserDTO =
+        mapToDTO(
+            userRepository.updateUserLocale(userId, locale)
+                ?: throw LocalizedException.NotFound("error.user.notFound")
+        )
+
+    private fun persistProfile(userId: UUID, failureKey: String, mutate: (User) -> User): UserDTO {
+        val existing = userRepository.findUserById(userId)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        val patched = mutate(existing)
+        val updated = userRepository.updateUserProfile(
             id = userId,
-            firstName = profile.firstName,
-            lastName = profile.lastName,
-            email = profile.email,
-            profilePicture = user.profilePicture
-        ) ?: throw LocalizedException.InternalError("error.user.profileUpdateFailed")
-
-        return mapToDTO(updatedUser)
-    }
-
-    override fun updateProfilePicture(userId: UUID, profilePicture: String?): UserDTO {
-        val user = userRepository.findUserById(userId)
-            ?: throw LocalizedException.NotFound("error.user.notFound")
-
-        val updatedUser = userRepository.updateUserProfile(
-            id = userId,
-            firstName = user.firstName,
-            lastName = user.lastName,
-            email = user.email,
-            profilePicture = profilePicture
-        ) ?: throw LocalizedException.InternalError("error.user.pictureUpdateFailed")
-
-        return mapToDTO(updatedUser)
-    }
-
-    override fun updateUserLocale(userId: UUID, locale: String): UserDTO {
-        val updated = userRepository.updateUserLocale(userId, locale)
-            ?: throw LocalizedException.NotFound("error.user.notFound")
+            firstName = patched.firstName,
+            lastName = patched.lastName,
+            email = patched.email,
+            profilePicture = patched.profilePicture,
+        ) ?: throw LocalizedException.InternalError(failureKey)
         return mapToDTO(updated)
     }
 
-    private fun mapToDTO(user: User): UserDTO {
-        return UserDTO(
-            id = user.id,
-            username = user.username,
-            email = user.email,
-            firstName = user.firstName,
-            lastName = user.lastName,
-            name = "${user.firstName} ${user.lastName}",
-            profilePicture = user.profilePicture,
-            locale = user.locale,
-        )
-    }
+    private fun mapToDTO(user: User): UserDTO = UserDTO(
+        id = user.id,
+        username = user.username,
+        email = user.email,
+        firstName = user.firstName,
+        lastName = user.lastName,
+        name = "${user.firstName} ${user.lastName}",
+        profilePicture = user.profilePicture,
+        locale = user.locale,
+    )
 }

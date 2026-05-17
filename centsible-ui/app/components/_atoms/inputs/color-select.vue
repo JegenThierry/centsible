@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 const colors = [
-  '#ef4444', // Red
-  '#f97316', // Orange
-  '#eab308', // Yellow
-  '#22c55e', // Green
-  '#06b6d4', // Cyan
-  '#3b82f6', // Blue
-  '#a855f7', // Purple
-  '#ec4899'  // Pink
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#a855f7',
+  '#ec4899',
 ];
 
 const model = defineModel<string>({default: '#3b82f6'});

@@ -9,17 +9,14 @@ import org.springframework.stereotype.Service
 
 @Service
 class CategoryService(private val categoriesRepository: ICategoriesRepository) : ICategoryService {
-    override fun fetchAllCategories(authenticatedUser: UserDTO): List<CategoryDTO> {
-        return categoriesRepository.fetchAllCategories(authenticatedUser)
-    }
+    override fun fetchAllCategories(authenticatedUser: UserDTO): List<CategoryDTO> =
+        categoriesRepository.fetchAllCategories(authenticatedUser)
 
-    override fun fetchCategoryById(authenticatedUser: UserDTO, id: Long): CategoryDTO? {
-        return categoriesRepository.fetchCategoryById(authenticatedUser, id)
-    }
+    override fun fetchCategoryById(authenticatedUser: UserDTO, id: Long): CategoryDTO? =
+        categoriesRepository.fetchCategoryById(authenticatedUser, id)
 
-    override fun createCategory(authenticatedUser: UserDTO, category: CategoryForm): CategoryDTO {
-        return categoriesRepository.createCategory(authenticatedUser, category)
-    }
+    override fun createCategory(authenticatedUser: UserDTO, category: CategoryForm): CategoryDTO =
+        categoriesRepository.createCategory(authenticatedUser, category)
 
     override fun updateCategory(authenticatedUser: UserDTO, id: Long, category: CategoryForm): CategoryDTO? {
         val existing = categoriesRepository.fetchCategoryById(authenticatedUser, id) ?: return null

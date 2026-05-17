@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {Currency} from "~/models/budget-account/currency";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 const props = defineProps<{
   currentBalance: number;
@@ -10,33 +10,19 @@ const props = defineProps<{
 
 const balanceChange = computed(() => props.currentBalance - props.previousBalance);
 
-const badgeColor = computed(() => {
-  if (balanceChange.value > 0) return 'success';
-  if (balanceChange.value < 0) return 'error';
-  return 'neutral';
-});
-
-const badgeIcon = computed(() => {
-  if (balanceChange.value > 0) return 'i-lucide-trending-up';
-  if (balanceChange.value < 0) return 'i-lucide-trending-down';
-  return 'i-lucide-minus';
+const tone = computed(() => {
+  if (balanceChange.value > 0) return {color: 'success' as const, icon: 'i-lucide-trending-up'};
+  if (balanceChange.value < 0) return {color: 'error' as const, icon: 'i-lucide-trending-down'};
+  return {color: 'neutral' as const, icon: 'i-lucide-minus'};
 });
 </script>
 
 <template>
-  <UBadge :color="badgeColor"
+  <UBadge :color="tone.color"
           class="ml-1 mt-0.5 font-mono font-semibold"
           size="sm"
           variant="subtle">
-
-    <UIcon :name="badgeIcon"
-           class="mr-1 size-3.5"/>
-
-    <BalanceNumberFormat :balance="balanceChange"
-                         :currency="currency"/>
+    <UIcon :name="tone.icon" class="mr-1 size-3.5"/>
+    <BalanceNumberFormat :balance="balanceChange" :currency="currency"/>
   </UBadge>
 </template>
-
-<style scoped>
-
-</style>

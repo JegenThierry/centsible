@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type {ConfigField} from "~/models/integrations/provider-descriptor";
+import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 
 const props = defineProps<{
   fields: ConfigField[];
@@ -10,11 +11,6 @@ const values = defineModel<Record<string, unknown>>({required: true});
 const {t} = useI18n();
 
 const errors = ref<Record<string, string>>({});
-const showSecret = ref<Record<string, boolean>>({});
-
-function toggleSecret(name: string) {
-  showSecret.value[name] = !showSecret.value[name];
-}
 
 function isEmpty(raw: unknown): boolean {
   if (raw == null) return true;
@@ -24,27 +20,25 @@ function isEmpty(raw: unknown): boolean {
 
 function validate(): boolean {
   errors.value = {};
-  let ok = true;
   for (const field of props.fields) {
     const raw = values.value[field.name];
     if (field.required && field.type !== 'BOOLEAN' && isEmpty(raw)) {
       errors.value[field.name] = t('integrations.form.errors.required', {field: field.label});
-      ok = false;
       continue;
     }
-    if (field.type === 'NUMBER' && !isEmpty(raw) && Number.isNaN(Number(raw))) {
+    if (isEmpty(raw)) continue;
+    if (field.type === 'NUMBER' && Number.isNaN(Number(raw))) {
       errors.value[field.name] = t('integrations.form.errors.number', {field: field.label});
-      ok = false;
+      continue;
     }
-    if (field.type === 'SELECT' && !isEmpty(raw) && field.options.length > 0) {
+    if (field.type === 'SELECT' && field.options.length > 0) {
       const allowed = field.options.map(o => o.value);
       if (!allowed.includes(String(raw))) {
         errors.value[field.name] = t('integrations.form.errors.select', {field: field.label, options: allowed.join(', ')});
-        ok = false;
       }
     }
   }
-  return ok;
+  return Object.keys(errors.value).length === 0;
 }
 
 defineExpose({validate});
@@ -53,7 +47,6 @@ defineExpose({validate});
 <template>
   <div class="space-y-4">
     <template v-for="field in fields" :key="field.name">
-      <!-- Boolean -->
       <UFormField v-if="field.type === 'BOOLEAN'"
                   :error="errors[field.name]"
                   :help="field.helpText"
@@ -62,7 +55,6 @@ defineExpose({validate});
                    :label="field.placeholder ?? field.label"/>
       </UFormField>
 
-      <!-- Select -->
       <UFormField v-else-if="field.type === 'SELECT'"
                   :error="errors[field.name]"
                   :help="field.helpText"
@@ -76,7 +68,6 @@ defineExpose({validate});
                      value-key="value"/>
       </UFormField>
 
-      <!-- Multiline -->
       <UFormField v-else-if="field.type === 'MULTILINE'"
                   :error="errors[field.name]"
                   :help="field.helpText"
@@ -88,29 +79,13 @@ defineExpose({validate});
                    class="w-full"/>
       </UFormField>
 
-      <!-- Secret (mirrors password-input pattern) -->
-      <UFormField v-else-if="field.secret"
-                  :error="errors[field.name]"
-                  :help="field.helpText"
-                  :label="field.label"
-                  :required="field.required">
-        <UInput v-model="(values[field.name] as string)"
-                :placeholder="field.placeholder"
-                :type="showSecret[field.name] ? 'text' : 'password'"
-                :ui="{ trailing: 'pe-1' }"
-                class="w-full">
-          <template #trailing>
-            <UButton :aria-label="showSecret[field.name] ? t('integrations.form.secret.hideAria') : t('integrations.form.secret.showAria')"
-                     :icon="showSecret[field.name] ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                     color="neutral"
-                     size="sm"
-                     variant="link"
-                     @click="toggleSecret(field.name)"/>
-          </template>
-        </UInput>
-      </UFormField>
+      <PasswordInput v-else-if="field.secret"
+                     v-model="(values[field.name] as string)"
+                     :description="field.helpText"
+                     :label="field.label"
+                     :placeholder="field.placeholder"
+                     :required="field.required"/>
 
-      <!-- STRING / NUMBER -->
       <UFormField v-else
                   :error="errors[field.name]"
                   :help="field.helpText"

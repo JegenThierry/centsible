@@ -28,8 +28,8 @@ async function handleSave() {
   try {
     await contactsStore.createContact(form.value);
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Create contact failed', error);
   } finally {
     loading.value = false;
   }

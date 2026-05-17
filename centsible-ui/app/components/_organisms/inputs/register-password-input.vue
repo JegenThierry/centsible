@@ -19,14 +19,6 @@ function arePasswordsEqual(): boolean {
   return password.value === confirmPassword.value;
 }
 
-/**
- * The password needs to match the following criteria:
- * - Needs to be at least 8 chars long
- * - Needs to contain at least 1 uppercase letter
- * - Needs to contain at least 1 lowercase letter
- * - Needs to contain at least 1 number
- * - Needs to contain at least 1 of the following special characters: @ $ ! % * ? &
- */
 const passwordRules = computed(() => [
   {label: t('auth.password.rules.length'), met: password.value.length >= 8},
   {label: t('auth.password.rules.case'), met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},
@@ -53,13 +45,10 @@ function validatePasswordData() {
 }
 
 function validate(): boolean {
-  if (!passwordInput.value || !confirmPasswordInput.value) {
-    return false;
-  }
-
+  if (!passwordInput.value || !confirmPasswordInput.value) return false;
   const passwordValid = passwordInput.value.validate();
   const confirmPasswordValid = confirmPasswordInput.value.validate();
-  return passwordValid && confirmPasswordValid
+  return passwordValid && confirmPasswordValid;
 }
 
 defineExpose({
@@ -82,7 +71,7 @@ defineExpose({
          :key="rule.label"
          :class="rule.met ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'"
          class="flex items-center gap-2 text-xs transition-colors duration-200">
-      <UIcon :name="rule.met ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-minus-circle'"
+      <UIcon :name="rule.met ? 'i-lucide-circle-check' : 'i-lucide-circle-minus'"
              class="w-4 h-4"/>
       {{ rule.label }}
     </div>
@@ -97,7 +86,3 @@ defineExpose({
                   :placeholder="t('auth.placeholders.confirmPassword')"
                   required/>
 </template>
-
-<style scoped>
-
-</style>

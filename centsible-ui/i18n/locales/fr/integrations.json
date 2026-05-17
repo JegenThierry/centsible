@@ -14,7 +14,7 @@
       "heading": "Vos connexions",
       "emptyTitle": "Aucune connexion pour le moment",
       "emptyDescription": "Connectez un fournisseur ci-dessus pour commencer à suivre des données externes.",
-      "lastSynced": "Dernière synchronisation : {date}",
+      "lastSyncedLabel": "Dernière synchronisation :",
       "lastError": "Dernière erreur : {error}",
       "syncNow": "Synchroniser",
       "disconnect": "Déconnecter",

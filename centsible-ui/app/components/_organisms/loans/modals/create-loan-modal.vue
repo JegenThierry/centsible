@@ -50,8 +50,8 @@ async function handleSave() {
     await loansStore.createLoan(form.value);
     emit('created');
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Create loan failed', error);
   } finally {
     loading.value = false;
   }

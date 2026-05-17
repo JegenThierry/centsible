@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {BudgetAccount} from '~/models/budget-account/budget-account'
 import CurrencyBadge from "~/components/_molecules/badges/currency-badge.vue";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 defineProps<{
   account: BudgetAccount
@@ -30,7 +30,7 @@ const {t} = useI18n();
     </template>
 
     <div class="space-y-1">
-      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">{{ t('accounts.card.currentBalance') }}</p>
+      <p class="text-xs sm:text-sm text-muted">{{ t('accounts.card.currentBalance') }}</p>
       <p class="text-xl sm:text-2xl font-bold">
         <BalanceNumberFormat
           :balance="account.balance"

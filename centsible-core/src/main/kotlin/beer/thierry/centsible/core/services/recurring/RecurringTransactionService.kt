@@ -71,8 +71,7 @@ class RecurringTransactionService(
     }
 
     private fun validate(form: RecurringTransactionForm) {
-        require(form.endDate == null || !form.endDate!!.isBefore(form.startDate)) {
-            "End date must be on or after start date."
-        }
+        val end = form.endDate ?: return
+        require(!end.isBefore(form.startDate)) { "End date must be on or after start date." }
     }
 }

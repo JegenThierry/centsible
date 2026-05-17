@@ -7,9 +7,6 @@ export interface ThemeDefinition {
   id: ThemeId;
   label: string;
   primary: Palette;
-  // Tinted neutral palette (see main.css). Swapped on `setTheme` so NuxtUI's
-  // neutral-backed surfaces (`bg-default`, `bg-muted`, dividers, rings) pick
-  // up the theme's hue instead of staying pure slate.
   neutral: NeutralPalette;
 }
 
@@ -29,10 +26,19 @@ const DEFAULT_THEME_ID: ThemeId = 'blush';
 
 const safeStorage = {
   get(key: string): string | null {
-    try { return localStorage.getItem(key); } catch { return null; }
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.warn('Failed to read theme from localStorage', error);
+      return null;
+    }
   },
   set(key: string, value: string): void {
-    try { localStorage.setItem(key, value); } catch { /* private mode / quota */ }
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.warn('Failed to persist theme to localStorage', error);
+    }
   },
 };
 
@@ -57,9 +63,6 @@ export const useTheme = () => {
     }
 
     currentThemeId.value = theme.id;
-    // NuxtUI's color plugin watches `appConfig.ui.colors`; mutating here swaps
-    // `--ui-color-primary-*` and `--ui-color-neutral-*` to the new palettes
-    // without a reload.
     const colors = appConfig.ui.colors as Record<string, string>;
     colors.primary = theme.primary;
     colors.neutral = theme.neutral;

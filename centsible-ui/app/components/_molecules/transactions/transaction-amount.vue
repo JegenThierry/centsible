@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {CategoryType} from "~/models/category/category";
 import type {Currency} from "~/models/budget-account/currency";
-import BalanceNumberFormat from "~/components/_molecules/labels/balance-number-format.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 const props = defineProps<{
   amount: number;

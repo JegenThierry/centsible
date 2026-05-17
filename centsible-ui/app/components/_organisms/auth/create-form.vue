@@ -33,9 +33,7 @@ const loading = ref<boolean>(false);
 
 function onSubmit() {
   if (loading.value) return;
-  if (!validate()) {
-    return;
-  }
+  if (!validate()) return;
   loading.value = true;
 
   useAuthService(api)
@@ -48,7 +46,6 @@ function onSubmit() {
       locale: locale.value,
     })
     .then(async (res) => {
-      // res.token is only set when SKIP_EMAIL_VERIFICATION=true; otherwise confirm-via-email.
       if (res.token) {
         authStore.setAuthenticated(true);
         await userStore.fetchMyself();
@@ -65,7 +62,6 @@ function onSubmit() {
     .finally(() => loading.value = false);
 }
 
-
 function validate(): boolean {
   const valid = useValidator().validateInputs([
     usernameInput,
@@ -74,11 +70,7 @@ function validate(): boolean {
     lastnameInput,
     passwordsInput,
   ]);
-
-  if (!valid) {
-    error(t('auth.register.toastValidationTitle'), t('auth.register.toastValidationBody'));
-  }
-
+  if (!valid) error(t('auth.register.toastValidationTitle'), t('auth.register.toastValidationBody'));
   return valid;
 }
 </script>

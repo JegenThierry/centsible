@@ -75,7 +75,7 @@ function postProcessingLabel(job: ExportJob): string {
 
     <template #actions-cell="{ row }">
       <TableRowActionsMenu
-        :label="t('exports.table.actionsAria')"
+        :menu-label="t('exports.table.actionsAria')"
         :items="[
           {
             label: t('exports.table.download'),

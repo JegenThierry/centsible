@@ -20,31 +20,21 @@ class LoansResource(private val loanService: ILoanService) {
     @GetMapping
     fun list(
         @RequestParam(required = false) contactId: UUID?,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<List<LoanDTO>> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val loans = if (contactId != null) {
-            loanService.fetchLoansByContact(authenticatedUser, contactId)
-        } else {
-            loanService.fetchAllLoans(authenticatedUser)
-        }
-        return ResponseEntity.ok(loans)
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<LoanDTO>> = ResponseEntity.ok(
+        contactId?.let { loanService.fetchLoansByContact(authenticatedUser, it) }
+            ?: loanService.fetchAllLoans(authenticatedUser)
+    )
 
     @GetMapping("/outstanding")
-    fun outstanding(
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<Map<String, BigDecimal>> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(mapOf("outstanding" to loanService.totalOutstanding(authenticatedUser)))
-    }
+    fun outstanding(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<Map<String, BigDecimal>> =
+        ResponseEntity.ok(mapOf("outstanding" to loanService.totalOutstanding(authenticatedUser)))
 
     @GetMapping("/{id}")
     fun get(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<LoanDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
         val loan = loanService.fetchLoanById(authenticatedUser, id) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(loan)
     }
@@ -52,49 +42,39 @@ class LoansResource(private val loanService: ILoanService) {
     @PostMapping
     fun create(
         @Valid @RequestBody form: LoanForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<LoanDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(loanService.createLoan(authenticatedUser, form))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<LoanDTO> =
+        ResponseEntity.ok(loanService.createLoan(authenticatedUser, form))
 
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<Void> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val deleted = loanService.deleteLoan(authenticatedUser, id)
-        return if (deleted) ResponseEntity.ok().build() else ResponseEntity.notFound().build()
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<Void> =
+        if (loanService.deleteLoan(authenticatedUser, id)) ResponseEntity.ok().build()
+        else ResponseEntity.notFound().build()
 
     @GetMapping("/{id}/repayments")
     fun listRepayments(
         @PathVariable id: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<List<RepaymentDTO>> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(loanService.fetchRepayments(authenticatedUser, id))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<RepaymentDTO>> =
+        ResponseEntity.ok(loanService.fetchRepayments(authenticatedUser, id))
 
     @PostMapping("/{id}/repayments")
     fun recordRepayment(
         @PathVariable id: UUID,
         @Valid @RequestBody form: RepaymentForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<RepaymentDTO> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(loanService.recordRepayment(authenticatedUser, id, form))
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<RepaymentDTO> =
+        ResponseEntity.ok(loanService.recordRepayment(authenticatedUser, id, form))
 
     @DeleteMapping("/{loanId}/repayments/{repaymentId}")
     fun deleteRepayment(
         @PathVariable loanId: UUID,
         @PathVariable repaymentId: UUID,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<Void> {
-        if (authenticatedUser == null) return ResponseEntity.status(401).build()
-        val deleted = loanService.deleteRepayment(authenticatedUser, loanId, repaymentId)
-        return if (deleted) ResponseEntity.ok().build() else ResponseEntity.notFound().build()
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<Void> =
+        if (loanService.deleteRepayment(authenticatedUser, loanId, repaymentId)) ResponseEntity.ok().build()
+        else ResponseEntity.notFound().build()
 }

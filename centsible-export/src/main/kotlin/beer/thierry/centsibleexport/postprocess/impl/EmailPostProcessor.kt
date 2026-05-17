@@ -23,7 +23,6 @@ class EmailPostProcessor(
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
-    private val apiUrl = "https://api.resend.com/emails"
 
     override fun supports(): PostProcessingType = PostProcessingType.SEND_EMAIL
 
@@ -54,7 +53,11 @@ class EmailPostProcessor(
         )
 
         val request = HttpEntity(body, headers)
-        restTemplate.postForLocation(apiUrl, request)
+        restTemplate.postForLocation(RESEND_API_URL, request)
         log.info("Sent export {} to {}", job.id, recipient)
+    }
+
+    private companion object {
+        const val RESEND_API_URL = "https://api.resend.com/emails"
     }
 }

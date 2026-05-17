@@ -14,10 +14,8 @@ class PdfRenderer(
     private val browser: Browser,
 ) {
 
-    fun renderHtmlToPdf(template: String, context: Map<String, Any?>): ByteArray {
-        val html = renderHtml(template, context)
-        return htmlToPdfBytes(html)
-    }
+    fun renderHtmlToPdf(template: String, context: Map<String, Any?>): ByteArray =
+        htmlToPdfBytes(renderHtml(template, context))
 
     private fun renderHtml(template: String, context: Map<String, Any?>): String {
         val pebble = pebbleEngine.getTemplate(template)
@@ -26,23 +24,20 @@ class PdfRenderer(
         return writer.toString()
     }
 
-    private fun htmlToPdfBytes(html: String): ByteArray {
-        val page: Page = browser.newPage()
-        page.use { page ->
-            page.setContent(html)
-            page.waitForLoadState(LoadState.NETWORKIDLE)
-            return page.pdf(
-                Page.PdfOptions()
-                    .setFormat("A4")
-                    .setPrintBackground(true)
-                    .setDisplayHeaderFooter(true)
-                    .setHeaderTemplate(HEADER_TEMPLATE)
-                    .setFooterTemplate(FOOTER_TEMPLATE)
-                    .setMargin(
-                        Margin().setTop("18mm").setBottom("22mm").setLeft("16mm").setRight("16mm")
-                    )
-            )
-        }
+    private fun htmlToPdfBytes(html: String): ByteArray = browser.newPage().use { page ->
+        page.setContent(html)
+        page.waitForLoadState(LoadState.NETWORKIDLE)
+        page.pdf(
+            Page.PdfOptions()
+                .setFormat("A4")
+                .setPrintBackground(true)
+                .setDisplayHeaderFooter(true)
+                .setHeaderTemplate(HEADER_TEMPLATE)
+                .setFooterTemplate(FOOTER_TEMPLATE)
+                .setMargin(
+                    Margin().setTop("18mm").setBottom("22mm").setLeft("16mm").setRight("16mm")
+                )
+        )
     }
 
     companion object {

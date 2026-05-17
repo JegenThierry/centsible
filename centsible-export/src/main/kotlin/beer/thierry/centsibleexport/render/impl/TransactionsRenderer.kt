@@ -11,8 +11,7 @@ import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.util.Locale
 import java.util.UUID
 
 @Component
@@ -73,15 +72,17 @@ class TransactionsRenderer(
             ),
         )
 
-        val pdf = pdfRenderer.renderHtmlToPdf("transactions.peb", context)
-        val filename = "transactions-${LocalDate.now()}-${OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()}.pdf"
-        return RenderedExport(pdf, filename)
+        return pdfRenderer.renderExport(
+            template = "transactions.peb",
+            filenameStem = "transactions-${LocalDate.now()}",
+            context = context,
+        )
     }
 
     private fun List<ExportTransactionRow>.sumAmount(): BigDecimal =
         fold(BigDecimal.ZERO) { acc, row -> acc + row.amount }
 
-    private fun ExportTransactionRow.asTemplateMap(locale: java.util.Locale): Map<String, Any?> = mapOf(
+    private fun ExportTransactionRow.asTemplateMap(locale: Locale): Map<String, Any?> = mapOf(
         "date" to formatDate(transactionDate, locale),
         "account" to accountName,
         "currency" to currency,

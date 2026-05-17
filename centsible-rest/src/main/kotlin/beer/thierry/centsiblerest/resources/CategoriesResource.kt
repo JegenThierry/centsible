@@ -16,34 +16,19 @@ class CategoriesResource(private val categoryService: ICategoryService) {
     @PostMapping
     fun create(
         @Valid @RequestBody category: CategoryForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<CategoryDTO> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val result = categoryService.createCategory(authenticatedUser, category)
-        return ResponseEntity.ok(result)
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<CategoryDTO> =
+        ResponseEntity.ok(categoryService.createCategory(authenticatedUser, category))
 
     @GetMapping
-    fun getCategories(
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<List<CategoryDTO>> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val result = categoryService.fetchAllCategories(authenticatedUser)
-        return ResponseEntity.ok(result)
-    }
+    fun getCategories(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<CategoryDTO>> =
+        ResponseEntity.ok(categoryService.fetchAllCategories(authenticatedUser))
 
     @GetMapping("/{id}")
     fun getCategory(
         @PathVariable id: Long,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<CategoryDTO> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
         val result = categoryService.fetchCategoryById(authenticatedUser, id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(result)
@@ -53,11 +38,8 @@ class CategoriesResource(private val categoryService: ICategoryService) {
     fun updateCategory(
         @PathVariable id: Long,
         @Valid @RequestBody category: CategoryForm,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<CategoryDTO> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
         val result = categoryService.updateCategory(authenticatedUser, id, category)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(result)
@@ -66,16 +48,8 @@ class CategoriesResource(private val categoryService: ICategoryService) {
     @DeleteMapping("/{id}")
     fun deleteCategory(
         @PathVariable id: Long,
-        @AuthenticationPrincipal authenticatedUser: UserDTO?
-    ): ResponseEntity<Void> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).build()
-        }
-        val deleted = categoryService.deleteCategory(authenticatedUser, id)
-        return if (deleted) {
-            ResponseEntity.ok().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
-    }
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<Void> =
+        if (categoryService.deleteCategory(authenticatedUser, id)) ResponseEntity.ok().build()
+        else ResponseEntity.notFound().build()
 }

@@ -2,7 +2,6 @@
 import {Currency, currencyOptions} from "~/models/budget-account/currency";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
-import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import {useValidator} from "~/composables/use-validator";
@@ -11,10 +10,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 const emit = defineEmits<{
   (e: 'created'): void;
 }>();
-const api = useApi();
-const accountService = useBudgetAccountService(api);
-const accountStore = useBudgetAccountsStore();
-
+const accountService = useBudgetAccountService(useApi());
 const toast = useToasts();
 const {t} = useI18n();
 
@@ -115,7 +111,3 @@ function onCloseModal() {
     </template>
   </UModal>
 </template>
-
-<style scoped>
-
-</style>

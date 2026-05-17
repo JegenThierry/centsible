@@ -11,6 +11,7 @@ import beer.thierry.centsible.api.services.users.IUserService
 import beer.thierry.centsiblerest.security.AuthCookieIssuer
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -26,8 +27,7 @@ class AuthenticationResource(
     fun login(@Valid @RequestBody request: AuthRequest, response: HttpServletResponse): ResponseEntity<AuthResponse> {
         val authResult = authService.authenticate(request)
         authCookieIssuer.issue(response, authResult.token)
-        // Token also in body so curl/Bruno can use Authorization header.
-        return ResponseEntity.ok(AuthResponse(authResult.token))
+        return ResponseEntity.ok(authResult)
     }
 
     @PostMapping("/register")
@@ -36,22 +36,15 @@ class AuthenticationResource(
         response: HttpServletResponse,
     ): ResponseEntity<AuthResponse> {
         val authResult = authService.register(form)
-        // Token is empty unless skip-email-verification is on; otherwise login follows confirm.
-        if (authResult.token.isNotBlank()) {
-            authCookieIssuer.issue(response, authResult.token)
-        }
+        // Token is blank when registration is pending email confirmation; skip cookie in that case.
+        if (authResult.token.isNotBlank()) authCookieIssuer.issue(response, authResult.token)
         return ResponseEntity.ok(authResult)
     }
 
     @GetMapping("/confirm")
-    fun confirm(@RequestParam token: String): ResponseEntity<String> {
-        val confirmed = authService.confirmRegistration(token)
-        return if (confirmed) {
-            ResponseEntity.ok("Account confirmed successfully")
-        } else {
-            ResponseEntity.badRequest().body("Invalid confirmation token")
-        }
-    }
+    fun confirm(@RequestParam token: String): ResponseEntity<String> =
+        if (authService.confirmRegistration(token)) ResponseEntity.ok("Account confirmed successfully")
+        else ResponseEntity.badRequest().body("Invalid confirmation token")
 
     @PostMapping("/logout")
     fun logout(response: HttpServletResponse): ResponseEntity<Void> {
@@ -67,25 +60,19 @@ class AuthenticationResource(
     }
 
     @PostMapping("/reset-password")
-    fun resetPassword(@Valid @RequestBody request: PasswordResetConfirmRequest): ResponseEntity<Void> {
-        val ok = authService.resetPassword(request.token, request.password)
-        return if (ok) ResponseEntity.noContent().build() else ResponseEntity.badRequest().build()
-    }
+    fun resetPassword(@Valid @RequestBody request: PasswordResetConfirmRequest): ResponseEntity<Void> =
+        if (authService.resetPassword(request.token, request.password)) ResponseEntity.noContent().build()
+        else ResponseEntity.badRequest().build()
 
     @GetMapping("/verify")
     fun verify(
-        @AuthenticationPrincipal authenticatedUser: UserDTO?,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
         response: HttpServletResponse,
     ): ResponseEntity<String> {
-        if (authenticatedUser == null) {
-            return ResponseEntity.status(401).body("Not authenticated")
-        }
         // The JWT filter rebuilds the principal from claims alone, so a valid token can
         // outlive the user. Reject — and clear the cookie — when that happens.
-        if (!userService.userExists(authenticatedUser.id)) {
-            authCookieIssuer.clear(response)
-            return ResponseEntity.status(401).body("Account no longer exists")
-        }
-        return ResponseEntity.ok("ok")
+        if (userService.userExists(authenticatedUser.id)) return ResponseEntity.ok("ok")
+        authCookieIssuer.clear(response)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account no longer exists")
     }
 }

@@ -1,11 +1,11 @@
 import {defineStore} from "pinia";
 import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
-import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 
 export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const api = useApi();
-  const toasts = useToasts();
+  const apiErrors = useApiErrors();
   const accountService = useBudgetAccountService(api);
 
   const activeAccount = ref<BudgetAccount>();
@@ -13,24 +13,22 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const pending = ref(false);
 
   async function updateAvailableAccounts() {
-    const accountService = useBudgetAccountService(api);
     pending.value = true;
     try {
       availableAccounts.value = await accountService.fetchAccounts();
     } catch (error) {
-      toasts.error("Failed to update accounts", "Accounts could not be updated")
-      console.error(error);
+      apiErrors.toastError(error, "Failed to update accounts", "Accounts could not be updated");
     } finally {
       pending.value = false;
     }
   }
 
   async function updateActiveAccount() {
-    if (activeAccount.value == undefined) return;
+    if (!activeAccount.value) return;
 
     pending.value = true;
     try {
-      activeAccount.value = await accountService.fetchAccount(activeAccount.value.id)
+      activeAccount.value = await accountService.fetchAccount(activeAccount.value.id);
     } catch (error) {
       console.error(error);
     } finally {
@@ -39,16 +37,13 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   }
 
   async function loadActiveAccount(accountId: string) {
-    if (activeAccount.value?.id === accountId) {
-      return;
-    }
+    if (activeAccount.value?.id === accountId) return;
 
     pending.value = true;
     try {
       activeAccount.value = await accountService.fetchAccount(accountId);
     } catch (error) {
-      toasts.error("Failed to load account", "Account could not be loaded");
-      console.error(error);
+      apiErrors.toastError(error, "Failed to load account", "Account could not be loaded");
     } finally {
       pending.value = false;
     }

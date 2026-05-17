@@ -63,7 +63,6 @@ watch(mode, (m) => {
   }
 });
 
-// Mirror lent → owed only while the user hasn't customised owed (owed still matches the prior lent).
 watch(() => form.value.lentAmount, (newLent, oldLent) => {
   if (Number(form.value.owedAmount) === Number(oldLent ?? 0)) {
     form.value = {...form.value, owedAmount: newLent};
@@ -71,12 +70,10 @@ watch(() => form.value.lentAmount, (newLent, oldLent) => {
 });
 
 onMounted(async () => {
-  await Promise.all([
-    contactsStore.contacts.length === 0 ? contactsStore.updateContacts() : Promise.resolve(),
-    budgetAccountsStore.availableAccounts.length === 0
-      ? budgetAccountsStore.updateAvailableAccounts()
-      : Promise.resolve(),
-  ]);
+  const tasks: Promise<unknown>[] = [];
+  if (contactsStore.contacts.length === 0) tasks.push(contactsStore.updateContacts());
+  if (budgetAccountsStore.availableAccounts.length === 0) tasks.push(budgetAccountsStore.updateAvailableAccounts());
+  await Promise.all(tasks);
 
   if (!props.lockContact && contactsStore.contacts.length === 0) {
     mode.value = 'new';
@@ -99,13 +96,12 @@ defineExpose({validate});
 
 <template>
   <div class="space-y-4">
-    <div v-if="!lockContact">
-      <URadioGroup v-model="mode"
-                   :disabled="disabled"
-                   :items="modeOptions"
-                   :legend="t('contacts.loans.form.modeLegend')"
-                   orientation="horizontal"/>
-    </div>
+    <URadioGroup v-if="!lockContact"
+                 v-model="mode"
+                 :disabled="disabled"
+                 :items="modeOptions"
+                 :legend="t('contacts.loans.form.modeLegend')"
+                 orientation="horizontal"/>
 
     <ContactSelect v-if="mode === 'existing' && !lockContact"
                    ref="contactSelect"

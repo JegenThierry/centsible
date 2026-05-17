@@ -8,6 +8,7 @@ import {useContactsStore} from "~/stores/contactsStore";
 export const useLoansStore = defineStore('loansStore', () => {
   const api = useApi();
   const toasts = useToasts();
+  const apiErrors = useApiErrors();
   const loanService = useLoanService(api);
   const contactsStore = useContactsStore();
 
@@ -22,7 +23,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       const loans = await loanService.fetchLoans(contactId);
       loansByContact.value = {...loansByContact.value, [contactId]: loans};
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
       throw error;
     } finally {
       pending.value = false;
@@ -34,7 +35,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       const repayments = await loanService.fetchRepayments(loanId);
       repaymentsByLoan.value = {...repaymentsByLoan.value, [loanId]: repayments};
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to fetch repayments", "Repayments could not be loaded");
+      apiErrors.toastError(error, "Failed to fetch repayments", "Repayments could not be loaded");
       throw error;
     }
   }
@@ -52,12 +53,14 @@ export const useLoansStore = defineStore('loansStore', () => {
     try {
       const loan = await loanService.createLoan(form);
       toasts.success("Loan recorded", "Your loan has been recorded");
-      const tasks: Promise<unknown>[] = [refreshOutstanding(), contactsStore.fetchContact(loan.contact.id)];
-      if (loan.contact?.id) tasks.push(refreshLoansForContact(loan.contact.id));
-      await Promise.all(tasks);
+      await Promise.all([
+        refreshOutstanding(),
+        contactsStore.fetchContact(loan.contact.id),
+        refreshLoansForContact(loan.contact.id),
+      ]);
       return loan;
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to record loan", "An error occurred");
+      apiErrors.toastError(error, "Failed to record loan", "An error occurred");
       throw error;
     } finally {
       pending.value = false;
@@ -76,7 +79,7 @@ export const useLoansStore = defineStore('loansStore', () => {
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to record repayment", "An error occurred");
+      apiErrors.toastError(error, "Failed to record repayment", "An error occurred");
       throw error;
     } finally {
       pending.value = false;
@@ -94,7 +97,7 @@ export const useLoansStore = defineStore('loansStore', () => {
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to delete loan", "An error occurred");
+      apiErrors.toastError(error, "Failed to delete loan", "An error occurred");
       throw error;
     } finally {
       pending.value = false;

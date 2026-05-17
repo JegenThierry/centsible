@@ -10,10 +10,6 @@ export function parseCsv(text: string, delimiter: string = ','): CsvParseResult 
   return {headers, rows};
 }
 
-/**
- * Parse an amount like "1,234.56", "1.234,56", "-12.5", "(15.00)" into a positive number.
- * Returns NaN if it can't be parsed.
- */
 export function parseAmount(raw: string): number {
   if (!raw) return NaN;
   let s = raw.trim();
@@ -23,7 +19,6 @@ export function parseAmount(raw: string): number {
   const lastComma = s.lastIndexOf(',');
   const lastDot = s.lastIndexOf('.');
   if (lastComma > lastDot) {
-    // European format: 1.234,56 → 1234.56
     s = s.replace(/\./g, '').replace(',', '.');
   } else {
     s = s.replace(/,/g, '');
@@ -35,16 +30,6 @@ export function parseAmount(raw: string): number {
 
 export type DateFormat = 'auto' | 'dd/MM/yyyy' | 'MM/dd/yyyy' | 'yyyy-MM-dd';
 
-/**
- * Normalize a date string to ISO `yyyy-MM-dd`. Returns null if it can't be parsed.
- *
- * `format` controls how ambiguous formats are interpreted:
- * - `'yyyy-MM-dd'`: only ISO; rejects anything else
- * - `'dd/MM/yyyy'`: day-first (European), accepts `/`, `.`, or `-` separators
- * - `'MM/dd/yyyy'`: month-first (US), accepts `/`, `.`, or `-` separators
- * - `'auto'` (default): tries ISO first, then day-first, then month-first.
- *   Caller should prefer an explicit format to avoid silently swapping day/month.
- */
 export function parseToIsoDate(raw: string, format: DateFormat = 'auto'): string | null {
   if (!raw) return null;
   const s = raw.trim();

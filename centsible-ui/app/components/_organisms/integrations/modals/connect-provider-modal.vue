@@ -19,16 +19,12 @@ const displayNameError = ref<string | undefined>();
 const formRef = ref<InstanceType<typeof DynamicConfigForm>>();
 const loading = ref(false);
 
-const modalTitle = computed(() => {
-  if (props.descriptor) {
-    return t('integrations.modal.titleWithName', {name: props.descriptor.displayName});
-  }
-  return t('integrations.modal.titleFallback');
-});
+const modalTitle = computed(() => props.descriptor
+  ? t('integrations.modal.titleWithName', {name: props.descriptor.displayName})
+  : t('integrations.modal.titleFallback'));
 
-const modalDescription = computed(() => {
-  return props.descriptor?.description ?? t('integrations.modal.descriptionFallback');
-});
+const modalDescription = computed(() =>
+  props.descriptor?.description ?? t('integrations.modal.descriptionFallback'));
 
 function reset() {
   displayName.value = props.descriptor?.displayName ?? '';
@@ -45,8 +41,8 @@ async function handleSave() {
   displayNameError.value = displayName.value.trim().length === 0
     ? t('integrations.modal.displayNameRequired')
     : undefined;
-  const configValid = formRef.value?.validate() ?? true;
-  if (displayNameError.value || !configValid) return;
+  if (displayNameError.value) return;
+  if (!formRef.value?.validate()) return;
 
   loading.value = true;
   try {
@@ -56,8 +52,8 @@ async function handleSave() {
       values: values.value,
     });
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Create provider connection failed', error);
   } finally {
     loading.value = false;
   }

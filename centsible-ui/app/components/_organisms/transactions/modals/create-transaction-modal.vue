@@ -14,14 +14,11 @@ import {todayIsoDate} from "~/utils/date";
 
 const {t} = useI18n();
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   title?: string;
   description?: string;
   filterType?: CategoryType;
-}>(), {
-  title: undefined,
-  description: undefined,
-});
+}>();
 
 const computedTitle = computed(() => props.title ?? t('transactions.create.title'));
 const computedDescription = computed(() => props.description ?? t('transactions.create.description'));
@@ -92,11 +89,7 @@ const {requestClose} = useModalDirtyGuard({
 
 async function handleSave() {
   if (loading.value) return;
-  if (mode.value === 'lending') {
-    await saveLending();
-  } else {
-    await saveStandard();
-  }
+  await (mode.value === 'lending' ? saveLending() : saveStandard());
 }
 
 async function saveStandard() {
@@ -133,8 +126,8 @@ async function saveLending() {
     await loansStore.createLoan(loanForm.value);
     emit('created');
     isOpen.value = false;
-  } catch {
-    // toast handled by store
+  } catch (error) {
+    console.error('Create lending transaction failed', error);
   } finally {
     loading.value = false;
   }

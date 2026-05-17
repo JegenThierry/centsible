@@ -17,15 +17,11 @@ export function useUnsavedChangesGuard(dirty: Ref<boolean>, message?: MaybeRef<s
   }
 
   onMounted(() => {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', onBeforeUnload);
-    }
+    window.addEventListener('beforeunload', onBeforeUnload);
   });
 
   onBeforeUnmount(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('beforeunload', onBeforeUnload);
-    }
+    window.removeEventListener('beforeunload', onBeforeUnload);
   });
 
   onBeforeRouteLeave(() => {

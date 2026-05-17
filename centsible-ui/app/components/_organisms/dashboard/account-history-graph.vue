@@ -38,26 +38,13 @@ const {t} = useI18n();
 const localeTag = useLocaleTag();
 
 const chartData = computed<ChartData<'line'>>(() => {
-  const isDark = colorMode.value === 'dark';
-
-  if (!props.snapshots || props.snapshots.length === 0) {
-    return {
-      labels: [],
-      datasets: []
-    };
-  }
-
-  const sorted = [...props.snapshots]
+  const sorted = [...(props.snapshots ?? [])]
     .filter(s => s && s.createdAt)
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-  if (sorted.length === 0) {
-    return {
-      labels: [],
-      datasets: []
-    };
-  }
+  if (sorted.length === 0) return {labels: [], datasets: []};
 
+  const isDark = colorMode.value === 'dark';
   const dateFmt = new Intl.DateTimeFormat(localeTag.value, {day: '2-digit', month: '2-digit', year: 'numeric'});
   return {
     labels: sorted.map(s => dateFmt.format(parseISO(s.createdAt))),
@@ -133,7 +120,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+        <h3 class="text-base font-semibold text-highlighted">
           {{ t('accounts.dashboard.balanceOverTime') }}
         </h3>
       </div>

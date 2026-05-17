@@ -21,16 +21,10 @@ function onToggleOpen() {
 }
 
 onMounted(async () => {
-  if (!authStore.isAuthenticated) {
-    return;
-  }
-
+  if (!authStore.isAuthenticated) return;
   await userStore.fetchMyself();
-  // Reconcile the active runtime locale with the user's stored preference.
   const stored = userStore.user?.locale;
-  if (stored && stored !== locale.value) {
-    await setLocale(stored as 'en' | 'fr' | 'de');
-  }
+  if (stored && stored !== locale.value) await setLocale(stored as 'en' | 'fr' | 'de');
 });
 </script>
 

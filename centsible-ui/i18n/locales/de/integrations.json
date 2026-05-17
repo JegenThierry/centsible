@@ -14,7 +14,7 @@
       "heading": "Deine Verbindungen",
       "emptyTitle": "Noch keine Verbindungen",
       "emptyDescription": "Verbinde oben einen Anbieter, um externe Daten zu erfassen.",
-      "lastSynced": "Zuletzt synchronisiert: {date}",
+      "lastSyncedLabel": "Zuletzt synchronisiert:",
       "lastError": "Letzter Fehler: {error}",
       "syncNow": "Jetzt synchronisieren",
       "disconnect": "Trennen",

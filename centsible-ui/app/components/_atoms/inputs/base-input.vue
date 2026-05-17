@@ -33,17 +33,16 @@ function validate(): boolean {
 
   const value = model.value;
   const field = props.label;
+  const empty = isEmpty(value);
 
-  if (props.required && isEmpty(value)) {
+  if (props.required && empty) {
     error.value = t('common.validation.required', {field});
     return false;
   }
 
-  if (isEmpty(value)) {
-    return true;
-  }
+  if (empty) return true;
 
-  const stringValue = typeof value === 'string' ? value : String(value);
+  const stringValue = String(value);
 
   if (props.type === 'email' && !EMAIL_REGEX.test(stringValue.trim())) {
     error.value = t('common.validation.email', {field});
@@ -66,7 +65,7 @@ function validate(): boolean {
   }
 
   if (props.type === 'number') {
-    const numericValue = typeof value === 'number' ? value : Number(stringValue);
+    const numericValue = Number(value);
     if (Number.isNaN(numericValue)) {
       error.value = t('common.validation.number', {field});
       return false;
@@ -81,12 +80,10 @@ function validate(): boolean {
     }
   }
 
-  if (props.additionalValidator) {
-    const additionalError = props.additionalValidator();
-    if (additionalError) {
-      error.value = additionalError;
-      return false;
-    }
+  const additionalError = props.additionalValidator?.();
+  if (additionalError) {
+    error.value = additionalError;
+    return false;
   }
 
   return true;
@@ -111,14 +108,10 @@ defineExpose({
             :ui="trailingText ? { trailing: 'pe-2' } : undefined"
             class="w-full">
       <template v-if="trailingText" #trailing>
-        <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        <span class="text-xs font-medium text-muted">
           {{ trailingText }}
         </span>
       </template>
     </UInput>
   </UFormField>
 </template>
-
-<style scoped>
-
-</style>

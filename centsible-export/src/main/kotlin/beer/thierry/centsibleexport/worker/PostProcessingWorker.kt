@@ -18,11 +18,8 @@ class PostProcessingWorker(
 
     @Scheduled(fixedDelayString = "\${export.worker.poll-interval-ms:2000}")
     fun pollOnce() {
-        val claimed = try {
+        val claimed = log.claimOrLog("Failed to claim next post-processing row") {
             ppRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
-        } catch (ex: Exception) {
-            log.error("Failed to claim next post-processing row", ex)
-            return
         } ?: return
 
         val job = jobRepository.fetchByIdForWorker(claimed.exportJobId)
@@ -38,7 +35,7 @@ class PostProcessingWorker(
             log.info("Completed post-processing {} ({}) for job {}", claimed.id, claimed.type, claimed.exportJobId)
         } catch (ex: Exception) {
             log.error("Post-processing {} failed for job {}", claimed.id, claimed.exportJobId, ex)
-            ppRepository.markFailed(claimed.id, ex.message ?: ex::class.qualifiedName ?: "unknown error")
+            ppRepository.markFailed(claimed.id, ex.failureReason())
         }
     }
 }

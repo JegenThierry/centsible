@@ -5,11 +5,11 @@ import type {ProviderConnection} from "~/models/integrations/provider-connection
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import ConnectProviderModal from "~/components/_organisms/integrations/modals/connect-provider-modal.vue";
 
 const providersStore = useProvidersStore();
 const {t} = useI18n();
-const localeTag = useLocaleTag();
 
 const isConnectOpen = ref(false);
 const activeDescriptor = ref<ProviderDescriptor | undefined>();
@@ -19,21 +19,19 @@ function openConnect(descriptor: ProviderDescriptor) {
   isConnectOpen.value = true;
 }
 
-function statusColor(status: ProviderConnection['status']): 'success' | 'warning' | 'error' | 'neutral' {
-  switch (status) {
-    case 'ACTIVE': return 'success';
-    case 'NEW': return 'warning';
-    case 'ERROR': return 'error';
-    case 'REVOKED': return 'neutral';
-  }
+const STATUS_COLOR: Record<ProviderConnection['status'], 'success' | 'warning' | 'error' | 'neutral'> = {
+  ACTIVE: 'success',
+  NEW: 'warning',
+  ERROR: 'error',
+  REVOKED: 'neutral',
+};
+
+function statusColor(status: ProviderConnection['status']) {
+  return STATUS_COLOR[status];
 }
 
 function statusLabel(status: ProviderConnection['status']): string {
   return t(`integrations.connections.status.${status}`);
-}
-
-function formatLastSync(value: string): string {
-  return new Date(value).toLocaleString(localeTag.value);
 }
 
 function descriptorFor(connection: ProviderConnection): ProviderDescriptor | undefined {
@@ -113,8 +111,9 @@ onMounted(() => {
               <p class="text-sm text-neutral-500">
                 {{ descriptorFor(conn)?.displayName ?? conn.providerKey }}
               </p>
-              <p v-if="conn.lastSyncAt" class="text-xs text-dimmed mt-1">
-                {{ t('integrations.connections.lastSynced', {date: formatLastSync(conn.lastSyncAt)}) }}
+              <p v-if="conn.lastSyncAt" class="text-xs text-dimmed mt-1 flex gap-1">
+                <span>{{ t('integrations.connections.lastSyncedLabel') }}</span>
+                <FormattedDate :date="conn.lastSyncAt"/>
               </p>
               <p v-if="conn.lastError" class="text-xs text-error mt-1 truncate" :title="conn.lastError">
                 {{ t('integrations.connections.lastError', {error: conn.lastError}) }}

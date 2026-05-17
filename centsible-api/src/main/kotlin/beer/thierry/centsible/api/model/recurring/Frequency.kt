@@ -14,7 +14,7 @@ enum class Frequency {
 
     companion object {
         fun fromValue(value: String): Frequency =
-            entries.firstOrNull { it.name == value.uppercase() }
-                ?: throw IllegalArgumentException("Unknown frequency: $value")
+            runCatching { valueOf(value.uppercase()) }
+                .getOrElse { throw IllegalArgumentException("Unknown frequency: $value") }
     }
 }

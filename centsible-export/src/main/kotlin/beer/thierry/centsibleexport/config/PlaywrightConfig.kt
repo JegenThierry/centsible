@@ -14,20 +14,14 @@ class PlaywrightConfig {
     private lateinit var browser: Browser
 
     @Bean
-    fun playwright(): Playwright {
-        playwright = Playwright.create()
-        return playwright
-    }
+    fun playwright(): Playwright = Playwright.create().also { playwright = it }
 
     @Bean
-    fun browser(playwright: Playwright): Browser {
-        browser = playwright.chromium().launch(
-            BrowserType.LaunchOptions()
-                .setHeadless(true)
-                .setArgs(listOf("--no-sandbox", "--disable-dev-shm-usage"))
-        )
-        return browser
-    }
+    fun browser(playwright: Playwright): Browser = playwright.chromium().launch(
+        BrowserType.LaunchOptions()
+            .setHeadless(true)
+            .setArgs(listOf("--no-sandbox", "--disable-dev-shm-usage"))
+    ).also { browser = it }
 
     @PreDestroy
     fun shutdown() {

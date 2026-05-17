@@ -10,20 +10,18 @@ definePageMeta({
       const api = useApi();
       const authService = useAuthService(api);
 
-      // In-app navigation: trust the flag and skip the roundtrip.
       if (import.meta.client && authStore.isAuthenticated) {
         return navigateTo('/accounts');
       }
 
-      // Cold load: verify the cookie so authenticated users skip the landing.
       try {
         const isVerified = await authService.verify();
         if (isVerified) {
           authStore.setAuthenticated(true);
           return navigateTo('/accounts');
         }
-      } catch {
-        // Not authenticated or transient failure — fall through to the landing page.
+      } catch (error) {
+        console.warn('Session verification failed; staying on landing', error);
       }
     }
   ]

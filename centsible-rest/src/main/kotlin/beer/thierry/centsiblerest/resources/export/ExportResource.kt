@@ -29,36 +29,31 @@ class ExportResource(
     @PostMapping
     fun create(
         @Valid @RequestBody request: CreateExportRequest,
-        @AuthenticationPrincipal user: UserDTO?,
+        @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ExportJobDTO> {
-        if (user == null) return ResponseEntity.status(401).build()
-        val params = request.params ?: throw IllegalArgumentException("params is required")
-        val type = request.type ?: throw IllegalArgumentException("type is required")
-        val title = request.title ?: throw IllegalArgumentException("title is required")
+        val params = requireNotNull(request.params) { "params is required" }
+        val type = requireNotNull(request.type) { "type is required" }
+        val title = requireNotNull(request.title) { "title is required" }
         val payload = protoBuilder.build(user = user, params = params, locale = "en", currency = "EUR")
         val postProcessing = request.postProcessing.orEmpty().map {
-            (it.type ?: throw IllegalArgumentException("post-processing type required")) to (it.config.orEmpty())
+            requireNotNull(it.type) { "post-processing type required" } to it.config.orEmpty()
         }
-        val job = exportService.create(user, type, title, payload, postProcessing)
-        return ResponseEntity.ok(job)
+        return ResponseEntity.ok(exportService.create(user, type, title, payload, postProcessing))
     }
 
     @GetMapping
     fun list(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "25") size: Int,
-        @AuthenticationPrincipal user: UserDTO?,
-    ): ResponseEntity<List<ExportJobDTO>> {
-        if (user == null) return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(exportService.list(user, page, size))
-    }
+        @AuthenticationPrincipal user: UserDTO,
+    ): ResponseEntity<List<ExportJobDTO>> =
+        ResponseEntity.ok(exportService.list(user, page, size))
 
     @GetMapping("/{jobId}")
     fun get(
         @PathVariable jobId: UUID,
-        @AuthenticationPrincipal user: UserDTO?,
+        @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ExportJobDTO> {
-        if (user == null) return ResponseEntity.status(401).build()
         val job = exportService.get(user, jobId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(job)
     }
@@ -66,9 +61,8 @@ class ExportResource(
     @GetMapping("/{jobId}/download")
     fun download(
         @PathVariable jobId: UUID,
-        @AuthenticationPrincipal user: UserDTO?,
+        @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ByteArrayResource> {
-        if (user == null) return ResponseEntity.status(401).build()
         val pdf = exportService.download(user, jobId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
@@ -80,9 +74,8 @@ class ExportResource(
     @PostMapping("/{jobId}/retrigger")
     fun retrigger(
         @PathVariable jobId: UUID,
-        @AuthenticationPrincipal user: UserDTO?,
+        @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ExportJobDTO> {
-        if (user == null) return ResponseEntity.status(401).build()
         val job = exportService.retrigger(user, jobId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(job)
     }
@@ -90,10 +83,8 @@ class ExportResource(
     @DeleteMapping("/{jobId}")
     fun delete(
         @PathVariable jobId: UUID,
-        @AuthenticationPrincipal user: UserDTO?,
-    ): ResponseEntity<Void> {
-        if (user == null) return ResponseEntity.status(401).build()
-        return if (exportService.delete(user, jobId)) ResponseEntity.noContent().build()
+        @AuthenticationPrincipal user: UserDTO,
+    ): ResponseEntity<Void> =
+        if (exportService.delete(user, jobId)) ResponseEntity.noContent().build()
         else ResponseEntity.notFound().build()
-    }
 }

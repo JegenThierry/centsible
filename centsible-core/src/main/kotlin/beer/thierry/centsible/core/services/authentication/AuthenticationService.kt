@@ -100,21 +100,19 @@ class AuthenticationService(
     override fun requestPasswordReset(username: String) {
         // Always silent: don't leak which usernames exist. Trim only — no other normalisation,
         // since findUserByUsername is case-sensitive on the username column.
-        val trimmed = username.trim()
-        if (trimmed.isBlank()) return
+        val trimmed = username.trim().ifBlank { return }
         val user = userRepository.findUserByUsername(trimmed) ?: return
 
-        // Only registered (email-confirmed) accounts can reset; otherwise the confirmation flow applies.
         if (!user.registered) {
+            // Only registered (email-confirmed) accounts can reset; otherwise the confirmation flow applies.
             log.info("Password reset requested for unconfirmed account username='{}'; skipping email", trimmed)
             return
         }
 
         val rawToken = generateRegistrationToken()
-        val tokenHash = sha256(rawToken)
         val expiresAt = OffsetDateTime.now().plusMinutes(PASSWORD_RESET_TOKEN_TTL_MINUTES)
 
-        if (!userRepository.setPasswordResetToken(user.id, tokenHash, expiresAt)) {
+        if (!userRepository.setPasswordResetToken(user.id, sha256(rawToken), expiresAt)) {
             log.warn("Failed to persist password reset token for user id='{}'", user.id)
             return
         }
@@ -146,6 +144,7 @@ class AuthenticationService(
         private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
         private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
         private const val PASSWORD_RESET_TOKEN_TTL_MINUTES = 15L
+        private val PASSWORD_REQUIREMENTS = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
     }
 
     private fun generateJwt(user: User): String {
@@ -167,8 +166,7 @@ class AuthenticationService(
     }
 
     private fun assertPasswordMatchesSecuritySettings(password: String) {
-        val passwordRegex = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
-        if (!password.matches(passwordRegex)) {
+        if (!password.matches(PASSWORD_REQUIREMENTS)) {
             throw LocalizedException.BadRequest("error.auth.passwordRequirements")
         }
     }
