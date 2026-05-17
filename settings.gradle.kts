@@ -1,11 +1,11 @@
-rootProject.name = "budget-planner"
+rootProject.name = "centsible"
 
 include(
-    "budget-planner-api",
-    "budget-planner-jooq",
-    "budget-planner-core",
-    "budget-planner-rest",
-    "budget-planner-proto",
-    "budget-planner-export",
-    "budget-planner-integrations:manual",
+    "centsible-api",
+    "centsible-jooq",
+    "centsible-core",
+    "centsible-rest",
+    "centsible-proto",
+    "centsible-export",
+    "centsible-integrations:manual",
 )

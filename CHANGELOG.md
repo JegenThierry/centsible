@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Centsible** (budget-planner) are documented in this file.
+All notable changes to **Centsible** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -62,9 +62,9 @@ CSV import, recurring transactions, dashboard charts, and a multilingual UI.
 - Gradle multi-module backend (`api` → `jooq` → `core` → `rest`) with a strict
   one-way dependency graph; version catalog in `gradle/libs.versions.toml`.
 - jOOQ code generation against a live Postgres, with generated sources
-  committed under `budget-planner-jooq/src/generated/jooq`.
+  committed under `centsible-jooq/src/generated/jooq`.
 - File-ordered SQL migrations tracked in `schema_migrations`, executed by
-  `budget-planner-db/run-migrations.sh`.
+  `centsible-db/run-migrations.sh`.
 - Docker Compose orchestration of backend, UI, Postgres, and migrations, with
   `--watch` hot-reload for development.
 - Bruno API collections per domain (`auth`, `budget-accounts`, `categories`,

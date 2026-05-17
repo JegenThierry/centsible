@@ -18,49 +18,47 @@ The project is organized as a monorepo containing both frontend and backend modu
 
 ### Folder Overview
 
-> **A note on naming.** The product is **Centsible**, but the modules, Kotlin packages (`beer.thierry.budgetplanner.*`), Docker service names, the `budget_planner` database, and the jOOQ-generated code under `beer.thierry.jooq.generated` still use the original `budget-planner` identifier. These are internal infrastructure names — renaming them would churn generated sources, Spring `@ComponentScan` lists, Docker Compose references, environment variables, and git history with no user-facing benefit. Treat `budget-planner-*` as the codebase's legacy skin; **Centsible** is what users see.
-
-- **`budget-planner-api`**: Shared domain models, DTOs, and interfaces.
-- **`budget-planner-bruno`**: API request collections for the [Bruno](https://www.usebruno.com/) API client.
-- **`budget-planner-core`**: Core business logic and service implementations.
-- **`budget-planner-db`**: Database schema, migrations, and initialization scripts.
-- **`budget-planner-export`**: Standalone Spring Boot worker that picks up queued export jobs, renders PDFs via Pebble templates + Playwright, and runs post-processors (e.g. email delivery).
-- **`budget-planner-jooq`**: Data access layer powered by jOOQ.
-- **`budget-planner-proto`**: Protobuf schema (`export.proto`) shared between `rest` and `export` to describe the export job payload.
-- **`budget-planner-rest`**: Spring Boot entry point and REST API controllers.
-- **`budget-planner-ui`**: Nuxt.js frontend application.
+- **`centsible-api`**: Shared domain models, DTOs, and interfaces.
+- **`centsible-bruno`**: API request collections for the [Bruno](https://www.usebruno.com/) API client.
+- **`centsible-core`**: Core business logic and service implementations.
+- **`centsible-db`**: Database schema, migrations, and initialization scripts.
+- **`centsible-export`**: Standalone Spring Boot worker that picks up queued export jobs, renders PDFs via Pebble templates + Playwright, and runs post-processors (e.g. email delivery).
+- **`centsible-jooq`**: Data access layer powered by jOOQ.
+- **`centsible-proto`**: Protobuf schema (`export.proto`) shared between `rest` and `export` to describe the export job payload.
+- **`centsible-rest`**: Spring Boot entry point and REST API controllers.
+- **`centsible-ui`**: Nuxt.js frontend application.
 
 ### N-Layer Architecture (Backend)
 
 The backend is decomposed into several modules, each representing a specific layer in the architecture. Dependency flow is strictly unidirectional (from outer layers to inner layers):
 
-1.  **Presentation Layer (`budget-planner-rest`)**:
+1.  **Presentation Layer (`centsible-rest`)**:
     - The entry point of the application.
     - Contains Spring Boot configuration, Security setup, and REST Controllers.
     - Responsible for handling HTTP requests, input validation, and mapping to/from DTOs.
-    - Builds protobuf export payloads (via `budget-planner-proto`) and enqueues jobs that the export worker consumes.
-    - **Depends on**: `budget-planner-core`, `budget-planner-api`, `budget-planner-proto`.
+    - Builds protobuf export payloads (via `centsible-proto`) and enqueues jobs that the export worker consumes.
+    - **Depends on**: `centsible-core`, `centsible-api`, `centsible-proto`.
 
-2.  **Business Layer (`budget-planner-core`)**:
+2.  **Business Layer (`centsible-core`)**:
     - Contains the "heart" of the application: services, facades, and business rules.
     - Orchestrates transactions and coordinates data flow between the API and Persistence layers.
-    - **Depends on**: `budget-planner-jooq`, `budget-planner-api`.
+    - **Depends on**: `centsible-jooq`, `centsible-api`.
 
-3.  **Data Access Layer (`budget-planner-jooq`)**:
+3.  **Data Access Layer (`centsible-jooq`)**:
     - Handles all database interactions.
     - Includes jOOQ-generated classes and custom repository implementations.
     - Encapsulates SQL logic and provides a clean interface for the Business layer.
-    - **Depends on**: `budget-planner-api`.
+    - **Depends on**: `centsible-api`.
 
-4.  **Shared Layer (`budget-planner-api`)**:
+4.  **Shared Layer (`centsible-api`)**:
     - A lightweight module containing common DTOs, interfaces, constants, and exceptions.
     - Used as a bridge for communication between all other modules.
     - **Depends on**: None.
 
 In addition, two cross-cutting modules support the export pipeline:
 
-- **`budget-planner-proto`**: Pure protobuf module — generates Java classes from `src/main/proto/export.proto`. Consumed by both `rest` (producer) and `export` (consumer) so the wire format stays in sync.
-- **`budget-planner-export`**: A separate Spring Boot service that polls the `export_jobs` table, reads the protobuf payload, renders a PDF (Pebble + Playwright), and runs any registered post-processors. It runs as its own container alongside `rest` and shares the `jooq` + `api` modules.
+- **`centsible-proto`**: Pure protobuf module — generates Java classes from `src/main/proto/export.proto`. Consumed by both `rest` (producer) and `export` (consumer) so the wire format stays in sync.
+- **`centsible-export`**: A separate Spring Boot service that polls the `export_jobs` table, reads the protobuf payload, renders a PDF (Pebble + Playwright), and runs any registered post-processors. It runs as its own container alongside `rest` and shares the `jooq` + `api` modules.
 
 ## Tech Stack
 
@@ -124,20 +122,20 @@ The overlay:
 - drops the UI source bind-mount and all `develop:` watch blocks,
 - unpublishes the REST, UI, and Postgres ports — the stack is reachable only over Docker networks.
 
-A reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) must terminate TLS and forward requests to `budget-planner-ui:3000` and `budget-planner-rest:8080`. The overlay attaches both services to an external `proxy-net` network — set `PROXY_NETWORK` in `.env` to the Docker network name of your proxy stack (default `nginx-proxy-manager_default`; check `docker network ls`).
+A reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) must terminate TLS and forward requests to `centsible-ui:3000` and `centsible-rest:8080`. The overlay attaches both services to an external `proxy-net` network — set `PROXY_NETWORK` in `.env` to the Docker network name of your proxy stack (default `nginx-proxy-manager_default`; check `docker network ls`).
 
 Pick one topology in your proxy config:
 
 | Topology | Proxy routing | `.env` values |
 |:---|:---|:---|
-| Two subdomains | `app.example.com → budget-planner-ui:3000`<br/>`api.example.com → budget-planner-rest:8080` | `APP_BASE_URL=https://app.example.com`<br/>`CORS_ALLOWED_ORIGINS=https://app.example.com`<br/>`AUTH_COOKIE_DOMAIN=.example.com`<br/>`NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
-| Single host, path-based | `example.com/api/* → budget-planner-rest:8080`<br/>`example.com/* → budget-planner-ui:3000` | `APP_BASE_URL=https://example.com`<br/>`CORS_ALLOWED_ORIGINS=https://example.com`<br/>`AUTH_COOKIE_DOMAIN=`<br/>`NUXT_PUBLIC_API_BASE=/api` |
+| Two subdomains | `app.example.com → centsible-ui:3000`<br/>`api.example.com → centsible-rest:8080` | `APP_BASE_URL=https://app.example.com`<br/>`CORS_ALLOWED_ORIGINS=https://app.example.com`<br/>`AUTH_COOKIE_DOMAIN=.example.com`<br/>`NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
+| Single host, path-based | `example.com/api/* → centsible-rest:8080`<br/>`example.com/* → centsible-ui:3000` | `APP_BASE_URL=https://example.com`<br/>`CORS_ALLOWED_ORIGINS=https://example.com`<br/>`AUTH_COOKIE_DOMAIN=`<br/>`NUXT_PUBLIC_API_BASE=/api` |
 
 Either way, `AUTH_COOKIE_SECURE=true` and `SPRING_PROFILES_ACTIVE=prod` must be set (ProductionGuard enforces this).
 
 ## Module Scripts
 
-### Frontend (`budget-planner-ui`)
+### Frontend (`centsible-ui`)
 
 Managed with `npm`.
 
@@ -146,26 +144,26 @@ Managed with `npm`.
 - `npm run generate`: Static site generation.
 - `npm run preview`: Preview production build.
 
-### Backend (`budget-planner-rest`, `budget-planner-export`)
+### Backend (`centsible-rest`, `centsible-export`)
 
 Managed with Gradle (Kotlin DSL) using a multi-module setup and **Gradle Version Catalog** (`gradle/libs.versions.toml`)
 for dependency management.
 
-- `./gradlew :budget-planner-rest:bootRun`: Run the REST API.
-- `./gradlew :budget-planner-export:bootRun`: Run the export worker (requires a reachable DB).
+- `./gradlew :centsible-rest:bootRun`: Run the REST API.
+- `./gradlew :centsible-export:bootRun`: Run the export worker (requires a reachable DB).
 - `./gradlew build`: Build all modules and run tests.
-- `./gradlew :budget-planner-jooq:jooqCodegen`: Generate jOOQ classes from the database schema.
-- `./gradlew :budget-planner-proto:generateProto`: Regenerate protobuf classes from `budget-planner-proto/src/main/proto/export.proto`.
+- `./gradlew :centsible-jooq:jooqCodegen`: Generate jOOQ classes from the database schema.
+- `./gradlew :centsible-proto:generateProto`: Regenerate protobuf classes from `centsible-proto/src/main/proto/export.proto`.
 
 ## Tests
 
-- **Backend**: Run `./gradlew test` in the `budget-planner-rest` directory.
+- **Backend**: Run `./gradlew test` in the `centsible-rest` directory.
 - **Frontend**: TODO: Add frontend test command (e.g., `npm test`) if tests are implemented.
-- **API**: Use the collections in `budget-planner-bruno` with the Bruno client.
+- **API**: Use the collections in `centsible-bruno` with the Bruno client.
 
 ## Test Data Seeding
 
-The `budget-planner-bruno/testdata/` folder is a self-contained Bruno collection that seeds a realistic dataset against a running stack (1 user, 4 accounts, 4 custom categories, 5 contacts, ~28 transactions across Feb–May 2026, 4 loans with repayments, 2 exports).
+The `centsible-bruno/testdata/` folder is a self-contained Bruno collection that seeds a realistic dataset against a running stack (1 user, 4 accounts, 4 custom categories, 5 contacts, ~28 transactions across Feb–May 2026, 4 loans with repayments, 2 exports).
 
 ### How to run
 
@@ -173,7 +171,7 @@ The `budget-planner-bruno/testdata/` folder is a self-contained Bruno collection
    ```bash
    docker compose up --build
    ```
-2. Open `budget-planner-bruno/` in [Bruno](https://www.usebruno.com/).
+2. Open `centsible-bruno/` in [Bruno](https://www.usebruno.com/).
 3. Right-click the `testdata` folder and choose **Run** to execute every request top-to-bottom. Folders run in `seq` order, and files within each folder do too.
 
 Each create-request stores the returned id in a Bruno runtime variable (e.g. `accountCheckingId`, `categoryFoodId`, `contactAliceId`) so later requests can reference it — no environment file is required.
@@ -250,7 +248,7 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 |:-----------------------|:----------------------------------|:-----------------------------------|
 | `UI_HOST_PORT`         | Host-side port for the UI         | `3000`                             |
 | `NUXT_PUBLIC_API_BASE` | Public API URL used by the browser| `http://localhost:8080/api`        |
-| `NUXT_API_BASE_SSR`    | API URL used during Nuxt SSR      | `http://budget-planner-rest:8080/api` |
+| `NUXT_API_BASE_SSR`    | API URL used during Nuxt SSR      | `http://centsible-rest:8080/api` |
 
 ### Runtime
 

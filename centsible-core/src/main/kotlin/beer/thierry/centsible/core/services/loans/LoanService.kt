@@ -1,0 +1,88 @@
+package beer.thierry.centsible.core.services.loans
+
+import beer.thierry.centsible.api.model.contact.ContactForm
+import beer.thierry.centsible.api.model.loan.LoanDTO
+import beer.thierry.centsible.api.model.loan.LoanForm
+import beer.thierry.centsible.api.model.loan.RepaymentDTO
+import beer.thierry.centsible.api.model.loan.RepaymentForm
+import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.IContactsRepository
+import beer.thierry.centsible.api.repository.ILoanRepaymentsRepository
+import beer.thierry.centsible.api.repository.ILoansRepository
+import beer.thierry.centsible.api.services.loans.ILoanService
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.util.UUID
+
+@Service
+class LoanService(
+    private val loansRepository: ILoansRepository,
+    private val loanRepaymentsRepository: ILoanRepaymentsRepository,
+    private val contactsRepository: IContactsRepository,
+) : ILoanService {
+
+    override fun fetchAllLoans(authenticatedUser: UserDTO): List<LoanDTO> =
+        loansRepository.fetchAllLoans(authenticatedUser)
+
+    override fun fetchLoansByContact(authenticatedUser: UserDTO, contactId: UUID): List<LoanDTO> =
+        loansRepository.fetchLoansByContact(authenticatedUser, contactId)
+
+    override fun fetchLoanById(authenticatedUser: UserDTO, id: UUID): LoanDTO? =
+        loansRepository.fetchLoanById(authenticatedUser, id)
+
+    @Transactional
+    override fun createLoan(authenticatedUser: UserDTO, form: LoanForm): LoanDTO {
+        val contactId = resolveContactId(authenticatedUser, form)
+        return loansRepository.createLoan(authenticatedUser, contactId, form)
+    }
+
+    @Transactional
+    override fun deleteLoan(authenticatedUser: UserDTO, id: UUID): Boolean =
+        loansRepository.deleteLoan(authenticatedUser, id)
+
+    override fun fetchRepayments(authenticatedUser: UserDTO, loanId: UUID): List<RepaymentDTO> =
+        loanRepaymentsRepository.fetchRepayments(authenticatedUser, loanId)
+
+    @Transactional
+    override fun recordRepayment(authenticatedUser: UserDTO, loanId: UUID, form: RepaymentForm): RepaymentDTO {
+        val loan = loansRepository.fetchLoanById(authenticatedUser, loanId)
+            ?: throw IllegalArgumentException("Loan not found.")
+        val outstanding = loan.owedAmount - loanRepaymentsRepository.totalRepaidForLoan(loanId)
+        if (form.amount > outstanding) {
+            throw IllegalArgumentException(
+                "Repayment amount ($${form.amount}) exceeds the outstanding balance ($outstanding)."
+            )
+        }
+        return loanRepaymentsRepository.createRepayment(authenticatedUser, loanId, form)
+    }
+
+    @Transactional
+    override fun deleteRepayment(authenticatedUser: UserDTO, loanId: UUID, repaymentId: UUID): Boolean =
+        loanRepaymentsRepository.deleteRepayment(authenticatedUser, loanId, repaymentId)
+
+    override fun totalOutstanding(authenticatedUser: UserDTO): BigDecimal =
+        loansRepository.totalOutstanding(authenticatedUser)
+
+    private fun resolveContactId(authenticatedUser: UserDTO, form: LoanForm): UUID {
+        val existing = form.contactId
+        val newFirstName = form.newContactFirstName?.takeIf { it.isNotBlank() }
+
+        if (existing != null && newFirstName != null) {
+            throw IllegalArgumentException("Provide either an existing contact or a new contact name, not both.")
+        }
+        if (existing != null) {
+            contactsRepository.fetchContactById(authenticatedUser, existing)
+                ?: throw IllegalArgumentException("Contact not found.")
+            return existing
+        }
+        if (newFirstName != null) {
+            val created = contactsRepository.createContact(
+                authenticatedUser,
+                ContactForm(firstName = newFirstName, lastName = form.newContactLastName?.takeIf { it.isNotBlank() })
+            )
+            return created.id ?: throw IllegalStateException("Failed to create contact.")
+        }
+        throw IllegalArgumentException("Either contactId or newContactFirstName is required.")
+    }
+}
