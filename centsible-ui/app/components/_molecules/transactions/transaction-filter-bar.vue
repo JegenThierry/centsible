@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import {computed, ref, watch} from 'vue';
 import type {TransactionFilters, TransactionSort} from "~/models/transactions/transaction-filters";
-import {useCategoriesStore} from "~/stores/categoriesStore";
+import TransactionCategoryFilter from "~/components/_molecules/transactions/transaction-category-filter.vue";
+import TransactionDateRangeFilter from "~/components/_molecules/transactions/transaction-date-range-filter.vue";
 
 const props = defineProps<{
   modelValue: TransactionFilters;
@@ -12,7 +13,6 @@ const emit = defineEmits<{
 }>();
 
 const {t} = useI18n();
-const categoriesStore = useCategoriesStore();
 
 const search = ref(props.modelValue.search ?? '');
 const categoryIds = ref<number[]>(props.modelValue.categoryIds ?? []);
@@ -26,10 +26,6 @@ const sortOptions = computed(() => [
   {value: 'AMOUNT_DESC', label: t('transactions.filters.sort.AMOUNT_DESC')},
   {value: 'AMOUNT_ASC', label: t('transactions.filters.sort.AMOUNT_ASC')},
 ]);
-
-const categoryOptions = computed(() =>
-  categoriesStore.categories.map((c) => ({value: c.id, label: c.name})),
-);
 
 const hasFilters = computed(() =>
   !!search.value || categoryIds.value.length > 0 || !!fromDate.value || !!toDate.value || sort.value !== 'DATE_DESC',
@@ -56,48 +52,28 @@ function reset() {
   toDate.value = '';
   sort.value = 'DATE_DESC';
 }
-
-onMounted(() => {
-  if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
-});
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2 items-end mb-4">
-    <div class="flex-1 min-w-[200px]">
-      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('transactions.filters.searchLabel') }}</label>
-      <UInput v-model="search"
-              :placeholder="t('transactions.filters.searchPlaceholder')"
-              class="w-full mt-1"
-              icon="i-lucide-search"/>
-    </div>
+  <div class="flex flex-wrap items-center gap-2 mb-4">
+    <UInput v-model="search"
+            :placeholder="t('transactions.filters.searchPlaceholder')"
+            class="flex-1 min-w-[200px] max-w-md"
+            icon="i-lucide-search"
+            size="sm"/>
 
-    <div class="min-w-[180px]">
-      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('transactions.filters.categoryLabel') }}</label>
-      <USelectMenu v-model="categoryIds"
-                   :items="categoryOptions"
-                   :placeholder="t('transactions.filters.categoryPlaceholder')"
-                   multiple
-                   value-key="value"
-                   class="w-full mt-1"/>
-    </div>
+    <TransactionCategoryFilter v-model="categoryIds"/>
 
-    <div>
-      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('transactions.filters.fromLabel') }}</label>
-      <UInput v-model="fromDate" class="mt-1" type="date"/>
-    </div>
+    <TransactionDateRangeFilter v-model:from-date="fromDate" v-model:to-date="toDate"/>
 
-    <div>
-      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('transactions.filters.toLabel') }}</label>
-      <UInput v-model="toDate" class="mt-1" type="date"/>
-    </div>
-
-    <div class="min-w-[160px]">
-      <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('transactions.filters.sortLabel') }}</label>
-      <USelect v-model="sort" :items="sortOptions" class="w-full mt-1"/>
-    </div>
+    <USelect v-model="sort"
+             :items="sortOptions"
+             class="min-w-[160px]"
+             icon="i-lucide-arrow-up-down"
+             size="sm"/>
 
     <UButton v-if="hasFilters"
+             :aria-label="t('transactions.filters.clear')"
              color="neutral"
              icon="i-lucide-x"
              size="sm"
