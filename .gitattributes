@@ -1,0 +1,28 @@
+# Normalize all text files to LF in the repository, regardless of platform.
+# `text=auto` lets git detect text vs binary; `eol=lf` forces LF for text.
+* text=auto eol=lf
+
+# Explicitly mark shell scripts as text + LF (must stay LF to execute on Unix).
+*.sh    text eol=lf
+*.bash  text eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Common binaries — never touch.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.pdf   binary
+*.zip   binary
+*.jar   binary
+*.class binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
