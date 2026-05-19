@@ -18,6 +18,7 @@ import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -112,6 +113,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val SYSTEM_INFORMATION: SystemInformation get() = SystemInformation.SYSTEM_INFORMATION
 
     /**
+     * The table <code>public.transaction_attachments</code>.
+     */
+    val TRANSACTION_ATTACHMENTS: TransactionAttachments get() = TransactionAttachments.TRANSACTION_ATTACHMENTS
+
+    /**
      * The table <code>public.transactions</code>.
      */
     val TRANSACTIONS: Transactions get() = Transactions.TRANSACTIONS
@@ -138,6 +144,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         ProviderConnections.PROVIDER_CONNECTIONS,
         RecurringTransactions.RECURRING_TRANSACTIONS,
         SystemInformation.SYSTEM_INFORMATION,
+        TransactionAttachments.TRANSACTION_ATTACHMENTS,
         Transactions.TRANSACTIONS,
         Users.USERS
     )

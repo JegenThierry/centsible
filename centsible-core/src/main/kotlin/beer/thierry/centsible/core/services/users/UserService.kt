@@ -1,6 +1,7 @@
 package beer.thierry.centsible.core.services.users
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
+import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.user.ProfileUpdateDTO
 import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -44,6 +45,15 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
             userRepository.updateUserLocale(userId, locale)
                 ?: throw LocalizedException.NotFound("error.user.notFound")
         )
+
+    override fun fetchNotificationSettings(userId: UUID): NotificationSettingsDTO =
+        userRepository.fetchNotificationSettings(userId)
+
+    override fun updateNotificationSettings(
+        userId: UUID,
+        settings: NotificationSettingsDTO,
+    ): NotificationSettingsDTO =
+        userRepository.updateNotificationSettings(userId, settings)
 
     private fun persistProfile(userId: UUID, failureKey: String, mutate: (User) -> User): UserDTO {
         val existing = userRepository.findUserById(userId)

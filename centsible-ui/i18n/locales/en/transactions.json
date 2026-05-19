@@ -188,7 +188,9 @@
         "startDate": "Start date",
         "startDateHelp": "First occurrence date. Future dates are fine.",
         "endDate": "End date (optional)",
-        "endDateHelp": "Leave empty to repeat indefinitely."
+        "endDateHelp": "Leave empty to repeat indefinitely.",
+        "previewTitle": "Next occurrences",
+        "previewHint": "Preview only — transactions are generated on each due date."
       },
       "frequency": {
         "DAILY": "Daily",
@@ -219,6 +221,39 @@
       "openRowActions": "Open row actions",
       "rowActions": "Row actions",
       "emptyDefault": "Nothing here yet."
+    },
+    "attachments": {
+      "title": "Attachments",
+      "hint": "PDF, JPG, PNG or WebP. Max 10 MB each.",
+      "add": "Add file",
+      "empty": "No attachments yet.",
+      "pending": "Pending upload",
+      "deleteAria": "Delete attachment",
+      "popover": {
+        "triggerAria": "View {count} attached file(s)",
+        "loading": "Loading files…",
+        "empty": "No files attached."
+      },
+      "toasts": {
+        "uploadedTitle": "Attachment uploaded.",
+        "uploadedBody": "The file was attached to this transaction.",
+        "deletedTitle": "Attachment removed.",
+        "deletedBody": "The file was removed from this transaction."
+      },
+      "errors": {
+        "typeTitle": "Unsupported file type.",
+        "typeBody": "Use PDF, JPG, PNG or WebP.",
+        "sizeTitle": "File too large.",
+        "sizeBody": "Attachments must be 10 MB or smaller.",
+        "uploadTitle": "Upload failed.",
+        "uploadBody": "The file could not be uploaded. Please try again.",
+        "uploadPartialTitle": "Some attachments were not uploaded.",
+        "uploadPartialBody": "{count} file(s) could not be uploaded. Open the transaction to attach them again.",
+        "downloadTitle": "Download failed.",
+        "downloadBody": "The file could not be downloaded. Please try again.",
+        "deleteTitle": "Delete failed.",
+        "deleteBody": "The attachment could not be removed. Please try again."
+      }
     },
     "fab": {
       "create": "Create"

@@ -138,6 +138,31 @@
     },
     "avatar": {
       "changeAria": "Changer la photo de {name}"
+    },
+    "loansPage": {
+      "title": "Prêts",
+      "description": "Tous vos prêts, tous contacts confondus.",
+      "openContact": "Voir le contact",
+      "filterAll": "Tous les prêts",
+      "filterOpen": "Ouverts",
+      "filterPartial": "Partiellement remboursés",
+      "filterSettled": "Soldés",
+      "empty": "Aucun prêt enregistré — créez-en un pour commencer.",
+      "stats": {
+        "totalOutstanding": "Total en attente",
+        "openLoans": "Prêts ouverts",
+        "contactsWithLoans": "Contacts avec prêts"
+      },
+      "table": {
+        "contact": "Contact"
+      }
+    },
+    "loansGlance": {
+      "title": "Prêts en cours",
+      "outstanding": "En attente",
+      "openCount": "{count} prêt ouvert | {count} prêts ouverts",
+      "viewAll": "Voir tous les prêts",
+      "empty": "Aucun prêt en cours."
     }
   }
 }

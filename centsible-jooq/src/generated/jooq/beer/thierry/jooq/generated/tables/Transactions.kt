@@ -16,11 +16,13 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
+import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 
 import java.math.BigDecimal
@@ -254,6 +256,22 @@ open class Transactions(
 
     val loans: LoansPath
         get(): LoansPath = loans()
+
+    private lateinit var _transactionAttachments: TransactionAttachmentsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_attachments</code> table
+     */
+    fun transactionAttachments(): TransactionAttachmentsPath {
+        if (!this::_transactionAttachments.isInitialized)
+            _transactionAttachments = TransactionAttachmentsPath(this, null, TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionAttachments;
+    }
+
+    val transactionAttachments: TransactionAttachmentsPath
+        get(): TransactionAttachmentsPath = transactionAttachments()
     override fun `as`(alias: String): Transactions = Transactions(DSL.name(alias), this)
     override fun `as`(alias: Name): Transactions = Transactions(alias, this)
     override fun `as`(alias: Table<*>): Transactions = Transactions(alias.qualifiedName, this)

@@ -138,6 +138,31 @@
     },
     "avatar": {
       "changeAria": "Change picture for {name}"
+    },
+    "loansPage": {
+      "title": "Loans",
+      "description": "All loans across your contacts.",
+      "openContact": "View contact",
+      "filterAll": "All loans",
+      "filterOpen": "Open",
+      "filterPartial": "Partially paid",
+      "filterSettled": "Settled",
+      "empty": "No loans yet — record one to get started.",
+      "stats": {
+        "totalOutstanding": "Outstanding total",
+        "openLoans": "Open loans",
+        "contactsWithLoans": "Contacts with loans"
+      },
+      "table": {
+        "contact": "Contact"
+      }
+    },
+    "loansGlance": {
+      "title": "Loans at a glance",
+      "outstanding": "Outstanding",
+      "openCount": "{count} open loan | {count} open loans",
+      "viewAll": "View all loans",
+      "empty": "No outstanding loans."
     }
   }
 }

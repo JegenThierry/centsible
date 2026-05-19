@@ -4,6 +4,7 @@ import {CategoryType} from "~/models/category/category";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
+import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import LoanFormFields from "~/components/_molecules/loans/loan-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useLoansStore} from "~/stores/loansStore";
@@ -47,6 +48,7 @@ const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
 const loanFormRef = ref<InstanceType<typeof LoanFormFields>>();
+const attachmentsRef = ref<InstanceType<typeof TransactionAttachments>>();
 const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
@@ -84,6 +86,7 @@ const {requestClose} = useModalDirtyGuard({
     mode.value = 'standard';
     form.value = makeBlankTransactionForm();
     loanForm.value = makeBlankLoanForm();
+    attachmentsRef.value?.clearPending();
   },
 });
 
@@ -99,7 +102,7 @@ async function saveStandard() {
 
   loading.value = true;
   try {
-    await transactionService.createTransaction(
+    const created = await transactionService.createTransaction(
       budgetAccountsStore.activeAccount.id,
       {
         amount: form.value.amount,
@@ -109,6 +112,15 @@ async function saveStandard() {
       }
     );
     toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
+
+    const result = await attachmentsRef.value?.uploadPending(created.id);
+    if (result && result.failed.length > 0) {
+      toasts.error(
+        t('transactions.attachments.errors.uploadPartialTitle'),
+        t('transactions.attachments.errors.uploadPartialBody', {count: result.failed.length}),
+      );
+    }
+
     emit('created');
     isOpen.value = false;
   } catch (error) {
@@ -157,6 +169,9 @@ async function saveLending() {
                         v-model="loanForm"
                         :disabled="loading"/>
       </UForm>
+      <div v-if="mode === 'standard'" class="mt-6 border-t border-default pt-4">
+        <TransactionAttachments ref="attachmentsRef"/>
+      </div>
     </template>
 
     <template #footer>

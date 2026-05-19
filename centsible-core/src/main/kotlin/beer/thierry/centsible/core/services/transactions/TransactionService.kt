@@ -10,6 +10,7 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
@@ -27,6 +28,7 @@ class TransactionService(
     private val transactionRepository: ITransactionRepository,
     private val accountRepository: IBudgetAccountsRepository,
     private val categoriesRepository: ICategoriesRepository,
+    private val attachmentRepository: IAttachmentRepository,
     private val notificationService: INotificationService,
 ) : ITransactionService {
 
@@ -41,6 +43,16 @@ class TransactionService(
         }
     }
 
+    private fun checkInlineTransactionAlerts(user: UserDTO, tx: TransactionDTO, accountId: UUID) {
+        val id = tx.id ?: return
+        val amount = tx.amount ?: return
+        try {
+            notificationService.evaluateTransactionAlerts(user, id, amount, tx.description, accountId)
+        } catch (e: Exception) {
+            log.warn("Inline transaction alert evaluation failed for user {}", user.id, e)
+        }
+    }
+
     override fun fetchTransactions(
         accountId: UUID,
         authenticatedUser: UserDTO,
@@ -51,7 +63,13 @@ class TransactionService(
         require(page > 0) { "page must be > 0" }
         require(size > 0) { "size must be > 0" }
 
-        return transactionRepository.fetchTransactions(accountId, authenticatedUser, page, size, filters)
+        val transactions = transactionRepository.fetchTransactions(accountId, authenticatedUser, page, size, filters)
+        val ids = transactions.mapNotNull { it.id }
+        if (ids.isEmpty()) return transactions
+
+        val counts = attachmentRepository.countByTransactionIds(authenticatedUser, ids)
+        transactions.forEach { it.attachmentCount = counts[it.id] ?: 0 }
+        return transactions
     }
 
     @Transactional
@@ -64,6 +82,7 @@ class TransactionService(
         val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
         checkBudgetAlerts(authenticatedUser, listOf(transactionForm.categoryId))
+        checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
         return transaction
     }
 
@@ -83,6 +102,7 @@ class TransactionService(
 
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
         checkBudgetAlerts(authenticatedUser, setOf(oldTransaction.category.id, updatedTransaction.category.id).filterNotNull())
+        checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
         return updatedTransaction
     }
 

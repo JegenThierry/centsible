@@ -10,6 +10,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (import.meta.client && from.path && authStore.isAuthenticated) return;
 
   const authService = useAuthService(useApi());
+  // Capture useToasts() before the await: Nuxt's async context is lost across awaits, so calling
+  // it from the catch branch would warn ("composable called outside setup").
+  const toasts = import.meta.client ? useToasts() : null;
 
   try {
     const isVerified = await authService.verify();
@@ -21,8 +24,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       authStore.setAuthenticated(false);
       return navigateTo('/auth');
     }
-    if (import.meta.client) {
-      useToasts().error("Verification failed", "Could not verify session with the server.");
-    }
+    toasts?.error("Verification failed", "Could not verify session with the server.");
   }
 })

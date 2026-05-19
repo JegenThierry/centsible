@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.user.LocaleUpdateDTO
 import beer.thierry.centsible.api.model.user.ProfileUpdateDTO
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -38,4 +39,17 @@ class UserResource(private val userService: IUserService) {
         @Valid @RequestBody body: LocaleUpdateDTO,
     ): ResponseEntity<UserDTO> =
         ResponseEntity.ok(userService.updateUserLocale(user.id, body.locale))
+
+    @GetMapping("/notification-settings")
+    fun fetchNotificationSettings(
+        @AuthenticationPrincipal user: UserDTO,
+    ): ResponseEntity<NotificationSettingsDTO> =
+        ResponseEntity.ok(userService.fetchNotificationSettings(user.id))
+
+    @PutMapping("/notification-settings")
+    fun updateNotificationSettings(
+        @AuthenticationPrincipal user: UserDTO,
+        @RequestBody settings: NotificationSettingsDTO,
+    ): ResponseEntity<NotificationSettingsDTO> =
+        ResponseEntity.ok(userService.updateNotificationSettings(user.id, settings))
 }

@@ -9,6 +9,7 @@ import beer.thierry.jooq.generated.tables.Users
 import java.time.OffsetDateTime
 import java.util.UUID
 
+import org.jooq.JSONB
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
 
@@ -83,6 +84,10 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         set(value): Unit = set(15, value)
         get(): OffsetDateTime? = get(15) as OffsetDateTime?
 
+    open var notificationSettings: JSONB?
+        set(value): Unit = set(16, value)
+        get(): JSONB? = get(16) as JSONB?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -92,7 +97,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null, registrationTokenHash: ByteArray? = null, registrationTokenExpiresAt: OffsetDateTime? = null, locale: String? = null, passwordResetTokenHash: ByteArray? = null, passwordResetTokenExpiresAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null, registrationTokenHash: ByteArray? = null, registrationTokenExpiresAt: OffsetDateTime? = null, locale: String? = null, passwordResetTokenHash: ByteArray? = null, passwordResetTokenExpiresAt: OffsetDateTime? = null, notificationSettings: JSONB? = null): this() {
         this.id = id
         this.username = username
         this.email = email
@@ -109,6 +114,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         this.locale = locale
         this.passwordResetTokenHash = passwordResetTokenHash
         this.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt
+        this.notificationSettings = notificationSettings
         resetChangedOnNotNull()
     }
 
@@ -133,6 +139,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
             this.locale = value.locale
             this.passwordResetTokenHash = value.passwordResetTokenHash
             this.passwordResetTokenExpiresAt = value.passwordResetTokenExpiresAt
+            this.notificationSettings = value.notificationSettings
             resetChangedOnNotNull()
         }
     }

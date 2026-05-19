@@ -24,6 +24,12 @@ interface INotificationRepository {
 
     fun delete(id: UUID, user: UserDTO): Boolean
 
-    /** True iff a notification of [type] for [budgetId] was created since [since]. */
+    /**
+     * True iff a notification of [type] with data.dedupKey == [dedupKey] already exists for [user].
+     * Used to make alert emission idempotent across scheduler runs and inline triggers.
+     */
+    fun existsByDedupKey(user: UserDTO, type: NotificationType, dedupKey: String): Boolean
+
+    /** Legacy budget-specific helper. Prefer [existsByDedupKey] for new alert types. */
     fun hasRecent(user: UserDTO, type: NotificationType, budgetId: String, sincePeriodKey: String): Boolean
 }

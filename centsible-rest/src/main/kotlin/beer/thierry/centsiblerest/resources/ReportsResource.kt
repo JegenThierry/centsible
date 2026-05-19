@@ -1,6 +1,11 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
+import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
+import beer.thierry.centsible.api.model.reports.CashFlowPointDTO
+import beer.thierry.centsible.api.model.reports.CategorySpendingSeriesDTO
 import beer.thierry.centsible.api.model.reports.NetWorthPointDTO
+import beer.thierry.centsible.api.model.reports.YearOverYearDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.reports.IReportService
 import org.springframework.format.annotation.DateTimeFormat
@@ -23,4 +28,42 @@ class ReportsResource(private val reportService: IReportService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<NetWorthPointDTO>> =
         ResponseEntity.ok(reportService.fetchNetWorthOverTime(startDate, endDate, authenticatedUser))
+
+    @GetMapping("/net-worth/breakdown")
+    fun fetchNetWorthBreakdown(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<AccountBalanceAtDateDTO>> =
+        ResponseEntity.ok(reportService.fetchAccountBalancesOnDate(date, authenticatedUser))
+
+    @GetMapping("/category-spending")
+    fun fetchCategorySpending(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<CategorySpendingSeriesDTO>> =
+        ResponseEntity.ok(reportService.fetchCategorySpendingOverTime(startDate, endDate, authenticatedUser))
+
+    @GetMapping("/cash-flow")
+    fun fetchCashFlow(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<CashFlowPointDTO>> =
+        ResponseEntity.ok(reportService.fetchCashFlow(startDate, endDate, authenticatedUser))
+
+    @GetMapping("/year-over-year")
+    fun fetchYearOverYear(
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<YearOverYearDTO> =
+        ResponseEntity.ok(reportService.fetchYearOverYear(authenticatedUser))
+
+    @GetMapping("/budget-vs-actual")
+    fun fetchBudgetVsActual(
+        @RequestParam(defaultValue = "6") periods: Int,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<BudgetVsActualPeriodDTO>> {
+        if (periods !in 1..24) return ResponseEntity.badRequest().build()
+        return ResponseEntity.ok(reportService.fetchBudgetVsActualHistory(periods, authenticatedUser))
+    }
 }

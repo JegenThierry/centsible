@@ -13,5 +13,6 @@ data class TransactionDTO(
     var description: String? = null,
     var transactionDate: LocalDate? = null,
     var createdAt: OffsetDateTime? = null,
-    var updatedAt: OffsetDateTime? = null
+    var updatedAt: OffsetDateTime? = null,
+    var attachmentCount: Int = 0,
 )

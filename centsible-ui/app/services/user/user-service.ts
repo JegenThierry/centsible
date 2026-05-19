@@ -1,5 +1,6 @@
 import type {AxiosInstance} from "axios";
 import type {UserDto} from "~/models/user/user-dto";
+import type {NotificationSettings} from "~/models/notification/notification-settings";
 import {validateRequest} from "~/composables/use-api";
 
 export function useUserService(api: AxiosInstance) {
@@ -29,10 +30,22 @@ export function useUserService(api: AxiosInstance) {
     return validateRequest(response);
   }
 
+  async function fetchNotificationSettings(): Promise<NotificationSettings> {
+    const response = await api.get<NotificationSettings>('/users/notification-settings');
+    return validateRequest(response);
+  }
+
+  async function updateNotificationSettings(settings: NotificationSettings): Promise<NotificationSettings> {
+    const response = await api.put<NotificationSettings>('/users/notification-settings', settings);
+    return validateRequest(response);
+  }
+
   return {
     fetchMyself,
     updateProfile,
     updateProfilePicture,
     updateLocale,
+    fetchNotificationSettings,
+    updateNotificationSettings,
   }
 }

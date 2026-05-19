@@ -18,6 +18,7 @@ import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -92,6 +93,11 @@ val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURR
  * The table <code>public.system_information</code>.
  */
 val SYSTEM_INFORMATION: SystemInformation = SystemInformation.SYSTEM_INFORMATION
+
+/**
+ * The table <code>public.transaction_attachments</code>.
+ */
+val TRANSACTION_ATTACHMENTS: TransactionAttachments = TransactionAttachments.TRANSACTION_ATTACHMENTS
 
 /**
  * The table <code>public.transactions</code>.

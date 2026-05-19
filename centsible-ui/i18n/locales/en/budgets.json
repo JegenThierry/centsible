@@ -10,7 +10,11 @@
       "emptyAction": "New budget",
       "editAria": "Edit budget",
       "deleteAria": "Delete budget",
-      "overBadge": "Over"
+      "overBadge": "Over",
+      "asOf": "As of",
+      "showHistory": "Show history",
+      "historyHeading": "Past periods",
+      "noBudgetsInPeriod": "No budgets defined for this period."
     },
     "form": {
       "categoryLabel": "Category",

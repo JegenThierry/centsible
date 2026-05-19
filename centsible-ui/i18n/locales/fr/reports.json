@@ -2,7 +2,7 @@
   "reports": {
     "page": {
       "title": "Rapports",
-      "description": "Visualisez l'évolution de votre patrimoine net sur l'ensemble de vos comptes."
+      "description": "Visualisez vos dépenses, vos revenus et votre patrimoine net dans le temps."
     },
     "ranges": {
       "3m": "3 derniers mois",
@@ -13,7 +13,50 @@
     "netWorth": {
       "title": "Patrimoine net dans le temps",
       "legend": "Patrimoine net",
-      "empty": "Aucune donnée pour le moment. Ajoutez quelques transactions et revenez plus tard."
+      "empty": "Aucune donnée pour le moment. Ajoutez quelques transactions et revenez plus tard.",
+      "drillHint": "Cliquez sur un point pour voir le détail par compte",
+      "breakdown": {
+        "title": "Détail du patrimoine net",
+        "total": "Total",
+        "empty": "Aucun compte à afficher pour cette date."
+      }
+    },
+    "categorySpending": {
+      "title": "Dépenses par catégorie dans le temps",
+      "empty": "Aucune dépense sur cette période.",
+      "axisAmount": "Montant"
+    },
+    "cashFlow": {
+      "title": "Flux de trésorerie",
+      "income": "Revenus",
+      "expense": "Dépenses",
+      "net": "Net",
+      "empty": "Aucune transaction sur cette période."
+    },
+    "yearOverYear": {
+      "title": "D'une année sur l'autre",
+      "thisYear": "{year}",
+      "lastYear": "{year}",
+      "totals": "Totaux",
+      "income": "Revenus",
+      "expense": "Dépenses",
+      "perCategory": "Par catégorie",
+      "change": "Variation",
+      "empty": "Aucune donnée à comparer."
+    },
+    "budgetVsActual": {
+      "title": "Budget vs réalisé",
+      "description": "Suivi sur les {count} dernières périodes.",
+      "noBudgets": "Aucun budget sur cette période.",
+      "empty": "Créez un budget pour suivre la conformité ici.",
+      "spent": "Dépensé",
+      "limit": "Plafond",
+      "adherence": "Conformité"
+    },
+    "drillDown": {
+      "title": "Transactions pour cette catégorie",
+      "loading": "Chargement…",
+      "empty": "Aucune transaction sur cette période."
     }
   }
 }

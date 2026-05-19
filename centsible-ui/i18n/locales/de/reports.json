@@ -2,7 +2,7 @@
   "reports": {
     "page": {
       "title": "Berichte",
-      "description": "Sieh, wie sich dein Nettovermögen über alle Konten hinweg entwickelt hat."
+      "description": "Visualisiere Ausgaben, Einnahmen und Nettovermögen im Zeitverlauf."
     },
     "ranges": {
       "3m": "Letzte 3 Monate",
@@ -13,7 +13,50 @@
     "netWorth": {
       "title": "Nettovermögen im Zeitverlauf",
       "legend": "Nettovermögen",
-      "empty": "Noch keine Daten. Erfasse ein paar Transaktionen und schau später wieder vorbei."
+      "empty": "Noch keine Daten. Erfasse ein paar Transaktionen und schau später wieder vorbei.",
+      "drillHint": "Klicke auf einen Punkt für die Aufschlüsselung nach Konto",
+      "breakdown": {
+        "title": "Nettovermögen aufschlüsseln",
+        "total": "Gesamt",
+        "empty": "Für dieses Datum sind keine Konten vorhanden."
+      }
+    },
+    "categorySpending": {
+      "title": "Ausgaben nach Kategorie im Zeitverlauf",
+      "empty": "Keine Ausgaben in diesem Zeitraum.",
+      "axisAmount": "Betrag"
+    },
+    "cashFlow": {
+      "title": "Geldfluss",
+      "income": "Einnahmen",
+      "expense": "Ausgaben",
+      "net": "Netto",
+      "empty": "Keine Transaktionen in diesem Zeitraum."
+    },
+    "yearOverYear": {
+      "title": "Jahresvergleich",
+      "thisYear": "{year}",
+      "lastYear": "{year}",
+      "totals": "Summen",
+      "income": "Einnahmen",
+      "expense": "Ausgaben",
+      "perCategory": "Pro Kategorie",
+      "change": "Veränderung",
+      "empty": "Keine Daten zum Vergleichen."
+    },
+    "budgetVsActual": {
+      "title": "Budget vs Ist",
+      "description": "Einhaltung über die letzten {count} Perioden.",
+      "noBudgets": "Keine Budgets in diesem Zeitraum.",
+      "empty": "Erstelle ein Budget, um die Einhaltung hier zu sehen.",
+      "spent": "Ausgegeben",
+      "limit": "Limit",
+      "adherence": "Einhaltung"
+    },
+    "drillDown": {
+      "title": "Transaktionen dieser Kategorie",
+      "loading": "Lade…",
+      "empty": "Keine Transaktionen in diesem Zeitraum."
     }
   }
 }

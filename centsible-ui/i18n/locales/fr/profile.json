@@ -43,10 +43,35 @@
       "fr": "Français",
       "de": "Deutsch"
     },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choisissez ce qui doit déclencher une notification dans l'application.",
+      "save": "Enregistrer",
+      "largeTransaction": {
+        "title": "Alerte grosse transaction",
+        "description": "Notifier lorsqu'une transaction dépasse ce montant.",
+        "placeholder": "500,00"
+      },
+      "lowBalance": {
+        "title": "Solde de compte faible",
+        "description": "Notifier lorsqu'un solde de compte passe sous ce montant.",
+        "placeholder": "100,00"
+      },
+      "loanDueDaysAhead": "Prêt dû (jours à l'avance)",
+      "recurringDueDaysAhead": "Récurrent à venir (jours à l'avance)",
+      "toasts": {
+        "savedTitle": "Paramètres enregistrés.",
+        "savedBody": "Vos préférences s'appliqueront aux prochaines alertes.",
+        "errorTitle": "Impossible d'enregistrer les paramètres.",
+        "errorBody": "Veuillez réessayer."
+      }
+    },
     "theme": {
       "buttonAria": "Changer de thème",
       "appearance": "Apparence",
       "title": "Thème",
+      "description": "Choisissez l'apparence et la palette de couleurs de l'application.",
+      "paletteTitle": "Palette",
       "modes": {
         "light": "Clair",
         "dark": "Sombre",
