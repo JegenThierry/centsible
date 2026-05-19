@@ -50,3 +50,11 @@ export interface RepaymentForm {
   description?: string;
   repaidAt: string;
 }
+
+export type LoanStatus = 'settled' | 'partial' | 'open';
+
+export function loanStatus(loan: Loan): LoanStatus {
+  if (Number(loan.outstanding) <= 0) return 'settled';
+  if (Number(loan.totalRepaid) > 0) return 'partial';
+  return 'open';
+}

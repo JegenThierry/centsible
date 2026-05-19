@@ -188,7 +188,9 @@
         "startDate": "Date de début",
         "startDateHelp": "Date de la première occurrence. Une date future est possible.",
         "endDate": "Date de fin (facultative)",
-        "endDateHelp": "Laissez vide pour répéter indéfiniment."
+        "endDateHelp": "Laissez vide pour répéter indéfiniment.",
+        "previewTitle": "Prochaines occurrences",
+        "previewHint": "Aperçu uniquement — les transactions sont créées à chaque échéance."
       },
       "frequency": {
         "DAILY": "Quotidienne",
@@ -219,6 +221,39 @@
       "openRowActions": "Ouvrir les actions de la ligne",
       "rowActions": "Actions de la ligne",
       "emptyDefault": "Rien à afficher pour le moment."
+    },
+    "attachments": {
+      "title": "Pièces jointes",
+      "hint": "PDF, JPG, PNG ou WebP. 10 Mo maximum par fichier.",
+      "add": "Ajouter un fichier",
+      "empty": "Aucune pièce jointe pour le moment.",
+      "pending": "En attente d'envoi",
+      "deleteAria": "Supprimer la pièce jointe",
+      "popover": {
+        "triggerAria": "Voir {count} fichier(s) joint(s)",
+        "loading": "Chargement des fichiers…",
+        "empty": "Aucun fichier joint."
+      },
+      "toasts": {
+        "uploadedTitle": "Pièce jointe ajoutée.",
+        "uploadedBody": "Le fichier a été attaché à cette transaction.",
+        "deletedTitle": "Pièce jointe supprimée.",
+        "deletedBody": "Le fichier a été retiré de cette transaction."
+      },
+      "errors": {
+        "typeTitle": "Type de fichier non pris en charge.",
+        "typeBody": "Utilisez un PDF, JPG, PNG ou WebP.",
+        "sizeTitle": "Fichier trop volumineux.",
+        "sizeBody": "Les pièces jointes doivent peser 10 Mo ou moins.",
+        "uploadTitle": "Échec de l'envoi.",
+        "uploadBody": "Le fichier n'a pas pu être envoyé. Réessayez.",
+        "uploadPartialTitle": "Certaines pièces jointes n'ont pas été envoyées.",
+        "uploadPartialBody": "{count} fichier(s) n'ont pas pu être envoyés. Ouvrez la transaction pour les rattacher.",
+        "downloadTitle": "Échec du téléchargement.",
+        "downloadBody": "Le fichier n'a pas pu être téléchargé. Réessayez.",
+        "deleteTitle": "Échec de la suppression.",
+        "deleteBody": "La pièce jointe n'a pas pu être supprimée. Réessayez."
+      }
     },
     "fab": {
       "create": "Créer"

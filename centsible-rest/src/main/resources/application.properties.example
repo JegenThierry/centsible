@@ -28,8 +28,11 @@ spring.messages.encoding=UTF-8
 
 cors.allowed-origins=http://localhost:3000
 
-spring.servlet.multipart.max-file-size=2MB
-spring.servlet.multipart.max-request-size=4MB
+spring.servlet.multipart.max-file-size=11MB
+spring.servlet.multipart.max-request-size=12MB
+
+# Transaction attachments — files are stored on disk under this directory, one subdir per user/transaction.
+attachments.directory=${ATTACHMENTS_DIRECTORY:./data/attachments}
 
 # Integrations (provider plugins)
 integrations.encryption-key=${INTEGRATIONS_ENCRYPTION_KEY:}

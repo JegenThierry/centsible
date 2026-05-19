@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
@@ -45,6 +46,9 @@ class TransactionServiceTest {
 
     @Mock
     private lateinit var categoriesRepository: ICategoriesRepository
+
+    @Mock
+    private lateinit var attachmentRepository: IAttachmentRepository
 
     @InjectMocks
     private lateinit var service: TransactionService

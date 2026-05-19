@@ -1,4 +1,10 @@
-export type NotificationType = 'BUDGET_THRESHOLD' | 'BUDGET_EXCEEDED';
+export type NotificationType =
+  | 'BUDGET_THRESHOLD'
+  | 'BUDGET_EXCEEDED'
+  | 'LOAN_DUE'
+  | 'RECURRING_UPCOMING'
+  | 'LARGE_TRANSACTION'
+  | 'LOW_ACCOUNT_BALANCE';
 
 export interface Notification {
   id: string;

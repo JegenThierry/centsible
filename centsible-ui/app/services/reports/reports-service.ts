@@ -1,5 +1,10 @@
 import type {AxiosInstance} from "axios";
 import type {NetWorthPoint} from "~/models/reports/net-worth-point";
+import type {AccountBalanceAtDate} from "~/models/reports/account-balance-at-date";
+import type {CategorySpendingSeries} from "~/models/reports/category-spending";
+import type {CashFlowPoint} from "~/models/reports/cash-flow";
+import type {YearOverYear} from "~/models/reports/year-over-year";
+import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
 import {validateRequest} from "~/composables/use-api";
 
 export function useReportsService(api: AxiosInstance) {
@@ -10,7 +15,45 @@ export function useReportsService(api: AxiosInstance) {
     return validateRequest<NetWorthPoint[]>(response);
   }
 
+  async function fetchNetWorthBreakdown(date: string): Promise<AccountBalanceAtDate[]> {
+    const response = await api.get<AccountBalanceAtDate[]>('/reports/net-worth/breakdown', {
+      params: {date},
+    });
+    return validateRequest<AccountBalanceAtDate[]>(response);
+  }
+
+  async function fetchCategorySpending(startDate: string, endDate: string): Promise<CategorySpendingSeries[]> {
+    const response = await api.get<CategorySpendingSeries[]>('/reports/category-spending', {
+      params: {startDate, endDate},
+    });
+    return validateRequest<CategorySpendingSeries[]>(response);
+  }
+
+  async function fetchCashFlow(startDate: string, endDate: string): Promise<CashFlowPoint[]> {
+    const response = await api.get<CashFlowPoint[]>('/reports/cash-flow', {
+      params: {startDate, endDate},
+    });
+    return validateRequest<CashFlowPoint[]>(response);
+  }
+
+  async function fetchYearOverYear(): Promise<YearOverYear> {
+    const response = await api.get<YearOverYear>('/reports/year-over-year');
+    return validateRequest<YearOverYear>(response);
+  }
+
+  async function fetchBudgetVsActual(periods: number = 6): Promise<BudgetVsActualPeriod[]> {
+    const response = await api.get<BudgetVsActualPeriod[]>('/reports/budget-vs-actual', {
+      params: {periods},
+    });
+    return validateRequest<BudgetVsActualPeriod[]>(response);
+  }
+
   return {
     fetchNetWorth,
+    fetchNetWorthBreakdown,
+    fetchCategorySpending,
+    fetchCashFlow,
+    fetchYearOverYear,
+    fetchBudgetVsActual,
   }
 }

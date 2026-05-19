@@ -8,6 +8,11 @@ interface BackendErrorResponse {
 }
 
 export function useApiErrors() {
+  // Capture useToasts() at setup time. toastError() is typically invoked from a .catch after an
+  // await, by which point the Nuxt async context is gone — calling useToasts() lazily there would
+  // warn ("composable called outside setup").
+  const toasts = useToasts();
+
   function extractMessage(err: unknown, fallback: string): string {
     if (!axios.isAxiosError<BackendErrorResponse>(err) || !err.response?.data) return fallback;
 
@@ -19,7 +24,7 @@ export function useApiErrors() {
 
   function toastError(err: unknown, title: string, fallback: string): void {
     console.error(err);
-    useToasts().error(title, extractMessage(err, fallback));
+    toasts.error(title, extractMessage(err, fallback));
   }
 
   return {extractMessage, toastError};

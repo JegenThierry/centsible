@@ -7,6 +7,8 @@ import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-ex
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
 import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
+import LoansGlance from "~/components/_organisms/dashboard/loans-glance.vue";
+import CategoryDrillSlideover from "~/components/_organisms/dashboard/category-drill-slideover.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
@@ -17,6 +19,7 @@ import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vu
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
+import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 
 const route = useRoute();
 const accountStore = useBudgetAccountsStore();
@@ -25,6 +28,13 @@ const transactionStore = useTransactionStore();
 const {t} = useI18n();
 
 const isCreateTransactionModalVisible = ref(false);
+const isCategoryDrillOpen = ref(false);
+const categoryDrill = ref<CategoryDrillPayload | null>(null);
+
+function onCategorySlice(payload: CategoryDrillPayload) {
+  categoryDrill.value = payload;
+  isCategoryDrillOpen.value = true;
+}
 
 const routeAccountId = computed(() => String(route.params.accountId ?? ''));
 const isAccountReady = computed(
@@ -117,13 +127,17 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
                             :transactions="transactionStore.transactions"/>
 
         <SpendingByCategoryChart :account-id="accountStore.activeAccount.id"
-                                 :currency="accountStore.activeAccount.currency"/>
+                                 :currency="accountStore.activeAccount.currency"
+                                 @slice-click="onCategorySlice"/>
       </div>
 
       <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
                             :currency="accountStore.activeAccount.currency"/>
 
-      <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
+        <LoansGlance/>
+      </div>
 
       <AccountHistoryList :currency="accountStore.activeAccount.currency"
                           :snapshots="historyStore.snapshots"/>
@@ -134,5 +148,14 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
     <CreateTransactionModal v-if="isCreateTransactionModalVisible"
                             v-model:open="isCreateTransactionModalVisible"
                             @created="onCreated()"/>
+
+    <CategoryDrillSlideover v-if="accountStore.activeAccount && categoryDrill"
+                            v-model:open="isCategoryDrillOpen"
+                            :account-id="accountStore.activeAccount.id"
+                            :currency="accountStore.activeAccount.currency"
+                            :category-id="categoryDrill.categoryId"
+                            :category-name="categoryDrill.categoryName"
+                            :from-date="categoryDrill.fromDate"
+                            :to-date="categoryDrill.toDate"/>
   </UContainer>
 </template>

@@ -188,7 +188,9 @@
         "startDate": "Startdatum",
         "startDateHelp": "Datum des ersten Vorkommens. Zukünftige Daten sind erlaubt.",
         "endDate": "Enddatum (optional)",
-        "endDateHelp": "Leer lassen, um unbegrenzt zu wiederholen."
+        "endDateHelp": "Leer lassen, um unbegrenzt zu wiederholen.",
+        "previewTitle": "Nächste Vorkommen",
+        "previewHint": "Nur Vorschau — Transaktionen werden zum jeweiligen Fälligkeitsdatum erzeugt."
       },
       "frequency": {
         "DAILY": "Täglich",
@@ -219,6 +221,39 @@
       "openRowActions": "Zeilenaktionen öffnen",
       "rowActions": "Zeilenaktionen",
       "emptyDefault": "Hier gibt es noch nichts."
+    },
+    "attachments": {
+      "title": "Anhänge",
+      "hint": "PDF, JPG, PNG oder WebP. Max. 10 MB pro Datei.",
+      "add": "Datei hinzufügen",
+      "empty": "Noch keine Anhänge.",
+      "pending": "Wartet auf Upload",
+      "deleteAria": "Anhang löschen",
+      "popover": {
+        "triggerAria": "{count} angehängte Datei(en) anzeigen",
+        "loading": "Dateien werden geladen…",
+        "empty": "Keine Dateien angehängt."
+      },
+      "toasts": {
+        "uploadedTitle": "Anhang hochgeladen.",
+        "uploadedBody": "Die Datei wurde dieser Transaktion angehängt.",
+        "deletedTitle": "Anhang entfernt.",
+        "deletedBody": "Die Datei wurde aus dieser Transaktion entfernt."
+      },
+      "errors": {
+        "typeTitle": "Nicht unterstützter Dateityp.",
+        "typeBody": "Bitte PDF, JPG, PNG oder WebP verwenden.",
+        "sizeTitle": "Datei zu groß.",
+        "sizeBody": "Anhänge müssen 10 MB oder kleiner sein.",
+        "uploadTitle": "Upload fehlgeschlagen.",
+        "uploadBody": "Die Datei konnte nicht hochgeladen werden. Bitte erneut versuchen.",
+        "uploadPartialTitle": "Einige Anhänge wurden nicht hochgeladen.",
+        "uploadPartialBody": "{count} Datei(en) konnten nicht hochgeladen werden. Öffnen Sie die Transaktion, um sie erneut anzuhängen.",
+        "downloadTitle": "Download fehlgeschlagen.",
+        "downloadBody": "Die Datei konnte nicht heruntergeladen werden. Bitte erneut versuchen.",
+        "deleteTitle": "Löschen fehlgeschlagen.",
+        "deleteBody": "Der Anhang konnte nicht entfernt werden. Bitte erneut versuchen."
+      }
     },
     "fab": {
       "create": "Erstellen"

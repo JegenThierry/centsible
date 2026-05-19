@@ -24,12 +24,21 @@ onUnmounted(() => {
   store.stopPolling();
 });
 
+const NOTIFICATION_STYLE: Record<NotificationType, {icon: string; color: string}> = {
+  BUDGET_EXCEEDED: {icon: 'i-lucide-alert-circle', color: 'text-error'},
+  BUDGET_THRESHOLD: {icon: 'i-lucide-bell-ring', color: 'text-warning'},
+  LOAN_DUE: {icon: 'i-lucide-hand-coins', color: 'text-warning'},
+  RECURRING_UPCOMING: {icon: 'i-lucide-repeat', color: 'text-muted'},
+  LARGE_TRANSACTION: {icon: 'i-lucide-arrow-up-right', color: 'text-info'},
+  LOW_ACCOUNT_BALANCE: {icon: 'i-lucide-wallet', color: 'text-error'},
+};
+
 function iconFor(type: NotificationType): string {
-  return type === 'BUDGET_EXCEEDED' ? 'i-lucide-alert-circle' : 'i-lucide-bell-ring';
+  return NOTIFICATION_STYLE[type]?.icon ?? 'i-lucide-bell-ring';
 }
 
 function colorFor(type: NotificationType): string {
-  return type === 'BUDGET_EXCEEDED' ? 'text-error' : 'text-warning';
+  return NOTIFICATION_STYLE[type]?.color ?? 'text-warning';
 }
 </script>
 

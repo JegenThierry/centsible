@@ -5,6 +5,7 @@ import {useBudgetService} from "~/services/budget/budget-service";
 export const useBudgetsStore = defineStore('budgetsStore', () => {
   const service = useBudgetService(useApi());
   const items = ref<Budget[]>([]);
+  const history = ref<{month: string; budgets: Budget[]}[]>([]);
   const loading = ref(false);
 
   async function fetchCurrentMonth() {
@@ -19,5 +20,31 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     }
   }
 
-  return {items, loading, fetchCurrentMonth};
+  async function fetchForMonth(month: string) {
+    loading.value = true;
+    try {
+      items.value = await service.fetchAll(month);
+    } catch (error) {
+      console.error('Failed to fetch budgets for month', month, error);
+      items.value = [];
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchHistory(months: string[]) {
+    loading.value = true;
+    try {
+      history.value = await Promise.all(
+        months.map(async (m) => ({month: m, budgets: await service.fetchAll(m)})),
+      );
+    } catch (error) {
+      console.error('Failed to fetch budget history', error);
+      history.value = [];
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  return {items, history, loading, fetchCurrentMonth, fetchForMonth, fetchHistory};
 });

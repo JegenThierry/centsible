@@ -9,6 +9,7 @@ import type {TransactionFilters} from "~/models/transactions/transaction-filters
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {useToasts} from "~/services/toasts/toast-service";
 import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
+import TransactionAttachmentsPopover from "~/components/_molecules/transactions/transaction-attachments-popover.vue";
 import EditTransactionModal from "~/components/_organisms/transactions/modals/edit-transaction-modal.vue";
 import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
 import BulkCategorizeModal from "~/components/_organisms/transactions/modals/bulk-categorize-modal.vue";
@@ -121,6 +122,19 @@ const columns = computed<TableColumn<Transaction>[]>(() => [
         icon: category?.icon,
         color: category?.color
       })
+    }
+  },
+  {
+    id: 'attachments',
+    header: '',
+    meta: {class: {th: 'w-10', td: 'w-10'}},
+    cell: ({row}) => {
+      const count = row.original.attachmentCount ?? 0;
+      if (count === 0) return null;
+      return h(TransactionAttachmentsPopover, {
+        transactionId: row.original.id,
+        count,
+      });
     }
   },
   {

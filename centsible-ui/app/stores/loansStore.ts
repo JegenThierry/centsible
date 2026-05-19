@@ -15,7 +15,20 @@ export const useLoansStore = defineStore('loansStore', () => {
   const loansByContact = ref<Record<string, Loan[]>>({});
   const repaymentsByLoan = ref<Record<string, Repayment[]>>({});
   const totalOutstanding = ref<number>(0);
+  const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
+
+  async function refreshAllLoans() {
+    pending.value = true;
+    try {
+      allLoans.value = await loanService.fetchLoans();
+    } catch (error) {
+      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      throw error;
+    } finally {
+      pending.value = false;
+    }
+  }
 
   async function refreshLoansForContact(contactId: string) {
     pending.value = true;
@@ -108,7 +121,9 @@ export const useLoansStore = defineStore('loansStore', () => {
     loansByContact,
     repaymentsByLoan,
     totalOutstanding,
+    allLoans,
     pending,
+    refreshAllLoans,
     refreshLoansForContact,
     refreshRepayments,
     refreshOutstanding,

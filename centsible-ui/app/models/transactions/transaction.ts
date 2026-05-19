@@ -8,6 +8,7 @@ export interface Transaction {
   transactionDate: string,
   createdAt: string,
   updatedAt: string,
+  attachmentCount: number,
 }
 
 export interface TransactionRequest {

@@ -1,6 +1,7 @@
 package beer.thierry.centsible.api.repository
 
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
+import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.user.User
 import java.time.OffsetDateTime
 import java.util.*
@@ -30,4 +31,12 @@ interface IUserRepository {
 
     /** Sets a new password hash and clears the reset token in one atomic update. */
     fun resetPassword(id: UUID, newPasswordHash: String): Boolean
+
+    /** Returns all user IDs — used by the notification scheduler to sweep per-user checks. */
+    fun fetchAllUserIds(): List<UUID>
+
+    /** Reads the per-user notification settings JSON (or returns defaults if unset). */
+    fun fetchNotificationSettings(id: UUID): NotificationSettingsDTO
+
+    fun updateNotificationSettings(id: UUID, settings: NotificationSettingsDTO): NotificationSettingsDTO
 }

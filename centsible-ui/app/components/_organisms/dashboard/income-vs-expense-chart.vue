@@ -13,6 +13,7 @@ import {Bar} from 'vue-chartjs';
 import type {Currency} from "~/models/budget-account/currency";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import {useMonthlyAggregates} from "~/composables/use-monthly-aggregates";
+import {useChartTheme} from "~/composables/use-chart-theme";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -22,9 +23,9 @@ const props = defineProps<{
   months?: number;
 }>();
 
-const colorMode = useColorMode();
 const {t} = useI18n();
 const localeTag = useLocaleTag();
+const {isDark, tickColor, currencyFmt} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
 const resolvedMonths = computed(() => Math.max(1, Math.min(36, props.months ?? window.value.months)));
@@ -60,10 +61,9 @@ const chartData = computed<ChartData<'bar'>>(() => ({
 }));
 
 const chartOptions = computed<ChartOptions<'bar'>>(() => {
-  const isDark = colorMode.value === 'dark';
-  const labelColor = isDark ? '#a3a3a3' : '#737373';
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const currencyFmt = new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency});
+  // This chart uses a softer rgba grid (existing visual choice) instead of the shared gridColor.
+  const softGrid = isDark.value ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const fmt = currencyFmt(2);
 
   return {
     responsive: true,
@@ -71,23 +71,23 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: {color: labelColor, usePointStyle: true, font: {size: 11}},
+        labels: {color: tickColor.value, usePointStyle: true, font: {size: 11}},
       },
       tooltip: {
         callbacks: {
-          label: (ctx) => `${ctx.dataset.label}: ${currencyFmt.format(Number(ctx.parsed.y))}`,
+          label: (ctx) => `${ctx.dataset.label}: ${fmt.format(Number(ctx.parsed.y))}`,
         },
       },
     },
     scales: {
       x: {
-        ticks: {color: labelColor, font: {size: 11}},
+        ticks: {color: tickColor.value, font: {size: 11}},
         grid: {display: false},
       },
       y: {
         beginAtZero: true,
-        ticks: {color: labelColor, font: {size: 11}},
-        grid: {color: gridColor},
+        ticks: {color: tickColor.value, font: {size: 11}},
+        grid: {color: softGrid},
       },
     },
   };

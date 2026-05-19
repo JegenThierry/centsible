@@ -15,6 +15,7 @@ import {
 import {Line} from 'vue-chartjs';
 import type {Currency} from "~/models/budget-account/currency";
 import {parseISO} from 'date-fns';
+import {useChartTheme} from "~/composables/use-chart-theme";
 
 ChartJS.register(
   Title,
@@ -40,18 +41,25 @@ const props = withDefaults(defineProps<{
   heightClass: 'h-64',
 });
 
-const colorMode = useColorMode();
+const emit = defineEmits<{
+  'point-click': [date: string];
+}>();
+
 const localeTag = useLocaleTag();
+const {isDark, tickColor, gridColor, currencyFmt, pointerCursorOnHover} = useChartTheme(() => props.currency);
+
+const sortedPoints = computed(() =>
+  [...(props.points ?? [])]
+    .filter(p => p && p.date)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+);
 
 const chartData = computed<ChartData<'line'>>(() => {
-  const sorted = [...(props.points ?? [])]
-    .filter(p => p && p.date)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
+  const sorted = sortedPoints.value;
   if (sorted.length === 0) return {labels: [], datasets: []};
 
-  const isDark = colorMode.value === 'dark';
   const dateFmt = new Intl.DateTimeFormat(localeTag.value, {day: '2-digit', month: '2-digit', year: 'numeric'});
+  const pointBorder = isDark.value ? '#171717' : '#fff';
   return {
     labels: sorted.map(p => dateFmt.format(parseISO(p.date))),
     datasets: [
@@ -61,12 +69,12 @@ const chartData = computed<ChartData<'line'>>(() => {
         borderColor: props.color,
         borderWidth: 2,
         pointBackgroundColor: props.color,
-        pointBorderColor: isDark ? '#171717' : '#fff',
+        pointBorderColor: pointBorder,
         pointBorderWidth: 1,
         pointRadius: 3,
         pointHoverRadius: 6,
         pointHoverBackgroundColor: props.color,
-        pointHoverBorderColor: isDark ? '#171717' : '#fff',
+        pointHoverBorderColor: pointBorder,
         pointHoverBorderWidth: 2,
         data: sorted.map(p => p.balance),
         tension: props.tension,
@@ -77,15 +85,7 @@ const chartData = computed<ChartData<'line'>>(() => {
 });
 
 const chartOptions = computed<ChartOptions<'line'>>(() => {
-  const isDark = colorMode.value === 'dark';
-  const gridColor = isDark ? '#262626' : '#e5e5e5';
-  const tickColor = isDark ? '#a3a3a3' : '#737373';
-  const currencyFmt = new Intl.NumberFormat(localeTag.value, {
-    style: 'currency',
-    currency: props.currency,
-    maximumFractionDigits: 0,
-  });
-
+  const fmt = currencyFmt();
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -93,23 +93,30 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
       legend: {display: false},
       tooltip: {
         callbacks: {
-          label: (context) => currencyFmt.format(context.parsed.y as number)
+          label: (context) => fmt.format(context.parsed.y as number)
         }
       }
     },
     scales: {
       y: {
-        grid: {color: gridColor},
+        grid: {color: gridColor.value},
         ticks: {
-          color: tickColor,
-          callback: (value) => currencyFmt.format(value as number)
+          color: tickColor.value,
+          callback: (value) => fmt.format(value as number)
         }
       },
       x: {
         grid: {display: false},
-        ticks: {color: tickColor}
+        ticks: {color: tickColor.value}
       }
-    }
+    },
+    onClick: (_evt, elements) => {
+      const idx = elements?.[0]?.index;
+      if (idx == null) return;
+      const date = sortedPoints.value[idx]?.date;
+      if (date) emit('point-click', date);
+    },
+    onHover: pointerCursorOnHover,
   };
 });
 </script>

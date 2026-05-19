@@ -2,7 +2,8 @@ package beer.thierry.centsible.api.services.notifications
 
 import beer.thierry.centsible.api.model.notification.NotificationDTO
 import beer.thierry.centsible.api.model.user.UserDTO
-import java.util.*
+import java.math.BigDecimal
+import java.util.UUID
 
 interface INotificationService {
     fun list(user: UserDTO, limit: Int = 50): List<NotificationDTO>
@@ -16,4 +17,35 @@ interface INotificationService {
      * budget+period. If [categoryIds] is non-null, only budgets for those categories are evaluated.
      */
     fun maybeRaiseBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>? = null)
+
+    /**
+     * Evaluates a transaction's amount against the user's large-transaction threshold and raises a
+     * one-shot notification if it exceeds it. Idempotent per transaction.
+     */
+    fun maybeRaiseLargeTransactionAlert(user: UserDTO, transactionId: UUID, amount: BigDecimal, description: String?)
+
+    /**
+     * Evaluates the user's account balances against their low-balance threshold and raises alerts.
+     * Called both inline after a transaction and from the scheduled sweep.
+     */
+    fun maybeRaiseLowBalanceAlerts(user: UserDTO, accountIds: Collection<UUID>? = null)
+
+    /**
+     * Combined inline post-write hook: runs large-transaction + low-balance checks on a single
+     * settings fetch. Prefer this over calling the two individual methods back-to-back from the
+     * transaction write path.
+     */
+    fun evaluateTransactionAlerts(
+        user: UserDTO,
+        transactionId: UUID,
+        amount: BigDecimal,
+        description: String?,
+        accountId: UUID,
+    )
+
+    /**
+     * Runs all scheduled checks (loan due, recurring upcoming, low balance) for [user].
+     * Safe to call repeatedly — each individual check is idempotent via dedup keys.
+     */
+    fun runScheduledChecks(user: UserDTO)
 }

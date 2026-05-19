@@ -2,7 +2,7 @@
   "reports": {
     "page": {
       "title": "Reports",
-      "description": "See how your net worth has changed across every account over time."
+      "description": "Visualise your spending, income, and net worth over time."
     },
     "ranges": {
       "3m": "Last 3 months",
@@ -13,7 +13,50 @@
     "netWorth": {
       "title": "Net worth over time",
       "legend": "Net worth",
-      "empty": "No data yet. Add a few transactions and check back."
+      "empty": "No data yet. Add a few transactions and check back.",
+      "drillHint": "Click a point for the per-account breakdown",
+      "breakdown": {
+        "title": "Net worth breakdown",
+        "total": "Total",
+        "empty": "No accounts to show for this date."
+      }
+    },
+    "categorySpending": {
+      "title": "Spending by category over time",
+      "empty": "No expense data in this range.",
+      "axisAmount": "Amount"
+    },
+    "cashFlow": {
+      "title": "Cash flow",
+      "income": "Income",
+      "expense": "Expense",
+      "net": "Net",
+      "empty": "No transactions in this range."
+    },
+    "yearOverYear": {
+      "title": "Year-over-year",
+      "thisYear": "{year}",
+      "lastYear": "{year}",
+      "totals": "Totals",
+      "income": "Income",
+      "expense": "Expense",
+      "perCategory": "Per category",
+      "change": "Change",
+      "empty": "No data to compare."
+    },
+    "budgetVsActual": {
+      "title": "Budget vs actual",
+      "description": "Adherence over the last {count} periods.",
+      "noBudgets": "No budgets in this period.",
+      "empty": "Create a budget to track adherence here.",
+      "spent": "Spent",
+      "limit": "Limit",
+      "adherence": "Adherence"
+    },
+    "drillDown": {
+      "title": "Transactions for this category",
+      "loading": "Loading…",
+      "empty": "No transactions in this period."
     }
   }
 }

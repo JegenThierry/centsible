@@ -1,12 +1,16 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
+import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.jooq.generated.tables.references.USERS
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.Field
+import org.jooq.JSONB
 import org.jooq.impl.DSL.field
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.*
@@ -24,8 +28,15 @@ private val SUPPORTED_LOCALES = setOf("en", "fr", "de")
 private fun normaliseLocale(locale: String?): String =
     locale?.takeIf { it in SUPPORTED_LOCALES } ?: DEFAULT_LOCALE
 
+private val NOTIFICATION_SETTINGS = field("notification_settings", JSONB::class.java)
+
+private val log = LoggerFactory.getLogger(UserRepository::class.java)
+
 @Repository
-class UserRepository(private val dsl: DSLContext) : IUserRepository {
+class UserRepository(
+    private val dsl: DSLContext,
+    private val objectMapper: ObjectMapper,
+) : IUserRepository {
     override fun findUserByUsername(username: String): User? {
         return dsl.select(*USER_FIELDS).from(USERS)
             .where(USERS.USERNAME.eq(username))
@@ -140,5 +151,35 @@ class UserRepository(private val dsl: DSLContext) : IUserRepository {
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0
+    }
+
+    override fun fetchAllUserIds(): List<UUID> =
+        dsl.select(USERS.ID).from(USERS).fetch { it[USERS.ID]!! }
+
+    override fun fetchNotificationSettings(id: UUID): NotificationSettingsDTO {
+        val jsonb = dsl.select(NOTIFICATION_SETTINGS)
+            .from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(NOTIFICATION_SETTINGS)
+        val raw = jsonb?.data() ?: return NotificationSettingsDTO()
+        return runCatching {
+            objectMapper.readValue(raw, NotificationSettingsDTO::class.java)
+        }.getOrElse { ex ->
+            log.warn("Failed to parse notification_settings for user {}, falling back to defaults", id, ex)
+            NotificationSettingsDTO()
+        }
+    }
+
+    override fun updateNotificationSettings(
+        id: UUID,
+        settings: NotificationSettingsDTO,
+    ): NotificationSettingsDTO {
+        val jsonValue = JSONB.valueOf(objectMapper.writeValueAsString(settings))
+        dsl.update(USERS)
+            .set(NOTIFICATION_SETTINGS, jsonValue)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute()
+        return settings
     }
 }
