@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources.export
 
+import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.model.export.PostProcessingType
 import com.fasterxml.jackson.annotation.JsonSubTypes
@@ -16,6 +17,8 @@ data class CreateExportRequest(
     @field:NotBlank @field:Size(max = 200) var title: String? = null,
     @field:NotNull @field:Valid var params: ExportRequestParams? = null,
     @field:Valid var postProcessing: List<PostProcessingRequest>? = null,
+    /** Output format. Defaults to PDF to preserve existing client behavior. */
+    var format: ExportFormat = ExportFormat.PDF,
 )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

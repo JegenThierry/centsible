@@ -8,7 +8,8 @@
       "3m": "Letzte 3 Monate",
       "6m": "Letzte 6 Monate",
       "12m": "Letzte 12 Monate",
-      "24m": "Letzte 24 Monate"
+      "24m": "Letzte 24 Monate",
+      "custom": "Benutzerdefiniert…"
     },
     "netWorth": {
       "title": "Nettovermögen im Zeitverlauf",

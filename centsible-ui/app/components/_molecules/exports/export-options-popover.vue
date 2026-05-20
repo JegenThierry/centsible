@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import {computed, ref} from 'vue';
 import {useAuthStore} from "~/stores/authStore";
-import type {CreateExportRequest, ExportRequestParams, ExportType} from "~/models/export/export-job";
+import type {CreateExportRequest, ExportFormat, ExportRequestParams, ExportType} from "~/models/export/export-job";
+import {EXPORT_FORMATS} from "~/models/export/export-job";
 import {type DateRangePreset, DATE_RANGE_PRESETS, resolvePreset} from "~/utils/date-range";
 
 const props = defineProps<{
@@ -24,11 +25,15 @@ const title = ref('');
 const preset = ref<DateRangePreset>('CURRENT_MONTH');
 const customFrom = ref('');
 const customTo = ref('');
+const format = ref<ExportFormat>('PDF');
 
 const userEmail = computed(() => authStore.user?.email ?? '');
 const supportsDateRange = computed(() => props.type === 'TRANSACTIONS');
 const presetOptions = computed(() =>
   DATE_RANGE_PRESETS.map((value) => ({value, label: t(`exports.options.presets.${value}`)}))
+);
+const formatOptions = computed(() =>
+  EXPORT_FORMATS.map((value) => ({value, label: value}))
 );
 
 function reset() {
@@ -38,6 +43,7 @@ function reset() {
   preset.value = 'CURRENT_MONTH';
   customFrom.value = '';
   customTo.value = '';
+  format.value = 'PDF';
 }
 
 function onOpen(value: boolean) {
@@ -66,6 +72,7 @@ function submit() {
     type: props.type,
     title: title.value || props.defaultTitle,
     params: buildParams(),
+    format: format.value,
     postProcessing: sendEmail.value
       ? [{type: 'SEND_EMAIL', config: recipient.value ? {recipient: recipient.value} : {}}]
       : [],
@@ -84,6 +91,11 @@ function submit() {
         <div>
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.titleLabel') }}</label>
           <UInput v-model="title" :placeholder="defaultTitle" class="w-full mt-1"/>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.formatLabel') }}</label>
+          <USelect v-model="format" :items="formatOptions" class="w-full mt-1" value-key="value"/>
         </div>
 
         <div v-if="supportsDateRange">

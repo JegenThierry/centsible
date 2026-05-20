@@ -34,6 +34,7 @@
     },
     "options": {
       "titleLabel": "Titel",
+      "formatLabel": "Format",
       "rangeLabel": "Zeitraum",
       "fromLabel": "Von",
       "toLabel": "Bis",

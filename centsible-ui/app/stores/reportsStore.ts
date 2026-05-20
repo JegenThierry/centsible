@@ -26,6 +26,15 @@ export const useReportsStore = defineStore('reportsStore', () => {
     };
   }
 
+  /**
+   * Accepts a months-back number for back-compat with the original preset-only flow, or an
+   * explicit {startDate, endDate} for the custom date-range picker added in the imports sprint.
+   */
+  type RangeArg = number | {startDate: string; endDate: string};
+  function resolveRange(arg: RangeArg): {startDate: string; endDate: string} {
+    return typeof arg === 'number' ? rangeFor(arg) : arg;
+  }
+
   async function runFetch<T>(label: string, loader: () => Promise<T>, fallback: () => void) {
     inflight.value++;
     try {
@@ -38,8 +47,8 @@ export const useReportsStore = defineStore('reportsStore', () => {
     }
   }
 
-  async function fetchNetWorth(monthsBack: number = 6) {
-    const {startDate, endDate} = rangeFor(monthsBack);
+  async function fetchNetWorth(range: RangeArg = 6) {
+    const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "net worth report",
       async () => { netWorth.value = await reportsService.fetchNetWorth(startDate, endDate); },
@@ -51,8 +60,8 @@ export const useReportsStore = defineStore('reportsStore', () => {
     return reportsService.fetchNetWorthBreakdown(date);
   }
 
-  async function fetchCategorySpending(monthsBack: number = 6) {
-    const {startDate, endDate} = rangeFor(monthsBack);
+  async function fetchCategorySpending(range: RangeArg = 6) {
+    const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "category spending report",
       async () => { categorySpending.value = await reportsService.fetchCategorySpending(startDate, endDate); },
@@ -60,8 +69,8 @@ export const useReportsStore = defineStore('reportsStore', () => {
     );
   }
 
-  async function fetchCashFlow(monthsBack: number = 6) {
-    const {startDate, endDate} = rangeFor(monthsBack);
+  async function fetchCashFlow(range: RangeArg = 6) {
+    const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "cash flow report",
       async () => { cashFlow.value = await reportsService.fetchCashFlow(startDate, endDate); },

@@ -4,6 +4,10 @@ export type ExportType =
   | 'LENDINGS_ALL'
   | 'ACCOUNTS_SUMMARY';
 
+export type ExportFormat = 'PDF' | 'CSV' | 'JSON';
+
+export const EXPORT_FORMATS: ExportFormat[] = ['PDF', 'CSV', 'JSON'];
+
 export type JobStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
 
 export type ExportStatus = JobStatus;
@@ -75,4 +79,6 @@ export interface CreateExportRequest {
   title: string;
   params: ExportRequestParams;
   postProcessing?: PostProcessingRequest[];
+  /** Output format. Defaults server-side to PDF for back-compat. */
+  format?: ExportFormat;
 }

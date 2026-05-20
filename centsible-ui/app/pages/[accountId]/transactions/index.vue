@@ -4,6 +4,7 @@ import TransactionList from "~/components/_organisms/transactions/transaction-li
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import ImportCsvModal from "~/components/_organisms/transactions/modals/import-csv-modal.vue";
+import AdvancedImportModal from "~/components/_organisms/transactions/modals/advanced-import-modal.vue";
 import {todayIsoDate} from "~/utils/date";
 import type {TransactionsParams} from "~/models/export/export-job";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
@@ -23,6 +24,7 @@ const accountId = computed(() => String(route.params.accountId ?? ''));
 const accountsStore = useBudgetAccountsStore();
 
 const isImportModalOpen = ref(false);
+const isAdvancedImportOpen = ref(false);
 const reloadKey = ref(0);
 
 function buildParams(): TransactionsParams & { kind: 'TRANSACTIONS' } {
@@ -52,6 +54,12 @@ async function onImported() {
                    @click="isImportModalOpen = true">
             {{ t('transactions.importCsvButton') }}
           </UButton>
+          <UButton color="neutral"
+                   icon="i-lucide-file-input"
+                   variant="outline"
+                   @click="isAdvancedImportOpen = true">
+            {{ t('transactions.advancedImportButton') }}
+          </UButton>
           <ExportButton
             :default-title="t('transactions.exportDefaultTitle', {date: todayIsoDate()})"
             :params-builder="buildParams"
@@ -66,5 +74,9 @@ async function onImported() {
     <ImportCsvModal v-if="isImportModalOpen"
                     v-model:open="isImportModalOpen"
                     @imported="onImported"/>
+
+    <AdvancedImportModal v-if="isAdvancedImportOpen"
+                         v-model:open="isAdvancedImportOpen"
+                         @imported="onImported"/>
   </UContainer>
 </template>

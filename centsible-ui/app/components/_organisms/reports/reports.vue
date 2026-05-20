@@ -7,29 +7,20 @@ import CashFlowChart from "~/components/_organisms/reports/cash-flow-chart.vue";
 import YearOverYearCard from "~/components/_organisms/reports/year-over-year-card.vue";
 import BudgetVsActualCard from "~/components/_organisms/reports/budget-vs-actual-card.vue";
 import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
+import DateRangePicker from "~/components/_molecules/reports/date-range-picker.vue";
 import {useReportsStore} from "~/stores/reportsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {Currency} from "~/models/budget-account/currency";
+import {useReportDateRange} from "~/composables/use-report-date-range";
 
 const reportsStore = useReportsStore();
 const accountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
-const ranges = [
-  {key: '3m', months: 3},
-  {key: '6m', months: 6},
-  {key: '12m', months: 12},
-  {key: '24m', months: 24},
-] as const;
-
-const selectedRange = ref<typeof ranges[number]['key']>('6m');
+const {preset, customFrom, customTo, resolved, isCustom, isCustomValid} = useReportDateRange('reports');
 
 const displayCurrency = computed<Currency>(
   () => accountsStore.availableAccounts[0]?.currency ?? Currency.EUR
-);
-
-const rangeItems = computed(() =>
-  ranges.map(r => ({label: t(`reports.ranges.${r.key}`), value: r.key}))
 );
 
 const breakdownOpen = ref(false);
@@ -41,17 +32,20 @@ function onNetWorthPointClick(date: string) {
 }
 
 async function refresh() {
-  const range = ranges.find(r => r.key === selectedRange.value) ?? ranges[1]!;
+  if (isCustom.value && !isCustomValid.value) return;
+  const range = isCustom.value
+    ? {startDate: resolved.value.startDate, endDate: resolved.value.endDate}
+    : resolved.value.months;
   await Promise.all([
-    reportsStore.fetchNetWorth(range.months),
-    reportsStore.fetchCategorySpending(range.months),
-    reportsStore.fetchCashFlow(range.months),
+    reportsStore.fetchNetWorth(range),
+    reportsStore.fetchCategorySpending(range),
+    reportsStore.fetchCashFlow(range),
     reportsStore.fetchYearOverYear(),
     reportsStore.fetchBudgetVsActual(6),
   ]);
 }
 
-watch(selectedRange, () => refresh());
+watch([preset, customFrom, customTo], () => refresh());
 
 onMounted(async () => {
   const loadAccounts = accountsStore.availableAccounts.length === 0
@@ -68,7 +62,9 @@ onMounted(async () => {
       :title="t('reports.page.title')"
     >
       <template #actions>
-        <USelect v-model="selectedRange" :items="rangeItems" class="w-40" value-key="value"/>
+        <DateRangePicker v-model:preset="preset"
+                         v-model:custom-from="customFrom"
+                         v-model:custom-to="customTo"/>
       </template>
     </PageHeader>
 

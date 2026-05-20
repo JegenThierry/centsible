@@ -11,6 +11,7 @@ pebble = "3.2.4"
 playwright = "1.51.0"
 bucket4j = "8.10.1"
 caffeine = "3.1.8"
+commonsCsv = "1.12.0"
 
 [libraries]
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
@@ -39,6 +40,7 @@ pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version.ref = "bucket4j" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }

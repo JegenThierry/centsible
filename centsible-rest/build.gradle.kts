@@ -15,6 +15,8 @@ dependencies {
     // File-import modules. Core defines the SPI; format sub-modules (csv, ofx, ...) register
     // themselves via Spring component scanning. To remove a format, delete its line.
     implementation(project(":centsible-imports:core"))
+    implementation(project(":centsible-imports:csv"))
+    implementation(project(":centsible-imports:ofx"))
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)

@@ -8,7 +8,8 @@
       "3m": "3 derniers mois",
       "6m": "6 derniers mois",
       "12m": "12 derniers mois",
-      "24m": "24 derniers mois"
+      "24m": "24 derniers mois",
+      "custom": "Personnalisé…"
     },
     "netWorth": {
       "title": "Patrimoine net dans le temps",

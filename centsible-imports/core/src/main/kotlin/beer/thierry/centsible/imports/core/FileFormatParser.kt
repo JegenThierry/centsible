@@ -23,6 +23,14 @@ interface FileFormatParser {
     val supportedExtensions: Set<String>
 
     /**
+     * True if this format needs user-supplied hints (e.g. column mapping for CSV) before
+     * [parse] can produce rows. The REST layer surfaces format-specific probe endpoints to
+     * gather those hints; false means the parser can run end-to-end straight after detection
+     * (OFX, QIF, ...).
+     */
+    val requiresMapping: Boolean
+
+    /**
      * Best-effort content sniff used by [FileImportRegistry.detect] when MIME and extension are
      * inconclusive. Should only peek at the first few KB and never throw.
      */

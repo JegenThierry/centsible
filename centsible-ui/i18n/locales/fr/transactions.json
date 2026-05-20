@@ -4,6 +4,7 @@
     "title": "Transactions",
     "description": "Consultez et gérez vos transactions",
     "importCsvButton": "Importer un CSV",
+    "advancedImportButton": "Importer un fichier (CSV / OFX)",
     "exportLabel": "Exporter les transactions",
     "exportDefaultTitle": "Transactions {date}",
     "emptyTitle": "Aucune transaction trouvée.",
@@ -165,6 +166,23 @@
         "category": "Catégorie (facultatif)",
         "ignore": "Ignorer"
       }
+    },
+    "advancedImport": {
+      "titleUpload": "Importer depuis un fichier",
+      "titleReview": "Vérifier et importer",
+      "descUpload": "Importez un CSV ou un OFX exporté depuis votre banque.",
+      "descReview": "Vérifiez les lignes détectées avant l'import.",
+      "uploadHint": "L'import côté serveur prend en charge CSV (avec détection automatique du profil bancaire) et OFX/QFX. Choisissez une catégorie par défaut pour toutes les lignes importées.",
+      "defaultCategoryLabel": "Catégorie par défaut",
+      "defaultCategoryHelp": "Toutes les lignes importées utiliseront cette catégorie. Vous pourrez les recatégoriser ensuite.",
+      "detectedRows": "{count} ligne(s) détectée(s)",
+      "warningsTitle": "{count} avertissement(s) lors de l'analyse",
+      "importRows": "Importer {count} ligne(s)",
+      "successTitle": "Import terminé.",
+      "successBody": "{imported} importée(s), {skipped} ignorée(s) en doublon.",
+      "errorTitle": "Échec de l'import.",
+      "detectFailedBody": "Impossible de détecter ou d'analyser le fichier. Vérifiez qu'il s'agit d'un CSV ou OFX pris en charge.",
+      "commitFailedBody": "Impossible d'importer les lignes analysées. Veuillez réessayer."
     },
     "recurring": {
       "pageTitle": "Récurrents",

@@ -4,6 +4,7 @@
     "title": "Transaktionen",
     "description": "Transaktionen ansehen und verwalten",
     "importCsvButton": "CSV importieren",
+    "advancedImportButton": "Datei importieren (CSV / OFX)",
     "exportLabel": "Transaktionen exportieren",
     "exportDefaultTitle": "Transaktionen {date}",
     "emptyTitle": "Keine Transaktionen gefunden.",
@@ -165,6 +166,23 @@
         "category": "Kategorie (optional)",
         "ignore": "Ignorieren"
       }
+    },
+    "advancedImport": {
+      "titleUpload": "Aus Datei importieren",
+      "titleReview": "Überprüfen und importieren",
+      "descUpload": "Lade eine von deiner Bank exportierte CSV- oder OFX-Datei hoch.",
+      "descReview": "Überprüfe die erkannten Zeilen vor dem Import.",
+      "uploadHint": "Der serverseitige Import unterstützt CSV (mit automatischer Erkennung von Bankprofilen) und OFX/QFX. Wähle eine Standardkategorie für alle importierten Zeilen.",
+      "defaultCategoryLabel": "Standardkategorie",
+      "defaultCategoryHelp": "Alle importierten Zeilen erhalten diese Kategorie. Du kannst sie später neu kategorisieren.",
+      "detectedRows": "{count} Zeile(n) erkannt",
+      "warningsTitle": "{count} Warnung(en) beim Parsen",
+      "importRows": "{count} Zeile(n) importieren",
+      "successTitle": "Import abgeschlossen.",
+      "successBody": "{imported} importiert, {skipped} als Duplikate übersprungen.",
+      "errorTitle": "Import fehlgeschlagen.",
+      "detectFailedBody": "Die Datei konnte nicht erkannt oder gelesen werden. Stelle sicher, dass es sich um eine unterstützte CSV- oder OFX-Datei handelt.",
+      "commitFailedBody": "Die geparsten Zeilen konnten nicht importiert werden. Bitte versuche es erneut."
     },
     "recurring": {
       "pageTitle": "Wiederkehrend",
