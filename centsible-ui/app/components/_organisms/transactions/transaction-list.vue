@@ -4,7 +4,8 @@ import type {TableColumn} from '@nuxt/ui'
 import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
-import type {Transaction} from "~/models/transactions/transaction";
+import {type Transaction} from "~/models/transactions/transaction";
+import {transactionType} from "~/utils/transaction";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -149,7 +150,7 @@ const columns = computed<TableColumn<Transaction>[]>(() => [
     cell: ({row}) => {
       return h(TransactionAmount, {
         amount: Number.parseFloat(row.getValue('amount')),
-        type: row.original.category?.type,
+        type: transactionType(row.original),
         currency: currency.value,
       })
     }

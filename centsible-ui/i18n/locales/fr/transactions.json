@@ -67,11 +67,22 @@
     "form": {
       "category": "Catégorie",
       "transactionType": "Type de transaction :",
+      "typeLabel": "Type de transaction",
+      "typeIncome": "Revenu",
+      "typeExpense": "Dépense",
       "amount": "Montant",
       "amountPlaceholder": "0,00",
       "description": "Description",
       "descriptionPlaceholder": "Déjeuner, courses, etc.",
-      "date": "Date"
+      "date": "Date",
+      "modes": {
+        "setBalance": {
+          "newBalance": "Nouveau solde du compte",
+          "previewIncome": "Créera une transaction de revenu de {amount}.",
+          "previewExpense": "Créera une transaction de dépense de {amount}.",
+          "previewNoChange": "Le solde est déjà de {amount} — aucune transaction ne sera créée."
+        }
+      }
     },
     "selects": {
       "selectAccount": "Sélectionner un compte",
@@ -84,6 +95,7 @@
       "description": "Créer une nouvelle transaction pour votre compte actif.",
       "modeStandard": "Standard",
       "modeLending": "Prêt",
+      "modeSetBalance": "Définir le solde",
       "modeLegend": "Type",
       "submit": "Créer",
       "toastSuccessTitle": "Transaction créée avec succès.",

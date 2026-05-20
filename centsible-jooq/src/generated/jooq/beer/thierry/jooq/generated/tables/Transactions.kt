@@ -33,6 +33,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -143,6 +144,11 @@ open class Transactions(
      * The column <code>public.transactions.import_hash</code>.
      */
     val IMPORT_HASH: TableField<TransactionsRecord, String?> = createField(DSL.name("import_hash"), SQLDataType.VARCHAR(64), this, "")
+
+    /**
+     * The column <code>public.transactions.type</code>.
+     */
+    val TYPE: TableField<TransactionsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -272,6 +278,9 @@ open class Transactions(
 
     val transactionAttachments: TransactionAttachmentsPath
         get(): TransactionAttachmentsPath = transactionAttachments()
+    override fun getChecks(): List<Check<TransactionsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
+    )
     override fun `as`(alias: String): Transactions = Transactions(DSL.name(alias), this)
     override fun `as`(alias: Name): Transactions = Transactions(alias, this)
     override fun `as`(alias: Table<*>): Transactions = Transactions(alias.qualifiedName, this)

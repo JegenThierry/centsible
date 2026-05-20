@@ -1,6 +1,5 @@
 package beer.thierry.centsible.jooq.repository
 
-import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
@@ -44,18 +43,8 @@ class LoanRepaymentsRepository(
         LOAN_REPAYMENTS.REPAID_AT,
         LOAN_REPAYMENTS.CREATED_AT,
         LOAN_REPAYMENTS.TRANSACTION_ID,
-        TRANSACTIONS.ID,
         TRANSACTIONS.ACCOUNT_ID,
-        TRANSACTIONS.AMOUNT,
-        TRANSACTIONS.DESCRIPTION,
-        TRANSACTIONS.TRANSACTION_DATE,
-        TRANSACTIONS.CREATED_AT,
-        TRANSACTIONS.MODIFIED_AT,
-        CATEGORIES.ID,
-        CATEGORIES.NAME,
-        CATEGORIES.ICON,
-        CATEGORIES.COLOR,
-        CATEGORIES.TYPE,
+        *TransactionRecordMapper.columns,
     )
         .from(LOAN_REPAYMENTS)
         .join(LOANS).on(LOANS.ID.eq(LOAN_REPAYMENTS.LOAN_ID))
@@ -80,6 +69,7 @@ class LoanRepaymentsRepository(
                 .set(TRANSACTIONS.AMOUNT, form.amount)
                 .set(TRANSACTIONS.DESCRIPTION, description)
                 .set(TRANSACTIONS.TRANSACTION_DATE, form.repaidAt)
+                .set(TRANSACTIONS.TYPE, CategoryType.INCOME.value)
                 .set(TRANSACTIONS.CREATED_AT, now)
                 .set(TRANSACTIONS.MODIFIED_AT, now)
                 .returning(TRANSACTIONS.ID)
@@ -158,27 +148,7 @@ class LoanRepaymentsRepository(
     }
 
     private fun mapToDTO(record: Record): RepaymentDTO {
-        val txnId = record[LOAN_REPAYMENTS.TRANSACTION_ID]
-        val transaction: TransactionDTO? = if (txnId != null) {
-            val category = CategoryDTO(
-                id = record[CATEGORIES.ID],
-                name = record[CATEGORIES.NAME],
-                icon = record[CATEGORIES.ICON],
-                color = record[CATEGORIES.COLOR],
-                type = record[CATEGORIES.TYPE]?.let { CategoryType.fromValue(it) } ?: CategoryType.INCOME,
-                isSystem = true
-            )
-            TransactionDTO(
-                id = record[TRANSACTIONS.ID],
-                category = category,
-                amount = record[TRANSACTIONS.AMOUNT],
-                description = record[TRANSACTIONS.DESCRIPTION],
-                transactionDate = record[TRANSACTIONS.TRANSACTION_DATE],
-                createdAt = record[TRANSACTIONS.CREATED_AT],
-                updatedAt = record[TRANSACTIONS.MODIFIED_AT],
-            )
-        } else null
-
+        val transaction: TransactionDTO? = TransactionRecordMapper.mapTransactionOrNull(record)
         return RepaymentDTO(
             id = record[LOAN_REPAYMENTS.ID],
             loanId = record[LOAN_REPAYMENTS.LOAN_ID],

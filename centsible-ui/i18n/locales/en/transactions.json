@@ -67,11 +67,22 @@
     "form": {
       "category": "Category",
       "transactionType": "Transaction Type:",
+      "typeLabel": "Transaction type",
+      "typeIncome": "Income",
+      "typeExpense": "Expense",
       "amount": "Amount",
       "amountPlaceholder": "0.00",
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
-      "date": "Date"
+      "date": "Date",
+      "modes": {
+        "setBalance": {
+          "newBalance": "New account balance",
+          "previewIncome": "Will create an income transaction of {amount}.",
+          "previewExpense": "Will create an expense transaction of {amount}.",
+          "previewNoChange": "Balance is already {amount} — no transaction will be created."
+        }
+      }
     },
     "selects": {
       "selectAccount": "Select an account",
@@ -84,6 +95,7 @@
       "description": "Create a new transaction for your active account.",
       "modeStandard": "Standard",
       "modeLending": "Lending",
+      "modeSetBalance": "Set balance",
       "modeLegend": "Type",
       "submit": "Create",
       "toastSuccessTitle": "Transaction created successfully.",
