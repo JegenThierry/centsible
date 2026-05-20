@@ -8,4 +8,5 @@ include(
     "centsible-proto",
     "centsible-export",
     "centsible-integrations:manual",
+    "centsible-imports:core",
 )

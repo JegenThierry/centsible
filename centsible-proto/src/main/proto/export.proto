@@ -7,6 +7,15 @@ option java_multiple_files = true;
 
 import "google/protobuf/timestamp.proto";
 
+// Output format the worker should render. Default 0 = PDF preserves the original behavior of
+// every ExportRequest written before this field existed. Add a new value at the end (never
+// renumber) when introducing another format.
+enum ExportFormat {
+  PDF = 0;
+  CSV = 1;
+  JSON = 2;
+}
+
 message ExportMeta {
   string user_id = 1;
   string user_display_name = 2;
@@ -18,6 +27,7 @@ message ExportMeta {
 
 message ExportRequest {
   ExportMeta meta = 1;
+  ExportFormat format = 2;
 
   oneof body {
     TransactionsRequest       transactions          = 10;

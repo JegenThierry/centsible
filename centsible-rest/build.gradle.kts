@@ -12,6 +12,10 @@ dependencies {
     // Integration provider modules. To remove a provider, delete its line — nothing else changes.
     implementation(project(":centsible-integrations:manual"))
 
+    // File-import modules. Core defines the SPI; format sub-modules (csv, ofx, ...) register
+    // themselves via Spring component scanning. To remove a format, delete its line.
+    implementation(project(":centsible-imports:core"))
+
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.actuator)
