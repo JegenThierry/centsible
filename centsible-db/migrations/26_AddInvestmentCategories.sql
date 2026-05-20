@@ -1,10 +1,8 @@
+-- Default system categories oriented around stock / investment workflows.
+-- Users can override the type per-transaction (see migration 25); these
+-- entries set the suggested default and provide consistent iconography.
 INSERT INTO categories (name, icon, color, type)
-VALUES ('Food', 'i-lucide-utensils', '#ef4444', 'EXPENSE'),
-       ('Transport', 'i-lucide-bus', '#3b82f6', 'EXPENSE'),
-       ('Housing', 'i-lucide-home', '#eab308', 'EXPENSE'),
-       ('Entertainment', 'i-lucide-clapperboard', '#a855f7', 'EXPENSE'),
-       ('Salary', 'i-lucide-banknote', '#22c55e', 'INCOME'),
-       ('Stock Purchase', 'i-lucide-shopping-cart', '#0ea5e9', 'EXPENSE'),
+VALUES ('Stock Purchase', 'i-lucide-shopping-cart', '#0ea5e9', 'EXPENSE'),
        ('Stock Sale', 'i-lucide-circle-dollar-sign', '#f59e0b', 'INCOME'),
        ('Dividend', 'i-lucide-trending-up', '#8b5cf6', 'INCOME'),
        ('Stock Gift Received', 'i-lucide-gift', '#ec4899', 'INCOME'),

@@ -1,8 +1,5 @@
 package beer.thierry.centsible.api.model.transaction
 
-import beer.thierry.centsible.api.model.category.CategoryType
-import jakarta.validation.constraints.DecimalMax
-import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Digits
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -11,12 +8,10 @@ import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class TransactionForm(
-    @field:NotNull(message = "{validation.amount.required}")
-    @field:DecimalMin(value = "0.01", message = "{validation.amount.tooSmall}")
-    @field:DecimalMax(value = "9999999.99", message = "{validation.amount.tooLarge}")
-    @field:Digits(integer = 7, fraction = 2, message = "{validation.amount.fraction}")
-    var amount: BigDecimal = BigDecimal.ZERO,
+data class SetBalanceForm(
+    @field:NotNull(message = "{validation.account.initialBalance.required}")
+    @field:Digits(integer = 13, fraction = 2, message = "{validation.account.initialBalance.fraction}")
+    var newBalance: BigDecimal = BigDecimal.ZERO,
 
     @field:NotNull(message = "{validation.category.required}")
     @field:Positive(message = "{validation.category.positive}")
@@ -28,6 +23,4 @@ data class TransactionForm(
 
     @field:NotNull(message = "{validation.transactionDate.required}")
     var transactionDate: LocalDate = LocalDate.now(),
-
-    var type: CategoryType? = null,
 )

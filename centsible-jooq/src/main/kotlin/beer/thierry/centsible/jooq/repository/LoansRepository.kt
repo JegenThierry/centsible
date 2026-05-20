@@ -1,6 +1,5 @@
 package beer.thierry.centsible.jooq.repository
 
-import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.contact.ContactDTO
 import beer.thierry.centsible.api.model.loan.LoanDTO
@@ -55,6 +54,7 @@ class LoansRepository(
                 .set(TRANSACTIONS.AMOUNT, form.lentAmount)
                 .set(TRANSACTIONS.DESCRIPTION, form.description)
                 .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
+                .set(TRANSACTIONS.TYPE, CategoryType.EXPENSE.value)
                 .set(TRANSACTIONS.CREATED_AT, now)
                 .set(TRANSACTIONS.MODIFIED_AT, now)
                 .returning(TRANSACTIONS.ID)
@@ -174,18 +174,8 @@ class LoansRepository(
             CONTACTS.FIRST_NAME,
             CONTACTS.LAST_NAME,
             CONTACTS.PICTURE,
-            TRANSACTIONS.ID,
             TRANSACTIONS.ACCOUNT_ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.COLOR,
-            CATEGORIES.TYPE,
+            *TransactionRecordMapper.columns,
             repaidTotal,
         )
             .from(LOANS)
@@ -212,7 +202,6 @@ class LoansRepository(
         val repaid = record[repaidTotal] ?: BigDecimal.ZERO
         val first = record[CONTACTS.FIRST_NAME] ?: ""
         val last = record[CONTACTS.LAST_NAME]
-        val loanTransactionId = record[LOANS.TRANSACTION_ID]
 
         val contact = ContactDTO(
             id = record[CONTACTS.ID],
@@ -222,25 +211,7 @@ class LoansRepository(
             picture = record[CONTACTS.PICTURE],
         )
 
-        val transaction: TransactionDTO? = if (loanTransactionId != null) {
-            val category = CategoryDTO(
-                id = record[CATEGORIES.ID],
-                name = record[CATEGORIES.NAME],
-                icon = record[CATEGORIES.ICON],
-                color = record[CATEGORIES.COLOR],
-                type = record[CATEGORIES.TYPE]?.let { CategoryType.fromValue(it) } ?: CategoryType.EXPENSE,
-                isSystem = true
-            )
-            TransactionDTO(
-                id = record[TRANSACTIONS.ID],
-                category = category,
-                amount = record[TRANSACTIONS.AMOUNT],
-                description = record[TRANSACTIONS.DESCRIPTION],
-                transactionDate = record[TRANSACTIONS.TRANSACTION_DATE],
-                createdAt = record[TRANSACTIONS.CREATED_AT],
-                updatedAt = record[TRANSACTIONS.MODIFIED_AT],
-            )
-        } else null
+        val transaction: TransactionDTO? = TransactionRecordMapper.mapTransactionOrNull(record)
 
         return LoanDTO(
             id = record[LOANS.ID],

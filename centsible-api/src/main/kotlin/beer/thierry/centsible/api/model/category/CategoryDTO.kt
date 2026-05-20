@@ -6,5 +6,6 @@ data class CategoryDTO(
     var icon: String? = null,
     var color: String? = null,
     var type: CategoryType? = null,
-    var isSystem: Boolean = false
+    var isSystem: Boolean = false,
+    var systemKey: String? = null,
 )

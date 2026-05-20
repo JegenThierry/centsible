@@ -67,14 +67,13 @@ open class AccountHistory(
                a.user_id,
                (a.initial_balance + sum(
                    CASE
-                       WHEN ((c.type)::text = 'INCOME'::text) THEN t.amount
+                       WHEN ((t.type)::text = 'INCOME'::text) THEN t.amount
                        ELSE (- t.amount)
                    END) OVER (PARTITION BY t.account_id ORDER BY t.transaction_date, t.created_at)) AS balance,
                t.created_at,
                t.id AS transaction_id
-              FROM ((transactions t
+              FROM (transactions t
                 JOIN accounts a ON ((t.account_id = a.id)))
-                JOIN categories c ON ((t.category_id = c.id)))
            )
     SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
        account_id,

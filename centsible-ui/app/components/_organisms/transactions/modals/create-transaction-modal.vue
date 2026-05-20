@@ -1,13 +1,15 @@
 <script lang="ts" setup>
-import {type TransactionForm} from "~/models/transactions/transaction";
-import {CategoryType} from "~/models/category/category";
+import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm} from "~/models/transactions/transaction";
+import {CategorySystemKey, CategoryType} from "~/models/category/category";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
+import SetBalanceFormFields from "~/components/_molecules/transactions/set-balance-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import LoanFormFields from "~/components/_molecules/loans/loan-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useLoansStore} from "~/stores/loansStore";
+import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
@@ -33,31 +35,42 @@ const emit = defineEmits<{
 const api = useApi();
 const transactionService = useTransactionService(api);
 const loansStore = useLoansStore();
+const categoriesStore = useCategoriesStore();
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
 
-const mode = ref<'standard' | 'lending'>('standard');
+type Mode = 'standard' | 'lending' | 'setBalance';
+const mode = ref<Mode>('standard');
 
 const modeOptions = computed(() => [
   {label: t('transactions.create.modeStandard'), value: 'standard'},
   {label: t('transactions.create.modeLending'), value: 'lending'},
+  {label: t('transactions.create.modeSetBalance'), value: 'setBalance'},
 ]);
-
-const form = ref<TransactionForm>(makeBlankTransactionForm());
-const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
 const loanFormRef = ref<InstanceType<typeof LoanFormFields>>();
+const setBalanceFormRef = ref<InstanceType<typeof SetBalanceFormFields>>();
 const attachmentsRef = ref<InstanceType<typeof TransactionAttachments>>();
 const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
+const activeAccountBalance = computed(() => budgetAccountsStore.activeAccount?.balance ?? 0);
+
+const balanceAdjustmentCategory = computed(() =>
+  categoriesStore.categories.find(c => c.systemKey === CategorySystemKey.BalanceAdjustment),
+);
+
+const form = ref<TransactionForm>(makeBlankTransactionForm());
+const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
+const setBalanceForm = ref<SetBalanceFormModel>(makeBlankSetBalanceForm());
 
 function makeBlankTransactionForm(): TransactionForm {
   return {
     amount: 0,
     description: '',
     category: undefined,
+    type: props.filterType ?? CategoryType.EXPENSE,
     transactionDate: todayIsoDate(),
   };
 }
@@ -78,21 +91,50 @@ function makeBlankLoanForm(): LoanFormModel {
   };
 }
 
+function makeBlankSetBalanceForm(): SetBalanceFormModel {
+  return {
+    newBalance: activeAccountBalance.value,
+    category: balanceAdjustmentCategory.value,
+    description: '',
+    transactionDate: todayIsoDate(),
+  };
+}
+
+// Categories may not be loaded when the modal first opens. Once they arrive,
+// prefill the set-balance form's category if it's still empty.
+watch(balanceAdjustmentCategory, (category) => {
+  if (category && mode.value === 'setBalance' && !setBalanceForm.value.category) {
+    setBalanceForm.value.category = category;
+  }
+});
+
+// The dirty guard only needs to see the form for the active mode — including
+// the inactive ones would flag fields the user can't currently see.
+function activeFormSnapshot() {
+  if (mode.value === 'lending') return loanForm.value;
+  if (mode.value === 'setBalance') return setBalanceForm.value;
+  return form.value;
+}
+
 const {requestClose} = useModalDirtyGuard({
   isOpen,
   loading,
-  getSnapshot: () => ({mode: mode.value, form: form.value, loanForm: loanForm.value}),
+  getSnapshot: () => ({mode: mode.value, form: activeFormSnapshot()}),
   onResetOnOpen: () => {
     mode.value = 'standard';
     form.value = makeBlankTransactionForm();
     loanForm.value = makeBlankLoanForm();
+    setBalanceForm.value = makeBlankSetBalanceForm();
     attachmentsRef.value?.clearPending();
+    if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
   },
 });
 
 async function handleSave() {
   if (loading.value) return;
-  await (mode.value === 'lending' ? saveLending() : saveStandard());
+  if (mode.value === 'lending') return saveLending();
+  if (mode.value === 'setBalance') return saveSetBalance();
+  return saveStandard();
 }
 
 async function saveStandard() {
@@ -108,7 +150,8 @@ async function saveStandard() {
         amount: form.value.amount,
         description: form.value.description,
         categoryId: form.value.category.id,
-        transactionDate: form.value.transactionDate
+        transactionDate: form.value.transactionDate,
+        type: form.value.type,
       }
     );
     toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
@@ -139,7 +182,33 @@ async function saveLending() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    console.error('Create lending transaction failed', error);
+    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function saveSetBalance() {
+  if (!setBalanceFormRef.value?.validate()) return;
+  if (!budgetAccountsStore.activeAccount?.id) return;
+  if (!setBalanceForm.value.category?.id || !setBalanceForm.value.transactionDate) return;
+
+  loading.value = true;
+  try {
+    await transactionService.setAccountBalance(
+      budgetAccountsStore.activeAccount.id,
+      {
+        newBalance: setBalanceForm.value.newBalance,
+        categoryId: setBalanceForm.value.category.id,
+        description: setBalanceForm.value.description,
+        transactionDate: setBalanceForm.value.transactionDate,
+      }
+    );
+    toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
+    emit('created');
+    isOpen.value = false;
+  } catch (error) {
+    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -164,10 +233,16 @@ async function saveLending() {
                                :currency="activeCurrency"
                                :disabled="loading"
                                :filter-type="filterType"/>
-        <LoanFormFields v-else
+        <LoanFormFields v-else-if="mode === 'lending'"
                         ref="loanFormRef"
                         v-model="loanForm"
                         :disabled="loading"/>
+        <SetBalanceFormFields v-else
+                              ref="setBalanceFormRef"
+                              v-model="setBalanceForm"
+                              :current-balance="activeAccountBalance"
+                              :currency="activeCurrency"
+                              :disabled="loading"/>
       </UForm>
       <div v-if="mode === 'standard'" class="mt-6 border-t border-default pt-4">
         <TransactionAttachments ref="attachmentsRef"/>

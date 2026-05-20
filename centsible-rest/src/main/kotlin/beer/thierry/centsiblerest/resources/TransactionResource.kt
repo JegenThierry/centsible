@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
+import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
@@ -125,6 +126,14 @@ class TransactionResource(private val transactionService: ITransactionService) {
         ResponseEntity.ok(
             BulkResult(transactionService.bulkUpdateCategory(accountId, request.ids, request.categoryId, authenticatedUser))
         )
+
+    @PostMapping("/{accountId}/set-balance")
+    fun createBalanceAdjustment(
+        @PathVariable accountId: UUID,
+        @Valid @RequestBody request: SetBalanceForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<TransactionDTO> =
+        ResponseEntity.ok(transactionService.createBalanceAdjustment(accountId, request, authenticatedUser))
 }
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())

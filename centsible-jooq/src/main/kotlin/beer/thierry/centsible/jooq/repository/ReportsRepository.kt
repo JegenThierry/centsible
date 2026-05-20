@@ -63,7 +63,7 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
-                    .and(CATEGORIES.TYPE.eq(CategoryType.EXPENSE.value))
+                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, TXN_MONTH_KEY)
@@ -92,15 +92,14 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
     ): List<CashFlowPointDTO> {
         val total = DSL.sum(TRANSACTIONS.AMOUNT)
 
-        val rows = dsl.select(TXN_MONTH_KEY, CATEGORIES.TYPE, total)
+        val rows = dsl.select(TXN_MONTH_KEY, TRANSACTIONS.TYPE, total)
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
             )
-            .groupBy(TXN_MONTH_KEY, CATEGORIES.TYPE)
+            .groupBy(TXN_MONTH_KEY, TRANSACTIONS.TYPE)
             .fetch()
 
         val income = mutableMapOf<String, BigDecimal>()
@@ -108,7 +107,7 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         for (r in rows) {
             val key = r[TXN_MONTH_KEY] ?: continue
             val amount = r[total] ?: BigDecimal.ZERO
-            when (r[CATEGORIES.TYPE]) {
+            when (r[TRANSACTIONS.TYPE]) {
                 CategoryType.INCOME.value -> income[key] = (income[key] ?: BigDecimal.ZERO) + amount
                 CategoryType.EXPENSE.value -> expense[key] = (expense[key] ?: BigDecimal.ZERO) + amount
             }

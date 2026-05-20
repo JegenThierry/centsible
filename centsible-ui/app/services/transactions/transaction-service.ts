@@ -2,6 +2,7 @@ import type {AxiosInstance} from "axios";
 import type {
   CategoryAggregate,
   MonthlyAggregate,
+  SetBalanceRequest,
   Transaction,
   TransactionRequest
 } from "~/models/transactions/transaction";
@@ -90,6 +91,14 @@ export function useTransactionService(api: AxiosInstance) {
     return validateRequest<ImportResult>(response);
   }
 
+  async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
+    const response = await api.post<Transaction>(
+      `/transactions/${encodeURIComponent(accountId)}/set-balance`,
+      payload,
+    );
+    return validateRequest<Transaction>(response);
+  }
+
   return {
     fetchTransactions,
     createTransaction,
@@ -100,5 +109,6 @@ export function useTransactionService(api: AxiosInstance) {
     aggregateByCategory,
     aggregateByMonth,
     importBatch,
+    setAccountBalance,
   }
 }

@@ -1,9 +1,10 @@
-import {type Category} from "~/models/category/category";
+import {type Category, type CategoryType} from "~/models/category/category";
 
 export interface Transaction {
   id: string,
   amount: number,
   category: Category,
+  type: CategoryType,
   description: string,
   transactionDate: string,
   createdAt: string,
@@ -16,12 +17,28 @@ export interface TransactionRequest {
   description: string,
   categoryId: number,
   transactionDate: string,
+  type?: CategoryType,
 }
 
 export interface TransactionForm {
   amount: number,
   description: string,
   category: Category | undefined,
+  type: CategoryType,
+  transactionDate: string | undefined,
+}
+
+export interface SetBalanceRequest {
+  newBalance: number,
+  categoryId: number,
+  description: string,
+  transactionDate: string,
+}
+
+export interface SetBalanceForm {
+  newBalance: number,
+  category: Category | undefined,
+  description: string,
   transactionDate: string | undefined,
 }
 
@@ -38,4 +55,3 @@ export interface MonthlyAggregate {
   income: number,
   expense: number,
 }
-

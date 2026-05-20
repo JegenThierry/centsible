@@ -61,8 +61,8 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
             TRANSACTIONS.TRANSACTION_DATE,
             TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION,
+            TRANSACTIONS.TYPE,
             CATEGORIES.NAME,
-            CATEGORIES.TYPE,
             CATEGORIES.COLOR,
         )
             .from(TRANSACTIONS)
@@ -80,7 +80,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
                     amount = r[TRANSACTIONS.AMOUNT]!!,
                     description = r[TRANSACTIONS.DESCRIPTION],
                     categoryName = r[CATEGORIES.NAME]!!,
-                    categoryType = CategoryType.fromValue(r[CATEGORIES.TYPE]!!),
+                    categoryType = CategoryType.fromValue(r[TRANSACTIONS.TYPE]!!),
                     categoryColor = r[CATEGORIES.COLOR]!!,
                 )
             }
@@ -117,14 +117,13 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
         if (asOfDate == null) return fetchAccountsByIds(userId, emptyList())
 
         val signedAmount = DSL.case_()
-            .`when`(CATEGORIES.TYPE.eq("INCOME"), TRANSACTIONS.AMOUNT)
+            .`when`(TRANSACTIONS.TYPE.eq("INCOME"), TRANSACTIONS.AMOUNT)
             .otherwise(TRANSACTIONS.AMOUNT.neg())
 
         val asOfBalance = ACCOUNTS.INITIAL_BALANCE.plus(
             DSL.coalesce(
                 DSL.select(DSL.sum(signedAmount))
                     .from(TRANSACTIONS)
-                    .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
                     .where(
                         TRANSACTIONS.ACCOUNT_ID.eq(ACCOUNTS.ID)
                             .and(TRANSACTIONS.TRANSACTION_DATE.le(asOfDate))

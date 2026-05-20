@@ -67,11 +67,22 @@
     "form": {
       "category": "Kategorie",
       "transactionType": "Transaktionstyp:",
+      "typeLabel": "Transaktionstyp",
+      "typeIncome": "Einnahme",
+      "typeExpense": "Ausgabe",
       "amount": "Betrag",
       "amountPlaceholder": "0,00",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
-      "date": "Datum"
+      "date": "Datum",
+      "modes": {
+        "setBalance": {
+          "newBalance": "Neuer Kontostand",
+          "previewIncome": "Erstellt eine Einnahmen-Transaktion über {amount}.",
+          "previewExpense": "Erstellt eine Ausgaben-Transaktion über {amount}.",
+          "previewNoChange": "Saldo ist bereits {amount} — es wird keine Transaktion erstellt."
+        }
+      }
     },
     "selects": {
       "selectAccount": "Konto auswählen",
@@ -84,6 +95,7 @@
       "description": "Neue Transaktion für Ihr aktives Konto erstellen.",
       "modeStandard": "Standard",
       "modeLending": "Kredit",
+      "modeSetBalance": "Saldo festlegen",
       "modeLegend": "Typ",
       "submit": "Erstellen",
       "toastSuccessTitle": "Transaktion erfolgreich erstellt.",

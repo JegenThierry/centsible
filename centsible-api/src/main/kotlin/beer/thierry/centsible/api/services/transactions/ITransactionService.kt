@@ -5,6 +5,7 @@ import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
+import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
@@ -53,4 +54,10 @@ interface ITransactionService {
         request: ImportTransactionsRequest,
         authenticatedUser: UserDTO,
     ): ImportResult
+
+    fun createBalanceAdjustment(
+        accountId: UUID,
+        form: SetBalanceForm,
+        authenticatedUser: UserDTO,
+    ): TransactionDTO
 }
