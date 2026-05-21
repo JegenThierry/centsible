@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import CreateAccountModal from "~/components/_organisms/accounts/modals/create-account-modal.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+
+const CreateAccountModal = defineAsyncComponent(() => import("~/components/_organisms/accounts/modals/create-account-modal.vue"));
 
 const accountStore = useBudgetAccountsStore();
 const {t} = useI18n();
@@ -20,6 +21,7 @@ function onRefresh(): void {
     {{ t('accounts.buttons.createAccount') }}
   </UButton>
 
-  <CreateAccountModal v-model="isCreateAccountModalVisible"
+  <CreateAccountModal v-if="isCreateAccountModalVisible"
+                      v-model="isCreateAccountModalVisible"
                       @created="onRefresh()"/>
 </template>

@@ -1,21 +1,9 @@
 <script lang="ts" setup>
-import {
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  type ChartData,
-  type ChartOptions,
-  Legend,
-  LinearScale,
-  Title,
-  Tooltip,
-} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Bar} from 'vue-chartjs';
 import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {Currency} from "~/models/budget-account/currency";
 import {useChartTheme} from "~/composables/use-chart-theme";
-
-ChartJS.register(Title, Tooltip, Legend, BarElement, LinearScale, CategoryScale);
 
 const props = defineProps<{
   points: CashFlowPoint[];

@@ -17,11 +17,16 @@ export const useLoansStore = defineStore('loansStore', () => {
   const totalOutstanding = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
+  // Track "have we ever successfully loaded this" so consumers can skip a redundant fetch when
+  // the dashboard already warmed it. Distinct from `pending` (in-flight) and zero-valued data.
+  const allLoansLoaded = ref(false);
+  const outstandingLoaded = ref(false);
 
   async function refreshAllLoans() {
     pending.value = true;
     try {
       allLoans.value = await loanService.fetchLoans();
+      allLoansLoaded.value = true;
     } catch (error) {
       apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
       throw error;
@@ -56,6 +61,7 @@ export const useLoansStore = defineStore('loansStore', () => {
   async function refreshOutstanding() {
     try {
       totalOutstanding.value = await loanService.fetchOutstanding();
+      outstandingLoaded.value = true;
     } catch (error) {
       console.error('Failed to fetch outstanding total', error);
     }
@@ -123,6 +129,8 @@ export const useLoansStore = defineStore('loansStore', () => {
     totalOutstanding,
     allLoans,
     pending,
+    allLoansLoaded,
+    outstandingLoaded,
     refreshAllLoans,
     refreshLoansForContact,
     refreshRepayments,

@@ -5,9 +5,9 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-bar.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
-import CreateBudgetModal from "~/components/_organisms/budgets/modals/create-budget-modal.vue";
-import EditBudgetModal from "~/components/_organisms/budgets/modals/edit-budget-modal.vue";
-import DeleteBudgetModal from "~/components/_organisms/budgets/modals/delete-budget-modal.vue";
+const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
+const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
+const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {format, parseISO, subMonths} from 'date-fns';
 

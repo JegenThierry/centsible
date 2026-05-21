@@ -14,8 +14,16 @@ const service = useAttachmentService(useApi());
 const toasts = useToasts();
 const {t} = useI18n();
 
+type PendingFile = {id: string; file: File};
+
 const attachments = ref<Attachment[]>([]);
-const pending = ref<File[]>([]);
+const pending = ref<PendingFile[]>([]);
+
+function makePendingId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 const loading = ref(false);
 const uploading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -69,7 +77,7 @@ async function onFileChange(event: Event) {
   if (!validate(file)) return;
 
   if (!props.transactionId) {
-    pending.value = [...pending.value, file];
+    pending.value = [...pending.value, {id: makePendingId(), file}];
     return;
   }
 
@@ -109,30 +117,30 @@ async function remove(a: Attachment) {
   }
 }
 
-function removePending(index: number) {
-  pending.value = pending.value.filter((_, i) => i !== index);
+function removePending(id: string) {
+  pending.value = pending.value.filter(p => p.id !== id);
 }
 
 async function uploadPending(transactionId: string): Promise<{uploaded: number; failed: File[]}> {
   if (pending.value.length === 0) return {uploaded: 0, failed: []};
-  const failed: File[] = [];
+  const failed: PendingFile[] = [];
   let uploaded = 0;
   uploading.value = true;
   try {
-    for (const file of pending.value) {
+    for (const item of pending.value) {
       try {
-        await service.upload(transactionId, file);
+        await service.upload(transactionId, item.file);
         uploaded++;
       } catch (error) {
-        console.error('Pending upload failed', file.name, error);
-        failed.push(file);
+        console.error('Pending upload failed', item.file.name, error);
+        failed.push(item);
       }
     }
   } finally {
     uploading.value = false;
     pending.value = failed;
   }
-  return {uploaded, failed};
+  return {uploaded, failed: failed.map(f => f.file)};
 }
 
 function clearPending() {
@@ -182,19 +190,19 @@ watch(() => props.transactionId, () => refresh(), {immediate: true});
                  variant="ghost"
                  @click="remove(a)"/>
       </li>
-      <li v-for="(file, index) in pending"
-          :key="`pending-${index}-${file.name}`"
+      <li v-for="item in pending"
+          :key="item.id"
           class="flex items-center gap-2 text-sm rounded-md ring-1 ring-dashed ring-default px-2.5 py-1.5">
         <UIcon name="i-lucide-clock" class="text-muted shrink-0"/>
-        <span class="flex-1 truncate text-default text-left">{{ file.name }}</span>
+        <span class="flex-1 truncate text-default text-left">{{ item.file.name }}</span>
         <span class="text-xs text-muted italic shrink-0">{{ t('transactions.attachments.pending') }}</span>
-        <span class="text-xs text-muted tabular-nums shrink-0">{{ formatBytes(file.size) }}</span>
+        <span class="text-xs text-muted tabular-nums shrink-0">{{ formatBytes(item.file.size) }}</span>
         <UButton :aria-label="t('transactions.attachments.deleteAria')"
                  color="error"
                  icon="i-lucide-trash"
                  size="xs"
                  variant="ghost"
-                 @click="removePending(index)"/>
+                 @click="removePending(item.id)"/>
       </li>
     </ul>
 

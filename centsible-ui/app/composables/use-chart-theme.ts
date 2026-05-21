@@ -8,12 +8,25 @@ export function useChartTheme(currencyRef: MaybeRefOrGetter<Currency>) {
   const tickColor = computed(() => isDark.value ? '#a3a3a3' : '#737373');
   const gridColor = computed(() => isDark.value ? '#262626' : '#e5e5e5');
 
+  // Memoize Intl.NumberFormat by (locale, currency, fractionDigits). Building the formatter
+  // is the expensive part; we want chartOptions recomputes (driven by theme/data ticks) to
+  // reuse the same instance instead of allocating one each pass.
+  const fmtCache = new Map<string, Intl.NumberFormat>();
+
   function currencyFmt(maximumFractionDigits = 0): Intl.NumberFormat {
-    return new Intl.NumberFormat(localeTag.value, {
-      style: 'currency',
-      currency: toValue(currencyRef),
-      maximumFractionDigits,
-    });
+    const locale = localeTag.value;
+    const currency = toValue(currencyRef);
+    const key = `${locale}|${currency}|${maximumFractionDigits}`;
+    let fmt = fmtCache.get(key);
+    if (!fmt) {
+      fmt = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        maximumFractionDigits,
+      });
+      fmtCache.set(key, fmt);
+    }
+    return fmt;
   }
 
   // Chart.js hands the native event in `event.native`. Reading `.target.style` lets us swap

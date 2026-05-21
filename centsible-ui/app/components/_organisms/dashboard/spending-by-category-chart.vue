@@ -1,15 +1,12 @@
 <script lang="ts" setup>
-import {ArcElement, Chart as ChartJS, type ChartData, type ChartOptions, Legend, Tooltip} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Doughnut} from 'vue-chartjs';
-import {useTransactionService} from "~/services/transactions/transaction-service";
-import type {CategoryAggregate} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import {useChartTheme} from "~/composables/use-chart-theme";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import {useCategoryAggregates} from "~/composables/use-category-aggregates";
 
 const props = defineProps<{
   accountId: string;
@@ -20,32 +17,15 @@ const emit = defineEmits<{
   'slice-click': [payload: CategoryDrillPayload];
 }>();
 
-const service = useTransactionService(useApi());
 const {t} = useI18n();
 const {tickColor, currencyFmt, pointerCursorOnHover} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
-const aggregates = ref<CategoryAggregate[]>([]);
-const loading = ref(false);
-
-async function load() {
-  if (!props.accountId) return;
-  loading.value = true;
-  try {
-    const {fromIso, toIso} = window.value;
-    aggregates.value = await service.aggregateByCategory(props.accountId, {
-      fromDate: fromIso ?? undefined,
-      toDate: toIso ?? undefined,
-    });
-  } catch (error) {
-    console.error('Failed to load category aggregates', error);
-    aggregates.value = [];
-  } finally {
-    loading.value = false;
-  }
-}
-
-watch(() => [props.accountId, window.value.fromIso, window.value.toIso], load, {immediate: true});
+const {data: aggregates, loading} = useCategoryAggregates(
+  () => props.accountId,
+  () => window.value.fromIso,
+  () => window.value.toIso,
+);
 
 const chartData = computed<ChartData<'doughnut'>>(() => ({
   labels: aggregates.value.map(a => a.categoryName),

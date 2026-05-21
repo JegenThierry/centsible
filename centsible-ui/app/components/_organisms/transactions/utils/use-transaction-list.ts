@@ -55,12 +55,17 @@ export function useTransactionList(
   }
 
   if (filters) {
+    // Track only the fields that actually affect the server query. A deep watch fires once per
+    // nested mutation (e.g. categoryIds array push), causing duplicate reloads while the user
+    // is mid-interaction in the filter bar.
     watch(
-      filters,
+      () => {
+        const f = filters.value
+        return [f.search, f.sort, f.fromDate, f.toDate, (f.categoryIds ?? []).join(',')] as const
+      },
       () => {
         if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
       },
-      {deep: true},
     )
   }
 

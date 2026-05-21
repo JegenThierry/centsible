@@ -10,7 +10,18 @@ export default defineNuxtConfig({
         'axios',
         '@vueuse/core',
       ]
-    }
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          // Pin chart libs to their own chunk so non-chart routes don't ship them, and so the
+          // chunk is cached separately from app code that changes more often.
+          manualChunks: {
+            'chart-vendor': ['chart.js', 'vue-chartjs'],
+          },
+        },
+      },
+    },
   },
   runtimeConfig: {
     apiBaseSSR: 'http://centsible-rest:8080/api',

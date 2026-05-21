@@ -1,32 +1,9 @@
 <script lang="ts" setup>
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  type ChartData,
-  type ChartOptions,
-  Filler,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip
-} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Line} from 'vue-chartjs';
 import type {Currency} from "~/models/budget-account/currency";
 import {parseISO} from 'date-fns';
 import {useChartTheme} from "~/composables/use-chart-theme";
-
-ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  CategoryScale,
-  Filler
-);
 
 const props = withDefaults(defineProps<{
   points: { date: string; balance: number }[];

@@ -1,21 +1,10 @@
 <script lang="ts" setup>
-import {
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  type ChartData,
-  type ChartOptions,
-  Legend,
-  LinearScale,
-  Tooltip,
-} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Bar} from 'vue-chartjs';
 import type {Currency} from "~/models/budget-account/currency";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import {useMonthlyAggregates} from "~/composables/use-monthly-aggregates";
 import {useChartTheme} from "~/composables/use-chart-theme";
-
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const props = defineProps<{
   accountId: string;

@@ -60,8 +60,7 @@ const modalDescription = computed(() => {
   return t('transactions.import.descConfirm');
 });
 
-watch(isOpen, async (open) => {
-  if (!open) return;
+function resetFormState() {
   step.value = 'upload';
   parsed.value = null;
   fieldByColumn.value = [];
@@ -69,6 +68,13 @@ watch(isOpen, async (open) => {
   invalidRowCount.value = 0;
   defaultCategory.value = undefined;
   dateFormat.value = 'dd/MM/yyyy';
+}
+
+watch(isOpen, async (open) => {
+  // Reset on both edges so the modal is always fresh — works whether the parent uses v-if or
+  // v-show. The defensive reset on close also clears parsed CSV contents from memory promptly.
+  resetFormState();
+  if (!open) return;
   if (categories.value.length === 0) {
     try {
       categories.value = await categoryService.fetchCategories();

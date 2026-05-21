@@ -18,10 +18,12 @@ const topLoans = computed(() =>
 
 onMounted(async () => {
   const tasks: Promise<unknown>[] = [];
-  if ((loansStore.allLoans ?? []).length === 0) {
+  if (!loansStore.allLoansLoaded) {
     tasks.push(loansStore.refreshAllLoans().catch(e => console.error('Failed to load loans glance', e)));
   }
-  tasks.push(loansStore.refreshOutstanding().catch(e => console.error('Failed to load outstanding total', e)));
+  if (!loansStore.outstandingLoaded) {
+    tasks.push(loansStore.refreshOutstanding().catch(e => console.error('Failed to load outstanding total', e)));
+  }
   await Promise.all(tasks);
 });
 </script>

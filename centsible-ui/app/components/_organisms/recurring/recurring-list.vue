@@ -8,9 +8,9 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import RecurringRow from "~/components/_molecules/recurring/recurring-row.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
-import CreateRecurringModal from "~/components/_organisms/recurring/modals/create-recurring-modal.vue";
-import EditRecurringModal from "~/components/_organisms/recurring/modals/edit-recurring-modal.vue";
-import DeleteRecurringModal from "~/components/_organisms/recurring/modals/delete-recurring-modal.vue";
+const CreateRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/create-recurring-modal.vue"));
+const EditRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/edit-recurring-modal.vue"));
+const DeleteRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/delete-recurring-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 
 const store = useRecurringTransactionsStore();

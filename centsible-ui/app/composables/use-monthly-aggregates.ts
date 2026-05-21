@@ -2,6 +2,8 @@ import {ref, watch} from 'vue';
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {MonthlyAggregate} from "~/models/transactions/transaction";
 
+type TransactionService = ReturnType<typeof useTransactionService>;
+
 interface CacheEntry {
   data: MonthlyAggregate[];
   promise: Promise<MonthlyAggregate[]> | null;
@@ -13,10 +15,44 @@ function key(accountId: string, months: number): string {
   return `${accountId}|${months}`;
 }
 
-/**
- * Shared monthly-aggregates fetch. Multiple components on the same page asking for the same
- * (accountId, months) pair get a single network call and share the resulting array.
- */
+async function loadOrCache(
+  service: TransactionService,
+  accountId: string,
+  months: number,
+): Promise<MonthlyAggregate[]> {
+  const k = key(accountId, months);
+  const entry = cache.get(k);
+  if (entry) {
+    if (entry.promise) return entry.promise;
+    return entry.data;
+  }
+  const promise = service.aggregateByMonth(accountId, months);
+  cache.set(k, {data: [], promise});
+  try {
+    const result = await promise;
+    cache.set(k, {data: result, promise: null});
+    return result;
+  } catch (e) {
+    cache.delete(k);
+    throw e;
+  }
+}
+
+// Warm the cache from a parent (e.g. the dashboard) so children mounting later hit a resolved
+// entry instead of kicking off a second wave of network calls.
+export async function prefetchMonthlyAggregates(
+  service: TransactionService,
+  accountId: string,
+  months: number,
+): Promise<void> {
+  if (!accountId) return;
+  try {
+    await loadOrCache(service, accountId, months);
+  } catch (e) {
+    console.error('Failed to prefetch monthly aggregates', e);
+  }
+}
+
 export function useMonthlyAggregates(accountId: () => string, months: () => number) {
   const service = useTransactionService(useApi());
   const data = ref<MonthlyAggregate[]>([]);
@@ -29,30 +65,10 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
       data.value = [];
       return;
     }
-    const k = key(id, m);
-    const entry = cache.get(k);
-    if (entry) {
-      data.value = entry.data;
-      if (entry.promise) {
-        loading.value = true;
-        try {
-          data.value = await entry.promise;
-        } finally {
-          loading.value = false;
-        }
-      }
-      return;
-    }
-
     loading.value = true;
-    const promise = service.aggregateByMonth(id, m);
-    cache.set(k, {data: [], promise});
     try {
-      const result = await promise;
-      cache.set(k, {data: result, promise: null});
-      data.value = result;
+      data.value = await loadOrCache(service, id, m);
     } catch (e) {
-      cache.delete(k);
       console.error('Failed to load monthly aggregates', e);
       data.value = [];
     } finally {

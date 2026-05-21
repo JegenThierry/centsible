@@ -2,10 +2,10 @@
 import {useContactsStore} from "~/stores/contactsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import CreateContactModal from "~/components/_organisms/contacts/modals/create-contact-modal.vue";
-import EditContactModal from "~/components/_organisms/contacts/modals/edit-contact-modal.vue";
-import DeleteContactModal from "~/components/_organisms/contacts/modals/delete-contact-modal.vue";
-import CreateLoanModal from "~/components/_organisms/loans/modals/create-loan-modal.vue";
+const CreateContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/create-contact-modal.vue"));
+const EditContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/edit-contact-modal.vue"));
+const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
+const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
 import ContactCard from "~/components/_organisms/cards/contact-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";

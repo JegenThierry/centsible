@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AllLoansTable from "~/components/_organisms/loans/all-loans-table.vue";
-import CreateLoanModal from "~/components/_organisms/loans/modals/create-loan-modal.vue";
-import RecordRepaymentModal from "~/components/_organisms/loans/modals/record-repayment-modal.vue";
-import DeleteLoanModal from "~/components/_organisms/loans/modals/delete-loan-modal.vue";
+const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
+const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
+const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import {useLoansStore} from "~/stores/loansStore";

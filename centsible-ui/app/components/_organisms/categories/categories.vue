@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
-import CreateCategoryModal from "~/components/_organisms/categories/modals/create-category-modal.vue";
-import EditCategoryModal from "~/components/_organisms/categories/modals/edit-category-modal.vue";
-import DeleteCategoryModal from "~/components/_organisms/categories/modals/delete-category-modal.vue";
+const CreateCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/create-category-modal.vue"));
+const EditCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/edit-category-modal.vue"));
+const DeleteCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/delete-category-modal.vue"));
 import CategoryCard from "~/components/_organisms/cards/category-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";

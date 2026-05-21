@@ -1,22 +1,9 @@
 <script lang="ts" setup>
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  type ChartData,
-  type ChartOptions,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Line} from 'vue-chartjs';
 import type {CategorySpendingSeries} from "~/models/reports/category-spending";
 import type {Currency} from "~/models/budget-account/currency";
 import {useChartTheme} from "~/composables/use-chart-theme";
-
-ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
 const props = defineProps<{
   series: CategorySpendingSeries[];
