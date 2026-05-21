@@ -12,6 +12,7 @@ import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
@@ -63,6 +64,11 @@ val EXPORT_JOBS: ExportJobs = ExportJobs.EXPORT_JOBS
  * The table <code>public.export_post_processing</code>.
  */
 val EXPORT_POST_PROCESSING: ExportPostProcessing = ExportPostProcessing.EXPORT_POST_PROCESSING
+
+/**
+ * The table <code>public.import_mapping_templates</code>.
+ */
+val IMPORT_MAPPING_TEMPLATES: ImportMappingTemplates = ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES
 
 /**
  * The table <code>public.loan_repayments</code>.

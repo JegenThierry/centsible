@@ -12,6 +12,7 @@ import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
@@ -24,6 +25,7 @@ import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates.ImportMappingTemplatesPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.Notifications.NotificationsPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
@@ -299,6 +301,22 @@ open class Users(
 
     val exportJobs: ExportJobsPath
         get(): ExportJobsPath = exportJobs()
+
+    private lateinit var _importMappingTemplates: ImportMappingTemplatesPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.import_mapping_templates</code> table
+     */
+    fun importMappingTemplates(): ImportMappingTemplatesPath {
+        if (!this::_importMappingTemplates.isInitialized)
+            _importMappingTemplates = ImportMappingTemplatesPath(this, null, IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY.inverseKey)
+
+        return _importMappingTemplates;
+    }
+
+    val importMappingTemplates: ImportMappingTemplatesPath
+        get(): ImportMappingTemplatesPath = importMappingTemplates()
 
     private lateinit var _loans: LoansPath
 
