@@ -7,8 +7,9 @@ import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-ex
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
 import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
+import LoansGlance from "~/components/_organisms/dashboard/loans-glance.vue";
+import CategoryDrillSlideover from "~/components/_organisms/dashboard/category-drill-slideover.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
-import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
 import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skeleton.vue";
@@ -17,14 +18,34 @@ import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vu
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
+import {useBudgetsStore} from "~/stores/budgetsStore";
+import {useLoansStore} from "~/stores/loansStore";
+import {useTransactionService} from "~/services/transactions/transaction-service";
+import {invalidateMonthlyAggregates, prefetchMonthlyAggregates} from "~/composables/use-monthly-aggregates";
+import {invalidateCategoryAggregates, prefetchCategoryAggregates} from "~/composables/use-category-aggregates";
+import {useDashboardPeriod} from "~/composables/use-dashboard-period";
+import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
+
+const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 
 const route = useRoute();
 const accountStore = useBudgetAccountsStore();
 const historyStore = useAccountHistoryStore();
 const transactionStore = useTransactionStore();
+const budgetsStore = useBudgetsStore();
+const loansStore = useLoansStore();
+const transactionService = useTransactionService(useApi());
+const {window} = useDashboardPeriod();
 const {t} = useI18n();
 
 const isCreateTransactionModalVisible = ref(false);
+const isCategoryDrillOpen = ref(false);
+const categoryDrill = ref<CategoryDrillPayload | null>(null);
+
+function onCategorySlice(payload: CategoryDrillPayload) {
+  categoryDrill.value = payload;
+  isCategoryDrillOpen.value = true;
+}
 
 const routeAccountId = computed(() => String(route.params.accountId ?? ''));
 const isAccountReady = computed(
@@ -40,12 +61,30 @@ const headerDescription = computed(() => {
 
 async function fetchData() {
   if (!accountStore.activeAccount) return;
+  const id = accountStore.activeAccount.id;
+  const periodWindow = window.value;
+
+  // Fire every dashboard fetch in parallel, including the ones children would otherwise kick off
+  // after they mount. The dedup caches in useMonthlyAggregates / useCategoryAggregates mean the
+  // children find a resolved entry when they read these later.
+  const tasks: Promise<unknown>[] = [
+    historyStore.fetchSnapshots(id),
+    transactionStore.fetchTransactions(id),
+    prefetchMonthlyAggregates(transactionService, id, periodWindow.months),
+    prefetchCategoryAggregates(transactionService, id, periodWindow.fromIso, periodWindow.toIso),
+  ];
+  if (budgetsStore.items.length === 0) {
+    tasks.push(budgetsStore.fetchCurrentMonth());
+  }
+  if (!loansStore.allLoansLoaded) {
+    tasks.push(loansStore.refreshAllLoans().catch(e => console.error('Failed to load loans', e)));
+  }
+  if (!loansStore.outstandingLoaded) {
+    tasks.push(loansStore.refreshOutstanding());
+  }
 
   try {
-    await Promise.all([
-      historyStore.fetchSnapshots(accountStore.activeAccount.id),
-      transactionStore.fetchTransactions(accountStore.activeAccount.id)
-    ]);
+    await Promise.all(tasks);
   } catch (error) {
     console.error("Failed to fetch dashboard data", error);
   }
@@ -56,6 +95,10 @@ function onOpenCreateTransactionModal(): void {
 }
 
 async function onCreated() {
+  // A transaction was just created — bust the aggregate caches so the post-fetch reflects the
+  // new totals instead of returning the previous (stale) numbers.
+  invalidateMonthlyAggregates();
+  invalidateCategoryAggregates();
   await accountStore.updateActiveAccount();
   await fetchData();
 }
@@ -117,13 +160,17 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
                             :transactions="transactionStore.transactions"/>
 
         <SpendingByCategoryChart :account-id="accountStore.activeAccount.id"
-                                 :currency="accountStore.activeAccount.currency"/>
+                                 :currency="accountStore.activeAccount.currency"
+                                 @slice-click="onCategorySlice"/>
       </div>
 
       <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
                             :currency="accountStore.activeAccount.currency"/>
 
-      <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
+        <LoansGlance/>
+      </div>
 
       <AccountHistoryList :currency="accountStore.activeAccount.currency"
                           :snapshots="historyStore.snapshots"/>
@@ -134,5 +181,14 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
     <CreateTransactionModal v-if="isCreateTransactionModalVisible"
                             v-model:open="isCreateTransactionModalVisible"
                             @created="onCreated()"/>
+
+    <CategoryDrillSlideover v-if="accountStore.activeAccount && categoryDrill"
+                            v-model:open="isCategoryDrillOpen"
+                            :account-id="accountStore.activeAccount.id"
+                            :currency="accountStore.activeAccount.currency"
+                            :category-id="categoryDrill.categoryId"
+                            :category-name="categoryDrill.categoryName"
+                            :from-date="categoryDrill.fromDate"
+                            :to-date="categoryDrill.toDate"/>
   </UContainer>
 </template>

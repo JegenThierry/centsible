@@ -4,16 +4,14 @@ import type {TableColumn} from '@nuxt/ui'
 import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
-import type {Transaction} from "~/models/transactions/transaction";
+import {type Transaction} from "~/models/transactions/transaction";
+import {transactionType} from "~/utils/transaction";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {useToasts} from "~/services/toasts/toast-service";
 import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
-import EditTransactionModal from "~/components/_organisms/transactions/modals/edit-transaction-modal.vue";
-import DeleteTransactionModal from "~/components/_organisms/transactions/modals/delete-transaction-modal.vue";
-import BulkCategorizeModal from "~/components/_organisms/transactions/modals/bulk-categorize-modal.vue";
+import TransactionAttachmentsPopover from "~/components/_molecules/transactions/transaction-attachments-popover.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
-import CreateTransactionModal from "~/components/_organisms/transactions/modals/create-transaction-modal.vue";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
@@ -21,6 +19,11 @@ import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import BaseTable from "~/components/_molecules/tables/base-table.vue";
 import TableRowActionsMenu from "~/components/_molecules/tables/table-row-actions-menu.vue";
 import TransactionFilterBar from "~/components/_molecules/transactions/transaction-filter-bar.vue";
+
+const EditTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transaction-modal.vue"));
+const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
+const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
+const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -79,7 +82,9 @@ function clearSelection() {
   selectedIds.value = new Set();
 }
 
-const columns = computed<TableColumn<Transaction>[]>(() => [
+// Columns are built once. Header strings use thunks so locale changes still surface, and cell
+// closures read reactive state (currency, selection) lazily — TanStack calls them per render.
+const columns: TableColumn<Transaction>[] = [
   {
     id: 'select',
     header: () => h('input', {
@@ -99,72 +104,72 @@ const columns = computed<TableColumn<Transaction>[]>(() => [
   },
   {
     accessorKey: 'transactionDate',
-    header: t('transactions.table.date'),
-    cell: ({row}) => {
-      return h(FormattedDate, {
-        date: row.getValue('transactionDate'),
-        format: 'full'
-      })
-    }
+    header: () => t('transactions.table.date'),
+    cell: ({row}) => h(FormattedDate, {
+      date: row.getValue('transactionDate'),
+      format: 'full',
+    }),
   },
   {
     accessorKey: 'description',
-    header: t('transactions.table.description')
+    header: () => t('transactions.table.description'),
   },
   {
     accessorKey: 'category',
-    header: t('transactions.table.category'),
+    header: () => t('transactions.table.category'),
     cell: ({row}) => {
       const category = row.getValue('category') as any
       return h(CategoryBadge, {
         name: category?.name,
         icon: category?.icon,
-        color: category?.color
+        color: category?.color,
       })
-    }
+    },
+  },
+  {
+    id: 'attachments',
+    header: '',
+    meta: {class: {th: 'w-10', td: 'w-10'}},
+    cell: ({row}) => {
+      const count = row.original.attachmentCount ?? 0
+      if (count === 0) return null
+      return h(TransactionAttachmentsPopover, {
+        transactionId: row.original.id,
+        count,
+      })
+    },
   },
   {
     accessorKey: 'amount',
-    header: t('transactions.table.amount'),
-    meta: {
-      class: {
-        th: 'text-right',
-        td: 'text-right font-medium'
-      }
-    },
-    cell: ({row}) => {
-      return h(TransactionAmount, {
-        amount: Number.parseFloat(row.getValue('amount')),
-        type: row.original.category?.type,
-        currency: currency.value,
-      })
-    }
+    header: () => t('transactions.table.amount'),
+    meta: {class: {th: 'text-right', td: 'text-right font-medium'}},
+    cell: ({row}) => h(TransactionAmount, {
+      amount: Number.parseFloat(row.getValue('amount')),
+      type: transactionType(row.original),
+      currency: currency.value,
+    }),
   },
   {
     id: 'actions',
-    meta: {
-      class: {
-        td: 'text-right'
-      }
-    },
+    meta: {class: {td: 'text-right'}},
     cell: ({row}) => h(TableRowActionsMenu, {
       menuLabel: t('transactions.table.actionsLabel'),
       items: [
         {
           label: t('transactions.table.actionEdit'),
           icon: 'i-lucide-pencil',
-          onSelect: () => openEditModal(row.original)
+          onSelect: () => openEditModal(row.original),
         },
         {
           label: t('transactions.table.actionDelete'),
           icon: 'i-lucide-trash',
           color: 'error' as any,
-          onSelect: () => openDeleteModal(row.original)
-        }
+          onSelect: () => openDeleteModal(row.original),
+        },
       ],
-    })
-  }
-])
+    }),
+  },
+]
 
 async function bulkDelete() {
   const ids = Array.from(selectedIds.value);

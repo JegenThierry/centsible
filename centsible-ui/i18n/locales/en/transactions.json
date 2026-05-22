@@ -4,6 +4,7 @@
     "title": "Transactions",
     "description": "View and manage your transactions",
     "importCsvButton": "Import CSV",
+    "advancedImportButton": "Import file (CSV / OFX)",
     "exportLabel": "Export transactions",
     "exportDefaultTitle": "Transactions {date}",
     "emptyTitle": "No transactions found.",
@@ -67,11 +68,22 @@
     "form": {
       "category": "Category",
       "transactionType": "Transaction Type:",
+      "typeLabel": "Transaction type",
+      "typeIncome": "Income",
+      "typeExpense": "Expense",
       "amount": "Amount",
       "amountPlaceholder": "0.00",
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
-      "date": "Date"
+      "date": "Date",
+      "modes": {
+        "setBalance": {
+          "newBalance": "New account balance",
+          "previewIncome": "Will create an income transaction of {amount}.",
+          "previewExpense": "Will create an expense transaction of {amount}.",
+          "previewNoChange": "Balance is already {amount} — no transaction will be created."
+        }
+      }
     },
     "selects": {
       "selectAccount": "Select an account",
@@ -84,6 +96,7 @@
       "description": "Create a new transaction for your active account.",
       "modeStandard": "Standard",
       "modeLending": "Lending",
+      "modeSetBalance": "Set balance",
       "modeLegend": "Type",
       "submit": "Create",
       "toastSuccessTitle": "Transaction created successfully.",
@@ -154,6 +167,23 @@
         "ignore": "Ignore"
       }
     },
+    "advancedImport": {
+      "titleUpload": "Import from file",
+      "titleReview": "Review and import",
+      "descUpload": "Upload a CSV or OFX exported from your bank.",
+      "descReview": "Check the detected rows before importing.",
+      "uploadHint": "Server-side import supports CSV (with bank-profile auto-detection) and OFX/QFX. Pick a default category that will be assigned to all imported rows.",
+      "defaultCategoryLabel": "Default category",
+      "defaultCategoryHelp": "All imported rows will use this category. You can recategorize them afterwards.",
+      "detectedRows": "{count} row(s) detected",
+      "warningsTitle": "{count} warning(s) during parse",
+      "importRows": "Import {count} row(s)",
+      "successTitle": "Import complete.",
+      "successBody": "{imported} imported, {skipped} skipped as duplicates.",
+      "errorTitle": "Import failed.",
+      "detectFailedBody": "Could not detect or parse the file. Make sure it's a supported CSV or OFX export.",
+      "commitFailedBody": "Could not import the parsed rows. Please try again."
+    },
     "recurring": {
       "pageTitle": "Recurring",
       "title": "Recurring transactions",
@@ -188,7 +218,9 @@
         "startDate": "Start date",
         "startDateHelp": "First occurrence date. Future dates are fine.",
         "endDate": "End date (optional)",
-        "endDateHelp": "Leave empty to repeat indefinitely."
+        "endDateHelp": "Leave empty to repeat indefinitely.",
+        "previewTitle": "Next occurrences",
+        "previewHint": "Preview only — transactions are generated on each due date."
       },
       "frequency": {
         "DAILY": "Daily",
@@ -219,6 +251,39 @@
       "openRowActions": "Open row actions",
       "rowActions": "Row actions",
       "emptyDefault": "Nothing here yet."
+    },
+    "attachments": {
+      "title": "Attachments",
+      "hint": "PDF, JPG, PNG or WebP. Max 10 MB each.",
+      "add": "Add file",
+      "empty": "No attachments yet.",
+      "pending": "Pending upload",
+      "deleteAria": "Delete attachment",
+      "popover": {
+        "triggerAria": "View {count} attached file(s)",
+        "loading": "Loading files…",
+        "empty": "No files attached."
+      },
+      "toasts": {
+        "uploadedTitle": "Attachment uploaded.",
+        "uploadedBody": "The file was attached to this transaction.",
+        "deletedTitle": "Attachment removed.",
+        "deletedBody": "The file was removed from this transaction."
+      },
+      "errors": {
+        "typeTitle": "Unsupported file type.",
+        "typeBody": "Use PDF, JPG, PNG or WebP.",
+        "sizeTitle": "File too large.",
+        "sizeBody": "Attachments must be 10 MB or smaller.",
+        "uploadTitle": "Upload failed.",
+        "uploadBody": "The file could not be uploaded. Please try again.",
+        "uploadPartialTitle": "Some attachments were not uploaded.",
+        "uploadPartialBody": "{count} file(s) could not be uploaded. Open the transaction to attach them again.",
+        "downloadTitle": "Download failed.",
+        "downloadBody": "The file could not be downloaded. Please try again.",
+        "deleteTitle": "Delete failed.",
+        "deleteBody": "The attachment could not be removed. Please try again."
+      }
     },
     "fab": {
       "create": "Create"

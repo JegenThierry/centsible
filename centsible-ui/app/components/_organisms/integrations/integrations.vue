@@ -6,7 +6,7 @@ import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
-import ConnectProviderModal from "~/components/_organisms/integrations/modals/connect-provider-modal.vue";
+const ConnectProviderModal = defineAsyncComponent(() => import("~/components/_organisms/integrations/modals/connect-provider-modal.vue"));
 
 const providersStore = useProvidersStore();
 const {t} = useI18n();

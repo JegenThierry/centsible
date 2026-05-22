@@ -6,10 +6,13 @@ import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
+import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.CategoryClassification
+import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
@@ -27,6 +30,7 @@ class TransactionService(
     private val transactionRepository: ITransactionRepository,
     private val accountRepository: IBudgetAccountsRepository,
     private val categoriesRepository: ICategoriesRepository,
+    private val attachmentRepository: IAttachmentRepository,
     private val notificationService: INotificationService,
 ) : ITransactionService {
 
@@ -41,6 +45,16 @@ class TransactionService(
         }
     }
 
+    private fun checkInlineTransactionAlerts(user: UserDTO, tx: TransactionDTO, accountId: UUID) {
+        val id = tx.id ?: return
+        val amount = tx.amount ?: return
+        try {
+            notificationService.evaluateTransactionAlerts(user, id, amount, tx.description, accountId)
+        } catch (e: Exception) {
+            log.warn("Inline transaction alert evaluation failed for user {}", user.id, e)
+        }
+    }
+
     override fun fetchTransactions(
         accountId: UUID,
         authenticatedUser: UserDTO,
@@ -51,7 +65,13 @@ class TransactionService(
         require(page > 0) { "page must be > 0" }
         require(size > 0) { "size must be > 0" }
 
-        return transactionRepository.fetchTransactions(accountId, authenticatedUser, page, size, filters)
+        val transactions = transactionRepository.fetchTransactions(accountId, authenticatedUser, page, size, filters)
+        val ids = transactions.mapNotNull { it.id }
+        if (ids.isEmpty()) return transactions
+
+        val counts = attachmentRepository.countByTransactionIds(authenticatedUser, ids)
+        transactions.forEach { it.attachmentCount = counts[it.id] ?: 0 }
+        return transactions
     }
 
     @Transactional
@@ -60,10 +80,14 @@ class TransactionService(
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val transaction = transactionRepository.createTransaction(accountId, transactionForm, authenticatedUser)
-        val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
+        val resolvedForm = transactionForm.copy(
+            type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+        )
+        val transaction = transactionRepository.createTransaction(accountId, resolvedForm, authenticatedUser)
+        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, listOf(transactionForm.categoryId))
+        checkBudgetAlerts(authenticatedUser, listOf(resolvedForm.categoryId))
+        checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
         return transaction
     }
 
@@ -75,14 +99,18 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
-        val oldAdjustment = calculateAdjustment(oldTransaction.category.type, oldTransaction.amount)
+        val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
 
+        val resolvedForm = transactionForm.copy(
+            type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+        )
         val updatedTransaction =
-            transactionRepository.updateTransaction(transactionId, accountId, transactionForm, authenticatedUser)
-        val newAdjustment = calculateAdjustment(updatedTransaction.category.type, updatedTransaction.amount)
+            transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, authenticatedUser)
+        val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
         checkBudgetAlerts(authenticatedUser, setOf(oldTransaction.category.id, updatedTransaction.category.id).filterNotNull())
+        checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
         return updatedTransaction
     }
 
@@ -93,7 +121,7 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
-        val adjustment = calculateAdjustment(transaction.category.type, transaction.amount)
+        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment.negate(), authenticatedUser)
         return transaction
     }
@@ -106,7 +134,7 @@ class TransactionService(
         if (deleted == 0) return 0
 
         val net = transactions.fold(BigDecimal.ZERO) { acc, tx ->
-            acc + calculateAdjustment(tx.category.type, tx.amount)
+            acc + calculateAdjustment(tx.type, tx.amount)
         }
         if (net.signum() != 0) accountRepository.updateBalance(accountId, net.negate(), authenticatedUser)
         checkBudgetAlerts(authenticatedUser, transactions.mapNotNull { it.category.id }.distinct())
@@ -123,16 +151,6 @@ class TransactionService(
             accountId, oldTransactions.map { it.id!! }, categoryId, authenticatedUser
         )
         if (updated == 0) return 0
-
-        val newType = categoriesRepository.fetchCategoryById(authenticatedUser, categoryId)?.type
-            ?: throw IllegalArgumentException("Category not found or not owned by user")
-
-        val net = oldTransactions.fold(BigDecimal.ZERO) { acc, old ->
-            val oldAdj = calculateAdjustment(old.category.type, old.amount)
-            val newAdj = calculateAdjustment(newType, old.amount)
-            acc + newAdj.subtract(oldAdj)
-        }
-        if (net.signum() != 0) accountRepository.updateBalance(accountId, net, authenticatedUser)
 
         val touched = (oldTransactions.mapNotNull { it.category.id } + categoryId).distinct()
         checkBudgetAlerts(authenticatedUser, touched)
@@ -158,12 +176,20 @@ class TransactionService(
         val rows = request.rows
         if (rows.isEmpty()) return ImportResult(0, 0)
 
-        val hashes = rows.map { rowHash(accountId, it) }
-        val outcome = transactionRepository.importBatch(accountId, rows, hashes, authenticatedUser)
+        val classifications = categoriesRepository.fetchCategoryClassifications(
+            authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
+        )
+        val resolvedRows = rows.map { row ->
+            val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
+            row.copy(type = resolveType(classification, row.type))
+        }
+
+        val hashes = resolvedRows.map { rowHash(accountId, it) }
+        val outcome = transactionRepository.importBatch(accountId, resolvedRows, hashes, authenticatedUser)
 
         if (outcome.netBalanceAdjustment.signum() != 0) {
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-            checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
+            checkBudgetAlerts(authenticatedUser, resolvedRows.map { it.categoryId }.distinct())
         }
 
         return ImportResult(
@@ -172,11 +198,50 @@ class TransactionService(
         )
     }
 
+    @Transactional
+    override fun createBalanceAdjustment(
+        accountId: UUID,
+        form: SetBalanceForm,
+        authenticatedUser: UserDTO,
+    ): TransactionDTO {
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        val delta = form.newBalance.subtract(account.balance)
+        if (delta.signum() == 0) {
+            throw IllegalArgumentException("New balance must differ from the current balance")
+        }
+
+        val adjustmentForm = TransactionForm(
+            amount = delta.abs(),
+            categoryId = form.categoryId,
+            description = form.description,
+            transactionDate = form.transactionDate,
+            type = if (delta.signum() > 0) CategoryType.INCOME else CategoryType.EXPENSE,
+        )
+        return createTransaction(accountId, adjustmentForm, authenticatedUser)
+    }
+
     private fun rowHash(accountId: UUID, row: ImportTransactionRow): String {
         val payload = "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}"
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
         return digest.joinToString("") { "%02x".format(it) }
     }
+
+    private fun resolveType(
+        user: UserDTO,
+        categoryId: Long,
+        requestedType: CategoryType?,
+    ): CategoryType {
+        val classification = categoriesRepository.fetchCategoryClassifications(user, listOf(categoryId))[categoryId]
+            ?: throw categoryNotFound(categoryId)
+        return resolveType(classification, requestedType)
+    }
+
+    // Managed categories (Lending / Repayment) must keep their type to preserve domain invariants.
+    private fun resolveType(classification: CategoryClassification, requestedType: CategoryType?): CategoryType =
+        if (classification.isManaged) classification.type else requestedType ?: classification.type
+
+    private fun categoryNotFound(categoryId: Long): IllegalArgumentException =
+        IllegalArgumentException("Category $categoryId not found or not accessible")
 
     private fun calculateAdjustment(type: CategoryType?, amount: BigDecimal?): BigDecimal {
         val value = amount ?: BigDecimal.ZERO

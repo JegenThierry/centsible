@@ -8,6 +8,7 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_CATEGORIES_USER_LOOKUP
 import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_NAME_PER_USER
 import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_NAME_SYSTEM
+import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_SYSTEM_KEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES_PKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
@@ -128,6 +129,11 @@ open class Categories(
      */
     val IS_MANAGED: TableField<CategoriesRecord, Boolean?> = createField(DSL.name("is_managed"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
 
+    /**
+     * The column <code>public.categories.system_key</code>.
+     */
+    val SYSTEM_KEY: TableField<CategoriesRecord, String?> = createField(DSL.name("system_key"), SQLDataType.VARCHAR(64), this, "")
+
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<CategoriesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -160,7 +166,7 @@ open class Categories(
         override fun `as`(alias: Table<*>): CategoriesPath = CategoriesPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP, UQ_CATEGORIES_NAME_PER_USER, UQ_CATEGORIES_NAME_SYSTEM)
+    override fun getIndexes(): List<Index> = listOf(IDX_CATEGORIES_USER_LOOKUP, UQ_CATEGORIES_NAME_PER_USER, UQ_CATEGORIES_NAME_SYSTEM, UQ_CATEGORIES_SYSTEM_KEY)
     override fun getIdentity(): Identity<CategoriesRecord, Long?> = super.getIdentity() as Identity<CategoriesRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CategoriesRecord> = CATEGORIES_PKEY
     override fun getReferences(): List<ForeignKey<CategoriesRecord, *>> = listOf(CATEGORIES__CATEGORIES_USER_ID_FKEY)

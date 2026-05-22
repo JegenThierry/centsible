@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.*
 
+private val DEDUP_KEY_FIELD = DSL.field("data->>'dedupKey'", String::class.java)
+
 @Repository
 class NotificationRepository(
     private val dsl: DSLContext,
@@ -93,6 +95,18 @@ class NotificationRepository(
                     .and(NOTIFICATIONS.TYPE.eq(type.name))
                     .and(budgetField.eq(budgetId))
                     .and(periodField.eq(sincePeriodKey))
+            )
+            .fetchOne(0, Int::class.java) ?: 0
+        return count > 0
+    }
+
+    override fun existsByDedupKey(user: UserDTO, type: NotificationType, dedupKey: String): Boolean {
+        val count = dsl.selectCount()
+            .from(NOTIFICATIONS)
+            .where(
+                NOTIFICATIONS.USER_ID.eq(user.id)
+                    .and(NOTIFICATIONS.TYPE.eq(type.name))
+                    .and(DEDUP_KEY_FIELD.eq(dedupKey))
             )
             .fetchOne(0, Int::class.java) ?: 0
         return count > 0

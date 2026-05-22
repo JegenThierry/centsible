@@ -43,10 +43,35 @@
       "fr": "Français",
       "de": "Deutsch"
     },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choose what should trigger an in-app notification.",
+      "save": "Save",
+      "largeTransaction": {
+        "title": "Large transaction alert",
+        "description": "Notify when a transaction exceeds this amount.",
+        "placeholder": "500.00"
+      },
+      "lowBalance": {
+        "title": "Low account balance",
+        "description": "Notify when any account balance drops below this amount.",
+        "placeholder": "100.00"
+      },
+      "loanDueDaysAhead": "Loan due (days ahead)",
+      "recurringDueDaysAhead": "Recurring upcoming (days ahead)",
+      "toasts": {
+        "savedTitle": "Notification settings saved.",
+        "savedBody": "Your preferences will apply to new alerts.",
+        "errorTitle": "Could not save settings.",
+        "errorBody": "Please try again."
+      }
+    },
     "theme": {
       "buttonAria": "Change theme",
       "appearance": "Appearance",
       "title": "Theme",
+      "description": "Pick how the app looks and the colour palette.",
+      "paletteTitle": "Palette",
       "modes": {
         "light": "Light",
         "dark": "Dark",

@@ -1,6 +1,5 @@
 package beer.thierry.centsible.jooq.repository
 
-import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
@@ -51,82 +50,44 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TransactionSort.AMOUNT_ASC -> arrayOf(TRANSACTIONS.AMOUNT.asc(), TRANSACTIONS.ID.asc())
         }
 
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+        return dsl.select(*TransactionRecordMapper.columns)
+            .from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(condition)
             .orderBy(*orderBy).limit(pageSize).offset(offset)
-            .fetch { mapToTransactionDTO(it) }
+            .fetch { TransactionRecordMapper.mapTransaction(it) }
     }
 
     override fun fetchTransactionById(
         transactionId: UUID, authenticatedUser: UserDTO
     ): TransactionDTO {
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+        return dsl.select(*TransactionRecordMapper.columns)
+            .from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
-            .fetchSingle { mapToTransactionDTO(it) }
-    }
-
-    private fun mapToTransactionDTO(record: org.jooq.Record): TransactionDTO {
-        val category = CategoryDTO(
-            id = record[CATEGORIES.ID]!!,
-            name = record[CATEGORIES.NAME]!!,
-            icon = record[CATEGORIES.ICON]!!,
-            type = CategoryType.fromValue(record[CATEGORIES.TYPE]!!),
-            color = record[CATEGORIES.COLOR]
-        )
-
-        return TransactionDTO(
-            id = record[TRANSACTIONS.ID]!!,
-            category = category,
-            amount = record[TRANSACTIONS.AMOUNT]!!,
-            description = record[TRANSACTIONS.DESCRIPTION],
-            transactionDate = record[TRANSACTIONS.TRANSACTION_DATE]!!,
-            createdAt = record[TRANSACTIONS.CREATED_AT]!!,
-            updatedAt = record[TRANSACTIONS.MODIFIED_AT]!!,
-        )
+            .fetchSingle { TransactionRecordMapper.mapTransaction(it) }
     }
 
     override fun createTransaction(
         accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
     ): TransactionDTO {
+        val type = transactionForm.type
+            ?: throw IllegalArgumentException("Transaction type is required")
+
         // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
         val now = OffsetDateTime.now()
         val record = dsl.insertInto(
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
             .select(
                 dsl.select(
                     DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(transactionForm.amount),
                     DSL.value(transactionForm.description), DSL.value(transactionForm.transactionDate),
+                    DSL.value(type.value),
                     DSL.value(now), DSL.value(now),
                 ).whereExists(
                     dsl.selectOne().from(ACCOUNTS)
@@ -143,11 +104,15 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun updateTransaction(
         transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
     ): TransactionDTO {
+        val type = transactionForm.type
+            ?: throw IllegalArgumentException("Transaction type is required")
+
         // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
         val updated = dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
             .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
+            .set(TRANSACTIONS.TYPE, type.value)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 TRANSACTIONS.ID.eq(transactionId)
@@ -179,22 +144,11 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO
     ): List<TransactionDTO> {
         if (ids.isEmpty()) return emptyList()
-        return dsl.select(
-            TRANSACTIONS.ID,
-            TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION,
-            TRANSACTIONS.TRANSACTION_DATE,
-            TRANSACTIONS.CREATED_AT,
-            TRANSACTIONS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR
-        ).from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+        return dsl.select(*TransactionRecordMapper.columns)
+            .from(TRANSACTIONS).join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(baseCondition(accountId, authenticatedUser).and(TRANSACTIONS.ID.`in`(ids)))
-            .fetch { mapToTransactionDTO(it) }
+            .fetch { TransactionRecordMapper.mapTransaction(it) }
     }
 
     override fun deleteTransactions(
@@ -237,7 +191,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
                 baseCondition(accountId, authenticatedUser)
-                    .and(CATEGORIES.TYPE.eq(CategoryType.EXPENSE.name))
+                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON)
@@ -263,17 +217,16 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
         val monthExpr = DSL.field("to_char({0}, 'YYYY-MM')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("ym")
         val incomeExpr = DSL.sum(
-            DSL.case_().`when`(CATEGORIES.TYPE.eq(CategoryType.INCOME.name), TRANSACTIONS.AMOUNT)
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
                 .otherwise(BigDecimal.ZERO)
         ).`as`("income")
         val expenseExpr = DSL.sum(
-            DSL.case_().`when`(CATEGORIES.TYPE.eq(CategoryType.EXPENSE.name), TRANSACTIONS.AMOUNT)
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value), TRANSACTIONS.AMOUNT)
                 .otherwise(BigDecimal.ZERO)
         ).`as`("expense")
 
         val rows = dsl.select(monthExpr, incomeExpr, expenseExpr)
             .from(TRANSACTIONS)
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
                 baseCondition(accountId, authenticatedUser)
@@ -302,6 +255,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     ): BatchImportOutcome {
         require(rows.size == hashes.size) { "rows and hashes must have equal length" }
         if (rows.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
+        require(rows.all { it.type != null }) { "Every import row must have a type" }
 
         val ownsAccount = dsl.selectOne().from(ACCOUNTS)
             .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
@@ -312,13 +266,15 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         val insertStep = dsl.insertInto(
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.IMPORT_HASH,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
+            TRANSACTIONS.IMPORT_HASH,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
         rows.forEachIndexed { i, row ->
             insertStep.values(
                 accountId, row.categoryId, row.amount,
-                row.description, row.transactionDate, hashes[i],
+                row.description, row.transactionDate, row.type!!.value,
+                hashes[i],
                 now, now,
             )
         }
@@ -327,20 +283,13 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .onConflict(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.IMPORT_HASH)
             .where(TRANSACTIONS.IMPORT_HASH.isNotNull)
             .doNothing()
-            .returning(TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT)
+            .returning(TRANSACTIONS.TYPE, TRANSACTIONS.AMOUNT)
             .fetch()
 
         if (inserted.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
 
-        val categoryIds = inserted.map { it[TRANSACTIONS.CATEGORY_ID]!! }.distinct()
-        val typeByCategoryId = dsl.select(CATEGORIES.ID, CATEGORIES.TYPE)
-            .from(CATEGORIES)
-            .where(CATEGORIES.ID.`in`(categoryIds))
-            .fetch { it[CATEGORIES.ID]!! to CategoryType.fromValue(it[CATEGORIES.TYPE]!!) }
-            .toMap()
-
         val net = inserted.fold(BigDecimal.ZERO) { acc, rec ->
-            val type = typeByCategoryId[rec[TRANSACTIONS.CATEGORY_ID]!!]
+            val type = CategoryType.fromValue(rec[TRANSACTIONS.TYPE]!!)
             val amount = rec[TRANSACTIONS.AMOUNT]!!
             acc + if (type == CategoryType.INCOME) amount else amount.negate()
         }

@@ -12,13 +12,14 @@ import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
-import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -83,6 +84,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val EXPORT_POST_PROCESSING: ExportPostProcessing get() = ExportPostProcessing.EXPORT_POST_PROCESSING
 
     /**
+     * The table <code>public.import_mapping_templates</code>.
+     */
+    val IMPORT_MAPPING_TEMPLATES: ImportMappingTemplates get() = ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES
+
+    /**
      * The table <code>public.loan_repayments</code>.
      */
     val LOAN_REPAYMENTS: LoanRepayments get() = LoanRepayments.LOAN_REPAYMENTS
@@ -108,14 +114,14 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val RECURRING_TRANSACTIONS: RecurringTransactions get() = RecurringTransactions.RECURRING_TRANSACTIONS
 
     /**
-     * The table <code>public.schema_migrations</code>.
-     */
-    val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
-
-    /**
      * The table <code>public.system_information</code>.
      */
     val SYSTEM_INFORMATION: SystemInformation get() = SystemInformation.SYSTEM_INFORMATION
+
+    /**
+     * The table <code>public.transaction_attachments</code>.
+     */
+    val TRANSACTION_ATTACHMENTS: TransactionAttachments get() = TransactionAttachments.TRANSACTION_ATTACHMENTS
 
     /**
      * The table <code>public.transactions</code>.
@@ -138,13 +144,14 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         Contacts.CONTACTS,
         ExportJobs.EXPORT_JOBS,
         ExportPostProcessing.EXPORT_POST_PROCESSING,
+        ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES,
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
         Notifications.NOTIFICATIONS,
         ProviderConnections.PROVIDER_CONNECTIONS,
         RecurringTransactions.RECURRING_TRANSACTIONS,
-        SchemaMigrations.SCHEMA_MIGRATIONS,
         SystemInformation.SYSTEM_INFORMATION,
+        TransactionAttachments.TRANSACTION_ATTACHMENTS,
         Transactions.TRANSACTIONS,
         Users.USERS
     )

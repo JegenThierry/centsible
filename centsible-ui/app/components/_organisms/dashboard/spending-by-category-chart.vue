@@ -1,46 +1,31 @@
 <script lang="ts" setup>
-import {ArcElement, Chart as ChartJS, type ChartData, type ChartOptions, Legend, Tooltip} from 'chart.js';
+import type {ChartData, ChartOptions} from 'chart.js';
 import {Doughnut} from 'vue-chartjs';
-import {useTransactionService} from "~/services/transactions/transaction-service";
-import type {CategoryAggregate} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
+import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import {useChartTheme} from "~/composables/use-chart-theme";
+import {useCategoryAggregates} from "~/composables/use-category-aggregates";
 
 const props = defineProps<{
   accountId: string;
   currency: Currency;
 }>();
 
-const colorMode = useColorMode();
-const service = useTransactionService(useApi());
+const emit = defineEmits<{
+  'slice-click': [payload: CategoryDrillPayload];
+}>();
+
 const {t} = useI18n();
-const localeTag = useLocaleTag();
+const {tickColor, currencyFmt, pointerCursorOnHover} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
-const aggregates = ref<CategoryAggregate[]>([]);
-const loading = ref(false);
-
-async function load() {
-  if (!props.accountId) return;
-  loading.value = true;
-  try {
-    const {fromIso, toIso} = window.value;
-    aggregates.value = await service.aggregateByCategory(props.accountId, {
-      fromDate: fromIso ?? undefined,
-      toDate: toIso ?? undefined,
-    });
-  } catch (error) {
-    console.error('Failed to load category aggregates', error);
-    aggregates.value = [];
-  } finally {
-    loading.value = false;
-  }
-}
-
-watch(() => [props.accountId, window.value.fromIso, window.value.toIso], load, {immediate: true});
+const {data: aggregates, loading} = useCategoryAggregates(
+  () => props.accountId,
+  () => window.value.fromIso,
+  () => window.value.toIso,
+);
 
 const chartData = computed<ChartData<'doughnut'>>(() => ({
   labels: aggregates.value.map(a => a.categoryName),
@@ -53,25 +38,35 @@ const chartData = computed<ChartData<'doughnut'>>(() => ({
 }));
 
 const chartOptions = computed<ChartOptions<'doughnut'>>(() => {
-  const isDark = colorMode.value === 'dark';
-  const labelColor = isDark ? '#a3a3a3' : '#737373';
-  const currencyFmt = new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency});
-
+  const fmt = currencyFmt(2);
   return {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'bottom',
-        labels: {color: labelColor, padding: 20, usePointStyle: true, font: {size: 11}},
+        labels: {color: tickColor.value, padding: 20, usePointStyle: true, font: {size: 11}},
       },
       tooltip: {
         callbacks: {
-          label: (context) => currencyFmt.format(context.parsed),
+          label: (context) => fmt.format(context.parsed),
         },
       },
     },
     cutout: '70%',
+    onClick: (_evt, elements) => {
+      const idx = elements?.[0]?.index;
+      if (idx == null) return;
+      const agg = aggregates.value[idx];
+      if (!agg) return;
+      emit('slice-click', {
+        categoryId: agg.categoryId,
+        categoryName: agg.categoryName,
+        fromDate: window.value.fromIso ?? null,
+        toDate: window.value.toIso ?? null,
+      });
+    },
+    onHover: pointerCursorOnHover,
   };
 });
 

@@ -1,0 +1,36 @@
+{
+  "attachments": {
+    "pageTitle": "Documents",
+    "title": "Documents",
+    "description": "Tous les fichiers joints à vos transactions, sur l'ensemble de vos comptes.",
+    "empty": "Aucune pièce jointe pour le moment.",
+    "loading": "Chargement des pièces jointes…",
+    "confirmDelete": "Supprimer « {filename} » ? Cette action est définitive.",
+    "table": {
+      "file": "Fichier",
+      "size": "Taille",
+      "transaction": "Transaction",
+      "transactionDate": "Date de la transaction",
+      "uploadedAt": "Ajouté le",
+      "actionsAria": "Actions sur la pièce jointe",
+      "noDescription": "Sans description"
+    },
+    "actions": {
+      "download": "Télécharger",
+      "openTransaction": "Ouvrir la transaction",
+      "delete": "Supprimer"
+    },
+    "toasts": {
+      "deletedTitle": "Pièce jointe supprimée.",
+      "deletedBody": "Le fichier a été retiré de sa transaction."
+    },
+    "errors": {
+      "loadTitle": "Impossible de charger les pièces jointes.",
+      "loadBody": "Veuillez réessayer.",
+      "downloadTitle": "Échec du téléchargement.",
+      "downloadBody": "Le fichier n'a pas pu être téléchargé. Réessayez.",
+      "deleteTitle": "Échec de la suppression.",
+      "deleteBody": "La pièce jointe n'a pas pu être supprimée. Réessayez."
+    }
+  }
+}

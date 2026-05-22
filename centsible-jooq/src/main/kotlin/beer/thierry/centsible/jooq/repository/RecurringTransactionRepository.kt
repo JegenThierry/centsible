@@ -165,12 +165,12 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         dsl.insertInto(
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
-            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE,
+            TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
             TRANSACTIONS.RECURRING_TRANSACTION_ID,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         ).values(
             accountId, rule.category.id, amount,
-            rule.description, occurrenceDate,
+            rule.description, occurrenceDate, type.value,
             ruleId,
             now, now,
         ).execute()

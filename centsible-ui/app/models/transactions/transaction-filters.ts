@@ -7,3 +7,10 @@ export interface TransactionFilters {
   toDate?: string;
   sort?: TransactionSort;
 }
+
+export interface CategoryDrillPayload {
+  categoryId: number;
+  categoryName: string;
+  fromDate: string | null;
+  toDate: string | null;
+}

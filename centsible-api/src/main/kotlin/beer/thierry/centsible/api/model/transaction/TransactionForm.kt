@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.model.transaction
 
+import beer.thierry.centsible.api.model.category.CategoryType
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Digits
@@ -27,4 +28,6 @@ data class TransactionForm(
 
     @field:NotNull(message = "{validation.transactionDate.required}")
     var transactionDate: LocalDate = LocalDate.now(),
+
+    var type: CategoryType? = null,
 )

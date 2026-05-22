@@ -10,13 +10,14 @@ import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
-import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
@@ -25,13 +26,14 @@ import beer.thierry.jooq.generated.tables.records.CategoriesRecord
 import beer.thierry.jooq.generated.tables.records.ContactsRecord
 import beer.thierry.jooq.generated.tables.records.ExportJobsRecord
 import beer.thierry.jooq.generated.tables.records.ExportPostProcessingRecord
+import beer.thierry.jooq.generated.tables.records.ImportMappingTemplatesRecord
 import beer.thierry.jooq.generated.tables.records.LoanRepaymentsRecord
 import beer.thierry.jooq.generated.tables.records.LoansRecord
 import beer.thierry.jooq.generated.tables.records.NotificationsRecord
 import beer.thierry.jooq.generated.tables.records.ProviderConnectionsRecord
 import beer.thierry.jooq.generated.tables.records.RecurringTransactionsRecord
-import beer.thierry.jooq.generated.tables.records.SchemaMigrationsRecord
 import beer.thierry.jooq.generated.tables.records.SystemInformationRecord
+import beer.thierry.jooq.generated.tables.records.TransactionAttachmentsRecord
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
@@ -54,6 +56,7 @@ val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts
 val UQ_CONTACTS_ID_USER: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("uq_contacts_id_user"), arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
 val EXPORT_JOBS_PKEY: UniqueKey<ExportJobsRecord> = Internal.createUniqueKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_pkey"), arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
 val EXPORT_POST_PROCESSING_PKEY: UniqueKey<ExportPostProcessingRecord> = Internal.createUniqueKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_pkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.ID), true)
+val IMPORT_MAPPING_TEMPLATES_PKEY: UniqueKey<ImportMappingTemplatesRecord> = Internal.createUniqueKey(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES, DSL.name("import_mapping_templates_pkey"), arrayOf(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES.ID), true)
 val LOAN_REPAYMENTS_PKEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_pkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.ID), true)
 val LOAN_REPAYMENTS_TRANSACTION_ID_KEY: UniqueKey<LoanRepaymentsRecord> = Internal.createUniqueKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_key"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), true)
 val LOANS_PKEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(Loans.LOANS, DSL.name("loans_pkey"), arrayOf(Loans.LOANS.ID), true)
@@ -61,8 +64,9 @@ val LOANS_TRANSACTION_ID_KEY: UniqueKey<LoansRecord> = Internal.createUniqueKey(
 val NOTIFICATIONS_PKEY: UniqueKey<NotificationsRecord> = Internal.createUniqueKey(Notifications.NOTIFICATIONS, DSL.name("notifications_pkey"), arrayOf(Notifications.NOTIFICATIONS.ID), true)
 val PROVIDER_CONNECTIONS_PKEY: UniqueKey<ProviderConnectionsRecord> = Internal.createUniqueKey(ProviderConnections.PROVIDER_CONNECTIONS, DSL.name("provider_connections_pkey"), arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.ID), true)
 val RECURRING_TRANSACTIONS_PKEY: UniqueKey<RecurringTransactionsRecord> = Internal.createUniqueKey(RecurringTransactions.RECURRING_TRANSACTIONS, DSL.name("recurring_transactions_pkey"), arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ID), true)
-val SCHEMA_MIGRATIONS_PKEY: UniqueKey<SchemaMigrationsRecord> = Internal.createUniqueKey(SchemaMigrations.SCHEMA_MIGRATIONS, DSL.name("schema_migrations_pkey"), arrayOf(SchemaMigrations.SCHEMA_MIGRATIONS.VERSION), true)
 val SYSTEM_INFORMATION_PKEY: UniqueKey<SystemInformationRecord> = Internal.createUniqueKey(SystemInformation.SYSTEM_INFORMATION, DSL.name("system_information_pkey"), arrayOf(SystemInformation.SYSTEM_INFORMATION.ID), true)
+val TRANSACTION_ATTACHMENTS_PKEY: UniqueKey<TransactionAttachmentsRecord> = Internal.createUniqueKey(TransactionAttachments.TRANSACTION_ATTACHMENTS, DSL.name("transaction_attachments_pkey"), arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.ID), true)
+val TRANSACTION_ATTACHMENTS_STORAGE_KEY_KEY: UniqueKey<TransactionAttachmentsRecord> = Internal.createUniqueKey(TransactionAttachments.TRANSACTION_ATTACHMENTS, DSL.name("transaction_attachments_storage_key_key"), arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.STORAGE_KEY), true)
 val TRANSACTIONS_PKEY: UniqueKey<TransactionsRecord> = Internal.createUniqueKey(Transactions.TRANSACTIONS, DSL.name("transactions_pkey"), arrayOf(Transactions.TRANSACTIONS.ID), true)
 val USERS_EMAIL_KEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_email_key"), arrayOf(Users.USERS.EMAIL), true)
 val USERS_PKEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.ID), true)
@@ -79,6 +83,7 @@ val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecor
 val CONTACTS__CONTACTS_USER_ID_FKEY: ForeignKey<ContactsRecord, UsersRecord> = Internal.createForeignKey(Contacts.CONTACTS, DSL.name("contacts_user_id_fkey"), arrayOf(Contacts.CONTACTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY: ForeignKey<ExportJobsRecord, UsersRecord> = Internal.createForeignKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_user_id_fkey"), arrayOf(ExportJobs.EXPORT_JOBS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val EXPORT_POST_PROCESSING__EXPORT_POST_PROCESSING_EXPORT_JOB_ID_FKEY: ForeignKey<ExportPostProcessingRecord, ExportJobsRecord> = Internal.createForeignKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_export_job_id_fkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.EXPORT_JOB_ID), beer.thierry.jooq.generated.keys.EXPORT_JOBS_PKEY, arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
+val IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY: ForeignKey<ImportMappingTemplatesRecord, UsersRecord> = Internal.createForeignKey(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES, DSL.name("import_mapping_templates_user_id_fkey"), arrayOf(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val LOAN_REPAYMENTS__LOAN_REPAYMENTS_LOAN_ID_FKEY: ForeignKey<LoanRepaymentsRecord, LoansRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_loan_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), beer.thierry.jooq.generated.keys.LOANS_PKEY, arrayOf(Loans.LOANS.ID), true)
 val LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY: ForeignKey<LoanRepaymentsRecord, TransactionsRecord> = Internal.createForeignKey(LoanRepayments.LOAN_REPAYMENTS, DSL.name("loan_repayments_transaction_id_fkey"), arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY, arrayOf(Transactions.TRANSACTIONS.ID), true)
 val LOANS__FK_LOANS_CONTACT_USER: ForeignKey<LoansRecord, ContactsRecord> = Internal.createForeignKey(Loans.LOANS, DSL.name("fk_loans_contact_user"), arrayOf(Loans.LOANS.CONTACT_ID, Loans.LOANS.USER_ID), beer.thierry.jooq.generated.keys.UQ_CONTACTS_ID_USER, arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
@@ -88,6 +93,8 @@ val NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY: ForeignKey<NotificationsRecord, U
 val PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY: ForeignKey<ProviderConnectionsRecord, UsersRecord> = Internal.createForeignKey(ProviderConnections.PROVIDER_CONNECTIONS, DSL.name("provider_connections_user_id_fkey"), arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY: ForeignKey<RecurringTransactionsRecord, AccountsRecord> = Internal.createForeignKey(RecurringTransactions.RECURRING_TRANSACTIONS, DSL.name("recurring_transactions_account_id_fkey"), arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ACCOUNT_ID), beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY, arrayOf(Accounts.ACCOUNTS.ID), true)
 val RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY: ForeignKey<RecurringTransactionsRecord, CategoriesRecord> = Internal.createForeignKey(RecurringTransactions.RECURRING_TRANSACTIONS, DSL.name("recurring_transactions_category_id_fkey"), arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.CATEGORY_ID), beer.thierry.jooq.generated.keys.CATEGORIES_PKEY, arrayOf(Categories.CATEGORIES.ID), true)
+val TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY: ForeignKey<TransactionAttachmentsRecord, TransactionsRecord> = Internal.createForeignKey(TransactionAttachments.TRANSACTION_ATTACHMENTS, DSL.name("transaction_attachments_transaction_id_fkey"), arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.TRANSACTION_ID), beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY, arrayOf(Transactions.TRANSACTIONS.ID), true)
+val TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_USER_ID_FKEY: ForeignKey<TransactionAttachmentsRecord, UsersRecord> = Internal.createForeignKey(TransactionAttachments.TRANSACTION_ATTACHMENTS, DSL.name("transaction_attachments_user_id_fkey"), arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY: ForeignKey<TransactionsRecord, AccountsRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_account_id_fkey"), arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID), beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY, arrayOf(Accounts.ACCOUNTS.ID), true)
 val TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY: ForeignKey<TransactionsRecord, CategoriesRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_category_id_fkey"), arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), beer.thierry.jooq.generated.keys.CATEGORIES_PKEY, arrayOf(Categories.CATEGORIES.ID), true)
 val TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY: ForeignKey<TransactionsRecord, RecurringTransactionsRecord> = Internal.createForeignKey(Transactions.TRANSACTIONS, DSL.name("transactions_recurring_transaction_id_fkey"), arrayOf(Transactions.TRANSACTIONS.RECURRING_TRANSACTION_ID), beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS_PKEY, arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ID), true)

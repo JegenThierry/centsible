@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources.export
 
+import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.export.proto.AccountsSummaryRequest
 import beer.thierry.centsible.export.proto.ExportMeta
@@ -11,11 +12,18 @@ import com.google.protobuf.Timestamp
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
+import beer.thierry.centsible.export.proto.ExportFormat as ProtoExportFormat
 
 @Component
 class ExportProtoBuilder {
 
-    fun build(user: UserDTO, params: ExportRequestParams, locale: String, currency: String): ByteArray {
+    fun build(
+        user: UserDTO,
+        params: ExportRequestParams,
+        locale: String,
+        currency: String,
+        format: ExportFormat = ExportFormat.PDF,
+    ): ByteArray {
         val meta = ExportMeta.newBuilder()
             .setUserId(user.id.toString())
             .setUserDisplayName(user.name.ifBlank { "${user.firstName} ${user.lastName}".trim() })
@@ -25,7 +33,7 @@ class ExportProtoBuilder {
             .setRequestedAt(Instant.now().toTimestamp())
             .build()
 
-        val builder = ExportRequest.newBuilder().setMeta(meta)
+        val builder = ExportRequest.newBuilder().setMeta(meta).setFormat(format.toProto())
         when (params) {
             is TransactionsExportParams -> builder.transactions = TransactionsRequest.newBuilder()
                 .addAllAccountIds(params.accountIds.orEmpty().map(UUID::toString))
@@ -52,4 +60,10 @@ class ExportProtoBuilder {
 
     private fun Instant.toTimestamp(): Timestamp =
         Timestamp.newBuilder().setSeconds(epochSecond).setNanos(nano).build()
+
+    private fun ExportFormat.toProto(): ProtoExportFormat = when (this) {
+        ExportFormat.PDF -> ProtoExportFormat.PDF
+        ExportFormat.CSV -> ProtoExportFormat.CSV
+        ExportFormat.JSON -> ProtoExportFormat.JSON
+    }
 }

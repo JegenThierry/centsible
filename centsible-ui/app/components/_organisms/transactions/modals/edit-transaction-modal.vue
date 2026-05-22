@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
+import {transactionType} from "~/utils/transaction";
+import {CategoryType} from "~/models/category/category";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
+import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -27,6 +30,7 @@ const form = ref<TransactionForm>({
   amount: 0,
   description: '',
   category: undefined,
+  type: CategoryType.EXPENSE,
   transactionDate: todayIsoDate(),
 });
 
@@ -40,6 +44,7 @@ function loadTransaction(transaction: Transaction) {
     amount: transaction.amount,
     description: transaction.description,
     category: transaction.category,
+    type: transactionType(transaction),
     transactionDate: transaction.transactionDate.split('T')[0],
   };
 }
@@ -67,7 +72,8 @@ async function handleEdit() {
         amount: form.value.amount,
         description: form.value.description,
         categoryId: form.value.category.id,
-        transactionDate: form.value.transactionDate
+        transactionDate: form.value.transactionDate,
+        type: form.value.type,
       }
     );
     emit('updated');
@@ -94,6 +100,9 @@ async function handleEdit() {
                                :currency="activeCurrency"
                                :disabled="loading"/>
       </UForm>
+      <div class="mt-6 border-t border-default pt-4">
+        <TransactionAttachments :transaction-id="transaction.id"/>
+      </div>
     </template>
 
     <template #footer>

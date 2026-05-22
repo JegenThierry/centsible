@@ -34,6 +34,7 @@
     },
     "options": {
       "titleLabel": "Titre",
+      "formatLabel": "Format",
       "rangeLabel": "Période",
       "fromLabel": "Du",
       "toLabel": "Au",

@@ -1,0 +1,36 @@
+{
+  "attachments": {
+    "pageTitle": "Dokumente",
+    "title": "Dokumente",
+    "description": "Alle Dateien, die du an Transaktionen angehängt hast – aus allen Konten.",
+    "empty": "Noch keine Anhänge.",
+    "loading": "Anhänge werden geladen…",
+    "confirmDelete": "„{filename}“ löschen? Dies kann nicht rückgängig gemacht werden.",
+    "table": {
+      "file": "Datei",
+      "size": "Größe",
+      "transaction": "Transaktion",
+      "transactionDate": "Transaktionsdatum",
+      "uploadedAt": "Hochgeladen",
+      "actionsAria": "Aktionen für Anhang",
+      "noDescription": "Keine Beschreibung"
+    },
+    "actions": {
+      "download": "Herunterladen",
+      "openTransaction": "Transaktion öffnen",
+      "delete": "Löschen"
+    },
+    "toasts": {
+      "deletedTitle": "Anhang entfernt.",
+      "deletedBody": "Die Datei wurde aus der Transaktion entfernt."
+    },
+    "errors": {
+      "loadTitle": "Anhänge konnten nicht geladen werden.",
+      "loadBody": "Bitte erneut versuchen.",
+      "downloadTitle": "Download fehlgeschlagen.",
+      "downloadBody": "Die Datei konnte nicht heruntergeladen werden. Bitte erneut versuchen.",
+      "deleteTitle": "Löschen fehlgeschlagen.",
+      "deleteBody": "Der Anhang konnte nicht entfernt werden. Bitte erneut versuchen."
+    }
+  }
+}

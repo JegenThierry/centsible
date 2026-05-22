@@ -6,6 +6,7 @@ package beer.thierry.jooq.generated.tables
 
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_ID
+import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_TYPE
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_CATEGORY_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_DATE
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_RECURRING_ID
@@ -16,11 +17,13 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
+import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 
 import java.math.BigDecimal
@@ -31,6 +34,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -142,6 +146,11 @@ open class Transactions(
      */
     val IMPORT_HASH: TableField<TransactionsRecord, String?> = createField(DSL.name("import_hash"), SQLDataType.VARCHAR(64), this, "")
 
+    /**
+     * The column <code>public.transactions.type</code>.
+     */
+    val TYPE: TableField<TransactionsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
+
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -174,7 +183,7 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
     override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
 
@@ -254,6 +263,25 @@ open class Transactions(
 
     val loans: LoansPath
         get(): LoansPath = loans()
+
+    private lateinit var _transactionAttachments: TransactionAttachmentsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_attachments</code> table
+     */
+    fun transactionAttachments(): TransactionAttachmentsPath {
+        if (!this::_transactionAttachments.isInitialized)
+            _transactionAttachments = TransactionAttachmentsPath(this, null, TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionAttachments;
+    }
+
+    val transactionAttachments: TransactionAttachmentsPath
+        get(): TransactionAttachmentsPath = transactionAttachments()
+    override fun getChecks(): List<Check<TransactionsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
+    )
     override fun `as`(alias: String): Transactions = Transactions(DSL.name(alias), this)
     override fun `as`(alias: Name): Transactions = Transactions(alias, this)
     override fun `as`(alias: Table<*>): Transactions = Transactions(alias.qualifiedName, this)

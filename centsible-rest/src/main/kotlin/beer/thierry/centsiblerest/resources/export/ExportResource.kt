@@ -34,7 +34,13 @@ class ExportResource(
         val params = requireNotNull(request.params) { "params is required" }
         val type = requireNotNull(request.type) { "type is required" }
         val title = requireNotNull(request.title) { "title is required" }
-        val payload = protoBuilder.build(user = user, params = params, locale = "en", currency = "EUR")
+        val payload = protoBuilder.build(
+            user = user,
+            params = params,
+            locale = "en",
+            currency = "EUR",
+            format = request.format,
+        )
         val postProcessing = request.postProcessing.orEmpty().map {
             requireNotNull(it.type) { "post-processing type required" } to it.config.orEmpty()
         }
@@ -65,11 +71,19 @@ class ExportResource(
     ): ResponseEntity<ByteArrayResource> {
         val pdf = exportService.download(user, jobId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_PDF)
+            .contentType(contentTypeFor(pdf.filename))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${pdf.filename}\"")
             .contentLength(pdf.bytes.size.toLong())
             .body(ByteArrayResource(pdf.bytes))
     }
+
+    private fun contentTypeFor(filename: String): MediaType =
+        when (filename.substringAfterLast('.', "").lowercase()) {
+            "pdf" -> MediaType.APPLICATION_PDF
+            "csv" -> MediaType.parseMediaType("text/csv; charset=utf-8")
+            "json" -> MediaType.APPLICATION_JSON
+            else -> MediaType.APPLICATION_OCTET_STREAM
+        }
 
     @PostMapping("/{jobId}/retrigger")
     fun retrigger(

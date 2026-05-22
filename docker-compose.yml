@@ -107,8 +107,10 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
       SKIP_EMAIL_VERIFICATION: ${SKIP_EMAIL_VERIFICATION:-false}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
-      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 2MB
-      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 4MB
+      # 11MB / 12MB give a small headroom over the 10MB attachment cap enforced in the controller.
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${MULTIPART_MAX_FILE_SIZE:-11MB}
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${MULTIPART_MAX_REQUEST_SIZE:-12MB}
+      ATTACHMENTS_DIRECTORY: /var/centsible/attachments
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
@@ -123,6 +125,9 @@ services:
 
     ports:
       - "${REST_HOST_PORT:-8080}:8080"
+
+    volumes:
+      - attachments_data:/var/centsible/attachments
 
     healthcheck:
       test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1" ]
@@ -257,4 +262,6 @@ volumes:
   postgres_data:
     driver: local
   node_modules_ui:
+    driver: local
+  attachments_data:
     driver: local

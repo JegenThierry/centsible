@@ -138,6 +138,31 @@
     },
     "avatar": {
       "changeAria": "Bild von {name} ändern"
+    },
+    "loansPage": {
+      "title": "Verleihungen",
+      "description": "Alle Verleihungen aus deinen Kontakten an einem Ort.",
+      "openContact": "Kontakt öffnen",
+      "filterAll": "Alle Verleihungen",
+      "filterOpen": "Offen",
+      "filterPartial": "Teilweise zurückgezahlt",
+      "filterSettled": "Beglichen",
+      "empty": "Noch keine Verleihungen — erfasse jetzt eine, um zu beginnen.",
+      "stats": {
+        "totalOutstanding": "Offen gesamt",
+        "openLoans": "Offene Verleihungen",
+        "contactsWithLoans": "Kontakte mit Verleihungen"
+      },
+      "table": {
+        "contact": "Kontakt"
+      }
+    },
+    "loansGlance": {
+      "title": "Verleihungen im Überblick",
+      "outstanding": "Offen",
+      "openCount": "{count} offene Verleih | {count} offene Verleihungen",
+      "viewAll": "Alle Verleihungen ansehen",
+      "empty": "Keine offenen Verleihungen."
     }
   }
 }

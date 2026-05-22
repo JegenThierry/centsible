@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.model.transaction
 
+import beer.thierry.centsible.api.model.category.CategoryType
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
@@ -29,6 +30,8 @@ data class ImportTransactionRow(
 
     @field:NotNull
     var transactionDate: LocalDate = LocalDate.now(),
+
+    var type: CategoryType? = null,
 )
 
 data class ImportTransactionsRequest(

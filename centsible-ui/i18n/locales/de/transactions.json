@@ -4,6 +4,7 @@
     "title": "Transaktionen",
     "description": "Transaktionen ansehen und verwalten",
     "importCsvButton": "CSV importieren",
+    "advancedImportButton": "Datei importieren (CSV / OFX)",
     "exportLabel": "Transaktionen exportieren",
     "exportDefaultTitle": "Transaktionen {date}",
     "emptyTitle": "Keine Transaktionen gefunden.",
@@ -67,11 +68,22 @@
     "form": {
       "category": "Kategorie",
       "transactionType": "Transaktionstyp:",
+      "typeLabel": "Transaktionstyp",
+      "typeIncome": "Einnahme",
+      "typeExpense": "Ausgabe",
       "amount": "Betrag",
       "amountPlaceholder": "0,00",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
-      "date": "Datum"
+      "date": "Datum",
+      "modes": {
+        "setBalance": {
+          "newBalance": "Neuer Kontostand",
+          "previewIncome": "Erstellt eine Einnahmen-Transaktion über {amount}.",
+          "previewExpense": "Erstellt eine Ausgaben-Transaktion über {amount}.",
+          "previewNoChange": "Saldo ist bereits {amount} — es wird keine Transaktion erstellt."
+        }
+      }
     },
     "selects": {
       "selectAccount": "Konto auswählen",
@@ -84,6 +96,7 @@
       "description": "Neue Transaktion für Ihr aktives Konto erstellen.",
       "modeStandard": "Standard",
       "modeLending": "Kredit",
+      "modeSetBalance": "Saldo festlegen",
       "modeLegend": "Typ",
       "submit": "Erstellen",
       "toastSuccessTitle": "Transaktion erfolgreich erstellt.",
@@ -154,6 +167,23 @@
         "ignore": "Ignorieren"
       }
     },
+    "advancedImport": {
+      "titleUpload": "Aus Datei importieren",
+      "titleReview": "Überprüfen und importieren",
+      "descUpload": "Lade eine von deiner Bank exportierte CSV- oder OFX-Datei hoch.",
+      "descReview": "Überprüfe die erkannten Zeilen vor dem Import.",
+      "uploadHint": "Der serverseitige Import unterstützt CSV (mit automatischer Erkennung von Bankprofilen) und OFX/QFX. Wähle eine Standardkategorie für alle importierten Zeilen.",
+      "defaultCategoryLabel": "Standardkategorie",
+      "defaultCategoryHelp": "Alle importierten Zeilen erhalten diese Kategorie. Du kannst sie später neu kategorisieren.",
+      "detectedRows": "{count} Zeile(n) erkannt",
+      "warningsTitle": "{count} Warnung(en) beim Parsen",
+      "importRows": "{count} Zeile(n) importieren",
+      "successTitle": "Import abgeschlossen.",
+      "successBody": "{imported} importiert, {skipped} als Duplikate übersprungen.",
+      "errorTitle": "Import fehlgeschlagen.",
+      "detectFailedBody": "Die Datei konnte nicht erkannt oder gelesen werden. Stelle sicher, dass es sich um eine unterstützte CSV- oder OFX-Datei handelt.",
+      "commitFailedBody": "Die geparsten Zeilen konnten nicht importiert werden. Bitte versuche es erneut."
+    },
     "recurring": {
       "pageTitle": "Wiederkehrend",
       "title": "Wiederkehrende Transaktionen",
@@ -188,7 +218,9 @@
         "startDate": "Startdatum",
         "startDateHelp": "Datum des ersten Vorkommens. Zukünftige Daten sind erlaubt.",
         "endDate": "Enddatum (optional)",
-        "endDateHelp": "Leer lassen, um unbegrenzt zu wiederholen."
+        "endDateHelp": "Leer lassen, um unbegrenzt zu wiederholen.",
+        "previewTitle": "Nächste Vorkommen",
+        "previewHint": "Nur Vorschau — Transaktionen werden zum jeweiligen Fälligkeitsdatum erzeugt."
       },
       "frequency": {
         "DAILY": "Täglich",
@@ -219,6 +251,39 @@
       "openRowActions": "Zeilenaktionen öffnen",
       "rowActions": "Zeilenaktionen",
       "emptyDefault": "Hier gibt es noch nichts."
+    },
+    "attachments": {
+      "title": "Anhänge",
+      "hint": "PDF, JPG, PNG oder WebP. Max. 10 MB pro Datei.",
+      "add": "Datei hinzufügen",
+      "empty": "Noch keine Anhänge.",
+      "pending": "Wartet auf Upload",
+      "deleteAria": "Anhang löschen",
+      "popover": {
+        "triggerAria": "{count} angehängte Datei(en) anzeigen",
+        "loading": "Dateien werden geladen…",
+        "empty": "Keine Dateien angehängt."
+      },
+      "toasts": {
+        "uploadedTitle": "Anhang hochgeladen.",
+        "uploadedBody": "Die Datei wurde dieser Transaktion angehängt.",
+        "deletedTitle": "Anhang entfernt.",
+        "deletedBody": "Die Datei wurde aus dieser Transaktion entfernt."
+      },
+      "errors": {
+        "typeTitle": "Nicht unterstützter Dateityp.",
+        "typeBody": "Bitte PDF, JPG, PNG oder WebP verwenden.",
+        "sizeTitle": "Datei zu groß.",
+        "sizeBody": "Anhänge müssen 10 MB oder kleiner sein.",
+        "uploadTitle": "Upload fehlgeschlagen.",
+        "uploadBody": "Die Datei konnte nicht hochgeladen werden. Bitte erneut versuchen.",
+        "uploadPartialTitle": "Einige Anhänge wurden nicht hochgeladen.",
+        "uploadPartialBody": "{count} Datei(en) konnten nicht hochgeladen werden. Öffnen Sie die Transaktion, um sie erneut anzuhängen.",
+        "downloadTitle": "Download fehlgeschlagen.",
+        "downloadBody": "Die Datei konnte nicht heruntergeladen werden. Bitte erneut versuchen.",
+        "deleteTitle": "Löschen fehlgeschlagen.",
+        "deleteBody": "Der Anhang konnte nicht entfernt werden. Bitte erneut versuchen."
+      }
     },
     "fab": {
       "create": "Erstellen"

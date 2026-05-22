@@ -49,6 +49,12 @@ const items = computed(() => {
             to: `/${accountId}/recurring`,
             icon: 'i-lucide-repeat',
             target: '_self'
+          },
+          {
+            label: t('nav.sidebar.loans'),
+            to: '/loans',
+            icon: 'i-lucide-hand-coins',
+            target: '_self'
           }
         ]
       }
@@ -56,6 +62,12 @@ const items = computed(() => {
   }
 
   menuItems.push(
+    {
+      label: t('nav.sidebar.reports'),
+      to: '/reports',
+      icon: 'i-lucide-trending-up',
+      target: '_self'
+    },
     {
       label: t('nav.sidebar.categories'),
       to: '/categories',
@@ -69,9 +81,15 @@ const items = computed(() => {
       target: '_self'
     },
     {
-      label: t('nav.sidebar.myDocuments'),
+      label: t('nav.sidebar.exports'),
       to: '/exports',
       icon: 'i-lucide-file-text',
+      target: '_self'
+    },
+    {
+      label: t('nav.sidebar.documents'),
+      to: '/attachments',
+      icon: 'i-lucide-paperclip',
       target: '_self'
     },
     {

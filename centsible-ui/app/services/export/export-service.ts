@@ -34,11 +34,13 @@ export function useExportService(api: AxiosInstance) {
     const response = await api.get(`/exports/${encodeURIComponent(jobId)}/download`, {
       responseType: 'blob',
     });
-    const blob = new Blob([response.data], {type: 'application/pdf'});
+    // Trust the server's content-type so CSV/JSON downloads aren't mislabelled as PDF.
+    const contentType = (response.headers['content-type'] as string | undefined) ?? 'application/octet-stream';
+    const blob = new Blob([response.data], {type: contentType});
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename || `export-${jobId}.pdf`;
+    link.download = filename || `export-${jobId}`;
     document.body.appendChild(link);
     link.click();
     link.remove();

@@ -12,9 +12,11 @@ import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
 import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
@@ -23,9 +25,11 @@ import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates.ImportMappingTemplatesPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.Notifications.NotificationsPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
+import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
 
 import java.time.OffsetDateTime
@@ -40,6 +44,7 @@ import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.Index
 import org.jooq.InverseForeignKey
+import org.jooq.JSONB
 import org.jooq.Name
 import org.jooq.Path
 import org.jooq.PlainSQL
@@ -176,6 +181,11 @@ open class Users(
      */
     val PASSWORD_RESET_TOKEN_EXPIRES_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("password_reset_token_expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    /**
+     * The column <code>public.users.notification_settings</code>.
+     */
+    val NOTIFICATION_SETTINGS: TableField<UsersRecord, JSONB?> = createField(DSL.name("notification_settings"), SQLDataType.JSONB.nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::jsonb"), SQLDataType.JSONB)), this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -292,6 +302,22 @@ open class Users(
     val exportJobs: ExportJobsPath
         get(): ExportJobsPath = exportJobs()
 
+    private lateinit var _importMappingTemplates: ImportMappingTemplatesPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.import_mapping_templates</code> table
+     */
+    fun importMappingTemplates(): ImportMappingTemplatesPath {
+        if (!this::_importMappingTemplates.isInitialized)
+            _importMappingTemplates = ImportMappingTemplatesPath(this, null, IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY.inverseKey)
+
+        return _importMappingTemplates;
+    }
+
+    val importMappingTemplates: ImportMappingTemplatesPath
+        get(): ImportMappingTemplatesPath = importMappingTemplates()
+
     private lateinit var _loans: LoansPath
 
     /**
@@ -338,6 +364,22 @@ open class Users(
 
     val providerConnections: ProviderConnectionsPath
         get(): ProviderConnectionsPath = providerConnections()
+
+    private lateinit var _transactionAttachments: TransactionAttachmentsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_attachments</code> table
+     */
+    fun transactionAttachments(): TransactionAttachmentsPath {
+        if (!this::_transactionAttachments.isInitialized)
+            _transactionAttachments = TransactionAttachmentsPath(this, null, TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_USER_ID_FKEY.inverseKey)
+
+        return _transactionAttachments;
+    }
+
+    val transactionAttachments: TransactionAttachmentsPath
+        get(): TransactionAttachmentsPath = transactionAttachments()
     override fun getChecks(): List<Check<UsersRecord>> = listOf(
         Internal.createCheck(this, DSL.name("users_locale_supported"), "((locale = ANY (ARRAY['en'::bpchar, 'fr'::bpchar, 'de'::bpchar])))", true)
     )

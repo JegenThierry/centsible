@@ -12,13 +12,14 @@ import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
-import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.Users
 
@@ -65,6 +66,11 @@ val EXPORT_JOBS: ExportJobs = ExportJobs.EXPORT_JOBS
 val EXPORT_POST_PROCESSING: ExportPostProcessing = ExportPostProcessing.EXPORT_POST_PROCESSING
 
 /**
+ * The table <code>public.import_mapping_templates</code>.
+ */
+val IMPORT_MAPPING_TEMPLATES: ImportMappingTemplates = ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES
+
+/**
  * The table <code>public.loan_repayments</code>.
  */
 val LOAN_REPAYMENTS: LoanRepayments = LoanRepayments.LOAN_REPAYMENTS
@@ -90,14 +96,14 @@ val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CON
 val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURRING_TRANSACTIONS
 
 /**
- * The table <code>public.schema_migrations</code>.
- */
-val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
-
-/**
  * The table <code>public.system_information</code>.
  */
 val SYSTEM_INFORMATION: SystemInformation = SystemInformation.SYSTEM_INFORMATION
+
+/**
+ * The table <code>public.transaction_attachments</code>.
+ */
+val TRANSACTION_ATTACHMENTS: TransactionAttachments = TransactionAttachments.TRANSACTION_ATTACHMENTS
 
 /**
  * The table <code>public.transactions</code>.

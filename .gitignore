@@ -139,3 +139,6 @@ tasks
 # Claude
 CLAUDE.md
 .claude/
+
+# Spring
+application.properties

@@ -9,6 +9,9 @@ COPY centsible-core/build.gradle.kts ./centsible-core/
 COPY centsible-proto/build.gradle.kts ./centsible-proto/
 COPY centsible-export/build.gradle.kts ./centsible-export/
 COPY centsible-rest/build.gradle.kts ./centsible-rest/
+COPY centsible-imports/core/build.gradle.kts ./centsible-imports/core/
+COPY centsible-imports/csv/build.gradle.kts ./centsible-imports/csv/
+COPY centsible-imports/ofx/build.gradle.kts ./centsible-imports/ofx/
 # Integration provider modules. Each plugin lives in its own subdir.
 COPY centsible-integrations ./centsible-integrations
 
@@ -18,6 +21,9 @@ COPY centsible-api/src ./centsible-api/src
 COPY centsible-jooq/src/main ./centsible-jooq/src/main
 COPY centsible-jooq/src/generated ./centsible-jooq/src/generated
 COPY centsible-proto/src ./centsible-proto/src
+COPY centsible-imports/core/src ./centsible-imports/core/src
+COPY centsible-imports/csv/src ./centsible-imports/csv/src
+COPY centsible-imports/ofx/src ./centsible-imports/ofx/src
 COPY centsible-core/src ./centsible-core/src
 COPY centsible-rest/src ./centsible-rest/src
 RUN gradle :centsible-rest:bootJar -x jooqCodegen --no-daemon --quiet

@@ -10,9 +10,12 @@
       "plan": "Planification",
       "budgets": "Budgets",
       "recurring": "Récurrent",
+      "loans": "Prêts",
+      "reports": "Rapports",
       "categories": "Catégories",
       "contacts": "Contacts",
-      "myDocuments": "Mes documents",
+      "exports": "Exports",
+      "documents": "Documents",
       "integrations": "Intégrations",
       "profile": "Profil"
     },

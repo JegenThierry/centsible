@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {type Transaction} from "~/models/transactions/transaction";
+import {transactionType} from "~/utils/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
 import CategoryIcon from "~/components/_atoms/categories/category-icon.vue";
@@ -27,7 +28,7 @@ const {t} = useI18n();
       </div>
     </div>
     <div class="text-right shrink-0 ml-2">
-      <TransactionAmount :amount="transaction.amount" :currency="currency" :type="transaction.category?.type"/>
+      <TransactionAmount :amount="transaction.amount" :currency="currency" :type="transactionType(transaction)"/>
       <div class="text-[10px] text-dimmed uppercase">
         <FormattedDate :date="transaction.transactionDate" format="short"/>
       </div>

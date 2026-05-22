@@ -10,7 +10,11 @@
       "emptyAction": "Nouveau budget",
       "editAria": "Modifier le budget",
       "deleteAria": "Supprimer le budget",
-      "overBadge": "Dépassé"
+      "overBadge": "Dépassé",
+      "asOf": "Au mois de",
+      "showHistory": "Afficher l'historique",
+      "historyHeading": "Périodes passées",
+      "noBudgetsInPeriod": "Aucun budget défini pour cette période."
     },
     "form": {
       "categoryLabel": "Catégorie",

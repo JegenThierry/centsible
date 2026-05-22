@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api(project(":centsible-api"))
     implementation(project(":centsible-jooq"))
+    implementation(project(":centsible-imports:core"))
 
     implementation(libs.spring.boot.starter)
     implementation(libs.spring.tx)

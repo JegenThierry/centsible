@@ -43,10 +43,35 @@
       "fr": "Français",
       "de": "Deutsch"
     },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "description": "Lege fest, was eine In-App-Benachrichtigung auslösen soll.",
+      "save": "Speichern",
+      "largeTransaction": {
+        "title": "Großbetrags-Warnung",
+        "description": "Benachrichtigen, wenn eine Transaktion diesen Betrag überschreitet.",
+        "placeholder": "500,00"
+      },
+      "lowBalance": {
+        "title": "Niedriger Kontostand",
+        "description": "Benachrichtigen, wenn ein Kontostand unter diesen Betrag fällt.",
+        "placeholder": "100,00"
+      },
+      "loanDueDaysAhead": "Verleih fällig (Tage im Voraus)",
+      "recurringDueDaysAhead": "Wiederkehrend bevorstehend (Tage im Voraus)",
+      "toasts": {
+        "savedTitle": "Einstellungen gespeichert.",
+        "savedBody": "Deine Einstellungen gelten für neue Hinweise.",
+        "errorTitle": "Einstellungen konnten nicht gespeichert werden.",
+        "errorBody": "Bitte erneut versuchen."
+      }
+    },
     "theme": {
       "buttonAria": "Design ändern",
       "appearance": "Erscheinungsbild",
       "title": "Design",
+      "description": "Wähle das Erscheinungsbild und die Farbpalette der App.",
+      "paletteTitle": "Palette",
       "modes": {
         "light": "Hell",
         "dark": "Dunkel",

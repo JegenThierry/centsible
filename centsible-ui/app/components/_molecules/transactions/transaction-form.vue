@@ -4,44 +4,61 @@ import {type TransactionForm} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
-import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
-import {useCategoryService} from "~/services/category/category-service";
+import {useCategoriesStore} from "~/stores/categoriesStore";
+import {AMOUNT_INPUT} from "~/utils/money";
 
 const props = defineProps<{
-  modelValue: TransactionForm;
   filterType?: CategoryType;
   currency?: Currency;
   disabled?: boolean;
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const form = defineModel<TransactionForm>({required: true});
 
-const api = useApi();
-const categoryService = useCategoryService(api);
-const categories = ref<Category[]>([]);
 const {t} = useI18n();
+const categoriesStore = useCategoriesStore();
 
 const amountInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref();
-const dateInput = ref();
+const categoryInput = ref<InstanceType<typeof CategorySelect>>();
+const dateInput = ref<InstanceType<typeof DateInput>>();
 
-async function loadCategories() {
-  try {
-    const all = await categoryService.fetchCategories();
-    categories.value = props.filterType ? all.filter(c => c.type === props.filterType) : all;
-  } catch (error) {
-    console.error('Failed to load categories:', error);
-  }
-}
+// Once the user picks a type explicitly, picking a new category must not
+// silently overwrite their choice.
+const userTouchedType = ref(false);
 
-const form = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+const visibleCategories = computed(() => {
+  const all = categoriesStore.categories;
+  return props.filterType ? all.filter(c => c.type === props.filterType) : all;
 });
 
-onMounted(loadCategories);
+watch(
+  () => props.filterType,
+  (filter) => {
+    userTouchedType.value = false;
+    if (filter) form.value.type = filter;
+  },
+  {immediate: true},
+);
+
+function onCategoryPicked(cat: Category | undefined) {
+  if (cat && !userTouchedType.value) form.value.type = cat.type;
+}
+
+const typeOptions = computed(() => [
+  {label: t('transactions.form.typeIncome'), value: CategoryType.INCOME},
+  {label: t('transactions.form.typeExpense'), value: CategoryType.EXPENSE},
+]);
+
+function onTypeChange(value: CategoryType) {
+  form.value.type = value;
+  userTouchedType.value = true;
+}
+
+onMounted(() => {
+  if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
+});
 
 defineExpose({
   validate: () => useValidator().validateInputs([amountInput, descriptionInput, categoryInput, dateInput]),
@@ -53,19 +70,24 @@ defineExpose({
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
                     :disabled="disabled"
-                    :options="categories"
+                    :options="visibleCategories"
                     :label="t('transactions.form.category')"
-                    required/>
+                    required
+                    @update:model-value="onCategoryPicked"/>
 
-    <div v-if="form.category" class="flex items-center gap-2 text-sm">
-      <span class="text-neutral-500">{{ t('transactions.form.transactionType') }}</span>
-      <CategoryTypeBadge :type="form.category.type"/>
+    <div v-if="!filterType" class="flex flex-col gap-1">
+      <span class="text-sm text-neutral-500">{{ t('transactions.form.typeLabel') }}</span>
+      <URadioGroup :model-value="form.type"
+                   :disabled="disabled"
+                   :items="typeOptions"
+                   orientation="horizontal"
+                   @update:model-value="onTypeChange"/>
     </div>
 
     <BaseInput ref="amountInput"
                v-model="form.amount"
-               :max="9999999.99"
-               :min="0.01"
+               :max="AMOUNT_INPUT.max"
+               :min="AMOUNT_INPUT.min"
                :disabled="disabled"
                :label="t('transactions.form.amount')"
                :placeholder="t('transactions.form.amountPlaceholder')"

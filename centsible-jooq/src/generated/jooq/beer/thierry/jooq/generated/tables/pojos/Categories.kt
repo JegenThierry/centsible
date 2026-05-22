@@ -21,7 +21,8 @@ data class Categories(
     val color: String? = null,
     val type: String? = null,
     val createdAt: OffsetDateTime? = null,
-    val isManaged: Boolean? = null
+    val isManaged: Boolean? = null,
+    val systemKey: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -80,6 +81,12 @@ data class Categories(
         }
         else if (this.isManaged != o.isManaged)
             return false
+        if (this.systemKey == null) {
+            if (o.systemKey != null)
+                return false
+        }
+        else if (this.systemKey != o.systemKey)
+            return false
         return true
     }
 
@@ -94,6 +101,7 @@ data class Categories(
         result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.isManaged == null) 0 else this.isManaged.hashCode())
+        result = prime * result + (if (this.systemKey == null) 0 else this.systemKey.hashCode())
         return result
     }
 
@@ -108,6 +116,7 @@ data class Categories(
         sb.append(", ").append(type)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(isManaged)
+        sb.append(", ").append(systemKey)
 
         sb.append(")")
         return sb.toString()

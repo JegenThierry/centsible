@@ -1,0 +1,36 @@
+{
+  "attachments": {
+    "pageTitle": "Documents",
+    "title": "Documents",
+    "description": "Every file you've attached to a transaction, across all accounts.",
+    "empty": "No attachments yet.",
+    "loading": "Loading attachments…",
+    "confirmDelete": "Delete \"{filename}\"? This cannot be undone.",
+    "table": {
+      "file": "File",
+      "size": "Size",
+      "transaction": "Transaction",
+      "transactionDate": "Transaction date",
+      "uploadedAt": "Uploaded",
+      "actionsAria": "Attachment actions",
+      "noDescription": "No description"
+    },
+    "actions": {
+      "download": "Download",
+      "openTransaction": "Open transaction",
+      "delete": "Delete"
+    },
+    "toasts": {
+      "deletedTitle": "Attachment removed.",
+      "deletedBody": "The file was removed from its transaction."
+    },
+    "errors": {
+      "loadTitle": "Could not load attachments.",
+      "loadBody": "Please try again.",
+      "downloadTitle": "Download failed.",
+      "downloadBody": "The file could not be downloaded. Please try again.",
+      "deleteTitle": "Delete failed.",
+      "deleteBody": "The attachment could not be removed. Please try again."
+    }
+  }
+}
