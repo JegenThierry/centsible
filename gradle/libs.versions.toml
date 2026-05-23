@@ -2,21 +2,22 @@
 kotlin = "2.3.10"
 ksp = "2.3.6"
 konvert = "4.5.0"
-springBoot = "4.0.1"
+springBoot = "4.0.6"
 dependencyManagement = "1.1.7"
 jjwt = "0.12.6"
 jooq = "3.19.29"
 postgresql = "42.7.5" # Adding explicit version for jooqCodegen if needed, though Spring Boot BOM handles it
-protobuf = "4.29.3"
+protobuf = "4.35.0"
 protobufPlugin = "0.9.5"
 pebble = "3.2.4"
-playwright = "1.51.0"
+playwright = "1.60.0"
 bucket4j = "8.10.1"
 caffeine = "3.1.8"
 commonsCsv = "1.12.0"
 resilience4j = "2.3.0"
 ofx4j = "1.39"
 guava = "33.6.0-jre"
+dependencyCheck = "12.1.0"
 
 [libraries]
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
@@ -70,3 +71,4 @@ dependency-management = { id = "io.spring.dependency-management", version.ref = 
 jooq-codegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+dependency-check = { id = "org.owasp.dependencycheck", version.ref = "dependencyCheck" }
