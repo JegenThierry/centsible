@@ -1,4 +1,5 @@
 import {ref, watch} from 'vue';
+import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {CategoryAggregate} from "~/models/transactions/transaction";
 import {createAsyncCache} from "~/utils/async-cache";
@@ -35,7 +36,7 @@ export async function prefetchCategoryAggregates(
       fetchAggregates(service, accountId, fromIso, toIso),
     );
   } catch (e) {
-    console.error('Failed to prefetch category aggregates', e);
+    adze.ns('categories').error('Failed to prefetch category aggregates', e);
   }
 }
 
@@ -62,7 +63,7 @@ export function useCategoryAggregates(
         fetchAggregates(service, id, from, to),
       );
     } catch (e) {
-      console.error('Failed to load category aggregates', e);
+      adze.ns('categories').error('Failed to load category aggregates', e);
       data.value = [];
     } finally {
       loading.value = false;

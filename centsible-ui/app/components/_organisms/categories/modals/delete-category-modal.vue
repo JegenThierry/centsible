@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import type {Category} from "~/models/category/category";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
@@ -21,7 +22,7 @@ async function handleDelete() {
     await categoriesStore.deleteCategory(props.category.id);
     isOpen.value = false;
   } catch (error) {
-    console.error('Failed to delete category:', error);
+    adze.ns('categories').error('Failed to delete category', error);
   } finally {
     loading.value = false;
   }

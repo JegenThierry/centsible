@@ -14,6 +14,7 @@ import beer.thierry.centsible.api.services.transactions.ITransactionService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
@@ -28,6 +29,8 @@ import java.util.UUID
 @RestController
 @Validated
 class TransactionResource(private val transactionService: ITransactionService) {
+
+    private val log = LoggerFactory.getLogger(TransactionResource::class.java)
 
     @GetMapping("/{accountId}")
     fun fetchTransactions(
@@ -59,8 +62,11 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> =
-        ResponseEntity.ok(transactionService.createTransaction(accountId, transactionRequest, authenticatedUser))
+    ): ResponseEntity<TransactionDTO> {
+        val created = transactionService.createTransaction(accountId, transactionRequest, authenticatedUser)
+        log.info("Created transaction id={} accountId={} userId={}", created.id, accountId, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
 
     @PutMapping("/{accountId}/{transactionId}")
     fun updateTransaction(
@@ -68,10 +74,11 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable transactionId: UUID,
         @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> =
-        ResponseEntity.ok(
-            transactionService.updateTransaction(transactionId, accountId, transactionRequest, authenticatedUser)
-        )
+    ): ResponseEntity<TransactionDTO> {
+        val updated = transactionService.updateTransaction(transactionId, accountId, transactionRequest, authenticatedUser)
+        log.info("Updated transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
+        return ResponseEntity.ok(updated)
+    }
 
     @GetMapping("/{accountId}/aggregates/by-category")
     fun aggregateByCategory(
@@ -103,44 +110,58 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: ImportTransactionsRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ImportResult> =
-        ResponseEntity.ok(transactionService.importBatch(accountId, request, authenticatedUser))
+    ): ResponseEntity<ImportResult> {
+        val result = transactionService.importBatch(accountId, request, authenticatedUser)
+        log.info("Imported transactions accountId={} userId={} count={}", accountId, authenticatedUser.id, request.rows.size)
+        return ResponseEntity.ok(result)
+    }
 
     @DeleteMapping("/{accountId}/{transactionId}")
     fun deleteTransaction(
         @PathVariable accountId: UUID,
         @PathVariable transactionId: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> =
-        ResponseEntity.ok(
-            transactionService.deleteTransaction(transactionId, accountId, authenticatedUser)
-        )
+    ): ResponseEntity<TransactionDTO> {
+        val deleted = transactionService.deleteTransaction(transactionId, accountId, authenticatedUser)
+        log.info("Deleted transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
+        return ResponseEntity.ok(deleted)
+    }
 
     @PostMapping("/{accountId}/bulk-delete")
     fun bulkDelete(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: BulkIdsRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BulkResult> =
-        ResponseEntity.ok(BulkResult(transactionService.bulkDelete(accountId, request.ids, authenticatedUser)))
+    ): ResponseEntity<BulkResult> {
+        val affected = transactionService.bulkDelete(accountId, request.ids, authenticatedUser)
+        log.info("Bulk-deleted transactions accountId={} userId={} affected={}", accountId, authenticatedUser.id, affected)
+        return ResponseEntity.ok(BulkResult(affected))
+    }
 
     @PostMapping("/{accountId}/bulk-categorize")
     fun bulkCategorize(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: BulkCategorizeRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BulkResult> =
-        ResponseEntity.ok(
-            BulkResult(transactionService.bulkUpdateCategory(accountId, request.ids, request.categoryId, authenticatedUser))
+    ): ResponseEntity<BulkResult> {
+        val affected = transactionService.bulkUpdateCategory(accountId, request.ids, request.categoryId, authenticatedUser)
+        log.info(
+            "Bulk-categorized transactions accountId={} userId={} categoryId={} affected={}",
+            accountId, authenticatedUser.id, request.categoryId, affected,
         )
+        return ResponseEntity.ok(BulkResult(affected))
+    }
 
     @PostMapping("/{accountId}/set-balance")
     fun createBalanceAdjustment(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: SetBalanceForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> =
-        ResponseEntity.ok(transactionService.createBalanceAdjustment(accountId, request, authenticatedUser))
+    ): ResponseEntity<TransactionDTO> {
+        val adjustment = transactionService.createBalanceAdjustment(accountId, request, authenticatedUser)
+        log.info("Set balance accountId={} userId={} adjustmentTxId={}", accountId, authenticatedUser.id, adjustment.id)
+        return ResponseEntity.ok(adjustment)
+    }
 }
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())

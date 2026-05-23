@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
@@ -32,7 +33,7 @@ async function load() {
       toDate: props.toDate ?? undefined,
     });
   } catch (error) {
-    console.error('Failed to load category drill', error);
+    adze.ns('dashboard').error('Failed to load category drill', error);
     transactions.value = [];
   } finally {
     loading.value = false;

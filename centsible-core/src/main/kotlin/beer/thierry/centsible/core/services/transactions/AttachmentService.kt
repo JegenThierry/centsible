@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.transactions.AttachmentDownload
 import beer.thierry.centsible.api.services.transactions.IAttachmentService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +24,7 @@ class AttachmentService(
     @Value("\${attachments.directory:./data/attachments}") private val attachmentsDirectory: String,
 ) : IAttachmentService {
 
-    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(AttachmentService::class.java)
 
     private val root: Path by lazy {
         val path = Path.of(attachmentsDirectory).toAbsolutePath().normalize()
@@ -58,12 +59,30 @@ class AttachmentService(
         val storageKey = "${user.id}/${transactionId}/${UUID.randomUUID()}$ext"
         val destination = resolve(storageKey)
         Files.createDirectories(destination.parent)
-        Files.copy(content.inputStream(), destination, StandardCopyOption.REPLACE_EXISTING)
+        try {
+            Files.copy(content.inputStream(), destination, StandardCopyOption.REPLACE_EXISTING)
+        } catch (e: Exception) {
+            log.error(
+                "Failed to write attachment to disk userId={} transactionId={} sizeBytes={}",
+                user.id, transactionId, sizeBytes, e,
+            )
+            throw e
+        }
 
         return try {
-            attachments.create(user, transactionId, filename, contentType, sizeBytes, storageKey)
+            val created = attachments.create(user, transactionId, filename, contentType, sizeBytes, storageKey)
+            log.info(
+                "Stored attachment id={} userId={} transactionId={} contentType={} sizeBytes={}",
+                created.id, user.id, transactionId, contentType, sizeBytes,
+            )
+            created
         } catch (e: Exception) {
+            log.error(
+                "Failed to persist attachment metadata; rolling back file userId={} transactionId={}",
+                user.id, transactionId, e,
+            )
             runCatching { Files.deleteIfExists(destination) }
+                .onFailure { log.warn("Failed to remove orphan attachment file {}", storageKey, it) }
             throw e
         }
     }
@@ -85,6 +104,7 @@ class AttachmentService(
         runCatching {
             Files.deleteIfExists(resolve(removed.storageKey))
         }.onFailure { log.warn("Failed to remove attachment file {}", removed.storageKey, it) }
+        log.info("Deleted attachment id={} userId={}", attachmentId, user.id)
         return true
     }
 

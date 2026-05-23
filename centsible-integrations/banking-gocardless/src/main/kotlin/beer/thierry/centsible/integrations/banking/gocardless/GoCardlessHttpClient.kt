@@ -44,6 +44,7 @@ class GoCardlessHttpClient(
             .queryParam("country", country)
             .build(true)
             .toUriString()
+        log.debug("GET /institutions provider={} country={}", PROVIDER, country)
         val raw: Array<InstitutionDto> = retry.call {
             restClient.get()
                 .uri(uri)
@@ -51,6 +52,7 @@ class GoCardlessHttpClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeOrThrow(PROVIDER, context = "institutions country=$country")
         }
+        log.info("Listed institutions provider={} country={} count={}", PROVIDER, country, raw.size)
         return raw.map { Institution(id = it.id, name = it.name, bic = it.bic, logo = it.logo) }
     }
 
@@ -64,6 +66,7 @@ class GoCardlessHttpClient(
             "access_valid_for_days" to ACCESS_VALID_FOR_DAYS,
             "access_scope" to listOf("balances", "details", "transactions"),
         )
+        log.debug("POST /agreements/enduser provider={} institutionId={} historicalDays={}", PROVIDER, institutionId, maxHistoricalDays)
         val resp: AgreementDto = retry.call {
             restClient.post()
                 .uri("/agreements/enduser/")
@@ -73,6 +76,7 @@ class GoCardlessHttpClient(
                 .body(body)
                 .exchangeOrThrow(PROVIDER, context = "agreements/enduser")
         }
+        log.info("End-user agreement created provider={} institutionId={} agreementId={}", PROVIDER, institutionId, resp.id)
         return resp.id
     }
 
@@ -94,6 +98,7 @@ class GoCardlessHttpClient(
             "reference" to reference,
             "user_language" to "EN",
         )
+        log.debug("POST /requisitions provider={} institutionId={} agreementId={}", PROVIDER, institutionId, agreementId)
         val resp: RequisitionDto = retry.call {
             restClient.post()
                 .uri("/requisitions/")
@@ -103,12 +108,14 @@ class GoCardlessHttpClient(
                 .body(body)
                 .exchangeOrThrow(PROVIDER, context = "requisitions")
         }
+        log.info("Requisition created provider={} requisitionId={} status={}", PROVIDER, resp.id, resp.status)
         return resp.toResponse()
     }
 
     fun fetchRequisition(requisitionId: String): RequisitionResponse {
         requireNonBlank(requisitionId, "requisitionId")
         val token = ensureToken()
+        log.debug("GET /requisitions/{} provider={}", requisitionId, PROVIDER)
         val resp: RequisitionDto = retry.call {
             restClient.get()
                 .uri("/requisitions/{id}/", requisitionId)
@@ -116,12 +123,17 @@ class GoCardlessHttpClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeOrThrow(PROVIDER, context = "requisitions/$requisitionId")
         }
+        log.info(
+            "Fetched requisition provider={} requisitionId={} status={} accounts={}",
+            PROVIDER, resp.id, resp.status, resp.accounts?.size ?: 0,
+        )
         return resp.toResponse()
     }
 
     fun fetchAccountDetails(accountId: String): AccountDetails {
         requireNonBlank(accountId, "accountId")
         val token = ensureToken()
+        log.debug("GET /accounts/{}/details provider={}", accountId, PROVIDER)
         val resp: AccountDetailsEnvelope = retry.call {
             restClient.get()
                 .uri("/accounts/{id}/details/", accountId)
@@ -144,6 +156,7 @@ class GoCardlessHttpClient(
         val builder = UriComponentsBuilder.fromUriString("/accounts/{id}/transactions/")
         if (dateFrom != null) builder.queryParam("date_from", dateFrom.toString())
         val uriTemplate = builder.build(false).toUriString()
+        log.debug("GET /accounts/{}/transactions provider={} dateFrom={}", accountId, PROVIDER, dateFrom)
         val envelope: TransactionsEnvelope = retry.call {
             restClient.get()
                 .uri(uriTemplate, accountId)
@@ -151,7 +164,12 @@ class GoCardlessHttpClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeOrThrow(PROVIDER, context = "accounts/$accountId/transactions")
         }
-        return TransactionsResponse(booked = envelope.transactions?.booked ?: emptyList())
+        val booked = envelope.transactions?.booked ?: emptyList()
+        log.info(
+            "Fetched transactions provider={} accountId={} bookedCount={} dateFrom={}",
+            PROVIDER, accountId, booked.size, dateFrom,
+        )
+        return TransactionsResponse(booked = booked)
     }
 
     private fun ensureToken(): String {
@@ -169,13 +187,20 @@ class GoCardlessHttpClient(
                 try {
                     val refreshed = refreshAccessToken(refresh)
                     applyTokens(refreshed.access, refreshed.accessExpires, refreshToken, refreshExpiresAt.epochSecond - Instant.now().epochSecond)
+                    log.info("Token refreshed provider={} expiresIn={}s", PROVIDER, refreshed.accessExpires)
                     return refreshed.access
                 } catch (ex: Exception) {
-                    log.warn("GoCardless token refresh failed, falling back to new token: {}", ex.javaClass.simpleName)
+                    log.warn("Refresh failed, falling back to fresh obtain provider={}", PROVIDER, ex)
                 }
             }
-            val obtained = obtainNewToken()
+            val obtained = try {
+                obtainNewToken()
+            } catch (ex: Exception) {
+                log.error("Token obtain failed provider={}", PROVIDER, ex)
+                throw ex
+            }
             applyTokens(obtained.access, obtained.accessExpires, obtained.refresh, obtained.refreshExpires)
+            log.info("Token obtained provider={} expiresIn={}s", PROVIDER, obtained.accessExpires)
             return obtained.access
         }
     }

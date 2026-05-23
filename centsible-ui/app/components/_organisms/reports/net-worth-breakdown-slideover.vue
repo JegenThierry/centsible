@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
@@ -26,7 +27,7 @@ async function load() {
   try {
     rows.value = await reportsStore.fetchNetWorthBreakdown(props.date);
   } catch (error) {
-    console.error('Failed to load breakdown', error);
+    adze.ns('reports').error('Failed to load breakdown', error);
     rows.value = [];
   } finally {
     loading.value = false;

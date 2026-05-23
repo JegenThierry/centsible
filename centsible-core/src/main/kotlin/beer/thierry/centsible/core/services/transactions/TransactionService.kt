@@ -18,6 +18,7 @@ import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -34,7 +35,7 @@ class TransactionService(
     private val notificationService: INotificationService,
 ) : ITransactionService {
 
-    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(TransactionService::class.java)
 
     // Alerting must never fail a transaction commit, so swallow with a log instead of letting it propagate.
     private fun checkBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>? = null) {
@@ -88,6 +89,10 @@ class TransactionService(
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
         checkBudgetAlerts(authenticatedUser, listOf(resolvedForm.categoryId))
         checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
+        log.info(
+            "Created transaction id={} accountId={} userId={} type={} amount={}",
+            transaction.id, accountId, authenticatedUser.id, transaction.type, transaction.amount,
+        )
         return transaction
     }
 
@@ -111,6 +116,10 @@ class TransactionService(
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
         checkBudgetAlerts(authenticatedUser, setOf(oldTransaction.category.id, updatedTransaction.category.id).filterNotNull())
         checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
+        log.info(
+            "Updated transaction id={} accountId={} userId={} type={} amount={}",
+            transactionId, accountId, authenticatedUser.id, updatedTransaction.type, updatedTransaction.amount,
+        )
         return updatedTransaction
     }
 
@@ -123,6 +132,10 @@ class TransactionService(
         val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment.negate(), authenticatedUser)
+        log.info(
+            "Deleted transaction id={} accountId={} userId={}",
+            transactionId, accountId, authenticatedUser.id,
+        )
         return transaction
     }
 
@@ -138,6 +151,10 @@ class TransactionService(
         }
         if (net.signum() != 0) accountRepository.updateBalance(accountId, net.negate(), authenticatedUser)
         checkBudgetAlerts(authenticatedUser, transactions.mapNotNull { it.category.id }.distinct())
+        log.info(
+            "Bulk-deleted transactions count={} accountId={} userId={}",
+            deleted, accountId, authenticatedUser.id,
+        )
         return deleted
     }
 
@@ -154,6 +171,10 @@ class TransactionService(
 
         val touched = (oldTransactions.mapNotNull { it.category.id } + categoryId).distinct()
         checkBudgetAlerts(authenticatedUser, touched)
+        log.info(
+            "Bulk-updated transaction category count={} categoryId={} accountId={} userId={}",
+            updated, categoryId, accountId, authenticatedUser.id,
+        )
         return updated
     }
 
@@ -192,6 +213,10 @@ class TransactionService(
             checkBudgetAlerts(authenticatedUser, resolvedRows.map { it.categoryId }.distinct())
         }
 
+        log.info(
+            "Imported transaction batch accountId={} userId={} totalRows={} inserted={} skippedDuplicates={}",
+            accountId, authenticatedUser.id, rows.size, outcome.insertedCount, rows.size - outcome.insertedCount,
+        )
         return ImportResult(
             imported = outcome.insertedCount,
             skippedDuplicates = rows.size - outcome.insertedCount,

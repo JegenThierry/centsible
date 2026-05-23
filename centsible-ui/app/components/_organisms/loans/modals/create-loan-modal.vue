@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import LoanForm from "~/components/_molecules/loans/loan-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
@@ -51,7 +52,7 @@ async function handleSave() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    console.error('Create loan failed', error);
+    adze.ns('loans').error('Create loan failed', error);
   } finally {
     loading.value = false;
   }

@@ -1,4 +1,5 @@
 import {defineStore} from "pinia";
+import adze from 'adze'
 import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -30,7 +31,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     try {
       activeAccount.value = await accountService.fetchAccount(activeAccount.value.id);
     } catch (error) {
-      console.error(error);
+      adze.ns('budget-accounts').error('Failed to update active account', error);
     } finally {
       pending.value = false;
     }

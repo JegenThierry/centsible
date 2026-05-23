@@ -5,6 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.LoadState
 import com.microsoft.playwright.options.Margin
 import io.pebbletemplates.pebble.PebbleEngine
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.StringWriter
 
@@ -13,9 +14,21 @@ class PdfRenderer(
     private val pebbleEngine: PebbleEngine,
     private val browser: Browser,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
-    fun renderHtmlToPdf(template: String, context: Map<String, Any?>): ByteArray =
-        htmlToPdfBytes(renderHtml(template, context))
+    fun renderHtmlToPdf(template: String, context: Map<String, Any?>): ByteArray {
+        log.debug("Rendering PDF template={}", template)
+        val startNanos = System.nanoTime()
+        try {
+            val bytes = htmlToPdfBytes(renderHtml(template, context))
+            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            log.info("Rendered PDF template={} bytes={} elapsedMs={}", template, bytes.size, elapsedMs)
+            return bytes
+        } catch (ex: Exception) {
+            log.error("Failed to render PDF template={}", template, ex)
+            throw ex
+        }
+    }
 
     private fun renderHtml(template: String, context: Map<String, Any?>): String {
         val pebble = pebbleEngine.getTemplate(template)

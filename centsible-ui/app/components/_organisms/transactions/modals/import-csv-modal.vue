@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
 import type {
   ColumnMapping,
@@ -79,7 +80,7 @@ watch(isOpen, async (open) => {
     try {
       categories.value = await categoryService.fetchCategories();
     } catch (error) {
-      console.error('Failed to load categories', error);
+      adze.ns('imports').error('Failed to load categories', error);
     }
   }
 });
@@ -98,7 +99,7 @@ async function onFileChange(event: Event) {
     fieldByColumn.value = result.headers.map(h => guessField(h));
     step.value = 'map';
   } catch (error) {
-    console.error(error);
+    adze.ns('imports').error('CSV parse failed', error);
     toasts.error(t('transactions.import.fileErrorTitle'), t('transactions.import.fileErrorBody'));
   }
 }

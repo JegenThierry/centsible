@@ -1,0 +1,24 @@
+# Codeberg / Woodpecker CI — foundation pipeline.
+# Docs: https://woodpecker-ci.org/docs/usage/intro
+when:
+  - event: [push, pull_request, manual]
+
+steps:
+  backend-build:
+    image: eclipse-temurin:21-jdk
+    commands:
+      # `-x test`: integration tests need a real Postgres. Add a `services:` block with
+      # `postgres:18` and drop the flag once a CI-side schema/migration story is in place.
+      - ./gradlew build -x test --no-daemon
+
+  backend-dependency-report:
+    image: eclipse-temurin:21-jdk
+    commands:
+      - ./gradlew dependencyReportAll --no-daemon
+
+  frontend-typecheck:
+    image: node:20
+    commands:
+      - cd centsible-ui
+      - npm ci
+      - npx tsc --noEmit -p tsconfig.json

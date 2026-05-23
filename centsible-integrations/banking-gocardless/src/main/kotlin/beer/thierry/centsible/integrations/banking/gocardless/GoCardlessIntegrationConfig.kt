@@ -1,6 +1,7 @@
 package beer.thierry.centsible.integrations.banking.gocardless
 
 import jakarta.annotation.PostConstruct
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -16,13 +17,19 @@ class GoCardlessIntegrationConfig(
     @Value("\${integrations.banking-gocardless.min-sync-interval-seconds:21600}") private val minSyncIntervalSeconds: Long,
 ) {
 
+    private val log = LoggerFactory.getLogger(GoCardlessIntegrationConfig::class.java)
+
     @PostConstruct
     fun validate() {
         if (secretId.isBlank() || secretKey.isBlank()) {
-            throw IllegalStateException(
-                "INTEGRATIONS_BANKING_GOCARDLESS_ENABLED=true but secret-id/secret-key not set"
-            )
+            val msg = "INTEGRATIONS_BANKING_GOCARDLESS_ENABLED=true but secret-id/secret-key not set"
+            log.error(msg)
+            throw IllegalStateException(msg)
         }
+        log.info(
+            "Provider GoCardless enabled apiBase={} minSyncIntervalSeconds={}",
+            apiBase, minSyncIntervalSeconds,
+        )
     }
 
     @Bean

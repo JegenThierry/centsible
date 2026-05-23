@@ -1,4 +1,5 @@
 import {defineStore} from "pinia";
+import adze from 'adze'
 import type {Category, CategoryForm} from "~/models/category/category";
 import {useCategoryService} from "~/services/category/category-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -19,7 +20,7 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
       categories.value = await categoryService.fetchCategories();
     } catch (error) {
       toasts.error("Failed to fetch categories", "Categories could not be loaded");
-      console.error(error);
+      adze.ns('categories').error('Failed to fetch categories', error);
     } finally {
       pending.value = false;
     }

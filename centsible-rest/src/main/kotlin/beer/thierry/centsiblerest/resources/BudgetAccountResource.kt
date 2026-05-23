@@ -6,6 +6,7 @@ import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.account.IBudgetAccountService
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -16,12 +17,17 @@ import java.time.LocalDate
 @RestController
 class BudgetAccountResource(private val budgetAccountService: IBudgetAccountService) {
 
+    private val log = LoggerFactory.getLogger(BudgetAccountResource::class.java)
+
     @PostMapping("")
     fun createAccount(
         @Valid @RequestBody createBudgetAccountRequest: CreateBudgetAccountRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetAccountDTO> =
-        ResponseEntity.ok(budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser))
+    ): ResponseEntity<BudgetAccountDTO> {
+        val created = budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser)
+        log.info("Created budget account id={} userId={}", created.id, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
 
     @GetMapping("")
     fun fetchAccounts(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<BudgetAccountDTO>> =

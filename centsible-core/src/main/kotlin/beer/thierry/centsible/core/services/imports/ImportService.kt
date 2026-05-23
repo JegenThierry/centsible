@@ -10,6 +10,7 @@ import beer.thierry.centsible.api.services.imports.ImportPreview
 import beer.thierry.centsible.api.services.imports.ParseHintsDTO
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import beer.thierry.centsible.imports.core.FileImportRegistry
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -18,6 +19,8 @@ class ImportService(
     private val registry: FileImportRegistry,
     private val transactionService: ITransactionService,
 ) : IImportService {
+
+    private val log = LoggerFactory.getLogger(ImportService::class.java)
 
     override fun detect(bytes: ByteArray, filename: String, mimeType: String?): ImportDetection? {
         val parser = registry.detect(bytes, filename, mimeType) ?: return null
@@ -56,10 +59,20 @@ class ImportService(
             )
         }
         if (parsed.rows.isEmpty()) {
+            log.info(
+                "Import commit produced no rows accountId={} userId={} parser={}",
+                accountId, authenticatedUser.id, parserId,
+            )
             return ImportResult(imported = 0, skippedDuplicates = 0)
         }
         val request = ImportTransactionsRequest(rows = parsed.rows.toMutableList())
-        return transactionService.importBatch(accountId, request, authenticatedUser)
+        val result = transactionService.importBatch(accountId, request, authenticatedUser)
+        log.info(
+            "Import committed accountId={} userId={} parser={} totalRows={} imported={} skippedDuplicates={} warnings={}",
+            accountId, authenticatedUser.id, parserId,
+            parsed.rows.size, result.imported, result.skippedDuplicates, parsed.warnings.size,
+        )
+        return result
     }
 
     private companion object {

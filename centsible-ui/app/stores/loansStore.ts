@@ -1,4 +1,5 @@
 import {defineStore} from "pinia";
+import adze from 'adze'
 import type {Loan, LoanForm, Repayment, RepaymentForm} from "~/models/loan/loan";
 import {useLoanService} from "~/services/loan/loan-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -65,7 +66,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       totalOutstanding.value = await loanService.fetchOutstanding();
       outstandingLoaded.value = true;
     } catch (error) {
-      console.error('Failed to fetch outstanding total', error);
+      adze.ns('loans').error('Failed to fetch outstanding total', error);
     }
   }
 

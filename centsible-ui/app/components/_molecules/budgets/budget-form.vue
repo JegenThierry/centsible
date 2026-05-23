@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
 import {BUDGET_PERIOD_TYPES, type BudgetForm} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -24,7 +25,7 @@ async function loadCategories() {
     const all = await categoryService.fetchCategories();
     categories.value = all.filter(c => c.type === CategoryType.EXPENSE);
   } catch (error) {
-    console.error('Failed to load categories:', error);
+    adze.ns('budgets').error('Failed to load categories', error);
   }
 }
 

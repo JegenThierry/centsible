@@ -5,6 +5,7 @@ import beer.thierry.centsible.integrations.support.providerRetry
 import beer.thierry.centsible.integrations.support.requireNonBlank
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
@@ -17,6 +18,7 @@ import java.util.Base64
 
 class PaypalHttpClient(private val restClient: RestClient) {
 
+    private val log = LoggerFactory.getLogger(PaypalHttpClient::class.java)
     private val retry = providerRetry(PROVIDER)
 
     fun obtainAccessToken(environment: String, clientId: String, clientSecret: String): TokenResponse {
@@ -27,20 +29,24 @@ class PaypalHttpClient(private val restClient: RestClient) {
             .encodeToString("$clientId:$clientSecret".toByteArray(Charsets.UTF_8))
         val form = LinkedMultiValueMap<String, String>().apply { add("grant_type", "client_credentials") }
 
-        return retry.call {
+        log.debug("POST /v1/oauth2/token provider={} env={}", PROVIDER, environment)
+        val response = retry.call {
             restClient.post()
                 .uri("${baseFor(environment)}/v1/oauth2/token")
                 .header(HttpHeaders.AUTHORIZATION, "Basic $basic")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(form)
-                .exchangeOrThrow(PROVIDER, context = "oauth2/token")
+                .exchangeOrThrow<TokenResponse>(PROVIDER, context = "oauth2/token")
         }
+        log.info("Token obtained provider={} env={} expiresIn={}s", PROVIDER, environment, response.expiresIn)
+        return response
     }
 
     fun fetchUserInfo(environment: String, accessToken: String): UserInfoResponse {
         requireNonBlank(accessToken, "accessToken")
 
+        log.debug("GET /v1/identity/oauth2/userinfo provider={} env={}", PROVIDER, environment)
         return retry.call {
             restClient.get()
                 .uri("${baseFor(environment)}/v1/identity/oauth2/userinfo?schema=paypalv1.1")
@@ -69,13 +75,23 @@ class PaypalHttpClient(private val restClient: RestClient) {
             .build(true)
             .toUri()
 
-        return retry.call {
+        log.debug(
+            "GET /v1/reporting/transactions provider={} env={} startDate={} endDate={} page={}",
+            PROVIDER, environment, startDate, endDate, page,
+        )
+        val response = retry.call {
             restClient.get()
                 .uri(uri)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
                 .accept(MediaType.APPLICATION_JSON)
-                .exchangeOrThrow(PROVIDER, context = "reporting/transactions page=$page")
+                .exchangeOrThrow<TransactionsResponse>(PROVIDER, context = "reporting/transactions page=$page")
         }
+        log.info(
+            "Fetched transactions provider={} env={} page={}/{} items={} totalItems={}",
+            PROVIDER, environment, response.page, response.totalPages,
+            response.transactionDetails.size, response.totalItems,
+        )
+        return response
     }
 
     private fun baseFor(env: String): String = when (env.lowercase()) {

@@ -21,6 +21,7 @@ import beer.thierry.centsible.api.services.integrations.ITransactionImporter
 import beer.thierry.centsible.api.services.integrations.OAuthAuthorizationStart
 import beer.thierry.centsible.api.services.integrations.OAuthCallbackResult
 import beer.thierry.centsible.api.services.integrations.ProviderModule
+import beer.thierry.centsible.integrations.banking.gocardless.GoCardlessHttpClient.Companion.PROVIDER
 import beer.thierry.centsible.integrations.support.firstNonBlank
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -99,7 +100,7 @@ class GoCardlessProviderModule(
         val institutions = try {
             client.listInstitutions(country)
         } catch (ex: Exception) {
-            log.warn("GoCardless listInstitutions failed for country={}: {}", country, ex.javaClass.simpleName)
+            log.warn("Institution lookup failed provider={} country={}", PROVIDER, country, ex)
             return emptyList()
         }
         val filtered = if (query.isNullOrBlank()) {
@@ -117,14 +118,20 @@ class GoCardlessProviderModule(
         }
     }
 
+    /**
+     * The callback only echoes our reference (`ref=state`); to recover the requisitionId at
+     * callback time we persist it into the connection's config via configPatch, which the
+     * orchestrator writes before the user is redirected.
+     */
     override fun buildAuthorizationUrl(request: OAuthStartRequest): OAuthAuthorizationStart {
         val institutionId = request.config["institutionId"]?.toString()?.takeIf { it.isNotBlank() }
             ?: throw IllegalArgumentException("institutionId is required")
         val historicalDays = parseHistoricalDays(request.config["historicalDays"])
+        log.info(
+            "OAuth begin provider={} userId={} connectionId={} institutionId={}",
+            PROVIDER, request.userId, request.connectionId, institutionId,
+        )
         val agreementId = client.createEndUserAgreement(institutionId, historicalDays)
-        // The callback only echoes our reference (`ref=state`); to recover the requisitionId at
-        // callback time we persist it into the connection's config via configPatch, which the
-        // orchestrator writes before the user is redirected.
         val requisition = client.createRequisition(
             institutionId = institutionId,
             agreementId = agreementId,
@@ -142,11 +149,25 @@ class GoCardlessProviderModule(
 
     override fun completeAuthorization(request: OAuthCallbackRequest): OAuthCallbackResult {
         val requisitionId = request.config["pendingRequisitionId"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("No pending requisition found for this connection")
+            ?: run {
+                log.warn(
+                    "OAuth callback for connection with no pending requisition provider={} userId={} connectionId={}",
+                    PROVIDER, request.userId, request.connectionId,
+                )
+                throw IllegalArgumentException("No pending requisition found for this connection")
+            }
         val requisition = client.fetchRequisition(requisitionId)
         if (requisition.status !in CONSENT_OK_STATUSES) {
+            log.warn(
+                "OAuth consent not granted provider={} userId={} connectionId={} requisitionId={} status={}",
+                PROVIDER, request.userId, request.connectionId, requisitionId, requisition.status,
+            )
             throw IllegalStateException("Bank consent not granted (status=${requisition.status})")
         }
+        log.info(
+            "OAuth complete provider={} userId={} connectionId={} requisitionId={} accounts={}",
+            PROVIDER, request.userId, request.connectionId, requisitionId, requisition.accounts.size,
+        )
         // GoCardless end-user agreements last 90 days; the connection's stored expiry mirrors that
         // so TokenRefreshGuard surfaces an expired consent rather than silently failing on sync.
         val expiresAt = Instant.now().plusSeconds(CONSENT_LIFETIME_SECONDS)
@@ -178,6 +199,10 @@ class GoCardlessProviderModule(
             }
         }
         if (consentExpiresAt != null && Instant.now().isAfter(consentExpiresAt)) {
+            log.warn(
+                "PSD2 consent expired provider={} userId={} connectionId={} expiredAt={}",
+                PROVIDER, ctx.userId, ctx.connectionId, consentExpiresAt,
+            )
             throw IllegalStateException("PSD2 consent expired; user must re-authorize")
         }
         return existing
@@ -190,7 +215,10 @@ class GoCardlessProviderModule(
             val details = try {
                 client.fetchAccountDetails(id)
             } catch (ex: Exception) {
-                log.warn("GoCardless fetchAccountDetails failed for {}: {}", id, ex.javaClass.simpleName)
+                log.warn(
+                    "Account-details fetch failed provider={} userId={} connectionId={} accountId={}",
+                    PROVIDER, ctx.userId, ctx.connectionId, id, ex,
+                )
                 AccountDetails()
             }
             ExternalAccountDTO(
@@ -205,19 +233,40 @@ class GoCardlessProviderModule(
 
     override fun importSince(ctx: ProviderContext, cursor: String?): TransactionImportPage {
         val accountIds = extractAccountIds(ctx.config["accountIds"])
-        if (accountIds.isEmpty()) return TransactionImportPage(transactions = emptyList(), nextCursor = LocalDate.now().toString())
+        if (accountIds.isEmpty()) {
+            log.warn(
+                "Sync skipped, no accounts configured provider={} userId={} connectionId={}",
+                PROVIDER, ctx.userId, ctx.connectionId,
+            )
+            return TransactionImportPage(transactions = emptyList(), nextCursor = LocalDate.now().toString())
+        }
 
+        val started = System.currentTimeMillis()
         val dateFrom = resolveDateFrom(cursor, ctx.config["historicalDays"])
+        log.info(
+            "Sync begin provider={} userId={} connectionId={} accounts={} dateFrom={}",
+            PROVIDER, ctx.userId, ctx.connectionId, accountIds.size, dateFrom,
+        )
         val all = mutableListOf<ImportedTransactionDTO>()
+        var skippedRows = 0
+        var failedAccounts = 0
         for (accountId in accountIds) {
             val response = try {
                 client.fetchAccountTransactions(accountId, dateFrom)
             } catch (ex: Exception) {
-                log.warn("GoCardless fetchAccountTransactions failed for {}: {}", accountId, ex.javaClass.simpleName)
+                failedAccounts++
+                log.warn(
+                    "Transactions fetch failed provider={} userId={} connectionId={} accountId={}",
+                    PROVIDER, ctx.userId, ctx.connectionId, accountId, ex,
+                )
                 continue
             }
             for (tx in response.booked) {
-                val occurredAt = parseOccurredAt(tx) ?: continue
+                val occurredAt = parseOccurredAt(tx)
+                if (occurredAt == null) {
+                    skippedRows++
+                    continue
+                }
                 val description = firstNonBlank(
                     tx.remittanceInformationUnstructured,
                     tx.remittanceInformationStructured,
@@ -229,6 +278,7 @@ class GoCardlessProviderModule(
                 val amount = try {
                     BigDecimal(tx.transactionAmount.amount)
                 } catch (_: NumberFormatException) {
+                    skippedRows++
                     continue
                 }
                 val counterparty = firstNonBlank(tx.creditorName, tx.debtorName)
@@ -244,6 +294,17 @@ class GoCardlessProviderModule(
                 )
             }
         }
+        if (skippedRows > 0) {
+            log.warn(
+                "Sync rows skipped (unparseable date/amount) provider={} userId={} connectionId={} skipped={}",
+                PROVIDER, ctx.userId, ctx.connectionId, skippedRows,
+            )
+        }
+        log.info(
+            "Sync complete provider={} userId={} connectionId={} processed={} skippedRows={} failedAccounts={} elapsedMs={}",
+            PROVIDER, ctx.userId, ctx.connectionId, all.size, skippedRows, failedAccounts,
+            System.currentTimeMillis() - started,
+        )
         return TransactionImportPage(transactions = all, nextCursor = LocalDate.now().toString())
     }
 

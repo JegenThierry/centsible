@@ -47,16 +47,22 @@ class AuthenticationService(
 
     override fun authenticate(authRequest: AuthRequest): AuthResponse {
         val user = userRepository.findUserByUsername(authRequest.username)
-            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        if (user == null) {
+            log.warn("Authentication failed: unknown username='{}'", authRequest.username)
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
 
         if (!passwordEncoder.matches(authRequest.password, user.passwordHash)) {
+            log.warn("Authentication failed: bad password for userId={}", user.id)
             throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
         }
 
         if (!user.registered) {
+            log.warn("Authentication blocked: unconfirmed account userId={}", user.id)
             throw LocalizedException.Unauthorized("error.auth.emailNotConfirmed")
         }
 
+        log.info("Authentication successful: userId={}", user.id)
         return AuthResponse(generateJwt(user))
     }
 
@@ -79,9 +85,11 @@ class AuthenticationService(
 
         val registeredUser = userRepository.createUser(authRequest, passwordHash, tokenHash, tokenExpiresAt)
             ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
+        log.info("Registered new user userId={} username='{}'", registeredUser.id, registeredUser.username)
 
         if (skipEmailVerification) {
             userRepository.confirmUser(registeredUser.id)
+            log.info("Auto-confirmed user userId={} (email verification disabled)", registeredUser.id)
             return AuthResponse(generateJwt(registeredUser))
         }
 
@@ -92,9 +100,20 @@ class AuthenticationService(
     }
 
     override fun confirmRegistration(token: String): Boolean {
-        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) return false
-        val user = userRepository.findUserByValidTokenHash(sha256(token)) ?: return false
-        return userRepository.confirmUser(user.id)
+        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) {
+            log.warn("Registration confirmation rejected: token format invalid")
+            return false
+        }
+        val user = userRepository.findUserByValidTokenHash(sha256(token))
+        if (user == null) {
+            log.warn("Registration confirmation rejected: no valid token match")
+            return false
+        }
+        val confirmed = userRepository.confirmUser(user.id)
+        if (confirmed) {
+            log.info("Confirmed user registration userId={}", user.id)
+        }
+        return confirmed
     }
 
     override fun requestPasswordReset(username: String) {
@@ -121,13 +140,26 @@ class AuthenticationService(
     }
 
     override fun resetPassword(token: String, newPassword: String): Boolean {
-        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) return false
+        if (token.isBlank() || token.length > REGISTRATION_TOKEN_MAX_LENGTH) {
+            log.warn("Password reset rejected: token format invalid")
+            return false
+        }
         assertPasswordMatchesSecuritySettings(newPassword)
 
-        val user = userRepository.findUserByValidPasswordResetTokenHash(sha256(token)) ?: return false
+        val user = userRepository.findUserByValidPasswordResetTokenHash(sha256(token))
+        if (user == null) {
+            log.warn("Password reset rejected: no valid token match")
+            return false
+        }
         val passwordHash = passwordEncoder.encode(newPassword)
             ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
-        return userRepository.resetPassword(user.id, passwordHash)
+        val reset = userRepository.resetPassword(user.id, passwordHash)
+        if (reset) {
+            log.info("Password reset successful userId={}", user.id)
+        } else {
+            log.warn("Password reset failed during persistence userId={}", user.id)
+        }
+        return reset
     }
 
     private fun generateRegistrationToken(): String {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {ref, watch} from 'vue';
+import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
 import {useImportService} from "~/services/imports/import-service";
 import {useCategoryService} from "~/services/category/category-service";
@@ -52,7 +53,7 @@ watch(isOpen, async (open) => {
     try {
       categories.value = await categoryService.fetchCategories();
     } catch (error) {
-      console.error('Failed to load categories', error);
+      adze.ns('imports').error('Failed to load categories', error);
     }
   }
 });

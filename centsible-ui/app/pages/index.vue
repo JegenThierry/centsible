@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import Landing from "~/components/_organisms/landing/landing.vue";
 import {useAuthStore} from "~/stores/authStore";
 import {useAuthService} from "~/services/auth/auth-service";
@@ -22,7 +23,7 @@ definePageMeta({
           return await nuxtApp.runWithContext(() => navigateTo('/accounts'));
         }
       } catch (error) {
-        console.warn('Session verification failed; staying on landing', error);
+        adze.ns('auth').warn('Session verification failed; staying on landing', error);
       }
     }
   ]

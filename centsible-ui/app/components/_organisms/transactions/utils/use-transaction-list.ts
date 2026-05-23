@@ -1,4 +1,5 @@
 import {ref, type Ref, watch} from 'vue'
+import adze from 'adze'
 import type {Transaction} from '~/models/transactions/transaction'
 import type {TransactionFilters} from '~/models/transactions/transaction-filters'
 import type {useBudgetAccountsStore} from '~/stores/budgetAccountsStore'
@@ -47,7 +48,7 @@ export function useTransactionList(
       transactions.value = [...transactions.value, ...data]
       page.value++
     } catch (error) {
-      console.error('Failed to fetch transactions:', error)
+      adze.ns('transactions').error('Failed to fetch transactions', error)
     } finally {
       loading.value = false
       loadingMore.value = false

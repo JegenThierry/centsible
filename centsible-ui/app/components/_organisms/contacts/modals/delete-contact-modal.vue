@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Contact} from "~/models/contact/contact";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
@@ -33,7 +34,7 @@ async function handleDelete() {
     isOpen.value = false;
     emit('deleted');
   } catch (error) {
-    console.error('Delete contact failed', error);
+    adze.ns('contacts').error('Delete contact failed', error);
   } finally {
     loading.value = false;
   }

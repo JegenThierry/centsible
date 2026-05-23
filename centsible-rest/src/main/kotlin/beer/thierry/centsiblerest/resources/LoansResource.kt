@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.model.loan.RepaymentForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.loans.ILoanService
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -16,6 +17,8 @@ import java.util.UUID
 @RequestMapping("/api/loans")
 @RestController
 class LoansResource(private val loanService: ILoanService) {
+
+    private val log = LoggerFactory.getLogger(LoansResource::class.java)
 
     @GetMapping
     fun list(
@@ -43,16 +46,23 @@ class LoansResource(private val loanService: ILoanService) {
     fun create(
         @Valid @RequestBody form: LoanForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<LoanDTO> =
-        ResponseEntity.ok(loanService.createLoan(authenticatedUser, form))
+    ): ResponseEntity<LoanDTO> {
+        val created = loanService.createLoan(authenticatedUser, form)
+        log.info("Created loan id={} userId={}", created.id, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
 
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<Void> =
-        if (loanService.deleteLoan(authenticatedUser, id)) ResponseEntity.ok().build()
-        else ResponseEntity.notFound().build()
+    ): ResponseEntity<Void> {
+        val deleted = loanService.deleteLoan(authenticatedUser, id)
+        return if (deleted) {
+            log.info("Deleted loan id={} userId={}", id, authenticatedUser.id)
+            ResponseEntity.ok().build()
+        } else ResponseEntity.notFound().build()
+    }
 
     @GetMapping("/{id}/repayments")
     fun listRepayments(
@@ -66,15 +76,22 @@ class LoansResource(private val loanService: ILoanService) {
         @PathVariable id: UUID,
         @Valid @RequestBody form: RepaymentForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RepaymentDTO> =
-        ResponseEntity.ok(loanService.recordRepayment(authenticatedUser, id, form))
+    ): ResponseEntity<RepaymentDTO> {
+        val created = loanService.recordRepayment(authenticatedUser, id, form)
+        log.info("Recorded repayment id={} loanId={} userId={}", created.id, id, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
 
     @DeleteMapping("/{loanId}/repayments/{repaymentId}")
     fun deleteRepayment(
         @PathVariable loanId: UUID,
         @PathVariable repaymentId: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<Void> =
-        if (loanService.deleteRepayment(authenticatedUser, loanId, repaymentId)) ResponseEntity.ok().build()
-        else ResponseEntity.notFound().build()
+    ): ResponseEntity<Void> {
+        val deleted = loanService.deleteRepayment(authenticatedUser, loanId, repaymentId)
+        return if (deleted) {
+            log.info("Deleted repayment id={} loanId={} userId={}", repaymentId, loanId, authenticatedUser.id)
+            ResponseEntity.ok().build()
+        } else ResponseEntity.notFound().build()
+    }
 }

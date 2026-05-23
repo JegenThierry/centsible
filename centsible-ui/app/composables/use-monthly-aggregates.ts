@@ -1,4 +1,5 @@
 import {ref, watch} from 'vue';
+import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {MonthlyAggregate} from "~/models/transactions/transaction";
 import {createAsyncCache} from "~/utils/async-cache";
@@ -24,7 +25,7 @@ export async function prefetchMonthlyAggregates(
   try {
     await cache.loadOrCache(key(accountId, months), () => service.aggregateByMonth(accountId, months));
   } catch (e) {
-    console.error('Failed to prefetch monthly aggregates', e);
+    adze.ns('dashboard').error('Failed to prefetch monthly aggregates', e);
   }
 }
 
@@ -44,7 +45,7 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
     try {
       data.value = await cache.loadOrCache(key(id, m), () => service.aggregateByMonth(id, m));
     } catch (e) {
-      console.error('Failed to load monthly aggregates', e);
+      adze.ns('dashboard').error('Failed to load monthly aggregates', e);
       data.value = [];
     } finally {
       loading.value = false;

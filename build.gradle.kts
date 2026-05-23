@@ -20,6 +20,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java-library")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "project-report")
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
@@ -49,4 +50,10 @@ subprojects {
             "runtimeOnly"("com.google.guava:guava:$guavaVersion")
         }
     }
+}
+
+tasks.register("dependencyReportAll") {
+    group = "reporting"
+    description = "Generates HTML dependency reports for every subproject under each module's build/reports/project/dependencies/."
+    dependsOn(subprojects.map { "${it.path}:htmlDependencyReport" })
 }

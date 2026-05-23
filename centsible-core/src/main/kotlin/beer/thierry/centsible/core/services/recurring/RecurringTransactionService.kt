@@ -25,18 +25,29 @@ class RecurringTransactionService(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
         validate(form)
-        return repository.create(accountId, form, authenticatedUser)
+        val created = repository.create(accountId, form, authenticatedUser)
+        log.info(
+            "Created recurring transaction id={} accountId={} userId={} frequency={}",
+            created.id, accountId, authenticatedUser.id, form.frequency,
+        )
+        return created
     }
 
     override fun update(
         id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
         validate(form)
-        return repository.update(id, form, authenticatedUser)
+        val updated = repository.update(id, form, authenticatedUser)
+        log.info(
+            "Updated recurring transaction id={} userId={} frequency={} active={}",
+            id, authenticatedUser.id, form.frequency, form.active,
+        )
+        return updated
     }
 
     override fun delete(id: UUID, authenticatedUser: UserDTO) {
         repository.delete(id, authenticatedUser)
+        log.info("Deleted recurring transaction id={} userId={}", id, authenticatedUser.id)
     }
 
     override fun setActive(id: UUID, active: Boolean, authenticatedUser: UserDTO): RecurringTransactionDTO {
@@ -50,7 +61,12 @@ class RecurringTransactionService(
             endDate = current.endDate,
             active = active,
         )
-        return repository.update(id, form, authenticatedUser)
+        val updated = repository.update(id, form, authenticatedUser)
+        log.info(
+            "Recurring transaction active={} id={} userId={}",
+            active, id, authenticatedUser.id,
+        )
+        return updated
     }
 
     @Transactional

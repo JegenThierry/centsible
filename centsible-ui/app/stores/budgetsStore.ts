@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import adze from 'adze'
 import type {Budget} from "~/models/budget/budget";
 import {useBudgetService} from "~/services/budget/budget-service";
 
@@ -13,7 +14,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     try {
       items.value = await service.fetchAll();
     } catch (error) {
-      console.error('Failed to fetch budgets', error);
+      adze.ns('budgets').error('Failed to fetch budgets', error);
       items.value = [];
     } finally {
       loading.value = false;
@@ -25,7 +26,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     try {
       items.value = await service.fetchAll(month);
     } catch (error) {
-      console.error('Failed to fetch budgets for month', month, error);
+      adze.ns('budgets').error('Failed to fetch budgets for month', month, error);
       items.value = [];
     } finally {
       loading.value = false;
@@ -39,7 +40,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
         months.map(async (m) => ({month: m, budgets: await service.fetchAll(m)})),
       );
     } catch (error) {
-      console.error('Failed to fetch budget history', error);
+      adze.ns('budgets').error('Failed to fetch budget history', error);
       history.value = [];
     } finally {
       loading.value = false;

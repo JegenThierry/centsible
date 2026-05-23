@@ -12,6 +12,7 @@ import com.webcohesion.ofx4j.domain.data.common.Transaction
 import com.webcohesion.ofx4j.domain.data.creditcard.CreditCardResponseMessageSet
 import com.webcohesion.ofx4j.io.AggregateUnmarshaller
 import com.webcohesion.ofx4j.io.OFXParseException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.ByteArrayInputStream
 import java.time.ZoneOffset
@@ -27,6 +28,8 @@ import java.time.ZoneOffset
  */
 @Component
 class OfxFileParser : FileFormatParser {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override val id = "ofx"
     override val displayName = "OFX / QFX"
     override val supportedMimeTypes = setOf(
@@ -44,50 +47,71 @@ class OfxFileParser : FileFormatParser {
     }
 
     override fun parse(bytes: ByteArray, hints: ParseHints): ParsedFile {
-        val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
-            "OfxFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
-        }
-
-        val envelope = try {
-            AggregateUnmarshaller(ResponseEnvelope::class.java).unmarshal(ByteArrayInputStream(bytes))
-        } catch (ex: OFXParseException) {
-            return ParsedFile(
-                rows = emptyList(),
-                warnings = listOf(ParseWarning("ofx.unparseable", ex.message ?: "OFX could not be parsed", null)),
-            )
-        } catch (ex: OFXException) {
-            return ParsedFile(
-                rows = emptyList(),
-                warnings = listOf(ParseWarning("ofx.unparseable", ex.message ?: "OFX could not be parsed", null)),
-            )
-        }
-
-        val rows = mutableListOf<ImportTransactionRow>()
-        val warnings = mutableListOf<ParseWarning>()
-        var detectedCurrency: String? = null
-        var sourceRow = 0
-
-        for (set in envelope.messageSets) {
-            val statementResponses: List<StatementBlock> = when (set) {
-                is BankingResponseMessageSet -> set.statementResponses.orEmpty()
-                    .mapNotNull { it.message }
-                    .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
-                is CreditCardResponseMessageSet -> set.statementResponses.orEmpty()
-                    .mapNotNull { it.message }
-                    .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
-                else -> continue
+        log.debug("Parsing OFX file bytes={}", bytes.size)
+        try {
+            val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
+                "OfxFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
             }
-            for (block in statementResponses) {
-                if (detectedCurrency == null) detectedCurrency = block.currencyCode
-                for (tx in block.transactions) {
-                    sourceRow += 1
-                    val row = mapTransaction(tx, defaultCategoryId, sourceRow, warnings)
-                    if (row != null) rows.add(row)
+
+            val envelope = try {
+                AggregateUnmarshaller(ResponseEnvelope::class.java).unmarshal(ByteArrayInputStream(bytes))
+            } catch (ex: OFXParseException) {
+                log.warn("OFX unparseable bytes={} reason={}", bytes.size, ex.message)
+                return ParsedFile(
+                    rows = emptyList(),
+                    warnings = listOf(ParseWarning("ofx.unparseable", ex.message ?: "OFX could not be parsed", null)),
+                )
+            } catch (ex: OFXException) {
+                log.warn("OFX unparseable bytes={} reason={}", bytes.size, ex.message)
+                return ParsedFile(
+                    rows = emptyList(),
+                    warnings = listOf(ParseWarning("ofx.unparseable", ex.message ?: "OFX could not be parsed", null)),
+                )
+            }
+
+            val rows = mutableListOf<ImportTransactionRow>()
+            val warnings = mutableListOf<ParseWarning>()
+            var detectedCurrency: String? = null
+            var sourceRow = 0
+
+            for (set in envelope.messageSets) {
+                val statementResponses: List<StatementBlock> = when (set) {
+                    is BankingResponseMessageSet -> set.statementResponses.orEmpty()
+                        .mapNotNull { it.message }
+                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
+                    is CreditCardResponseMessageSet -> set.statementResponses.orEmpty()
+                        .mapNotNull { it.message }
+                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
+                    else -> continue
+                }
+                for (block in statementResponses) {
+                    if (detectedCurrency == null) detectedCurrency = block.currencyCode
+                    for (tx in block.transactions) {
+                        sourceRow += 1
+                        val row = mapTransaction(tx, defaultCategoryId, sourceRow, warnings)
+                        if (row != null) rows.add(row)
+                    }
                 }
             }
-        }
 
-        return ParsedFile(rows = rows, warnings = warnings, detectedCurrency = detectedCurrency?.uppercase())
+            logWarningSummary(warnings)
+            log.info("Parsed file format=ofx rows={} warnings={}", rows.size, warnings.size)
+            return ParsedFile(rows = rows, warnings = warnings, detectedCurrency = detectedCurrency?.uppercase())
+        } catch (ex: Exception) {
+            log.error("Failed to parse OFX file bytes={}", bytes.size, ex)
+            throw ex
+        }
+    }
+
+    /**
+     * Logged once per distinct warning code as a summary — OFX statements can produce 10k+
+     * per-row warnings on malformed files; per-row WARN would drown out other signal.
+     */
+    private fun logWarningSummary(warnings: List<ParseWarning>) {
+        if (warnings.isEmpty()) return
+        warnings.groupingBy { it.code }.eachCount().forEach { (code, count) ->
+            log.warn("OFX parse warning code={} count={}", code, count)
+        }
     }
 
     private fun mapTransaction(

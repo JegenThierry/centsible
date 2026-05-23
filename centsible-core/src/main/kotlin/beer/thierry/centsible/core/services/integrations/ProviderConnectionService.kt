@@ -16,6 +16,7 @@ import beer.thierry.centsible.api.services.integrations.IProviderConnectionServi
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.api.services.integrations.IRemoteOptionsProvider
 import beer.thierry.centsible.api.services.integrations.ProviderModule
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -26,6 +27,8 @@ class ProviderConnectionService(
     private val repository: IProviderConnectionsRepository,
     private val cipher: CredentialCipher,
 ) : IProviderConnectionService {
+
+    private val log = LoggerFactory.getLogger(ProviderConnectionService::class.java)
 
     override fun fetchAllConnections(authenticatedUser: UserDTO): List<ProviderConnectionDTO> =
         repository.fetchAll(authenticatedUser).map(ConnectionMappersImpl::toDTO)
@@ -43,16 +46,19 @@ class ProviderConnectionService(
             AuthType.OAUTH2 -> ProviderConnectionStatus.NEW
             else -> ProviderConnectionStatus.ACTIVE
         }
-        return ConnectionMappersImpl.toDTO(
-            repository.create(
-                userId = authenticatedUser.id,
-                providerKey = form.providerKey,
-                displayName = form.displayName,
-                status = initialStatus,
-                config = config,
-                credentials = cipher.encrypt(credentials),
-            )
+        val record = repository.create(
+            userId = authenticatedUser.id,
+            providerKey = form.providerKey,
+            displayName = form.displayName,
+            status = initialStatus,
+            config = config,
+            credentials = cipher.encrypt(credentials),
         )
+        log.info(
+            "Created provider connection id={} userId={} provider={} status={}",
+            record.id, authenticatedUser.id, form.providerKey, initialStatus,
+        )
+        return ConnectionMappersImpl.toDTO(record)
     }
 
     @Transactional
@@ -68,7 +74,7 @@ class ProviderConnectionService(
         val existingSecrets = cipher.decrypt(repository.fetchEncryptedCredentialsById(authenticatedUser, id))
         val mergedSecrets = existingSecrets.mergedWith(submittedSecrets)
         runProviderTest(module, authenticatedUser.id, existing.id, form.displayName, newConfig, mergedSecrets)
-        return repository.update(
+        val updated = repository.update(
             authenticatedUser = authenticatedUser,
             id = id,
             displayName = form.displayName,
@@ -76,13 +82,30 @@ class ProviderConnectionService(
             config = newConfig,
             credentials = cipher.encrypt(mergedSecrets),
         )?.let(ConnectionMappersImpl::toDTO)
+        if (updated != null) {
+            log.info(
+                "Updated provider connection id={} userId={} provider={} secretFieldsChanged={}",
+                id, authenticatedUser.id, existing.providerKey, submittedSecrets.keys.sorted(),
+            )
+        }
+        return updated
     }
 
-    override fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean =
-        repository.delete(authenticatedUser, id)
+    override fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean {
+        val deleted = repository.delete(authenticatedUser, id)
+        if (deleted) {
+            log.info("Deleted provider connection id={} userId={}", id, authenticatedUser.id)
+        }
+        return deleted
+    }
 
-    override fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean =
-        repository.requeueForSync(authenticatedUser, id)
+    override fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean {
+        val requeued = repository.requeueForSync(authenticatedUser, id)
+        if (requeued) {
+            log.info("Requeued provider connection for sync id={} userId={}", id, authenticatedUser.id)
+        }
+        return requeued
+    }
 
     override fun fetchRemoteOptions(
         authenticatedUser: UserDTO,
@@ -130,7 +153,11 @@ class ProviderConnectionService(
                 )
             )
         } catch (e: Exception) {
-            throw IllegalArgumentException("Connection test failed: ${e.message ?: e.javaClass.simpleName}")
+            log.warn(
+                "Provider connection test failed userId={} connectionId={} provider={}",
+                userId, connectionId, module.descriptor.key, e,
+            )
+            throw IllegalArgumentException("Connection test failed: ${e.message ?: e.javaClass.simpleName}", e)
         }
     }
 

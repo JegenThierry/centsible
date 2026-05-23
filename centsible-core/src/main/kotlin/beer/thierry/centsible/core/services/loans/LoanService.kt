@@ -10,6 +10,7 @@ import beer.thierry.centsible.api.repository.IContactsRepository
 import beer.thierry.centsible.api.repository.ILoanRepaymentsRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
 import beer.thierry.centsible.api.services.loans.ILoanService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -21,6 +22,8 @@ class LoanService(
     private val loanRepaymentsRepository: ILoanRepaymentsRepository,
     private val contactsRepository: IContactsRepository,
 ) : ILoanService {
+
+    private val log = LoggerFactory.getLogger(LoanService::class.java)
 
     override fun fetchAllLoans(authenticatedUser: UserDTO): List<LoanDTO> =
         loansRepository.fetchAllLoans(authenticatedUser)
@@ -34,12 +37,22 @@ class LoanService(
     @Transactional
     override fun createLoan(authenticatedUser: UserDTO, form: LoanForm): LoanDTO {
         val contactId = resolveContactId(authenticatedUser, form)
-        return loansRepository.createLoan(authenticatedUser, contactId, form)
+        val created = loansRepository.createLoan(authenticatedUser, contactId, form)
+        log.info(
+            "Created loan id={} userId={} contactId={} owedAmount={}",
+            created.id, authenticatedUser.id, contactId, form.owedAmount,
+        )
+        return created
     }
 
     @Transactional
-    override fun deleteLoan(authenticatedUser: UserDTO, id: UUID): Boolean =
-        loansRepository.deleteLoan(authenticatedUser, id)
+    override fun deleteLoan(authenticatedUser: UserDTO, id: UUID): Boolean {
+        val deleted = loansRepository.deleteLoan(authenticatedUser, id)
+        if (deleted) {
+            log.info("Deleted loan id={} userId={}", id, authenticatedUser.id)
+        }
+        return deleted
+    }
 
     override fun fetchRepayments(authenticatedUser: UserDTO, loanId: UUID): List<RepaymentDTO> =
         loanRepaymentsRepository.fetchRepayments(authenticatedUser, loanId)
@@ -54,12 +67,25 @@ class LoanService(
                 "Repayment amount ($${form.amount}) exceeds the outstanding balance ($outstanding)."
             )
         }
-        return loanRepaymentsRepository.createRepayment(authenticatedUser, loanId, form)
+        val repayment = loanRepaymentsRepository.createRepayment(authenticatedUser, loanId, form)
+        log.info(
+            "Recorded loan repayment id={} loanId={} userId={} amount={}",
+            repayment.id, loanId, authenticatedUser.id, form.amount,
+        )
+        return repayment
     }
 
     @Transactional
-    override fun deleteRepayment(authenticatedUser: UserDTO, loanId: UUID, repaymentId: UUID): Boolean =
-        loanRepaymentsRepository.deleteRepayment(authenticatedUser, loanId, repaymentId)
+    override fun deleteRepayment(authenticatedUser: UserDTO, loanId: UUID, repaymentId: UUID): Boolean {
+        val deleted = loanRepaymentsRepository.deleteRepayment(authenticatedUser, loanId, repaymentId)
+        if (deleted) {
+            log.info(
+                "Deleted loan repayment id={} loanId={} userId={}",
+                repaymentId, loanId, authenticatedUser.id,
+            )
+        }
+        return deleted
+    }
 
     override fun totalOutstanding(authenticatedUser: UserDTO): BigDecimal =
         loansRepository.totalOutstanding(authenticatedUser)

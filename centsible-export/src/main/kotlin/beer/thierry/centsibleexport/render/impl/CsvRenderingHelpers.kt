@@ -6,6 +6,7 @@ import beer.thierry.centsibleexport.render.ExportRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVPrinter
+import org.slf4j.LoggerFactory
 import java.io.StringWriter
 
 /**
@@ -16,14 +17,19 @@ import java.io.StringWriter
 class CsvBuilder {
     private val writer = StringWriter()
     private val printer = CSVPrinter(writer, CSVFormat.RFC4180)
+    private var rowCount: Int = 0
 
     fun row(vararg cells: Any?): CsvBuilder = apply {
         printer.printRecord(*cells.map { it?.toString() ?: "" }.toTypedArray())
+        rowCount += 1
     }
 
     fun row(cells: List<Any?>): CsvBuilder = apply {
         printer.printRecord(cells.map { it?.toString() ?: "" })
+        rowCount += 1
     }
+
+    fun rowCount(): Int = rowCount
 
     fun bytes(): ByteArray {
         printer.flush()
@@ -41,14 +47,27 @@ class CsvBuilder {
  * is handled here.
  */
 abstract class CsvExportRenderer : ExportRenderer {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     final override fun supportedFormat(): ExportFormat = ExportFormat.CSV
 
     final override fun render(request: ExportRequest): RenderedExport {
-        val csv = buildCsv(request)
-        return RenderedExport(
-            pdf = csv.bytes(), // Field name is historical; carries CSV bytes for CSV renderers.
-            filename = "${filenameStem(request)}-${filenameTimestamp()}.csv",
-        )
+        log.debug("Rendering CSV renderer={} type={}", javaClass.simpleName, supports())
+        try {
+            val csv = buildCsv(request)
+            val bytes = csv.bytes()
+            log.info(
+                "Rendered CSV renderer={} type={} rows={} bytes={}",
+                javaClass.simpleName, supports(), csv.rowCount(), bytes.size,
+            )
+            return RenderedExport(
+                pdf = bytes, // Field name is historical; carries CSV bytes for CSV renderers.
+                filename = "${filenameStem(request)}-${filenameTimestamp()}.csv",
+            )
+        } catch (ex: Exception) {
+            log.error("Failed to render CSV renderer={} type={}", javaClass.simpleName, supports(), ex)
+            throw ex
+        }
     }
 
     protected abstract fun buildCsv(request: ExportRequest): CsvBuilder

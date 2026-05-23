@@ -82,6 +82,10 @@ class PaypalProviderModule(
 
     override fun testConnection(ctx: ProviderContext) {
         val (clientId, clientSecret, environment) = readCredentials(ctx)
+        log.info(
+            "Test connection provider=PayPal userId={} connectionId={} env={}",
+            ctx.userId, ctx.connectionId, environment,
+        )
         client.obtainAccessToken(environment, clientId, clientSecret)
     }
 
@@ -121,7 +125,16 @@ class PaypalProviderModule(
 
     override fun importSince(ctx: ProviderContext, cursor: String?): TransactionImportPage {
         val (clientId, clientSecret, environment) = readCredentials(ctx)
-        val token = client.obtainAccessToken(environment, clientId, clientSecret)
+        val started = System.currentTimeMillis()
+        val token = try {
+            client.obtainAccessToken(environment, clientId, clientSecret)
+        } catch (ex: Exception) {
+            log.error(
+                "Sync failed at token obtain provider=PayPal userId={} connectionId={} env={}",
+                ctx.userId, ctx.connectionId, environment, ex,
+            )
+            throw ex
+        }
 
         val now = Instant.now()
         val endDate = now.minusSeconds(SAFETY_MARGIN_SECONDS)
@@ -129,25 +142,46 @@ class PaypalProviderModule(
         val startDate = resolveStartDate(cursor, configuredStart, now)
 
         if (!startDate.isBefore(endDate)) {
+            log.info(
+                "Sync skipped, start>=end provider=PayPal userId={} connectionId={} startDate={} endDate={}",
+                ctx.userId, ctx.connectionId, startDate, endDate,
+            )
             return TransactionImportPage(transactions = emptyList(), nextCursor = endDate.toString())
         }
 
+        log.info(
+            "Sync begin provider=PayPal userId={} connectionId={} env={} startDate={} endDate={}",
+            ctx.userId, ctx.connectionId, environment, startDate, endDate,
+        )
+
         val accumulated = mutableListOf<ImportedTransactionDTO>()
         var chunkStart = startDate
-        while (chunkStart.isBefore(endDate)) {
-            val chunkEnd = minOf(chunkStart.plus(MAX_WINDOW), endDate)
-            var page = 1
-            while (true) {
-                val response = client.fetchTransactions(environment, token.accessToken, chunkStart, chunkEnd, page)
-                response.transactionDetails.forEach { detail ->
-                    mapTransaction(detail)?.let(accumulated::add)
+        try {
+            while (chunkStart.isBefore(endDate)) {
+                val chunkEnd = minOf(chunkStart.plus(MAX_WINDOW), endDate)
+                var page = 1
+                while (true) {
+                    val response = client.fetchTransactions(environment, token.accessToken, chunkStart, chunkEnd, page)
+                    response.transactionDetails.forEach { detail ->
+                        mapTransaction(detail)?.let(accumulated::add)
+                    }
+                    if (page >= response.totalPages) break
+                    page += 1
                 }
-                if (page >= response.totalPages) break
-                page += 1
+                chunkStart = chunkEnd
             }
-            chunkStart = chunkEnd
+        } catch (ex: Exception) {
+            log.error(
+                "Sync failed provider=PayPal userId={} connectionId={} processedBeforeFailure={}",
+                ctx.userId, ctx.connectionId, accumulated.size, ex,
+            )
+            throw ex
         }
 
+        log.info(
+            "Sync complete provider=PayPal userId={} connectionId={} processed={} elapsedMs={}",
+            ctx.userId, ctx.connectionId, accumulated.size, System.currentTimeMillis() - started,
+        )
         return TransactionImportPage(transactions = accumulated, nextCursor = endDate.toString())
     }
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useAuthService} from "~/services/auth/auth-service";
 
 definePageMeta({
@@ -63,7 +64,7 @@ onMounted(async () => {
   try {
     state.value = (await useAuthService(api).confirm(token)) ? 'success' : 'error';
   } catch (error) {
-    console.error('Confirm token request failed', error);
+    adze.ns('auth').error('Confirm token request failed', error);
     state.value = 'error';
   }
 });

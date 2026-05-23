@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {type Category} from "~/models/category/category";
 import {Frequency, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
 import type {Currency} from "~/models/budget-account/currency";
@@ -35,7 +36,7 @@ async function loadCategories() {
   try {
     categories.value = await categoryService.fetchCategories();
   } catch (error) {
-    console.error('Failed to load categories:', error);
+    adze.ns('recurring').error('Failed to load categories', error);
   }
 }
 

@@ -13,6 +13,7 @@ import beer.thierry.centsible.imports.core.FileImportRegistry
 import beer.thierry.centsible.imports.core.ParseHints
 import beer.thierry.centsible.imports.csv.CsvFileParser
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -36,11 +37,13 @@ class ImportsResource(
     private val objectMapper: ObjectMapper,
 ) {
 
+    private val log = LoggerFactory.getLogger(ImportsResource::class.java)
+
     @PostMapping("/detect", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun detect(@RequestParam("file") file: MultipartFile): ResponseEntity<ImportDetection> {
         val bytes = readBoundedBytes(file)
         val detection = importService.detect(bytes, file.originalFilename ?: "upload", file.contentType)
-            ?: return ResponseEntity.unprocessableEntity().build()
+            ?: return ResponseEntity.unprocessableContent().build()
         return ResponseEntity.ok(detection)
     }
 
@@ -108,7 +111,12 @@ class ImportsResource(
     ): ResponseEntity<ImportResult> {
         val bytes = readBoundedBytes(file)
         val hints = objectMapper.readValue(hintsJson, ParseHintsDTO::class.java)
-        return ResponseEntity.ok(importService.commit(accountId, bytes, parserId, hints, user))
+        val result = importService.commit(accountId, bytes, parserId, hints, user)
+        log.info(
+            "Imported file accountId={} userId={} parserId={} sizeBytes={} imported={} skipped={}",
+            accountId, user.id, parserId, bytes.size, result.imported, result.skippedDuplicates,
+        )
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/profiles")

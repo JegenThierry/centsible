@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Loan} from "~/models/loan/loan";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
@@ -26,7 +27,7 @@ async function handleDelete() {
     isOpen.value = false;
     emit('deleted');
   } catch (error) {
-    console.error('Delete loan failed', error);
+    adze.ns('loans').error('Delete loan failed', error);
   } finally {
     loading.value = false;
   }

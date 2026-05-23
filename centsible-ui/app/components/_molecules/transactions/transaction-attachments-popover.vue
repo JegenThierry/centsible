@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Attachment} from "~/models/transactions/attachment";
 import {useAttachmentService} from "~/services/transactions/attachment-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -26,7 +27,7 @@ async function load() {
   try {
     files.value = await service.list(props.transactionId);
   } catch (error) {
-    console.error('Failed to load attachments', error);
+    adze.ns('attachments').error('Failed to load attachments', error);
     files.value = [];
   } finally {
     loading.value = false;

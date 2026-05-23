@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import AccountBalance from "~/components/_organisms/dashboard/account-balance.vue";
 import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
 import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
@@ -77,7 +78,7 @@ async function fetchData() {
     tasks.push(budgetsStore.fetchCurrentMonth());
   }
   if (!loansStore.allLoansLoaded) {
-    tasks.push(loansStore.refreshAllLoans().catch(e => console.error('Failed to load loans', e)));
+    tasks.push(loansStore.refreshAllLoans().catch(e => adze.ns('dashboard').error('Failed to load loans', e)));
   }
   if (!loansStore.outstandingLoaded) {
     tasks.push(loansStore.refreshOutstanding());
@@ -86,7 +87,7 @@ async function fetchData() {
   try {
     await Promise.all(tasks);
   } catch (error) {
-    console.error("Failed to fetch dashboard data", error);
+    adze.ns('dashboard').error("Failed to fetch dashboard data", error);
   }
 }
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Contact} from "~/models/contact/contact";
 import type {Loan} from "~/models/loan/loan";
 import {useContactsStore} from "~/stores/contactsStore";
@@ -96,7 +97,7 @@ onMounted(async () => {
         : Promise.resolve(),
     ]);
   } catch (error) {
-    console.error('Failed to load contact detail', error);
+    adze.ns('contacts').error('Failed to load contact detail', error);
     toasts.error(t('contacts.toasts.loadDetailFailedTitle'), t('contacts.toasts.loadFailedBody'));
   }
 });

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {NotificationSettings} from "~/models/notification/notification-settings";
 import {DEFAULT_NOTIFICATION_SETTINGS} from "~/models/notification/notification-settings";
 import {useUserService} from "~/services/user/user-service";
@@ -27,7 +28,7 @@ async function load() {
     enableLargeTxn.value = settings.value.largeTransactionThreshold !== null;
     enableLowBalance.value = settings.value.lowBalanceThreshold !== null;
   } catch (error) {
-    console.error('Failed to load notification settings', error);
+    adze.ns('notifications').error('Failed to load notification settings', error);
   } finally {
     loading.value = false;
   }
@@ -45,7 +46,7 @@ async function save() {
     await service.updateNotificationSettings(payload);
     toasts.success(t('profile.notifications.toasts.savedTitle'), t('profile.notifications.toasts.savedBody'));
   } catch (error) {
-    console.error('Failed to save notification settings', error);
+    adze.ns('notifications').error('Failed to save notification settings', error);
     toasts.error(t('profile.notifications.toasts.errorTitle'), t('profile.notifications.toasts.errorBody'));
   } finally {
     saving.value = false;

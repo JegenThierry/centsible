@@ -3,9 +3,12 @@ package beer.thierry.centsible.integrations.support
 import io.github.resilience4j.core.IntervalFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
+import org.slf4j.LoggerFactory
 import org.springframework.web.client.ResourceAccessException
 import java.io.IOException
 import java.time.Duration
+
+private val log = LoggerFactory.getLogger(ProviderRetry::class.java)
 
 /**
  * Thin façade over a resilience4j [Retry] tailored for outbound provider HTTP calls.
@@ -36,7 +39,16 @@ fun providerRetry(provider: String): ProviderRetry {
         )
         .retryOnException(::isTransientHttpFailure)
         .build()
-    return ProviderRetry(Retry.of("$provider-http", config))
+    val retry = Retry.of("$provider-http", config)
+    retry.eventPublisher.onRetry { event ->
+        log.warn(
+            "Retrying provider call provider={} attempt={} lastException={}",
+            provider,
+            event.numberOfRetryAttempts,
+            event.lastThrowable?.javaClass?.simpleName,
+        )
+    }
+    return ProviderRetry(retry)
 }
 
 private fun isTransientHttpFailure(e: Throwable): Boolean = when (e) {

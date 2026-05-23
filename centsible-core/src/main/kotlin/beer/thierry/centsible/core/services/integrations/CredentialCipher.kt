@@ -75,12 +75,22 @@ class CredentialCipher(
 
     fun encrypt(credentials: Map<String, String>): ByteArray? {
         if (credentials.isEmpty()) return null
-        return encryptor.encrypt(objectMapper.writeValueAsBytes(credentials))
+        return try {
+            encryptor.encrypt(objectMapper.writeValueAsBytes(credentials))
+        } catch (e: Exception) {
+            log.error("Credential encryption failed (fields={})", credentials.keys.sorted(), e)
+            throw e
+        }
     }
 
     fun decrypt(ciphertext: ByteArray?): Map<String, String> {
         if (ciphertext == null || ciphertext.isEmpty()) return emptyMap()
-        return objectMapper.readValue(encryptor.decrypt(ciphertext), mapType)
+        return try {
+            objectMapper.readValue(encryptor.decrypt(ciphertext), mapType)
+        } catch (e: Exception) {
+            log.error("Credential decryption failed (cipherBytes={})", ciphertext.size, e)
+            throw e
+        }
     }
 
     companion object {

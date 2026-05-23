@@ -1,3 +1,4 @@
+import adze from 'adze'
 import {useUserStore} from "~/stores/userStore";
 import {useAuthStore} from "~/stores/authStore";
 
@@ -12,7 +13,7 @@ export function useLocaleSwitcher() {
     if (code === locale.value) return;
     await setLocale(code as SupportedLocale);
     if (!authStore.isAuthenticated) return;
-    await userStore.updateLocale(code).catch((error) => console.warn('Failed to persist locale; cookie keeps choice', error));
+    await userStore.updateLocale(code).catch((error) => adze.ns('auth').warn('Failed to persist locale; cookie keeps choice', error));
   }
 
   return {apply};

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -55,7 +56,7 @@ async function handleSave() {
     await categoriesStore.createCategory(form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Failed to create category:', error);
+    adze.ns('categories').error('Failed to create category', error);
   } finally {
     loading.value = false;
   }

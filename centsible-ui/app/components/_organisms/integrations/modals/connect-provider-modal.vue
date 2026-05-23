@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useProvidersStore} from "~/stores/providersStore";
 import type {ProviderDescriptor} from "~/models/integrations/provider-descriptor";
 import DynamicConfigForm from "~/components/_organisms/integrations/dynamic-config-form.vue";
@@ -78,7 +79,7 @@ async function handleSave() {
       isOpen.value = false;
     }
   } catch (error) {
-    console.error('Create provider connection failed', error);
+    adze.ns('integrations').error('Create provider connection failed', error);
   } finally {
     loading.value = false;
   }

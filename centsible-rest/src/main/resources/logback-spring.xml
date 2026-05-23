@@ -15,7 +15,7 @@
 
     <appender name="REDACTED_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{ISO8601} %-5level [%thread] %logger{36} - %redactedMsg%n</pattern>
+            <pattern>%d{ISO8601} %-5level [%thread] [%X{requestId:-}] [%X{userId:-}] %logger{36} - %redactedMsg%n</pattern>
         </encoder>
     </appender>
 

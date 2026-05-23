@@ -1,4 +1,5 @@
 import axios from 'axios';
+import adze from 'adze'
 import {useToasts} from '~/services/toasts/toast-service';
 
 interface BackendErrorResponse {
@@ -25,7 +26,7 @@ export function useApiErrors() {
   }
 
   function toastError(err: unknown, title: string, fallback: string): void {
-    console.error(err);
+    adze.ns('api').error(title, err);
     toasts.error(title, extractMessage(err, fallback));
   }
 

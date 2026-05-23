@@ -9,6 +9,7 @@ import beer.thierry.centsible.imports.core.ParseWarning
 import beer.thierry.centsible.imports.core.ParsedFile
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.StringReader
 import java.math.BigDecimal
@@ -26,6 +27,8 @@ import java.util.Locale
  */
 @Component
 class CsvFileParser : FileFormatParser {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override val id = "csv"
     override val displayName = "CSV"
     override val supportedMimeTypes = setOf("text/csv", "application/csv", "text/plain")
@@ -59,26 +62,46 @@ class CsvFileParser : FileFormatParser {
     }
 
     override fun parse(bytes: ByteArray, hints: ParseHints): ParsedFile {
-        val mapping = requireNotNull(hints.csvMapping) {
-            "CsvFileParser requires ParseHints.csvMapping; call probe() and let the user confirm before parsing."
-        }
-        val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
-            "CsvFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
-        }
-        val dialect = hints.csvDialect ?: detectDialect(bytes)
-        val all = readAllRecords(bytes, dialect)
-        val dataStart = if (dialect.hasHeader) 1 else 0
-        val dateParser = DateTimeFormatter.ofPattern(mapping.dateFormat, hints.locale ?: Locale.ENGLISH)
+        log.debug("Parsing CSV file bytes={} encodingHint={}", bytes.size, hints.csvDialect?.encoding)
+        try {
+            val mapping = requireNotNull(hints.csvMapping) {
+                "CsvFileParser requires ParseHints.csvMapping; call probe() and let the user confirm before parsing."
+            }
+            val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
+                "CsvFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
+            }
+            val dialect = hints.csvDialect ?: detectDialect(bytes)
+            val all = readAllRecords(bytes, dialect)
+            val dataStart = if (dialect.hasHeader) 1 else 0
+            val dateParser = DateTimeFormatter.ofPattern(mapping.dateFormat, hints.locale ?: Locale.ENGLISH)
 
-        val rows = mutableListOf<ImportTransactionRow>()
-        val warnings = mutableListOf<ParseWarning>()
+            val rows = mutableListOf<ImportTransactionRow>()
+            val warnings = mutableListOf<ParseWarning>()
 
-        all.drop(dataStart).forEachIndexed { index, cells ->
-            val sourceRow = index + dataStart + 1
-            val parsed = parseRow(cells, mapping, dateParser, defaultCategoryId, sourceRow, warnings)
-            if (parsed != null) rows.add(parsed)
+            all.drop(dataStart).forEachIndexed { index, cells ->
+                val sourceRow = index + dataStart + 1
+                val parsed = parseRow(cells, mapping, dateParser, defaultCategoryId, sourceRow, warnings)
+                if (parsed != null) rows.add(parsed)
+            }
+            logWarningSummary(warnings)
+            log.info("Parsed file format=csv rows={} warnings={}", rows.size, warnings.size)
+            return ParsedFile(rows = rows, warnings = warnings)
+        } catch (ex: Exception) {
+            log.error("Failed to parse CSV file bytes={}", bytes.size, ex)
+            throw ex
         }
-        return ParsedFile(rows = rows, warnings = warnings)
+    }
+
+    /**
+     * Logged once per distinct warning code as a summary (with row counts) rather than per row —
+     * a malformed CSV can emit thousands of skipped-row warnings, and flooding the log per row
+     * would drown out everything else.
+     */
+    private fun logWarningSummary(warnings: List<ParseWarning>) {
+        if (warnings.isEmpty()) return
+        warnings.groupingBy { it.code }.eachCount().forEach { (code, count) ->
+            log.warn("CSV parse warning code={} count={}", code, count)
+        }
     }
 
     /**

@@ -20,23 +20,34 @@ class ExportJobWorker(
 
     @Scheduled(fixedDelayString = "\${export.worker.poll-interval-ms:2000}")
     fun pollOnce() {
-        val claimed = log.claimOrLog("Failed to claim next export job") {
-            jobRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
-        } ?: return
-        process(claimed)
+        log.debug("Export worker poll tick worker={}", workerProperties.id)
+        try {
+            val claimed = log.claimOrLog("Failed to claim next export job") {
+                jobRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
+            } ?: return
+            process(claimed)
+        } catch (ex: Exception) {
+            log.error("Unhandled error in export worker poll loop worker={}", workerProperties.id, ex)
+        }
     }
 
     private fun process(claimed: ClaimedExportJob) {
         val job = claimed.job
-        log.info("Rendering export job {} (type={}, attempt={})", job.id, job.type, job.attemptCount)
+        val startNanos = System.nanoTime()
+        log.info("Leased export job jobId={} type={} attempt={}", job.id, job.type, job.attemptCount)
         try {
             val request = ExportRequest.parseFrom(claimed.payload)
             val format = request.format.toModelFormat()
             val rendered = renderers.find(job.type, format).render(request)
             jobRepository.markCompleted(job.id, rendered.pdf, rendered.filename)
-            log.info("Completed export job {} (format={}, {} bytes)", job.id, format, rendered.pdf.size)
+            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            log.info(
+                "Completed export job jobId={} format={} bytes={} elapsedMs={}",
+                job.id, format, rendered.pdf.size, elapsedMs,
+            )
         } catch (ex: Exception) {
-            log.error("Failed to render export job {}", job.id, ex)
+            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            log.error("Failed export job jobId={} elapsedMs={}", job.id, elapsedMs, ex)
             jobRepository.markFailed(job.id, ex.failureReason())
         }
     }

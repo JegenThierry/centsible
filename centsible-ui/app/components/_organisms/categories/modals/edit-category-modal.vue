@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {type Category, type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -57,7 +58,7 @@ async function handleSave() {
     await categoriesStore.updateCategory(props.category.id, form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Failed to update category:', error);
+    adze.ns('categories').error('Failed to update category', error);
   } finally {
     loading.value = false;
   }

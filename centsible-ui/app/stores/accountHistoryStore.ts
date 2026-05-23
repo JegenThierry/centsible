@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import adze from 'adze'
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
 import {daysAgoIsoDate, todayIsoDate} from "~/utils/date";
@@ -16,7 +17,7 @@ export const useAccountHistoryStore = defineStore('accountHistoryStore', () => {
     try {
       snapshots.value = await accountService.fetchSnapshots(accountId, startDate, endDate);
     } catch (error) {
-      console.error("Failed to fetch snapshots", error);
+      adze.ns('budget-accounts').error("Failed to fetch snapshots", error);
     } finally {
       pending.value = false;
     }

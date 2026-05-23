@@ -6,6 +6,7 @@ import io.github.bucket4j.Bucket
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -16,6 +17,8 @@ import java.time.Duration
 // or every request appears to come from the proxy IP.
 @Component
 class AuthRateLimitFilter : OncePerRequestFilter() {
+    private val log = LoggerFactory.getLogger(AuthRateLimitFilter::class.java)
+
     private val buckets = Caffeine.newBuilder()
         .maximumSize(100_000)
         .expireAfterAccess(Duration.ofMinutes(15))
@@ -49,6 +52,10 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
             return
         }
         val retryAfterSeconds = (probe.nanosToWaitForRefill / 1_000_000_000).coerceAtLeast(1)
+        log.warn(
+            "Rate limit exceeded path={} ip={} retryAfterSeconds={}",
+            request.requestURI, request.remoteAddr, retryAfterSeconds,
+        )
         response.status = HttpStatus.TOO_MANY_REQUESTS.value()
         response.setHeader("Retry-After", retryAfterSeconds.toString())
         response.contentType = "application/json"

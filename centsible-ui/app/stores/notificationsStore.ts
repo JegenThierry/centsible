@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import adze from 'adze'
 import {useNotificationService} from "~/services/notifications/notification-service";
 import type {Notification} from "~/models/notification/notification";
 import {fingerprint} from "~/utils/fingerprint";
@@ -25,7 +26,7 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
       }
       unreadCount.value = next.filter((n) => !n.readAt).length;
     } catch (e) {
-      console.error('Failed to load notifications', e);
+      adze.ns('notifications').error('Failed to load notifications', e);
     } finally {
       loading.value = false;
     }

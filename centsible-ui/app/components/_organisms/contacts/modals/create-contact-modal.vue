@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {ContactForm as ContactFormModel} from "~/models/contact/contact";
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
@@ -29,7 +30,7 @@ async function handleSave() {
     await contactsStore.createContact(form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Create contact failed', error);
+    adze.ns('contacts').error('Create contact failed', error);
   } finally {
     loading.value = false;
   }

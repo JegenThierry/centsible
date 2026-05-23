@@ -11,8 +11,8 @@ import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.api.services.integrations.OAuthCompletionResult
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -36,6 +36,8 @@ class IntegrationsResource(
     private val oauthFlowService: IOAuthFlowService,
     @Value(UI_BASE_URL_EXPRESSION) private val uiBaseUrl: String,
 ) {
+
+    private val log = LoggerFactory.getLogger(IntegrationsResource::class.java)
 
     @GetMapping("/providers")
     fun listProviders(): ResponseEntity<List<ProviderDescriptor>> =
@@ -61,8 +63,11 @@ class IntegrationsResource(
     fun createConnection(
         @Valid @RequestBody form: ProviderConnectionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ProviderConnectionDTO> =
-        ResponseEntity.ok(connectionService.createConnection(authenticatedUser, form))
+    ): ResponseEntity<ProviderConnectionDTO> {
+        val created = connectionService.createConnection(authenticatedUser, form)
+        log.info("Created provider connection id={} providerKey={} userId={}", created.id, form.providerKey, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
 
     @PutMapping("/connections/{id}")
     fun updateConnection(
@@ -72,6 +77,7 @@ class IntegrationsResource(
     ): ResponseEntity<ProviderConnectionDTO> {
         val updated = connectionService.updateConnection(authenticatedUser, id, form)
             ?: return ResponseEntity.notFound().build()
+        log.info("Updated provider connection id={} userId={}", id, authenticatedUser.id)
         return ResponseEntity.ok(updated)
     }
 
@@ -80,16 +86,20 @@ class IntegrationsResource(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> =
-        if (connectionService.deleteConnection(authenticatedUser, id)) ResponseEntity.ok().build()
-        else ResponseEntity.notFound().build()
+        if (connectionService.deleteConnection(authenticatedUser, id)) {
+            log.info("Deleted provider connection id={} userId={}", id, authenticatedUser.id)
+            ResponseEntity.ok().build()
+        } else ResponseEntity.notFound().build()
 
     @PostMapping("/connections/{id}/sync")
     fun triggerSync(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> =
-        if (connectionService.triggerSync(authenticatedUser, id)) ResponseEntity.accepted().build()
-        else ResponseEntity.notFound().build()
+        if (connectionService.triggerSync(authenticatedUser, id)) {
+            log.info("Triggered sync for connection id={} userId={}", id, authenticatedUser.id)
+            ResponseEntity.accepted().build()
+        } else ResponseEntity.notFound().build()
 
     /**
      * Begins an OAuth2 authorization-code flow. Returns the URL the browser should follow to
@@ -101,6 +111,7 @@ class IntegrationsResource(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<OAuthStartResponse> {
         val result = oauthFlowService.startAuthorization(authenticatedUser, id)
+        log.info("Started OAuth authorization connectionId={} userId={}", result.connectionId, authenticatedUser.id)
         return ResponseEntity.ok(
             OAuthStartResponse(authorizationUrl = result.authorizationUrl, connectionId = result.connectionId)
         )
@@ -146,6 +157,15 @@ class IntegrationsResource(
             ?: ""
         val params = request.parameterMap.mapValues { it.value.firstOrNull().orEmpty() }
         val result = oauthFlowService.completeAuthorization(providerKey, state, params)
+        when (result) {
+            is OAuthCompletionResult.Success ->
+                log.info("OAuth callback success providerKey={} connectionId={}", providerKey, result.connectionId)
+            is OAuthCompletionResult.Failure ->
+                log.warn(
+                    "OAuth callback failure providerKey={} connectionId={} reason={}",
+                    providerKey, result.connectionId, result.reason,
+                )
+        }
         val target = buildReturnUrl(result)
         return RedirectView(target, false, false, false)
     }

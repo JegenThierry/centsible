@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import adze from 'adze'
 import {useReportsService} from "~/services/reports/reports-service";
 import type {NetWorthPoint} from "~/models/reports/net-worth-point";
 import type {AccountBalanceAtDate} from "~/models/reports/account-balance-at-date";
@@ -32,7 +33,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     try {
       return await loader();
     } catch (error) {
-      console.error(`Failed to fetch ${label}`, error);
+      adze.ns('reports').error(`Failed to fetch ${label}`, error);
       fallback();
     } finally {
       inflight.value--;

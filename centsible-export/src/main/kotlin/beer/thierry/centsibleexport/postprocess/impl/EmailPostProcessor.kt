@@ -27,6 +27,7 @@ class EmailPostProcessor(
     override fun supports(): PostProcessingType = PostProcessingType.SEND_EMAIL
 
     override fun execute(job: ExportJobDTO, pdf: ByteArray, pdfFilename: String, config: Map<String, Any?>) {
+        log.info("Enqueuing export email jobId={} userId={} bytes={}", job.id, job.userId, pdf.size)
         val recipient = (config["recipient"] as? String)?.takeIf { it.isNotBlank() }
             ?: data.fetchUserById(job.userId)?.email
             ?: error("No recipient email resolved for job ${job.id}")
@@ -52,9 +53,17 @@ class EmailPostProcessor(
             ),
         )
 
-        val request = HttpEntity(body, headers)
-        restTemplate.postForLocation(RESEND_API_URL, request)
-        log.info("Sent export {} to {}", job.id, recipient)
+        try {
+            val request = HttpEntity(body, headers)
+            restTemplate.postForLocation(RESEND_API_URL, request)
+            log.info(
+                "Sent export email jobId={} userId={} recipientDomain={}",
+                job.id, job.userId, recipient.substringAfter('@', "unknown"),
+            )
+        } catch (ex: Exception) {
+            log.error("Failed to send export email jobId={} userId={}", job.id, job.userId, ex)
+            throw ex
+        }
     }
 
     private companion object {

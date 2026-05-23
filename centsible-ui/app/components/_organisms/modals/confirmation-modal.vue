@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useToasts} from "~/services/toasts/toast-service";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 
@@ -21,7 +22,7 @@ async function onDelete() {
     toasts.success(t('common.confirmDelete.successTitle', {entity: props.entity}), t('common.confirmDelete.successBody', {entity: props.entity}));
   } catch (error) {
     toasts.error(t('common.confirmDelete.errorTitle', {entity: props.entity}), t('common.confirmDelete.errorBody', {entity: props.entity}));
-    console.error(`Failed to delete ${props.entity}:`, error);
+    adze.ns('modals').error(`Failed to delete ${props.entity}`, error);
   } finally {
     loading.value = false;
   }

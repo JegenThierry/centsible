@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -40,7 +41,7 @@ function onSubmit() {
       success(t('auth.login.toastSuccessTitle'), t('auth.login.toastSuccessBody'));
     })
     .catch((err) => {
-      console.error(err);
+      adze.ns('auth').error('Login failed', err);
       error(t('auth.login.toastErrorTitle'), t('auth.login.toastErrorBody'));
     })
     .finally(() => loading.value = false);

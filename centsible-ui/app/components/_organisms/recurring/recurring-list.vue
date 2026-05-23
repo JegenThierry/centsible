@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useRecurringTransactionsStore} from "~/stores/recurringTransactionsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
@@ -51,7 +52,7 @@ async function toggle(rule: RecurringTransaction) {
     refresh();
   } catch (error) {
     toasts.error(t('transactions.recurring.toastToggleErrorTitle'), t('transactions.recurring.toastToggleErrorBody'));
-    console.error(error);
+    adze.ns('recurring').error('Toggle recurring rule failed', error);
   }
 }
 
