@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.dependency.management) apply false
 }
 
+val guavaVersion = libs.versions.guava.get()
+
 allprojects {
     group = "beer.thierry"
     version = "0.3.0"
@@ -39,5 +41,12 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    dependencies {
+        constraints {
+            "implementation"("com.google.guava:guava:$guavaVersion")
+            "runtimeOnly"("com.google.guava:guava:$guavaVersion")
+        }
     }
 }
