@@ -18,12 +18,13 @@
       "lastError": "Letzter Fehler: {error}",
       "syncNow": "Jetzt synchronisieren",
       "disconnect": "Trennen",
+      "reconnect": "Neu verbinden",
       "confirmDisconnect": "„{name}“ wirklich trennen?",
       "status": {
         "ACTIVE": "aktiv",
-        "NEW": "neu",
+        "NEW": "Autorisierung ausstehend",
         "ERROR": "fehler",
-        "REVOKED": "widerrufen"
+        "REVOKED": "Zustimmung abgelaufen"
       }
     },
     "modal": {
@@ -33,10 +34,17 @@
       "displayNameLabel": "Verbindungsname",
       "displayNameHelp": "Ein Name, der in der Verbindungsliste angezeigt wird.",
       "displayNameRequired": "Anzeigename ist erforderlich.",
-      "submit": "Verbinden"
+      "submit": "Verbinden",
+      "saveAndContinue": "Speichern und fortfahren",
+      "continueToProvider": "Weiter zu {name}",
+      "oauthStep1Title": "Schritt 1: Konfigurieren",
+      "oauthStep1Description": "Speichere deine Einstellungen, anschließend wirst du zur Autorisierung bei deiner Bank weitergeleitet.",
+      "oauthStep2Title": "Schritt 2: Bei deiner Bank autorisieren",
+      "oauthStep2Description": "Du wirst zu {name} weitergeleitet, um den Zugriff zu erteilen. Die Verbindung ist gespeichert; du kannst jederzeit zurückkommen."
     },
     "form": {
       "selectPlaceholder": "Auswählen…",
+      "searchPlaceholder": "Suchen…",
       "secret": {
         "showAria": "Wert anzeigen",
         "hideAria": "Wert ausblenden"
@@ -45,6 +53,22 @@
         "required": "{field} ist erforderlich.",
         "number": "{field} muss eine Zahl sein.",
         "select": "{field} muss einer der folgenden Werte sein: {options}."
+      }
+    },
+    "oauthReturn": {
+      "title": "Verbindung wird abgeschlossen…",
+      "redirecting": "Du wirst zurück zu den Integrationen geleitet…",
+      "successTitle": "Verbindung autorisiert",
+      "successBody": "Deine Daten werden in Kürze synchronisiert.",
+      "errorTitle": "Autorisierung fehlgeschlagen",
+      "errorBody": "Die Verbindung konnte nicht abgeschlossen werden. Bitte erneut versuchen.",
+      "errors": {
+        "state_invalid": "Der Autorisierungslink ist abgelaufen oder wurde bereits verwendet. Bitte erneut starten.",
+        "provider_error": "Der Anbieter hat die Autorisierung abgelehnt. Bitte erneut versuchen und ggf. die Server-Logs prüfen.",
+        "provider_gone": "Der Anbieter wurde deaktiviert, bevor die Autorisierung abgeschlossen werden konnte.",
+        "provider_mismatch": "Der Autorisierungslink passt nicht zum erwarteten Anbieter.",
+        "connection_gone": "Die Verbindung wurde während der Autorisierung gelöscht.",
+        "persist_failed": "Die Autorisierung konnte nicht gespeichert werden. Bitte erneut versuchen."
       }
     }
   }

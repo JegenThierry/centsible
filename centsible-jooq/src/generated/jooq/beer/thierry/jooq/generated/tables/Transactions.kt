@@ -9,6 +9,7 @@ import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_TYPE
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_CATEGORY_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_DATE
+import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_RECURRING_ID
 import beer.thierry.jooq.generated.indexes.UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
@@ -16,12 +17,14 @@ import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSAC
 import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
+import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
@@ -151,6 +154,11 @@ open class Transactions(
      */
     val TYPE: TableField<TransactionsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10).nullable(false), this, "")
 
+    /**
+     * The column <code>public.transactions.provider_connection_id</code>.
+     */
+    val PROVIDER_CONNECTION_ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("provider_connection_id"), SQLDataType.UUID, this, "")
+
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -183,9 +191,9 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
-    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
 
     private lateinit var _accounts: AccountsPath
 
@@ -216,6 +224,22 @@ open class Transactions(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+
+    private lateinit var _providerConnections: ProviderConnectionsPath
+
+    /**
+     * Get the implicit join path to the
+     * <code>public.provider_connections</code> table.
+     */
+    fun providerConnections(): ProviderConnectionsPath {
+        if (!this::_providerConnections.isInitialized)
+            _providerConnections = ProviderConnectionsPath(this, TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY, null)
+
+        return _providerConnections;
+    }
+
+    val providerConnections: ProviderConnectionsPath
+        get(): ProviderConnectionsPath = providerConnections()
 
     private lateinit var _recurringTransactions: RecurringTransactionsPath
 

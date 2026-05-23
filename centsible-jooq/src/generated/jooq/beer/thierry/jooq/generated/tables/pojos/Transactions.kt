@@ -26,7 +26,8 @@ data class Transactions(
     val modifiedAt: OffsetDateTime? = null,
     val recurringTransactionId: UUID? = null,
     val importHash: String? = null,
-    val type: String? = null
+    val type: String? = null,
+    val providerConnectionId: UUID? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -103,6 +104,12 @@ data class Transactions(
         }
         else if (this.type != o.type)
             return false
+        if (this.providerConnectionId == null) {
+            if (o.providerConnectionId != null)
+                return false
+        }
+        else if (this.providerConnectionId != o.providerConnectionId)
+            return false
         return true
     }
 
@@ -120,6 +127,7 @@ data class Transactions(
         result = prime * result + (if (this.recurringTransactionId == null) 0 else this.recurringTransactionId.hashCode())
         result = prime * result + (if (this.importHash == null) 0 else this.importHash.hashCode())
         result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
+        result = prime * result + (if (this.providerConnectionId == null) 0 else this.providerConnectionId.hashCode())
         return result
     }
 
@@ -137,6 +145,7 @@ data class Transactions(
         sb.append(", ").append(recurringTransactionId)
         sb.append(", ").append(importHash)
         sb.append(", ").append(type)
+        sb.append(", ").append(providerConnectionId)
 
         sb.append(")")
         return sb.toString()

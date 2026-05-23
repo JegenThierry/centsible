@@ -30,7 +30,7 @@ const chartData = computed<ChartData<'line'>>(() => {
         data: labels.map(m => byMonth.get(m) ?? 0),
         borderColor: s.categoryColor ?? '#a3a3a3',
         backgroundColor: s.categoryColor ?? '#a3a3a3',
-        tension: 0.3,
+        tension: 0,
         pointRadius: 3,
         pointHoverRadius: 5,
       };

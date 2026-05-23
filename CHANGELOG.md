@@ -5,6 +5,42 @@ All notable changes to **Centsible** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **PayPal integration**: import PayPal Transactions via per-user REST API app
+  credentials. Configurable through the UI; gated by `INTEGRATIONS_PAYPAL_ENABLED`.
+- **EU banking integration (GoCardless Bank Account Data)**: connect any EU/EEA bank
+  under PSD2. Operator-level credentials (`INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID/SECRET_KEY`);
+  end users authorize per-bank consent through a 2-step OAuth flow with a searchable
+  institution picker. Consent auto-expires every 90 days with a "Reconnect" CTA.
+- New SPI capability interfaces: `IOAuthFlowProvider` (OAuth2 authorization code),
+  `IRemoteOptionsProvider` (searchable async dropdowns).
+- New `FieldType.OAUTH_LAUNCH` and `FieldType.SELECT_REMOTE` for dynamic config forms.
+- New REST endpoints: `POST /api/integrations/connections/{id}/oauth/start`,
+  `GET /api/integrations/oauth/callback/{providerKey}` (now functional),
+  `POST /api/integrations/providers/{key}/options/{field}`.
+- HMAC-signed OAuth state tokens (`OAuthFlowService`).
+- Pre-sync `TokenRefreshGuard` for OAuth providers; auto-marks REVOKED on consent expiry.
+- `ProviderSyncOrchestrator` auto-creates centsible accounts for each provider-reported
+  external account on first sync; mapping persisted in connection config.
+- Fail-fast at boot when `INTEGRATIONS_*_ENABLED=true` but `INTEGRATIONS_ENCRYPTION_KEY` is missing.
+- `logback-spring.xml` with a `SecretRedactingConverter` that masks `access_token`,
+  `refresh_token`, `client_secret`, `secret_key`, and `Authorization: Bearer` substrings
+  in log lines as defense-in-depth.
+- Rate limiting extended to `/api/integrations/oauth/**` and `*/sync` endpoints.
+
+### Changed
+- `IOAuthFlowProvider.buildAuthorizationUrl` now returns `OAuthAuthorizationStart`
+  (URL + `configPatch` persisted before redirect) instead of a bare `String`.
+- Schema: new `transactions.provider_connection_id` FK (nullable, ON DELETE SET NULL) for
+  attribution of imported transactions to the connection that fetched them.
+- Schema: new `provider_connection_accounts` join table replacing the JSONB
+  `provider_connections.config.accountMap`. Provides FK integrity, ON DELETE CASCADE on
+  connection removal, and SET NULL on centsible-account removal.
+- `ProviderSyncOrchestrator.reconcileAccounts` now writes to the join table via
+  `IProviderConnectionAccountsRepository` instead of mutating `config` JSONB.
+
 ## [0.1.0] — 2026-05-16
 
 First public release. A self-hostable personal-finance tracker with multi-account

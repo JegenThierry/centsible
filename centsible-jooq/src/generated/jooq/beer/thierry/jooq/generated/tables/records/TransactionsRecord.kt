@@ -65,6 +65,10 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         set(value): Unit = set(10, value)
         get(): String? = get(10) as String?
 
+    open var providerConnectionId: UUID?
+        set(value): Unit = set(11, value)
+        get(): UUID? = get(11) as UUID?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -74,7 +78,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null): this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null, providerConnectionId: UUID? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
@@ -86,6 +90,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         this.recurringTransactionId = recurringTransactionId
         this.importHash = importHash
         this.type = type
+        this.providerConnectionId = providerConnectionId
         resetChangedOnNotNull()
     }
 
@@ -105,6 +110,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
             this.recurringTransactionId = value.recurringTransactionId
             this.importHash = value.importHash
             this.type = value.type
+            this.providerConnectionId = value.providerConnectionId
             resetChangedOnNotNull()
         }
     }

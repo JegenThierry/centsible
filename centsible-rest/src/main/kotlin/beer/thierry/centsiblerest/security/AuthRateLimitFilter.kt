@@ -21,8 +21,20 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
         .expireAfterAccess(Duration.ofMinutes(15))
         .build<String, Bucket>()
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean =
-        request.requestURI !in RATE_LIMITED_PATHS
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val uri = request.requestURI ?: return true
+        if (uri in RATE_LIMITED_PATHS) return false
+        // Integrations sync trigger and OAuth dance: defend against trigger floods + state
+        // brute-force on the public callback. Same bucket as auth.
+        if (uri.startsWith("/api/integrations/oauth/")) return false
+        if (uri.endsWith("/sync") && uri.startsWith("/api/integrations/connections/")) return false
+        if (uri.endsWith("/oauth/start") && uri.startsWith("/api/integrations/connections/")) return false
+        // Remote-options forwards user-supplied queries to the provider's API (e.g. GoCardless
+        // listInstitutions) — without a limit any authenticated user could burn the operator's
+        // upstream quota.
+        if (uri.startsWith("/api/integrations/providers/") && uri.contains("/options/")) return false
+        return true
+    }
 
     override fun doFilterInternal(
         request: HttpServletRequest,

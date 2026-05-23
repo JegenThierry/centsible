@@ -8,8 +8,10 @@ import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_ACCOUNTS_USER_ID
 import beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTION_ACCOUNTS__PROVIDER_CONNECTION_ACCOUNTS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
+import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts.ProviderConnectionAccountsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
@@ -173,6 +175,22 @@ open class Accounts(
 
     val users: UsersPath
         get(): UsersPath = users()
+
+    private lateinit var _providerConnectionAccounts: ProviderConnectionAccountsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.provider_connection_accounts</code> table
+     */
+    fun providerConnectionAccounts(): ProviderConnectionAccountsPath {
+        if (!this::_providerConnectionAccounts.isInitialized)
+            _providerConnectionAccounts = ProviderConnectionAccountsPath(this, null, PROVIDER_CONNECTION_ACCOUNTS__PROVIDER_CONNECTION_ACCOUNTS_ACCOUNT_ID_FKEY.inverseKey)
+
+        return _providerConnectionAccounts;
+    }
+
+    val providerConnectionAccounts: ProviderConnectionAccountsPath
+        get(): ProviderConnectionAccountsPath = providerConnectionAccounts()
 
     private lateinit var _recurringTransactions: RecurringTransactionsPath
 

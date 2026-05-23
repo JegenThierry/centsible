@@ -1,42 +1,82 @@
+# ============================================================================
+# Application identity
+# ============================================================================
 spring.application.name=centsible-rest
 
-#DB Configuration
+# ============================================================================
+# Persistence
+# ============================================================================
+# --- Datasource ---
 spring.datasource.url=jdbc:postgresql://<url>/budget_planner
 spring.datasource.username=<username>
 spring.datasource.password=<password>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-# Jooq Configuration
+# --- jOOQ ---
 spring.jooq.sql-dialect=postgres
 
-#JWT you can use: https://jwtsecretkeygenerator.com/
+# ============================================================================
+# Authentication & security
+# ============================================================================
+# JWT — generate a strong secret, e.g. https://jwtsecretkeygenerator.com/
 jwt.expiration-ms=86400000
 jwt.secret=<Enter your token>
 
-# Actuator
+# Skip the email-verification step on signup (development convenience).
+skip.email.verification=true
+
+# CORS allow-list (comma-separated, no wildcards).
+cors.allowed-origins=http://localhost:3000
+
+# ============================================================================
+# Observability
+# ============================================================================
 management.endpoints.web.exposure.include=health
 management.endpoint.health.show-details=never
 
-#Application Configuration
-skip.email.verification=true
-
-# i18n — validation/error messages and email copy resolve through the bundle named
+# ============================================================================
+# Internationalization
+# ============================================================================
+# Validation/error messages and email copy resolve through the bundle named
 # `messages_{en,fr,de}.properties` on the classpath; the active locale comes from
 # Accept-Language (UI sends it on every request) or the user's stored preference.
 spring.messages.basename=messages
 spring.messages.encoding=UTF-8
 
-cors.allowed-origins=http://localhost:3000
-
+# ============================================================================
+# Transaction attachments
+# ============================================================================
+# Files are stored on disk under this directory, one subdir per user/transaction.
+attachments.directory=${ATTACHMENTS_DIRECTORY:./data/attachments}
 spring.servlet.multipart.max-file-size=11MB
 spring.servlet.multipart.max-request-size=12MB
 
-# Transaction attachments — files are stored on disk under this directory, one subdir per user/transaction.
-attachments.directory=${ATTACHMENTS_DIRECTORY:./data/attachments}
+# ============================================================================
+# Integrations (external provider plugins)
+# ============================================================================
 
-# Integrations (provider plugins)
+# --- Credentials at rest ---
 integrations.encryption-key=${INTEGRATIONS_ENCRYPTION_KEY:}
 integrations.encryption-salt=${INTEGRATIONS_ENCRYPTION_SALT:}
+
+# --- Sync orchestrator ---
 integrations.sync.poll-interval-ms=${INTEGRATIONS_SYNC_POLL_INTERVAL_MS:300000}
 integrations.sync.interval-seconds=${INTEGRATIONS_SYNC_INTERVAL_SECONDS:3600}
 integrations.sync.lease-timeout-seconds=${INTEGRATIONS_SYNC_LEASE_TIMEOUT_SECONDS:300}
+
+# --- OAuth redirect URLs ---
+integrations.base-url=${INTEGRATIONS_BASE_URL:}
+integrations.ui-base-url=${INTEGRATIONS_UI_BASE_URL:${INTEGRATIONS_BASE_URL:}}
+
+# --- PayPal provider (per-user credentials come from the UI) ---
+integrations.paypal.enabled=${INTEGRATIONS_PAYPAL_ENABLED:false}
+integrations.paypal.default-environment=${INTEGRATIONS_PAYPAL_DEFAULT_ENVIRONMENT:live}
+integrations.paypal.http-timeout-ms=${INTEGRATIONS_PAYPAL_HTTP_TIMEOUT_MS:15000}
+
+# --- GoCardless Bank Account Data (EU banking under PSD2) ---
+# Operator-level secrets — required when integrations.banking-gocardless.enabled=true.
+integrations.banking-gocardless.enabled=${INTEGRATIONS_BANKING_GOCARDLESS_ENABLED:false}
+integrations.banking-gocardless.secret-id=${INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID:}
+integrations.banking-gocardless.secret-key=${INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY:}
+integrations.banking-gocardless.api-base=${INTEGRATIONS_BANKING_GOCARDLESS_API_BASE:https://bankaccountdata.gocardless.com/api/v2}
+integrations.banking-gocardless.min-sync-interval-seconds=${INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS:21600}

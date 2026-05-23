@@ -18,12 +18,13 @@
       "lastError": "Last error: {error}",
       "syncNow": "Sync now",
       "disconnect": "Disconnect",
+      "reconnect": "Reconnect",
       "confirmDisconnect": "Disconnect \"{name}\"?",
       "status": {
         "ACTIVE": "active",
-        "NEW": "new",
+        "NEW": "needs authorization",
         "ERROR": "error",
-        "REVOKED": "revoked"
+        "REVOKED": "consent expired"
       }
     },
     "modal": {
@@ -33,10 +34,17 @@
       "displayNameLabel": "Connection name",
       "displayNameHelp": "A name you'll see in the connection list.",
       "displayNameRequired": "Display name is required.",
-      "submit": "Connect"
+      "submit": "Connect",
+      "saveAndContinue": "Save and continue",
+      "continueToProvider": "Continue to {name}",
+      "oauthStep1Title": "Step 1: configure",
+      "oauthStep1Description": "Save your settings, then you'll be redirected to authorize at the bank.",
+      "oauthStep2Title": "Step 2: authorize at your bank",
+      "oauthStep2Description": "You'll be redirected to {name} to grant access. The connection is saved; come back any time."
     },
     "form": {
       "selectPlaceholder": "Select…",
+      "searchPlaceholder": "Search…",
       "secret": {
         "showAria": "Show value",
         "hideAria": "Hide value"
@@ -45,6 +53,22 @@
         "required": "{field} is required.",
         "number": "{field} must be a number.",
         "select": "{field} must be one of: {options}."
+      }
+    },
+    "oauthReturn": {
+      "title": "Finishing connection…",
+      "redirecting": "Returning you to integrations…",
+      "successTitle": "Connection authorized",
+      "successBody": "Your data will sync shortly.",
+      "errorTitle": "Authorization failed",
+      "errorBody": "We could not complete the connection. Please try again.",
+      "errors": {
+        "state_invalid": "Your authorization link expired or was already used. Please start again.",
+        "provider_error": "The provider rejected the authorization. Please retry, and check the server logs for details.",
+        "provider_gone": "The provider was disabled before the authorization could finish.",
+        "provider_mismatch": "Authorization link did not match the expected provider.",
+        "connection_gone": "The connection was deleted while you were authorizing.",
+        "persist_failed": "We could not save the authorization. Please try again."
       }
     }
   }

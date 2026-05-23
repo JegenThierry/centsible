@@ -8,11 +8,14 @@ import beer.thierry.centsible.api.model.integrations.ProviderConnectionForm
 import beer.thierry.centsible.api.model.integrations.ProviderConnectionStatus
 import beer.thierry.centsible.api.model.integrations.ProviderContext
 import beer.thierry.centsible.api.model.integrations.ProviderDescriptor
+import beer.thierry.centsible.api.model.integrations.RemoteOptionsRequest
+import beer.thierry.centsible.api.model.integrations.SelectOption
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.ProviderConnectionRecord
 import beer.thierry.centsible.api.services.integrations.IProviderConnectionService
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
+import beer.thierry.centsible.api.services.integrations.IRemoteOptionsProvider
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -81,6 +84,33 @@ class ProviderConnectionService(
     override fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean =
         repository.requeueForSync(authenticatedUser, id)
 
+    override fun fetchRemoteOptions(
+        authenticatedUser: UserDTO,
+        providerKey: String,
+        fieldName: String,
+        query: String?,
+        values: Map<String, Any?>,
+    ): List<SelectOption> {
+        val module = registry.getModule(providerKey)
+            ?: throw IllegalArgumentException("Unknown provider key: $providerKey")
+        val field = module.descriptor.configFields.firstOrNull { it.name == fieldName }
+            ?: throw IllegalArgumentException("Unknown field '$fieldName' for provider $providerKey")
+        require(field.type == FieldType.SELECT_REMOTE) {
+            "Field '$fieldName' is not a SELECT_REMOTE field"
+        }
+        require(module is IRemoteOptionsProvider) {
+            "Provider '$providerKey' does not provide remote options"
+        }
+        val ctx = ProviderContext(
+            userId = authenticatedUser.id,
+            connectionId = UUID(0, 0),
+            displayName = "remote-options-lookup",
+            config = values.filterKeys { it != fieldName },
+            credentials = emptyMap(),
+        )
+        return module.fetchOptions(ctx, RemoteOptionsRequest(fieldName, query, values))
+    }
+
     private fun runProviderTest(
         module: ProviderModule,
         userId: UUID,
@@ -125,6 +155,8 @@ class ProviderConnectionService(
         val config = mutableMapOf<String, Any?>()
         val secrets = mutableMapOf<String, String>()
         for (field in descriptor.configFields) {
+            // OAUTH_LAUNCH fields are pure UI buttons — they never carry a value to persist.
+            if (field.type == FieldType.OAUTH_LAUNCH) continue
             val raw = values[field.name]
             val isMissing = raw == null || (raw is String && raw.isBlank())
             if (isMissing) {
@@ -141,7 +173,7 @@ class ProviderConnectionService(
     }
 
     private fun coerce(field: ConfigField, raw: Any): Any = when (field.type) {
-        FieldType.STRING, FieldType.MULTILINE -> raw.toString()
+        FieldType.STRING, FieldType.MULTILINE, FieldType.SELECT_REMOTE -> raw.toString()
         FieldType.NUMBER -> when (raw) {
             is Number -> raw
             is String -> raw.toBigDecimalOrNull()
@@ -162,6 +194,9 @@ class ProviderConnectionService(
             }
             str
         }
+        // OAUTH_LAUNCH fields are pure UI affordances (a button); they should never carry a
+        // submitted value. If one slips through, drop it rather than persist garbage.
+        FieldType.OAUTH_LAUNCH -> ""
     }
 
     private fun ProviderConnectionRecord.toDTO(): ProviderConnectionDTO = ProviderConnectionDTO(

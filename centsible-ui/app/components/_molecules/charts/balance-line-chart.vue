@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<{
   tension?: number;
   heightClass?: string;
 }>(), {
-  tension: 0.4,
+  tension: 0,
   heightClass: 'h-64',
 });
 

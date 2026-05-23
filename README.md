@@ -241,6 +241,33 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 | `INTEGRATIONS_ENCRYPTION_SALT`        | Hex string, ≥16 chars (`openssl rand -hex 16`)                                                        | empty        |
 | `INTEGRATIONS_SYNC_POLL_INTERVAL_MS`  | How often the sync orchestrator polls (ms)                                                            | `300000`     |
 | `INTEGRATIONS_SYNC_INTERVAL_SECONDS`  | How often a single connection is re-synced (s)                                                        | `3600`       |
+| `INTEGRATIONS_BASE_URL`               | Public URL used to build OAuth redirect URIs. Required for OAuth providers. HTTPS in prod.            | empty        |
+| `INTEGRATIONS_MANUAL_ENABLED`         | Toggle the built-in manual-entry provider                                                             | `true`       |
+
+#### PayPal
+
+Per-user PayPal credentials are entered in the UI; the operator only flips the toggle.
+
+| Variable                                | Description                                                                  | Default |
+|:----------------------------------------|:-----------------------------------------------------------------------------|:--------|
+| `INTEGRATIONS_PAYPAL_ENABLED`           | Show the PayPal provider in the UI                                           | `false` |
+| `INTEGRATIONS_PAYPAL_DEFAULT_ENVIRONMENT` | Default environment shown to users (`live` or `sandbox`)                   | `live`  |
+| `INTEGRATIONS_PAYPAL_HTTP_TIMEOUT_MS`   | HTTP timeout for PayPal API calls                                            | `15000` |
+
+To use: each user creates a REST API app at [developer.paypal.com](https://developer.paypal.com), copies the client ID + secret into Centsible's Connect dialog, and Centsible uses the OAuth2 `client_credentials` grant to read their PayPal Transactions API. No global PayPal app or redirect URI is needed.
+
+#### EU Banking via GoCardless Bank Account Data (formerly Nordigen)
+
+Connects any EU/EEA bank under PSD2. The operator registers ONE app at [bankaccountdata.gocardless.com](https://bankaccountdata.gocardless.com) and shares the secrets across all users on this instance. End users only authorize bank consent through the OAuth flow.
+
+| Variable                                                | Description                                                                | Default                                                |
+|:--------------------------------------------------------|:---------------------------------------------------------------------------|:-------------------------------------------------------|
+| `INTEGRATIONS_BANKING_GOCARDLESS_ENABLED`               | Show the EU banking provider in the UI                                     | `false`                                                |
+| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID`             | GoCardless BAD `secret_id` (operator-level)                                | empty                                                  |
+| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY`            | GoCardless BAD `secret_key` (operator-level)                               | empty                                                  |
+| `INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS` | Minimum gap between syncs — respects GoCardless's 4 req/account/day cap | `21600` (6h)                                           |
+
+Set `INTEGRATIONS_BASE_URL=https://your.domain` and register the callback URL `https://your.domain/api/integrations/oauth/callback/banking-gocardless` in the GoCardless dashboard if required. PSD2 consent lasts 90 days, after which users must re-authorize (the UI surfaces a "Reconnect" CTA on expired connections).
 
 ### UI
 

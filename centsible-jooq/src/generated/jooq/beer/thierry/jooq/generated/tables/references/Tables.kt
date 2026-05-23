@@ -16,8 +16,10 @@ import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
+import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
+import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
@@ -86,6 +88,11 @@ val LOANS: Loans = Loans.LOANS
 val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
 
 /**
+ * The table <code>public.provider_connection_accounts</code>.
+ */
+val PROVIDER_CONNECTION_ACCOUNTS: ProviderConnectionAccounts = ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS
+
+/**
  * The table <code>public.provider_connections</code>.
  */
 val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CONNECTIONS
@@ -94,6 +101,11 @@ val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CON
  * The table <code>public.recurring_transactions</code>.
  */
 val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURRING_TRANSACTIONS
+
+/**
+ * The table <code>public.schema_migrations</code>.
+ */
+val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
 
 /**
  * The table <code>public.system_information</code>.

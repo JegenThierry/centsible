@@ -14,6 +14,7 @@ import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
+import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.TransactionAttachments
@@ -45,6 +46,7 @@ val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_t
 val IDX_LOANS_USER_CONTACT: Index = Internal.createIndex(DSL.name("idx_loans_user_contact"), Loans.LOANS, arrayOf(Loans.LOANS.USER_ID, Loans.LOANS.CONTACT_ID), false)
 val IDX_NOTIFICATIONS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_notifications_user_created"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.USER_ID, Notifications.NOTIFICATIONS.CREATED_AT.desc()), false)
 val IDX_NOTIFICATIONS_USER_UNREAD: Index = Internal.createIndex(DSL.name("idx_notifications_user_unread"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.USER_ID, Notifications.NOTIFICATIONS.READ_AT), false)
+val IDX_PCA_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_pca_account_id"), ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS, arrayOf(ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS.ACCOUNT_ID), false)
 val IDX_PROVIDER_CONNECTIONS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_provider_connections_claimable"), ProviderConnections.PROVIDER_CONNECTIONS, arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.STATUS, ProviderConnections.PROVIDER_CONNECTIONS.LAST_SYNC_AT), false)
 val IDX_PROVIDER_CONNECTIONS_USER: Index = Internal.createIndex(DSL.name("idx_provider_connections_user"), ProviderConnections.PROVIDER_CONNECTIONS, arrayOf(ProviderConnections.PROVIDER_CONNECTIONS.USER_ID), false)
 val IDX_RECURRING_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_recurring_account_id"), RecurringTransactions.RECURRING_TRANSACTIONS, arrayOf(RecurringTransactions.RECURRING_TRANSACTIONS.ACCOUNT_ID), false)
@@ -55,6 +57,7 @@ val IDX_TRANSACTIONS_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_tran
 val IDX_TRANSACTIONS_ACCOUNT_TYPE: Index = Internal.createIndex(DSL.name("idx_transactions_account_type"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.TYPE), false)
 val IDX_TRANSACTIONS_CATEGORY_ID: Index = Internal.createIndex(DSL.name("idx_transactions_category_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.CATEGORY_ID), false)
 val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactions_date"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSACTION_DATE), false)
+val IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID: Index = Internal.createIndex(DSL.name("idx_transactions_provider_connection_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.PROVIDER_CONNECTION_ID), false)
 val IDX_TRANSACTIONS_RECURRING_ID: Index = Internal.createIndex(DSL.name("idx_transactions_recurring_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.RECURRING_TRANSACTION_ID), false)
 val IDX_USERS_PASSWORD_RESET_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_password_reset_token_hash"), Users.USERS, arrayOf(Users.USERS.PASSWORD_RESET_TOKEN_HASH), false)
 val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_registration_token_hash"), Users.USERS, arrayOf(Users.USERS.REGISTRATION_TOKEN_HASH), false)

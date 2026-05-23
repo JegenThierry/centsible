@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.spring.web)
     implementation(libs.spring.security.crypto)
     implementation(libs.jackson.databind)
+    implementation(libs.caffeine)
 
     implementation(libs.jjwt.api)
     runtimeOnly(libs.jjwt.impl)

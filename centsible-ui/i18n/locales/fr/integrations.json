@@ -18,12 +18,13 @@
       "lastError": "Dernière erreur : {error}",
       "syncNow": "Synchroniser",
       "disconnect": "Déconnecter",
+      "reconnect": "Reconnecter",
       "confirmDisconnect": "Déconnecter « {name} » ?",
       "status": {
         "ACTIVE": "actif",
-        "NEW": "nouveau",
+        "NEW": "autorisation requise",
         "ERROR": "erreur",
-        "REVOKED": "révoqué"
+        "REVOKED": "consentement expiré"
       }
     },
     "modal": {
@@ -33,10 +34,17 @@
       "displayNameLabel": "Nom de la connexion",
       "displayNameHelp": "Un nom que vous verrez dans la liste des connexions.",
       "displayNameRequired": "Le nom d'affichage est requis.",
-      "submit": "Connecter"
+      "submit": "Connecter",
+      "saveAndContinue": "Enregistrer et continuer",
+      "continueToProvider": "Continuer vers {name}",
+      "oauthStep1Title": "Étape 1 : configurer",
+      "oauthStep1Description": "Enregistrez vos paramètres, puis vous serez redirigé pour autoriser l'accès auprès de votre banque.",
+      "oauthStep2Title": "Étape 2 : autoriser à la banque",
+      "oauthStep2Description": "Vous serez redirigé vers {name} pour accorder l'accès. La connexion est enregistrée ; revenez quand vous voulez."
     },
     "form": {
       "selectPlaceholder": "Sélectionner…",
+      "searchPlaceholder": "Rechercher…",
       "secret": {
         "showAria": "Afficher la valeur",
         "hideAria": "Masquer la valeur"
@@ -45,6 +53,22 @@
         "required": "{field} est requis.",
         "number": "{field} doit être un nombre.",
         "select": "{field} doit être l'une des valeurs suivantes : {options}."
+      }
+    },
+    "oauthReturn": {
+      "title": "Finalisation de la connexion…",
+      "redirecting": "Retour aux intégrations…",
+      "successTitle": "Connexion autorisée",
+      "successBody": "Vos données seront synchronisées sous peu.",
+      "errorTitle": "Échec de l'autorisation",
+      "errorBody": "Impossible de finaliser la connexion. Veuillez réessayer.",
+      "errors": {
+        "state_invalid": "Le lien d'autorisation a expiré ou a déjà été utilisé. Veuillez recommencer.",
+        "provider_error": "Le fournisseur a rejeté l'autorisation. Réessayez et consultez les journaux du serveur pour plus de détails.",
+        "provider_gone": "Le fournisseur a été désactivé avant la fin de l'autorisation.",
+        "provider_mismatch": "Le lien d'autorisation ne correspond pas au fournisseur attendu.",
+        "connection_gone": "La connexion a été supprimée pendant l'autorisation.",
+        "persist_failed": "Impossible d'enregistrer l'autorisation. Veuillez réessayer."
       }
     }
   }

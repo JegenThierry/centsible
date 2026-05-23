@@ -3,14 +3,22 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.integrations.ProviderConnectionDTO
 import beer.thierry.centsible.api.model.integrations.ProviderConnectionForm
 import beer.thierry.centsible.api.model.integrations.ProviderDescriptor
+import beer.thierry.centsible.api.model.integrations.SelectOption
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.integrations.IOAuthFlowService
 import beer.thierry.centsible.api.services.integrations.IProviderConnectionService
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
+import beer.thierry.centsible.api.services.integrations.OAuthCompletionResult
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.view.RedirectView
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 @RequestMapping("/api/integrations")
@@ -18,6 +26,11 @@ import java.util.UUID
 class IntegrationsResource(
     private val registry: IProviderRegistry,
     private val connectionService: IProviderConnectionService,
+    private val oauthFlowService: IOAuthFlowService,
+    // Where to redirect the user's browser after the OAuth callback finishes. In a split
+    // deployment the UI is on a different host from the API; defaults to integrations.base-url
+    // for single-host setups.
+    @Value("\${integrations.ui-base-url:\${integrations.base-url:}}") private val uiBaseUrl: String,
 ) {
 
     @GetMapping("/providers")
@@ -74,13 +87,89 @@ class IntegrationsResource(
         if (connectionService.triggerSync(authenticatedUser, id)) ResponseEntity.accepted().build()
         else ResponseEntity.notFound().build()
 
-    /** OAuth2 callback. Stub — permit-all because identity comes from `state`, not a JWT. */
-    @GetMapping("/oauth/callback/{providerKey}")
-    fun oauthCallback(@PathVariable providerKey: String): ResponseEntity<String> {
-        val descriptor = registry.getDescriptor(providerKey)
-            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unknown provider: $providerKey")
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
-            "OAuth callback for '${descriptor.key}' is not yet implemented on this server."
+    /**
+     * Begins an OAuth2 authorization-code flow. Returns the URL the browser should follow to
+     * the bank/provider's consent screen.
+     */
+    @PostMapping("/connections/{id}/oauth/start")
+    fun startOAuth(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<OAuthStartResponse> {
+        val result = oauthFlowService.startAuthorization(authenticatedUser, id)
+        return ResponseEntity.ok(
+            OAuthStartResponse(authorizationUrl = result.authorizationUrl, connectionId = result.connectionId)
         )
     }
+
+    /**
+     * Resolves dropdown options for a SELECT_REMOTE field on the given provider.
+     * Body: { "query": "optional search", "values": { other form values } }
+     */
+    @PostMapping("/providers/{providerKey}/options/{fieldName}")
+    fun remoteOptions(
+        @PathVariable providerKey: String,
+        @PathVariable fieldName: String,
+        @RequestBody(required = false) request: RemoteOptionsRequestBody?,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<SelectOption>> {
+        val req = request ?: RemoteOptionsRequestBody()
+        return ResponseEntity.ok(
+            connectionService.fetchRemoteOptions(
+                authenticatedUser = authenticatedUser,
+                providerKey = providerKey,
+                fieldName = fieldName,
+                query = req.query,
+                values = req.values,
+            )
+        )
+    }
+
+    /**
+     * OAuth2 callback. Public-by-necessity (browser arrives without a JWT after the redirect
+     * from the provider). Authentication is via the HMAC-signed `state` query param verified
+     * inside the OAuthFlowService. We respond with an HTTP 302 to a static frontend route
+     * so the user lands somewhere sensible regardless of success/failure.
+     */
+    @GetMapping("/oauth/callback/{providerKey}")
+    fun oauthCallback(
+        @PathVariable providerKey: String,
+        request: HttpServletRequest,
+    ): RedirectView {
+        // Standards-compliant providers send `state`; GoCardless echoes our `reference` as `ref`.
+        val state = request.getParameter("state")
+            ?: request.getParameter("ref")
+            ?: ""
+        val params = request.parameterMap.mapValues { it.value.firstOrNull().orEmpty() }
+        val result = oauthFlowService.completeAuthorization(providerKey, state, params)
+        val target = buildReturnUrl(result)
+        return RedirectView(target, false, false, false)
+    }
+
+    private fun buildReturnUrl(result: OAuthCompletionResult): String {
+        val front = uiBaseUrl.trim().removeSuffix("/").ifEmpty { "" }
+        // `errorCode` is an opaque vocabulary defined by OAuthFlowService.ERROR_* — the UI
+        // translates each to a localized toast. Raw provider exception messages stay in server
+        // logs only; they MUST NOT reach the browser-visible URL.
+        val (status, connectionId, errorCode) = when (result) {
+            is OAuthCompletionResult.Success -> Triple("ok", result.connectionId.toString(), null)
+            is OAuthCompletionResult.Failure -> Triple("error", result.connectionId?.toString(), result.reason)
+        }
+        val params = buildString {
+            append("status=$status")
+            connectionId?.let { append("&connection=").append(URLEncoder.encode(it, StandardCharsets.UTF_8)) }
+            errorCode?.let { append("&code=").append(URLEncoder.encode(it, StandardCharsets.UTF_8)) }
+        }
+        return "$front/integrations/oauth-return?$params"
+    }
 }
+
+data class OAuthStartResponse(
+    val authorizationUrl: String,
+    val connectionId: UUID,
+)
+
+data class RemoteOptionsRequestBody(
+    val query: String? = null,
+    val values: Map<String, Any?> = emptyMap(),
+)

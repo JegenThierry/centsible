@@ -3,7 +3,7 @@ import {useApi} from "~/composables/use-api";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useIntegrationsService} from "~/services/integrations/integrations-service";
-import type {ProviderDescriptor} from "~/models/integrations/provider-descriptor";
+import type {ProviderDescriptor, SelectOption} from "~/models/integrations/provider-descriptor";
 import type {ProviderConnection, ProviderConnectionForm} from "~/models/integrations/provider-connection";
 import {upsertById} from "~/utils/upsert";
 
@@ -93,6 +93,30 @@ export const useProvidersStore = defineStore('providersStore', () => {
     }
   }
 
+  async function startOAuth(id: string): Promise<string | undefined> {
+    try {
+      const result = await integrationsService.startOAuth(id);
+      return result.authorizationUrl;
+    } catch (error) {
+      apiErrors.toastError(error, "Failed to start authorization", "Could not begin OAuth flow");
+      return undefined;
+    }
+  }
+
+  async function searchProviderOptions(
+    providerKey: string,
+    fieldName: string,
+    query: string,
+    values: Record<string, unknown>,
+  ): Promise<SelectOption[]> {
+    try {
+      return await integrationsService.searchProviderOptions(providerKey, fieldName, query, values);
+    } catch (error) {
+      apiErrors.toastError(error, "Search failed", "Could not load options");
+      return [];
+    }
+  }
+
   function findDescriptor(key: string): ProviderDescriptor | undefined {
     return descriptorsByKey.value.get(key);
   }
@@ -107,6 +131,8 @@ export const useProvidersStore = defineStore('providersStore', () => {
     updateConnection,
     deleteConnection,
     triggerSync,
+    startOAuth,
+    searchProviderOptions,
     findDescriptor,
   };
 });
