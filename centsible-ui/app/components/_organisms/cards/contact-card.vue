@@ -2,6 +2,7 @@
 import type {Contact} from "~/models/contact/contact";
 import ContactAvatar from "~/components/_atoms/contacts/contact-avatar.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 import {useActiveCurrency} from "~/composables/use-active-currency";
 
 defineProps<{
@@ -40,22 +41,9 @@ const currency = useActiveCurrency();
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </div>
-        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <UButton
-            color="neutral"
-            icon="i-lucide-pencil"
-            size="sm"
-            variant="ghost"
-            @click.stop="emit('edit', contact)"
-          />
-          <UButton
-            color="error"
-            icon="i-lucide-trash"
-            size="sm"
-            variant="ghost"
-            @click.stop="emit('delete', contact)"
-          />
-        </div>
+        <EditDeleteActions hide-on-hover
+                           @edit="emit('edit', contact)"
+                           @delete="emit('delete', contact)"/>
       </div>
     </div>
   </UCard>

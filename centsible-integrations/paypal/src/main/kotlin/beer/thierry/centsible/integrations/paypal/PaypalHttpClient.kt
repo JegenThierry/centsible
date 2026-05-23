@@ -1,9 +1,10 @@
 package beer.thierry.centsible.integrations.paypal
 
 import beer.thierry.centsible.integrations.support.exchangeOrThrow
+import beer.thierry.centsible.integrations.support.providerRetry
+import beer.thierry.centsible.integrations.support.requireNonBlank
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
@@ -16,33 +17,37 @@ import java.util.Base64
 
 class PaypalHttpClient(private val restClient: RestClient) {
 
-    private val log = LoggerFactory.getLogger(PaypalHttpClient::class.java)
+    private val retry = providerRetry(PROVIDER)
 
     fun obtainAccessToken(environment: String, clientId: String, clientSecret: String): TokenResponse {
-        require(clientId.isNotBlank()) { "clientId must not be blank" }
-        require(clientSecret.isNotBlank()) { "clientSecret must not be blank" }
+        requireNonBlank(clientId, "clientId")
+        requireNonBlank(clientSecret, "clientSecret")
 
         val basic = Base64.getEncoder()
             .encodeToString("$clientId:$clientSecret".toByteArray(Charsets.UTF_8))
         val form = LinkedMultiValueMap<String, String>().apply { add("grant_type", "client_credentials") }
 
-        return restClient.post()
-            .uri("${baseFor(environment)}/v1/oauth2/token")
-            .header(HttpHeaders.AUTHORIZATION, "Basic $basic")
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(form)
-            .exchangeOrThrow(PROVIDER, context = "oauth2/token")
+        return retry.call {
+            restClient.post()
+                .uri("${baseFor(environment)}/v1/oauth2/token")
+                .header(HttpHeaders.AUTHORIZATION, "Basic $basic")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(form)
+                .exchangeOrThrow(PROVIDER, context = "oauth2/token")
+        }
     }
 
     fun fetchUserInfo(environment: String, accessToken: String): UserInfoResponse {
-        require(accessToken.isNotBlank()) { "accessToken must not be blank" }
+        requireNonBlank(accessToken, "accessToken")
 
-        return restClient.get()
-            .uri("${baseFor(environment)}/v1/identity/oauth2/userinfo?schema=paypalv1.1")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchangeOrThrow(PROVIDER, context = "identity/userinfo")
+        return retry.call {
+            restClient.get()
+                .uri("${baseFor(environment)}/v1/identity/oauth2/userinfo?schema=paypalv1.1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchangeOrThrow(PROVIDER, context = "identity/userinfo")
+        }
     }
 
     fun fetchTransactions(
@@ -52,7 +57,7 @@ class PaypalHttpClient(private val restClient: RestClient) {
         endDate: Instant,
         page: Int,
     ): TransactionsResponse {
-        require(accessToken.isNotBlank()) { "accessToken must not be blank" }
+        requireNonBlank(accessToken, "accessToken")
         require(page >= 1) { "page must be >= 1" }
 
         val uri = UriComponentsBuilder.fromUriString("${baseFor(environment)}/v1/reporting/transactions")
@@ -64,20 +69,21 @@ class PaypalHttpClient(private val restClient: RestClient) {
             .build(true)
             .toUri()
 
-        return restClient.get()
-            .uri(uri)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchangeOrThrow(PROVIDER, context = "reporting/transactions page=$page")
+        return retry.call {
+            restClient.get()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchangeOrThrow(PROVIDER, context = "reporting/transactions page=$page")
+        }
     }
 
     private fun baseFor(env: String): String = when (env.lowercase()) {
         "sandbox" -> "https://api-m.sandbox.paypal.com"
         "live" -> "https://api-m.paypal.com"
-        else -> {
-            log.warn("Unknown PayPal environment '{}', defaulting to live", env)
-            "https://api-m.paypal.com"
-        }
+        else -> throw IllegalArgumentException(
+            "Unknown PayPal environment '$env'; expected 'sandbox' or 'live'"
+        )
     }
 
     companion object {

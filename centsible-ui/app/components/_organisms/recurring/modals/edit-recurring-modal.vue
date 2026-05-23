@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {RecurringTransaction, RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import RecurringFormFields from "~/components/_molecules/recurring/recurring-form.vue";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -94,10 +94,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.recurring.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.recurring.edit.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

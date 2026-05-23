@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {useToasts} from "~/services/toasts/toast-service";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
-import DeleteButton from "~/components/_molecules/buttons/delete-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 
 const props = defineProps<{
   entity: string;
@@ -39,10 +38,11 @@ async function onDelete() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <DeleteButton :loading="loading" @click="onDelete"/>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('common.actions.delete')"
+                          submit-color="error"
+                          @cancel="isOpen = false"
+                          @submit="onDelete"/>
     </template>
   </UModal>
 </template>

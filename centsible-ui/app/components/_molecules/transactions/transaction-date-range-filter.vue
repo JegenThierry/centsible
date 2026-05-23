@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {computed} from 'vue';
-import FilterPopoverButton from "~/components/_atoms/inputs/filter-popover-button.vue";
+import FilterPopoverButton from "~/components/_molecules/inputs/filter-popover-button.vue";
 
 const fromDate = defineModel<string>('fromDate', {required: true});
 const toDate = defineModel<string>('toDate', {required: true});

@@ -2,7 +2,7 @@
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
 import {transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -106,10 +106,10 @@ async function handleEdit() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.edit.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

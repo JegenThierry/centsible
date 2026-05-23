@@ -12,7 +12,6 @@ import beer.thierry.centsible.api.model.integrations.RemoteOptionsRequest
 import beer.thierry.centsible.api.model.integrations.SelectOption
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
-import beer.thierry.centsible.api.repository.ProviderConnectionRecord
 import beer.thierry.centsible.api.services.integrations.IProviderConnectionService
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.api.services.integrations.IRemoteOptionsProvider
@@ -29,10 +28,10 @@ class ProviderConnectionService(
 ) : IProviderConnectionService {
 
     override fun fetchAllConnections(authenticatedUser: UserDTO): List<ProviderConnectionDTO> =
-        repository.fetchAll(authenticatedUser).map { it.toDTO() }
+        repository.fetchAll(authenticatedUser).map(ConnectionMappersImpl::toDTO)
 
     override fun fetchConnectionById(authenticatedUser: UserDTO, id: UUID): ProviderConnectionDTO? =
-        repository.fetchById(authenticatedUser, id)?.toDTO()
+        repository.fetchById(authenticatedUser, id)?.let(ConnectionMappersImpl::toDTO)
 
     @Transactional
     override fun createConnection(authenticatedUser: UserDTO, form: ProviderConnectionForm): ProviderConnectionDTO {
@@ -44,14 +43,16 @@ class ProviderConnectionService(
             AuthType.OAUTH2 -> ProviderConnectionStatus.NEW
             else -> ProviderConnectionStatus.ACTIVE
         }
-        return repository.create(
-            userId = authenticatedUser.id,
-            providerKey = form.providerKey,
-            displayName = form.displayName,
-            status = initialStatus,
-            config = config,
-            credentials = cipher.encrypt(credentials),
-        ).toDTO()
+        return ConnectionMappersImpl.toDTO(
+            repository.create(
+                userId = authenticatedUser.id,
+                providerKey = form.providerKey,
+                displayName = form.displayName,
+                status = initialStatus,
+                config = config,
+                credentials = cipher.encrypt(credentials),
+            )
+        )
     }
 
     @Transactional
@@ -63,10 +64,9 @@ class ProviderConnectionService(
         val existing = repository.fetchById(authenticatedUser, id) ?: return null
         val module = registry.getModule(existing.providerKey)
             ?: throw IllegalArgumentException("Provider '${existing.providerKey}' is no longer registered")
-        // partial=true: omitted secret fields keep their current value.
         val (newConfig, submittedSecrets) = splitAndValidate(module.descriptor, form.values, partial = true)
         val existingSecrets = cipher.decrypt(repository.fetchEncryptedCredentialsById(authenticatedUser, id))
-        val mergedSecrets = existingSecrets.toMutableMap().apply { putAll(submittedSecrets) }
+        val mergedSecrets = existingSecrets.mergedWith(submittedSecrets)
         runProviderTest(module, authenticatedUser.id, existing.id, form.displayName, newConfig, mergedSecrets)
         return repository.update(
             authenticatedUser = authenticatedUser,
@@ -75,7 +75,7 @@ class ProviderConnectionService(
             status = ProviderConnectionStatus.ACTIVE,
             config = newConfig,
             credentials = cipher.encrypt(mergedSecrets),
-        )?.toDTO()
+        )?.let(ConnectionMappersImpl::toDTO)
     }
 
     override fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean =
@@ -155,7 +155,6 @@ class ProviderConnectionService(
         val config = mutableMapOf<String, Any?>()
         val secrets = mutableMapOf<String, String>()
         for (field in descriptor.configFields) {
-            // OAUTH_LAUNCH fields are pure UI buttons — they never carry a value to persist.
             if (field.type == FieldType.OAUTH_LAUNCH) continue
             val raw = values[field.name]
             val isMissing = raw == null || (raw is String && raw.isBlank())
@@ -194,20 +193,7 @@ class ProviderConnectionService(
             }
             str
         }
-        // OAUTH_LAUNCH fields are pure UI affordances (a button); they should never carry a
-        // submitted value. If one slips through, drop it rather than persist garbage.
         FieldType.OAUTH_LAUNCH -> ""
     }
 
-    private fun ProviderConnectionRecord.toDTO(): ProviderConnectionDTO = ProviderConnectionDTO(
-        id = id,
-        providerKey = providerKey,
-        displayName = displayName,
-        status = status,
-        config = config,
-        lastSyncAt = lastSyncAt,
-        lastError = lastError,
-        createdAt = createdAt,
-        modifiedAt = modifiedAt,
-    )
 }

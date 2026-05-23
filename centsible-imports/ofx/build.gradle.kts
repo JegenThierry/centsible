@@ -9,6 +9,7 @@ dependencies {
 
     implementation(libs.spring.boot.starter)
     implementation(libs.kotlin.reflect)
+    implementation(libs.ofx4j)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.kotlin.test.junit5)

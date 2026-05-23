@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import type {Category} from "~/models/category/category";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
-import DeleteButton from "~/components/_molecules/buttons/delete-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 
 const props = defineProps<{
   category?: Category;
@@ -34,10 +33,11 @@ async function handleDelete() {
           :description="t('categories.delete.description', {name: category?.name ?? ''})"
           :title="t('categories.delete.title')">
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <DeleteButton :loading="loading" @click="handleDelete"/>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('common.actions.delete')"
+                          submit-color="error"
+                          @cancel="isOpen = false"
+                          @submit="handleDelete"/>
     </template>
   </UModal>
 </template>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {computed, onMounted} from 'vue';
-import FilterPopoverButton from "~/components/_atoms/inputs/filter-popover-button.vue";
+import FilterPopoverButton from "~/components/_molecules/inputs/filter-popover-button.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 
 const model = defineModel<number[]>({required: true});

@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
-import {format, subDays} from 'date-fns';
+import {daysAgoIsoDate, todayIsoDate} from "~/utils/date";
 
 export const useAccountHistoryStore = defineStore('accountHistoryStore', () => {
   const accountService = useBudgetAccountService(useApi());
@@ -9,8 +9,8 @@ export const useAccountHistoryStore = defineStore('accountHistoryStore', () => {
   const pending = ref(false);
 
   async function fetchSnapshots(accountId: string) {
-    const endDate = format(new Date(), 'yyyy-MM-dd');
-    const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+    const endDate = todayIsoDate();
+    const startDate = daysAgoIsoDate(30);
 
     pending.value = true;
     try {

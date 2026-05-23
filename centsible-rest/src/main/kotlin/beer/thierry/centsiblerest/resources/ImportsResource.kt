@@ -8,12 +8,11 @@ import beer.thierry.centsible.api.services.imports.IImportService
 import beer.thierry.centsible.api.services.imports.ImportDetection
 import beer.thierry.centsible.api.services.imports.ImportPreview
 import beer.thierry.centsible.api.services.imports.ParseHintsDTO
-import beer.thierry.centsible.imports.core.CsvDialect
+import beer.thierry.centsible.core.services.imports.ImportMappersImpl
 import beer.thierry.centsible.imports.core.FileImportRegistry
 import beer.thierry.centsible.imports.core.ParseHints
 import beer.thierry.centsible.imports.csv.CsvFileParser
 import com.fasterxml.jackson.databind.ObjectMapper
-import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -51,7 +50,7 @@ class ImportsResource(
         @RequestParam("dialect", required = false) dialectJson: String?,
     ): ResponseEntity<CsvProbeResponse> {
         val bytes = readBoundedBytes(file)
-        val dialect = dialectJson?.let { objectMapper.readValue(it, CsvDialectDTO::class.java) }?.toCore()
+        val dialect = dialectJson?.let { objectMapper.readValue(it, CsvDialectDTO::class.java) }?.let(ImportMappersImpl::toCore)
         val probe = csvParser.probe(bytes, ParseHints(csvDialect = dialect))
         val suggested = registry.bestProfileMatch(probe.header, probe.sample)
         val mapping = suggested?.toMapping()?.let {
@@ -144,12 +143,6 @@ class ImportsResource(
         return file.bytes
     }
 
-    private fun CsvDialectDTO.toCore(): CsvDialect = CsvDialect(
-        delimiter = delimiter,
-        quote = quote,
-        hasHeader = hasHeader,
-        encoding = encoding,
-    )
 }
 
 data class CsvProbeResponse(

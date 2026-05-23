@@ -136,7 +136,6 @@ async function commit() {
           :description="step === 'upload' ? t('transactions.advancedImport.descUpload') : t('transactions.advancedImport.descReview')"
           :ui="{content: 'max-w-2xl'}">
     <template #body>
-      <!-- Step 1: upload + default category -->
       <div v-if="step === 'upload'" class="space-y-4">
         <p class="text-sm text-neutral-500">
           {{ t('transactions.advancedImport.uploadHint') }}
@@ -152,7 +151,6 @@ async function commit() {
                         required/>
       </div>
 
-      <!-- Step 2: review -->
       <div v-else-if="step === 'review'" class="space-y-4">
         <div class="flex items-center gap-2 flex-wrap text-sm">
           <UBadge color="primary" variant="subtle">{{ detection?.displayName ?? '?' }}</UBadge>

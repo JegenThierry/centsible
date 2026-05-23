@@ -1,4 +1,5 @@
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useOnboarded} from "~/composables/use-onboarded";
 
 const SKIP_PATHS = ['/onboarding', '/auth', '/profile'];
 
@@ -6,7 +7,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!import.meta.client) return;
   if (SKIP_PATHS.some((p) => to.path.startsWith(p))) return;
 
-  if (localStorage.getItem('centsible.onboarded') === '1') return;
+  const onboarded = useOnboarded();
+  if (onboarded.value) return;
 
   const nuxtApp = useNuxtApp();
   const accountsStore = useBudgetAccountsStore();
@@ -18,5 +20,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return await nuxtApp.runWithContext(() => navigateTo('/onboarding'));
   }
 
-  localStorage.setItem('centsible.onboarded', '1');
+  onboarded.value = true;
 });

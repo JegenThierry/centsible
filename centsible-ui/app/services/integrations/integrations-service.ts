@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 import type {ProviderDescriptor, SelectOption} from "~/models/integrations/provider-descriptor";
 import type {ProviderConnection, ProviderConnectionForm} from "~/models/integrations/provider-connection";
 
@@ -33,17 +33,14 @@ export function useIntegrationsService(api: AxiosInstance) {
   }
 
   async function deleteConnection(id: string): Promise<void> {
-    const response = await api.delete(`/integrations/connections/${encodeURIComponent(id)}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/integrations/connections/${encodeURIComponent(id)}`));
   }
 
   async function triggerSync(id: string): Promise<void> {
-    const response = await api.post(`/integrations/connections/${encodeURIComponent(id)}/sync`);
-    if (response.status !== 200 && response.status !== 202) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(
+      await api.post(`/integrations/connections/${encodeURIComponent(id)}/sync`),
+      [200, 202],
+    );
   }
 
   async function startOAuth(id: string): Promise<OAuthStartResponse> {

@@ -2,7 +2,7 @@
 import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import SetBalanceFormFields from "~/components/_molecules/transactions/set-balance-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
@@ -250,10 +250,10 @@ async function saveSetBalance() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.create.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.create.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

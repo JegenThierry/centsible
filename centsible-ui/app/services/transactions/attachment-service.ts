@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, postMultipart, validateRequest} from "~/composables/use-api";
 import type {Attachment, EnrichedAttachment} from "~/models/transactions/attachment";
 
 export function useAttachmentService(api: AxiosInstance) {
@@ -16,23 +16,17 @@ export function useAttachmentService(api: AxiosInstance) {
   }
 
   async function upload(transactionId: string, file: File): Promise<Attachment> {
-    const form = new FormData();
-    form.append('file', file);
-    const response = await api.post<Attachment>(
+    return postMultipart<Attachment>(
+      api,
       `/transactions/${encodeURIComponent(transactionId)}/attachments`,
-      form,
-      {headers: {'Content-Type': 'multipart/form-data'}},
+      {file},
     );
-    return validateRequest<Attachment>(response);
   }
 
   async function remove(transactionId: string, attachmentId: string): Promise<void> {
-    const response = await api.delete(
+    assertStatus(await api.delete(
       `/transactions/${encodeURIComponent(transactionId)}/attachments/${encodeURIComponent(attachmentId)}`,
-    );
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    ));
   }
 
   async function fetchBlob(transactionId: string, attachmentId: string): Promise<Blob> {
@@ -40,7 +34,7 @@ export function useAttachmentService(api: AxiosInstance) {
       `/transactions/${encodeURIComponent(transactionId)}/attachments/${encodeURIComponent(attachmentId)}`,
       {responseType: 'blob'},
     );
-    if (response.status !== 200) throw new Error(response.statusText);
+    assertStatus(response, [200]);
     return response.data;
   }
 

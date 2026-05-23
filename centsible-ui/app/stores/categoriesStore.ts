@@ -7,6 +7,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 export const useCategoriesStore = defineStore('categoriesStore', () => {
   const api = useApi();
   const toasts = useToasts();
+  const apiErrors = useApiErrors();
   const categoryService = useCategoryService(api);
 
   const categories = ref<Category[]>([]);
@@ -24,46 +25,45 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
     }
   }
 
-  async function createCategory(form: CategoryForm) {
+  async function runMutation(action: () => Promise<void>, successTitle: string, successBody: string, errorTitle: string) {
     pending.value = true;
     try {
-      await categoryService.createCategory(form);
+      await action();
       await updateCategories();
-      toasts.success("Category created", "New category has been added");
+      toasts.success(successTitle, successBody);
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to create category", "An error occurred");
+      apiErrors.toastError(error, errorTitle, "An error occurred");
       throw error;
     } finally {
       pending.value = false;
     }
+  }
+
+  async function createCategory(form: CategoryForm) {
+    await runMutation(
+      () => categoryService.createCategory(form).then(() => undefined),
+      "Category created",
+      "New category has been added",
+      "Failed to create category",
+    );
   }
 
   async function updateCategory(id: number, form: CategoryForm) {
-    pending.value = true;
-    try {
-      await categoryService.updateCategory(id, form);
-      await updateCategories();
-      toasts.success("Category updated", "Category has been updated");
-    } catch (error) {
-      useApiErrors().toastError(error, "Failed to update category", "An error occurred");
-      throw error;
-    } finally {
-      pending.value = false;
-    }
+    await runMutation(
+      () => categoryService.updateCategory(id, form).then(() => undefined),
+      "Category updated",
+      "Category has been updated",
+      "Failed to update category",
+    );
   }
 
   async function deleteCategory(id: number) {
-    pending.value = true;
-    try {
-      await categoryService.deleteCategory(id);
-      await updateCategories();
-      toasts.success("Category deleted", "Category has been removed");
-    } catch (error) {
-      useApiErrors().toastError(error, "Failed to delete category", "An error occurred");
-      throw error;
-    } finally {
-      pending.value = false;
-    }
+    await runMutation(
+      () => categoryService.deleteCategory(id),
+      "Category deleted",
+      "Category has been removed",
+      "Failed to delete category",
+    );
   }
 
   return {

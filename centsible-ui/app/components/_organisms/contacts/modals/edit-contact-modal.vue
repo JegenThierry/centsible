@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {Contact, ContactForm as ContactFormModel} from "~/models/contact/contact";
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
 
 const props = defineProps<{
@@ -48,10 +48,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('contacts.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.edit.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

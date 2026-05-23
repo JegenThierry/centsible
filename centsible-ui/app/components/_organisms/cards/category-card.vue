@@ -2,6 +2,7 @@
 import type {Category} from "~/models/category/category";
 import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
 import CategoryIcon from "~/components/_atoms/categories/category-icon.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 
 defineProps<{
   category: Category;
@@ -35,22 +36,10 @@ const {t} = useI18n();
           </div>
         </div>
       </div>
-      <div v-if="!category.system" class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <UButton
-          color="neutral"
-          icon="i-lucide-pencil"
-          size="sm"
-          variant="ghost"
-          @click="emit('edit', category)"
-        />
-        <UButton
-          color="error"
-          icon="i-lucide-trash"
-          size="sm"
-          variant="ghost"
-          @click="emit('delete', category)"
-        />
-      </div>
+      <EditDeleteActions v-if="!category.system"
+                         hide-on-hover
+                         @edit="emit('edit', category)"
+                         @delete="emit('delete', category)"/>
     </div>
   </UCard>
 </template>

@@ -16,47 +16,47 @@ class RecurringTransactionResource(private val service: IRecurringTransactionSer
 
     @GetMapping
     fun list(
-        @RequestParam(required = false) accountId: String?,
+        @RequestParam(required = false) accountId: UUID?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<RecurringTransactionDTO>> =
-        ResponseEntity.ok(service.fetchAll(authenticatedUser, accountId?.let(UUID::fromString)))
+        ResponseEntity.ok(service.fetchAll(authenticatedUser, accountId))
 
     @PostMapping("/{accountId}")
     fun create(
-        @PathVariable accountId: String,
+        @PathVariable accountId: UUID,
         @Valid @RequestBody form: RecurringTransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<RecurringTransactionDTO> =
-        ResponseEntity.ok(service.create(UUID.fromString(accountId), form, authenticatedUser))
+        ResponseEntity.ok(service.create(accountId, form, authenticatedUser))
 
     @PutMapping("/{id}")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody form: RecurringTransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<RecurringTransactionDTO> =
-        ResponseEntity.ok(service.update(UUID.fromString(id), form, authenticatedUser))
+        ResponseEntity.ok(service.update(id, form, authenticatedUser))
 
     @DeleteMapping("/{id}")
     fun delete(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
-        service.delete(UUID.fromString(id), authenticatedUser)
+        service.delete(id, authenticatedUser)
         return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/{id}/pause")
     fun pause(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<RecurringTransactionDTO> =
-        ResponseEntity.ok(service.setActive(UUID.fromString(id), false, authenticatedUser))
+        ResponseEntity.ok(service.setActive(id, false, authenticatedUser))
 
     @PostMapping("/{id}/resume")
     fun resume(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<RecurringTransactionDTO> =
-        ResponseEntity.ok(service.setActive(UUID.fromString(id), true, authenticatedUser))
+        ResponseEntity.ok(service.setActive(id, true, authenticatedUser))
 }

@@ -5,6 +5,7 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-bar.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
 const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
@@ -110,18 +111,12 @@ onMounted(() => refresh());
           <div class="flex-1 min-w-0">
             <BudgetProgressBar :budget="budget" :currency="currency"/>
           </div>
-          <div v-if="selectedMonth === currentMonth" class="flex items-center gap-1 shrink-0">
-            <UButton :aria-label="t('budgets.list.editAria')"
-                     color="neutral"
-                     icon="i-lucide-pencil"
-                     variant="ghost"
-                     @click="openEdit(budget)"/>
-            <UButton :aria-label="t('budgets.list.deleteAria')"
-                     color="error"
-                     icon="i-lucide-trash"
-                     variant="ghost"
-                     @click="openDelete(budget)"/>
-          </div>
+          <EditDeleteActions v-if="selectedMonth === currentMonth"
+                             class="shrink-0"
+                             :delete-aria-label="t('budgets.list.deleteAria')"
+                             :edit-aria-label="t('budgets.list.editAria')"
+                             @edit="openEdit(budget)"
+                             @delete="openDelete(budget)"/>
         </div>
       </UCard>
     </div>

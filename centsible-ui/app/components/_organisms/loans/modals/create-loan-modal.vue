@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import LoanForm from "~/components/_molecules/loans/loan-form.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {todayIsoDate} from "~/utils/date";
 
@@ -67,10 +67,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('contacts.loans.create.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.loans.create.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

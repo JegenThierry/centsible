@@ -2,7 +2,7 @@
 import {useProvidersStore} from "~/stores/providersStore";
 import type {ProviderDescriptor} from "~/models/integrations/provider-descriptor";
 import DynamicConfigForm from "~/components/_organisms/integrations/dynamic-config-form.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 
 const props = defineProps<{
   descriptor?: ProviderDescriptor;
@@ -134,14 +134,11 @@ async function launchOAuth(connectionId: string) {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :icon="isOAuth && createdConnectionId ? 'i-lucide-external-link' : 'i-lucide-check'"
-                 :loading="loading"
-                 @click="handleSave">
-          {{ submitLabel }}
-        </UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-icon="isOAuth && createdConnectionId ? 'i-lucide-external-link' : 'i-lucide-check'"
+                          :submit-label="submitLabel"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

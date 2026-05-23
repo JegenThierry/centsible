@@ -17,8 +17,10 @@ export const useLoansStore = defineStore('loansStore', () => {
   const totalOutstanding = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
-  // Track "have we ever successfully loaded this" so consumers can skip a redundant fetch when
-  // the dashboard already warmed it. Distinct from `pending` (in-flight) and zero-valued data.
+  /**
+   * Sticky "loaded at least once" flags. Distinct from `pending` (in-flight) and from zero-valued
+   * data — consumers use these to skip a redundant fetch when the dashboard already warmed them.
+   */
   const allLoansLoaded = ref(false);
   const outstandingLoaded = ref(false);
 

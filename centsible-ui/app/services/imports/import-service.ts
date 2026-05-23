@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {postMultipart, validateRequest} from "~/composables/use-api";
 import type {
   CsvProbeResponse,
   ImportDetection,
@@ -20,17 +20,11 @@ import type {
 export function useImportService(api: AxiosInstance) {
 
   async function detect(file: File): Promise<ImportDetection> {
-    const form = new FormData();
-    form.append('file', file);
-    const response = await api.post<ImportDetection>(`/imports/detect`, form);
-    return validateRequest<ImportDetection>(response);
+    return postMultipart<ImportDetection>(api, `/imports/detect`, {file});
   }
 
   async function csvProbe(file: File): Promise<CsvProbeResponse> {
-    const form = new FormData();
-    form.append('file', file);
-    const response = await api.post<CsvProbeResponse>(`/imports/csv/probe`, form);
-    return validateRequest<CsvProbeResponse>(response);
+    return postMultipart<CsvProbeResponse>(api, `/imports/csv/probe`, {file});
   }
 
   async function preview(
@@ -39,13 +33,12 @@ export function useImportService(api: AxiosInstance) {
     hints: ParseHints,
     maxRows: number = 50,
   ): Promise<ImportPreview> {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('parserId', parserId);
-    form.append('hints', JSON.stringify(hints));
-    form.append('maxRows', String(maxRows));
-    const response = await api.post<ImportPreview>(`/imports/preview`, form);
-    return validateRequest<ImportPreview>(response);
+    return postMultipart<ImportPreview>(api, `/imports/preview`, {
+      file,
+      parserId,
+      hints: JSON.stringify(hints),
+      maxRows: String(maxRows),
+    });
   }
 
   async function commit(
@@ -54,14 +47,11 @@ export function useImportService(api: AxiosInstance) {
     parserId: string,
     hints: ParseHints,
   ): Promise<ImportResult> {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('parserId', parserId);
-    form.append('hints', JSON.stringify(hints));
-    const response = await api.post<ImportResult>(
-      `/imports/${encodeURIComponent(accountId)}`, form,
-    );
-    return validateRequest<ImportResult>(response);
+    return postMultipart<ImportResult>(api, `/imports/${encodeURIComponent(accountId)}`, {
+      file,
+      parserId,
+      hints: JSON.stringify(hints),
+    });
   }
 
   async function listProfiles(): Promise<CsvProfileSummary[]> {

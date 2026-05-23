@@ -8,6 +8,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useOnboarded} from "~/composables/use-onboarded";
 
 definePageMeta({middleware: ['auth-guard']});
 
@@ -18,6 +19,7 @@ const accountsStore = useBudgetAccountsStore();
 const categoriesStore = useCategoriesStore();
 const toasts = useToasts();
 const apiErrors = useApiErrors();
+const onboarded = useOnboarded();
 
 useHead({title: () => t('onboarding.pageTitle')});
 
@@ -102,7 +104,7 @@ async function submitCategories() {
 }
 
 function finish() {
-  localStorage.setItem('centsible.onboarded', '1');
+  onboarded.value = true;
   if (createdAccountId.value) {
     navigateTo(`/${createdAccountId.value}/dashboard`);
   } else {
@@ -111,7 +113,7 @@ function finish() {
 }
 
 function skipAll() {
-  localStorage.setItem('centsible.onboarded', '1');
+  onboarded.value = true;
   navigateTo('/accounts');
 }
 </script>

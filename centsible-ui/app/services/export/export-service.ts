@@ -1,5 +1,6 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
+import {triggerBrowserDownload} from "~/utils/blob-download";
 import type {CreateExportRequest, ExportJob} from "~/models/export/export-job";
 
 export function useExportService(api: AxiosInstance) {
@@ -24,27 +25,17 @@ export function useExportService(api: AxiosInstance) {
   }
 
   async function deleteExport(jobId: string): Promise<void> {
-    const response = await api.delete(`/exports/${encodeURIComponent(jobId)}`);
-    if (response.status !== 204 && response.status !== 200) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/exports/${encodeURIComponent(jobId)}`));
   }
 
+  /** Re-wraps the response in a Blob keyed on the server's content-type so CSV/JSON exports aren't mislabelled as PDF. */
   async function downloadExport(jobId: string, filename?: string): Promise<void> {
     const response = await api.get(`/exports/${encodeURIComponent(jobId)}/download`, {
       responseType: 'blob',
     });
-    // Trust the server's content-type so CSV/JSON downloads aren't mislabelled as PDF.
     const contentType = (response.headers['content-type'] as string | undefined) ?? 'application/octet-stream';
     const blob = new Blob([response.data], {type: contentType});
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || `export-${jobId}`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+    triggerBrowserDownload(blob, filename || `export-${jobId}`);
   }
 
   return {

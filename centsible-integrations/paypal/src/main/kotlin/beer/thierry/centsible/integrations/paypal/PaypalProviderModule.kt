@@ -133,10 +133,9 @@ class PaypalProviderModule(
         }
 
         val accumulated = mutableListOf<ImportedTransactionDTO>()
-        // PayPal reporting API max window is 31 days; chunk accordingly.
         var chunkStart = startDate
         while (chunkStart.isBefore(endDate)) {
-            val chunkEnd = minInstant(chunkStart.plus(MAX_WINDOW), endDate)
+            val chunkEnd = minOf(chunkStart.plus(MAX_WINDOW), endDate)
             var page = 1
             while (true) {
                 val response = client.fetchTransactions(environment, token.accessToken, chunkStart, chunkEnd, page)
@@ -205,12 +204,17 @@ class PaypalProviderModule(
         return now.minus(DEFAULT_LOOKBACK)
     }
 
+    /**
+     * Resolves PayPal credentials from the provider context.
+     *
+     * Enforces the secrets-handling invariant: fields marked `secret = true` in the descriptor
+     * (here, `clientSecret`) MUST come from the encrypted credentials map only. Falling back to
+     * `ctx.config` would silently accept (and rely on) a secret stored in plaintext JSONB,
+     * defeating the cipher. Non-secret fields (`clientId`, `environment`) live in `ctx.config`.
+     */
     private fun readCredentials(ctx: ProviderContext): Triple<String, String, String> {
         val clientId = (ctx.config["clientId"] as? String)?.takeIf { it.isNotBlank() }
             ?: throw IllegalArgumentException("PayPal clientId is required")
-        // clientSecret is `secret = true` in the descriptor — it MUST come from the encrypted
-        // credentials map only. Falling back to ctx.config would silently accept (and rely on) a
-        // secret stored in plaintext JSONB, defeating the cipher.
         val clientSecret = ctx.credentials["clientSecret"]?.takeIf { it.isNotBlank() }
             ?: throw IllegalArgumentException("PayPal clientSecret is missing from encrypted credentials")
         val environment = (ctx.config["environment"] as? String)?.takeIf { it.isNotBlank() }
@@ -228,7 +232,6 @@ class PaypalProviderModule(
         try {
             return OffsetDateTime.parse(value, PAYPAL_DATE_FORMATTER)
         } catch (_: DateTimeParseException) {
-            // fall through to a date-only attempt
         }
         return try {
             LocalDate.parse(value).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime()
@@ -237,12 +240,12 @@ class PaypalProviderModule(
         }
     }
 
-    private fun minInstant(a: Instant, b: Instant): Instant = if (a.isBefore(b)) a else b
-
     companion object {
         private const val DEFAULT_ACCOUNT_ID = "paypal:default"
         private const val SAFETY_MARGIN_SECONDS = 300L
         private val DEFAULT_LOOKBACK: Duration = Duration.of(90, ChronoUnit.DAYS)
+
+        /** PayPal Reporting API rejects ranges wider than 31 days per call; importSince chunks accordingly. */
         private val MAX_WINDOW: Duration = Duration.of(31, ChronoUnit.DAYS)
 
         private val PAYPAL_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatterBuilder()

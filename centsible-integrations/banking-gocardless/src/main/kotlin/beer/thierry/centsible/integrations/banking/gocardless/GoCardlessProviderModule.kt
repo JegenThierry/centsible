@@ -262,7 +262,6 @@ class GoCardlessProviderModule(
             try {
                 return LocalDate.parse(cursor)
             } catch (_: DateTimeParseException) {
-                // fall through to historical days
             }
         }
         val days = parseHistoricalDays(historicalDaysRaw)
@@ -274,7 +273,6 @@ class GoCardlessProviderModule(
             try {
                 return OffsetDateTime.parse(it)
             } catch (_: DateTimeParseException) {
-                // ignore and try bookingDate
             }
         }
         val dateStr = tx.bookingDate ?: tx.valueDate ?: return null

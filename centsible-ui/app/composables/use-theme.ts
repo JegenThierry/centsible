@@ -24,28 +24,11 @@ export const swatchFor = (palette: Palette): string => `var(--color-${palette}-5
 const STORAGE_KEY = 'centsible.theme';
 const DEFAULT_THEME_ID: ThemeId = 'blush';
 
-const safeStorage = {
-  get(key: string): string | null {
-    try {
-      return localStorage.getItem(key);
-    } catch (error) {
-      console.warn('Failed to read theme from localStorage', error);
-      return null;
-    }
-  },
-  set(key: string, value: string): void {
-    try {
-      localStorage.setItem(key, value);
-    } catch (error) {
-      console.warn('Failed to persist theme to localStorage', error);
-    }
-  },
-};
-
 export const useTheme = () => {
   const appConfig = useAppConfig();
   const colorMode = useColorMode();
   const currentThemeId = useState<ThemeId>('centsible.theme.id', () => DEFAULT_THEME_ID);
+  const storedThemeId = useStorage<ThemeId>(STORAGE_KEY, DEFAULT_THEME_ID);
 
   const current = computed<ThemeDefinition>(
     () => themes.find(t => t.id === currentThemeId.value) ?? themes[0]!,
@@ -68,7 +51,7 @@ export const useTheme = () => {
     colors.neutral = theme.neutral;
 
     if (import.meta.client) {
-      safeStorage.set(STORAGE_KEY, theme.id);
+      storedThemeId.value = theme.id;
     }
   }
 
@@ -76,10 +59,8 @@ export const useTheme = () => {
     if (!import.meta.client) {
       return;
     }
-    const stored = safeStorage.get(STORAGE_KEY);
-    const target = stored && themes.some(t => t.id === stored)
-      ? (stored as ThemeId)
-      : DEFAULT_THEME_ID;
+    const stored = storedThemeId.value;
+    const target = themes.some(t => t.id === stored) ? stored : DEFAULT_THEME_ID;
     setTheme(target);
   }
 

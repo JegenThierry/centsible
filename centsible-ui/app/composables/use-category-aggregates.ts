@@ -1,45 +1,26 @@
 import {ref, watch} from 'vue';
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {CategoryAggregate} from "~/models/transactions/transaction";
+import {createAsyncCache} from "~/utils/async-cache";
 
 type TransactionService = ReturnType<typeof useTransactionService>;
 
-interface CacheEntry {
-  data: CategoryAggregate[];
-  promise: Promise<CategoryAggregate[]> | null;
-}
-
-const cache = new Map<string, CacheEntry>();
+const cache = createAsyncCache<CategoryAggregate[]>(() => []);
 
 function key(accountId: string, fromIso: string | null, toIso: string | null): string {
   return `${accountId}|${fromIso ?? ''}|${toIso ?? ''}`;
 }
 
-async function loadOrCache(
+function fetchAggregates(
   service: TransactionService,
   accountId: string,
   fromIso: string | null,
   toIso: string | null,
 ): Promise<CategoryAggregate[]> {
-  const k = key(accountId, fromIso, toIso);
-  const entry = cache.get(k);
-  if (entry) {
-    if (entry.promise) return entry.promise;
-    return entry.data;
-  }
-  const promise = service.aggregateByCategory(accountId, {
+  return service.aggregateByCategory(accountId, {
     fromDate: fromIso ?? undefined,
     toDate: toIso ?? undefined,
   });
-  cache.set(k, {data: [], promise});
-  try {
-    const result = await promise;
-    cache.set(k, {data: result, promise: null});
-    return result;
-  } catch (e) {
-    cache.delete(k);
-    throw e;
-  }
 }
 
 export async function prefetchCategoryAggregates(
@@ -50,7 +31,9 @@ export async function prefetchCategoryAggregates(
 ): Promise<void> {
   if (!accountId) return;
   try {
-    await loadOrCache(service, accountId, fromIso, toIso);
+    await cache.loadOrCache(key(accountId, fromIso, toIso), () =>
+      fetchAggregates(service, accountId, fromIso, toIso),
+    );
   } catch (e) {
     console.error('Failed to prefetch category aggregates', e);
   }
@@ -75,7 +58,9 @@ export function useCategoryAggregates(
     }
     loading.value = true;
     try {
-      data.value = await loadOrCache(service, id, from, to);
+      data.value = await cache.loadOrCache(key(id, from, to), () =>
+        fetchAggregates(service, id, from, to),
+      );
     } catch (e) {
       console.error('Failed to load category aggregates', e);
       data.value = [];
@@ -90,5 +75,5 @@ export function useCategoryAggregates(
 }
 
 export function invalidateCategoryAggregates() {
-  cache.clear();
+  cache.invalidate();
 }

@@ -23,11 +23,8 @@ function patch(partial: Partial<TransactionFilters>) {
 const searchDraft = ref(model.value.search ?? '');
 watch(() => model.value.search, (v) => { if ((v ?? '') !== searchDraft.value) searchDraft.value = v ?? ''; });
 
-let debounce: ReturnType<typeof setTimeout> | null = null;
-watch(searchDraft, (v) => {
-  if (debounce) clearTimeout(debounce);
-  debounce = setTimeout(() => patch({search: v || undefined}), 250);
-});
+const applySearch = useDebounceFn((v: string) => patch({search: v || undefined}), 250);
+watch(searchDraft, (v) => { applySearch(v); });
 
 const categoryIds = computed({
   get: () => model.value.categoryIds ?? [],

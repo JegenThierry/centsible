@@ -32,9 +32,13 @@ class CsvFileParser : FileFormatParser {
     override val supportedExtensions = setOf("csv", "tsv", "txt")
     override val requiresMapping = true
 
+    /**
+     * 1 KB is enough to see the header line of any real-world CSV without buffering the whole
+     * file just to answer "is this CSV?". We accept any of comma/semicolon/tab as a delimiter so
+     * European exports (semicolon, because their decimal separator is a comma) and spreadsheet
+     * TSVs are recognized too.
+     */
     override fun sniff(bytes: ByteArray, filename: String): Boolean {
-        // Peek at first 1 KB. If it parses as at least one well-formed row using a comma OR
-        // semicolon OR tab delimiter, treat as CSV.
         val sample = bytes.take(1024).toByteArray().toString(Charsets.UTF_8)
         if (sample.isBlank()) return false
         val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() } ?: return false
@@ -168,6 +172,12 @@ class CsvFileParser : FileFormatParser {
     private fun decode(bytes: ByteArray, encoding: String): String =
         bytes.toString(runCatching { Charset.forName(encoding) }.getOrDefault(Charsets.UTF_8))
 
+    /**
+     * Heuristic: header-line delimiter counts decide. Semicolon wins when it outnumbers comma
+     * (German/French bank exports — comma is the decimal separator there, so they use ';').
+     * Tab wins only when present and there are no commas at all (spreadsheet TSV without comma
+     * fields). Comma is the safe default for everything else.
+     */
     private fun detectDialect(bytes: ByteArray): CsvDialect {
         val sample = bytes.take(4096).toByteArray().toString(Charsets.UTF_8)
         val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() } ?: return CsvDialect()

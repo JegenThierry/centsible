@@ -7,10 +7,12 @@ interface BackendErrorResponse {
   fieldErrors?: Record<string, string>;
 }
 
+/**
+ * Captures `useToasts()` eagerly at setup time. `toastError` is normally invoked inside a `.catch`
+ * after an `await`, by which point Nuxt's async context is gone and a lazy `useToasts()` call
+ * would warn ("composable called outside setup").
+ */
 export function useApiErrors() {
-  // Capture useToasts() at setup time. toastError() is typically invoked from a .catch after an
-  // await, by which point the Nuxt async context is gone — calling useToasts() lazily there would
-  // warn ("composable called outside setup").
   const toasts = useToasts();
 
   function extractMessage(err: unknown, fallback: string): string {

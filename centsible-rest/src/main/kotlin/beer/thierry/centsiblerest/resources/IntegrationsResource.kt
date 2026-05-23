@@ -21,16 +21,20 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 
+/**
+ * Where to redirect the user's browser after the OAuth callback finishes. In a split deployment
+ * the UI is on a different host from the API; defaults to integrations.base-url for single-host
+ * setups.
+ */
+private const val UI_BASE_URL_EXPRESSION = "\${integrations.ui-base-url:\${integrations.base-url:}}"
+
 @RequestMapping("/api/integrations")
 @RestController
 class IntegrationsResource(
     private val registry: IProviderRegistry,
     private val connectionService: IProviderConnectionService,
     private val oauthFlowService: IOAuthFlowService,
-    // Where to redirect the user's browser after the OAuth callback finishes. In a split
-    // deployment the UI is on a different host from the API; defaults to integrations.base-url
-    // for single-host setups.
-    @Value("\${integrations.ui-base-url:\${integrations.base-url:}}") private val uiBaseUrl: String,
+    @Value(UI_BASE_URL_EXPRESSION) private val uiBaseUrl: String,
 ) {
 
     @GetMapping("/providers")
@@ -127,9 +131,9 @@ class IntegrationsResource(
 
     /**
      * OAuth2 callback. Public-by-necessity (browser arrives without a JWT after the redirect
-     * from the provider). Authentication is via the HMAC-signed `state` query param verified
-     * inside the OAuthFlowService. We respond with an HTTP 302 to a static frontend route
-     * so the user lands somewhere sensible regardless of success/failure.
+     * from the provider). Authentication is via an opaque single-use `state` token issued by
+     * the OAuthStateStore and verified inside OAuthFlowService. We respond with an HTTP 302 to
+     * a static frontend route so the user lands somewhere sensible regardless of success/failure.
      */
     @GetMapping("/oauth/callback/{providerKey}")
     fun oauthCallback(

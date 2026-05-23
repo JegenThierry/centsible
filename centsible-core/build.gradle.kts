@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.dependency.management)
+    alias(libs.plugins.ksp)
 }
 
 dependencies {
@@ -14,6 +15,8 @@ dependencies {
     implementation(libs.spring.security.crypto)
     implementation(libs.jackson.databind)
     implementation(libs.caffeine)
+    implementation(libs.konvert.api)
+    ksp(libs.konvert.ksp)
 
     implementation(libs.jjwt.api)
     runtimeOnly(libs.jjwt.impl)

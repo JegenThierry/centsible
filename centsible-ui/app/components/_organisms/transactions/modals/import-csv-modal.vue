@@ -199,7 +199,6 @@ async function handleImport() {
           :title="modalTitle"
           :ui="{content: 'max-w-2xl'}">
     <template #body>
-      <!-- Step 1: upload -->
       <div v-if="step === 'upload'" class="space-y-4">
         <p class="text-sm text-neutral-500">
           {{ t('transactions.import.uploadHint') }}
@@ -210,7 +209,6 @@ async function handleImport() {
                 @change="onFileChange"/>
       </div>
 
-      <!-- Step 2: map columns -->
       <div v-else-if="step === 'map'" class="space-y-4">
         <div class="border border-neutral-200 dark:border-neutral-800 rounded-md divide-y divide-neutral-200 dark:divide-neutral-800">
           <CsvMappingRow v-for="(header, idx) in parsed?.headers ?? []"
@@ -241,7 +239,6 @@ async function handleImport() {
                 variant="subtle"/>
       </div>
 
-      <!-- Step 3: confirm -->
       <div v-else class="space-y-4">
         <div class="flex items-center justify-between gap-4 text-sm">
           <p>{{ t('transactions.import.readyToImport', {count: previewRows.length}) }}</p>

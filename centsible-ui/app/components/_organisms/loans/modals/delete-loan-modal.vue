@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {Loan} from "~/models/loan/loan";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
 
 const props = defineProps<{
@@ -38,10 +38,11 @@ async function handleDelete() {
           :description="t('contacts.loans.delete.description')"
           :title="t('contacts.loans.delete.title')">
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" color="error" @click="handleDelete">{{ t('contacts.loans.delete.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.loans.delete.submit')"
+                          submit-color="error"
+                          @cancel="isOpen = false"
+                          @submit="handleDelete"/>
     </template>
   </UModal>
 </template>

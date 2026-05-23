@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {Budget, BudgetForm} from "~/models/budget/budget";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
 import {useBudgetService} from "~/services/budget/budget-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -68,10 +68,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('budgets.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('budgets.edit.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

@@ -6,8 +6,7 @@ import type {CategorySpendingSeries} from "~/models/reports/category-spending";
 import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {YearOverYear} from "~/models/reports/year-over-year";
 import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
-import {format, subMonths} from 'date-fns';
-import {ISO_DATE, todayIsoDate} from "~/utils/date";
+import {isoDateRangeForMonthsBack} from "~/utils/date";
 
 export const useReportsStore = defineStore('reportsStore', () => {
   const reportsService = useReportsService(useApi());
@@ -19,20 +18,13 @@ export const useReportsStore = defineStore('reportsStore', () => {
   const inflight = ref(0);
   const pending = computed(() => inflight.value > 0);
 
-  function rangeFor(monthsBack: number): {startDate: string; endDate: string} {
-    return {
-      endDate: todayIsoDate(),
-      startDate: format(subMonths(new Date(), monthsBack), ISO_DATE),
-    };
-  }
-
   /**
    * Accepts a months-back number for back-compat with the original preset-only flow, or an
    * explicit {startDate, endDate} for the custom date-range picker added in the imports sprint.
    */
   type RangeArg = number | {startDate: string; endDate: string};
   function resolveRange(arg: RangeArg): {startDate: string; endDate: string} {
-    return typeof arg === 'number' ? rangeFor(arg) : arg;
+    return typeof arg === 'number' ? isoDateRangeForMonthsBack(arg) : arg;
   }
 
   async function runFetch<T>(label: string, loader: () => Promise<T>, fallback: () => void) {

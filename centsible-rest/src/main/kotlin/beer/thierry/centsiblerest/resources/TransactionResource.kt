@@ -12,8 +12,13 @@ import beer.thierry.centsible.api.model.transaction.TransactionSort
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.YearMonth
@@ -21,13 +26,13 @@ import java.util.UUID
 
 @RequestMapping("/api/transactions")
 @RestController
+@Validated
 class TransactionResource(private val transactionService: ITransactionService) {
 
     @GetMapping("/{accountId}")
     fun fetchTransactions(
         @PathVariable accountId: UUID,
-        @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(defaultValue = "25") size: Int,
+        @PageableDefault(size = 25) pageable: Pageable,
         @RequestParam(required = false) search: String?,
         @RequestParam(required = false) categoryIds: List<Long>?,
         @RequestParam(required = false) fromDate: LocalDate?,
@@ -42,7 +47,11 @@ class TransactionResource(private val transactionService: ITransactionService) {
             to = toDate,
             sort = sort ?: TransactionSort.DATE_DESC,
         )
-        return ResponseEntity.ok(transactionService.fetchTransactions(accountId, authenticatedUser, page, size, filters))
+        // Service contract is 1-based; Spring's Pageable is 0-based — translate at the boundary.
+        val page = pageable.pageNumber + 1
+        return ResponseEntity.ok(
+            transactionService.fetchTransactions(accountId, authenticatedUser, page, pageable.pageSize, filters)
+        )
     }
 
     @PostMapping("/{accountId}")
@@ -77,19 +86,17 @@ class TransactionResource(private val transactionService: ITransactionService) {
             month != null -> month.atDay(1) to month.atEndOfMonth()
             else -> YearMonth.now().let { it.atDay(1) to it.atEndOfMonth() }
         }
-        if (to.isBefore(from)) return ResponseEntity.badRequest().build()
+        require(!to.isBefore(from)) { "toDate must not be before fromDate" }
         return ResponseEntity.ok(transactionService.aggregateByCategory(accountId, authenticatedUser, from, to))
     }
 
     @GetMapping("/{accountId}/aggregates/by-month")
     fun aggregateByMonth(
         @PathVariable accountId: UUID,
-        @RequestParam(defaultValue = "6") months: Int,
+        @RequestParam(defaultValue = "6") @Min(1) @Max(36) months: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<MonthlyAggregateDTO>> {
-        if (months !in 1..36) return ResponseEntity.badRequest().build()
-        return ResponseEntity.ok(transactionService.aggregateByMonth(accountId, authenticatedUser, months))
-    }
+    ): ResponseEntity<List<MonthlyAggregateDTO>> =
+        ResponseEntity.ok(transactionService.aggregateByMonth(accountId, authenticatedUser, months))
 
     @PostMapping("/{accountId}/import")
     fun importTransactions(

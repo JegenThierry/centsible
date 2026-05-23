@@ -69,12 +69,30 @@ class OfxFileParserTest {
     @Test
     fun `prefers NAME but falls back to MEMO when NAME is missing`() {
         val ofx = """
+            OFXHEADER:100
+            DATA:OFXSGML
+            VERSION:102
+
             <OFX>
+            <BANKMSGSRSV1>
+            <STMTTRNRS>
+            <STMTRS>
+            <CURDEF>USD
+            <BANKACCTFROM>
+            <ACCTID>1
+            </BANKACCTFROM>
+            <BANKTRANLIST>
             <STMTTRN>
+            <TRNTYPE>DEBIT
             <DTPOSTED>20260201
             <TRNAMT>-10.00
+            <FITID>20260201-001
             <MEMO>Memo-only entry
             </STMTTRN>
+            </BANKTRANLIST>
+            </STMTRS>
+            </STMTTRNRS>
+            </BANKMSGSRSV1>
             </OFX>
         """.trimIndent().toByteArray()
 

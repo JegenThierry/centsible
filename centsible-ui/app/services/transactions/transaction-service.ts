@@ -8,7 +8,7 @@ import type {
 } from "~/models/transactions/transaction";
 import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useTransactionService(api: AxiosInstance) {
   async function fetchTransactions(
@@ -17,7 +17,8 @@ export function useTransactionService(api: AxiosInstance) {
     size: number = 25,
     filters: TransactionFilters = {},
   ): Promise<Transaction[]> {
-    const params: Record<string, unknown> = {page, size};
+    // Backend uses Spring Pageable (0-based); keep the frontend 1-based and translate at the wire.
+    const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
     if (filters.search) params.search = filters.search;
     if (filters.categoryIds?.length) params.categoryIds = filters.categoryIds.join(',');
     if (filters.fromDate) params.fromDate = filters.fromDate;
@@ -38,10 +39,9 @@ export function useTransactionService(api: AxiosInstance) {
   }
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
-    const response = await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(
+      `/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`,
+    ));
   }
 
   async function aggregateByCategory(

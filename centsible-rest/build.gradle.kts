@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.jooq)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.data.commons)
 
     implementation(libs.kotlin.reflect)
     implementation(libs.jackson.module.kotlin)
