@@ -40,7 +40,6 @@ function onAvatarClick() {
     <div v-if="editable" class="absolute bottom-1 right-1">
       <UButton
         class="rounded-full shadow-md"
-        color="white"
         icon="i-lucide-camera"
         size="sm"
         square

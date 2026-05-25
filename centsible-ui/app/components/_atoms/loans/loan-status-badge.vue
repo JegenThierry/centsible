@@ -7,16 +7,13 @@ const props = defineProps<{
 
 const {t} = useI18n();
 
-const presentation = computed(() => {
-  switch (loanStatus(props.loan)) {
-    case 'settled':
-      return {color: 'success' as const, key: 'contacts.loans.table.statusSettled'};
-    case 'partial':
-      return {color: 'warning' as const, key: 'contacts.loans.table.statusPartial'};
-    case 'open':
-      return {color: 'neutral' as const, key: 'contacts.loans.table.statusOpen'};
-  }
-});
+const loanStatusToPresentation = {
+  settled: {color: 'success' as const, key: 'contacts.loans.table.statusSettled'},
+  partial: {color: 'warning' as const, key: 'contacts.loans.table.statusPartial'},
+  open: {color: 'neutral' as const, key: 'contacts.loans.table.statusOpen'},
+};
+
+const presentation = computed(() => loanStatusToPresentation[loanStatus(props.loan)]);
 </script>
 
 <template>

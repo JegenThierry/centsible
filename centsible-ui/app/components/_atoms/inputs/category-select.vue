@@ -43,12 +43,15 @@ defineExpose({
       :placeholder="t('transactions.selects.selectCategory')"
       searchable
     >
-      <template #label>
-        <div v-if="model" class="flex items-center gap-2">
-          <UIcon :name="model.icon" :style="{ color: model.color }" class="w-4 h-4"/>
-          <span>{{ model.name }}</span>
-        </div>
-        <span v-else>{{ t('transactions.selects.selectCategory') }}</span>
+      <template #default="{ modelValue }">
+        <UButton color="neutral" variant="outline" class="w-full justify-between">
+          <div v-if="modelValue" class="flex items-center gap-2">
+            <UIcon :name="modelValue.icon" :style="{ color: modelValue.color }" class="w-4 h-4"/>
+            <span>{{ modelValue.name }}</span>
+          </div>
+          <span v-else class="text-neutral-500">{{ t('transactions.selects.selectCategory') }}</span>
+          <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-500"/>
+        </UButton>
       </template>
 
       <template #item-leading="{ item: category }">
