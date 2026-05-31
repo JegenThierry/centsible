@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.HtmlUtils
+import java.time.Duration
 import java.util.Base64
 
 @Component
@@ -19,10 +21,18 @@ class EmailPostProcessor(
     private val data: IExportDataRepository,
     @param:Value("\${resend.api.key:dummy}") private val apiKey: String,
     @param:Value("\${resend.from.email:onboarding@resend.dev}") private val fromEmail: String,
+    @Value("\${resend.connect-timeout-ms:10000}") connectTimeoutMs: Long,
+    @Value("\${resend.read-timeout-ms:30000}") readTimeoutMs: Long,
 ) : PostProcessor {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val restTemplate = RestTemplate()
+
+    private val restTemplate = RestTemplate(
+        SimpleClientHttpRequestFactory().apply {
+            setConnectTimeout(Duration.ofMillis(connectTimeoutMs))
+            setReadTimeout(Duration.ofMillis(readTimeoutMs))
+        }
+    )
 
     override fun supports(): PostProcessingType = PostProcessingType.SEND_EMAIL
 
