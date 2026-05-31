@@ -129,7 +129,7 @@ class TransactionService(
         accountId: UUID,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val transaction = transactionRepository.deleteTransaction(transactionId, authenticatedUser)
+        val transaction = transactionRepository.deleteTransaction(transactionId, accountId, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment.negate(), authenticatedUser)
         log.info(

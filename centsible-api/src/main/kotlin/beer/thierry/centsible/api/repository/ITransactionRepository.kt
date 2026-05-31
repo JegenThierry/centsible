@@ -28,7 +28,8 @@ interface ITransactionRepository {
         authenticatedUser: UserDTO
     ): TransactionDTO
 
-    fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO
+    /** Deletes transaction [transactionId] belonging to [accountId] owned by [authenticatedUser]; throws if none matches. */
+    fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
 
     /** Returns the transactions matching [ids] that belong to [accountId] owned by [authenticatedUser]. */
     fun fetchTransactionsByIds(

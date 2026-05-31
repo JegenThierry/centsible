@@ -203,7 +203,7 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
 
-        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user)).thenReturn(transaction)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
@@ -223,12 +223,27 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
 
-        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user)).thenReturn(transaction)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"), user)
+    }
+
+    @Test
+    fun `deleteTransaction with a mismatched account is rejected and never touches the balance`() {
+        val transactionId = UUID.randomUUID()
+        // The guarded repository delete finds 0 rows for this (transaction, account) pair and throws,
+        // so the service must abort before adjusting any balance — the core of the fixed bug.
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user))
+            .thenThrow(IllegalArgumentException("Transaction not found or not owned by user"))
+
+        assertThrows(IllegalArgumentException::class.java) {
+            service.deleteTransaction(transactionId, accountId, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
     }
 
     @Test

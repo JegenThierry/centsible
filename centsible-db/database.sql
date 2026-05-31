@@ -4,9 +4,9 @@ SELECT format(
                          LC_COLLATE = ''en_US.UTF-8''
                          LC_CTYPE   = ''en_US.UTF-8''
                          TEMPLATE   = template0',
-               'budget_planner'
+               'centsible'
        )
 WHERE NOT EXISTS (SELECT
                   FROM pg_database
-                  WHERE datname = 'budget_planner')
+                  WHERE datname = 'centsible')
 \gexec

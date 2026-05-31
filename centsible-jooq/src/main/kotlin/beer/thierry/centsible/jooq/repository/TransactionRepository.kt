@@ -132,10 +132,24 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return fetchTransactionById(transactionId, authenticatedUser)
     }
 
-    override fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO {
+    override fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO {
         val transaction = fetchTransactionById(transactionId, authenticatedUser)
 
-        dsl.deleteFrom(TRANSACTIONS).where(TRANSACTIONS.ID.eq(transactionId)).execute()
+        val deleted = dsl.deleteFrom(TRANSACTIONS)
+            .where(
+                TRANSACTIONS.ID.eq(transactionId)
+                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+                    .and(
+                        TRANSACTIONS.ACCOUNT_ID.`in`(
+                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
+                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                        )
+                    )
+            ).execute()
+
+        if (deleted == 0) {
+            throw IllegalArgumentException("Transaction not found or not owned by user")
+        }
 
         return transaction
     }
@@ -211,7 +225,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         accountId: UUID, authenticatedUser: UserDTO, months: Int
     ): List<MonthlyAggregateDTO> {
         require(months in 1..36) { "months must be between 1 and 36" }
-        val today = java.time.LocalDate.now()
+        val today = LocalDate.now()
         val firstMonth = YearMonth.from(today).minusMonths((months - 1).toLong())
         val start = firstMonth.atDay(1)
 
