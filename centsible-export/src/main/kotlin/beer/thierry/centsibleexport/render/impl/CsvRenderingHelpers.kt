@@ -20,16 +20,21 @@ class CsvBuilder {
     private var rowCount: Int = 0
 
     fun row(vararg cells: Any?): CsvBuilder = apply {
-        printer.printRecord(*cells.map { it?.toString() ?: "" }.toTypedArray())
+        printer.printRecord(*cells.map { sanitizeCell(it) }.toTypedArray())
         rowCount += 1
     }
 
     fun row(cells: List<Any?>): CsvBuilder = apply {
-        printer.printRecord(cells.map { it?.toString() ?: "" })
+        printer.printRecord(cells.map { sanitizeCell(it) })
         rowCount += 1
     }
 
     fun rowCount(): Int = rowCount
+
+    private fun sanitizeCell(cell: Any?): String {
+        val text = cell?.toString() ?: ""
+        return if (cell is String && text.isNotEmpty() && text[0] in FORMULA_TRIGGERS) "'$text" else text
+    }
 
     fun bytes(): ByteArray {
         printer.flush()
@@ -38,6 +43,8 @@ class CsvBuilder {
 
     private companion object {
         val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+
+        val FORMULA_TRIGGERS = charArrayOf('=', '+', '-', '@', '\t', '\r')
     }
 }
 

