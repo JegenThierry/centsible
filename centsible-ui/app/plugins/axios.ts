@@ -1,16 +1,17 @@
 import axios from 'axios'
+import {useAuthStore} from "~/stores/authStore";
+import {useUserStore} from "~/stores/userStore";
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
   const baseURL = import.meta.server ? config.apiBaseSSR : config.public.apiBase;
 
   const api = axios.create({
-    baseURL: baseURL as string,
-    withCredentials: true,
+    baseURL: baseURL as string, withCredentials: true,
   });
 
   api.interceptors.request.use((cfg) => {
-    const i18n = nuxtApp.$i18n as {locale?: {value?: string}} | undefined;
+    const i18n = nuxtApp.$i18n as { locale?: { value?: string } } | undefined;
     const locale = i18n?.locale?.value;
     if (locale) {
       cfg.headers.set('Accept-Language', locale);
@@ -27,6 +28,24 @@ export default defineNuxtPlugin((nuxtApp) => {
       return cfg;
     });
   }
+
+  api.interceptors.response.use((response) => response, (error) => {
+    const axiosError = error as { response?: { status?: number }; config?: { url?: string } };
+    if (import.meta.client && axiosError.response?.status === 401) {
+      const requestUrl = axiosError.config?.url ?? '';
+      if (!requestUrl.startsWith('/auth')) {
+        nuxtApp.runWithContext(() => {
+          const authStore = useAuthStore();
+          if (authStore.isAuthenticated) {
+            authStore.setAuthenticated(false);
+            useUserStore().clear();
+            return navigateTo('/auth');
+          }
+        });
+      }
+    }
+    return Promise.reject(error);
+  });
 
   return {
     provide: {
