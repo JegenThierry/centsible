@@ -2,8 +2,10 @@ package beer.thierry.centsiblerest.exceptions
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.ErrorResponse
+import beer.thierry.centsiblerest.logging.MDC_REQUEST_ID
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
@@ -36,6 +38,15 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
             fieldErrors = fieldErrors,
         )
     )
+
+    /**
+     * Response for unexpected server errors. The raw exception is kept in the logs only; the client
+     * gets the generic localized message plus the request's opaque correlation id (also returned in
+     * the X-Request-Id header) so an operator can find the matching log line. Never echoes ex.message,
+     * which routinely carries SQL/schema/constraint names or filesystem paths.
+     */
+    private fun serverError(request: WebRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.INTERNAL_SERVER_ERROR, t("error.unexpected"), request, details = MDC.get(MDC_REQUEST_ID))
 
     @ExceptionHandler(LocalizedException::class)
     fun handleLocalized(ex: LocalizedException, request: WebRequest): ResponseEntity<ErrorResponse> {
@@ -96,12 +107,12 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(ex: IllegalStateException, request: WebRequest): ResponseEntity<ErrorResponse> {
         log.error("IllegalStateException", ex)
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, ex.message ?: t("error.unexpected"), request)
+        return serverError(request)
     }
 
     @ExceptionHandler(Exception::class)
     fun handleGlobalException(ex: Exception, request: WebRequest): ResponseEntity<ErrorResponse> {
         log.error("Unhandled exception", ex)
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, t("error.unexpected"), request, details = ex.message)
+        return serverError(request)
     }
 }
