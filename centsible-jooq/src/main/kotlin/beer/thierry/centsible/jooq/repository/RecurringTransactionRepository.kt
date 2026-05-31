@@ -28,16 +28,23 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         val filter: Condition = if (accountId != null) ownership.and(ACCOUNTS.ID.eq(accountId)) else ownership
 
         return baseSelect()
-            .where(filter)
+            .where(filter.and(categoryOwnedBy(authenticatedUser)))
             .orderBy(RECURRING_TRANSACTIONS.ACTIVE.desc(), RECURRING_TRANSACTIONS.NEXT_RUN_AT.asc())
             .fetch { mapToDTO(it) }
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): RecurringTransactionDTO {
         return baseSelect()
-            .where(RECURRING_TRANSACTIONS.ID.eq(id).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .where(
+                RECURRING_TRANSACTIONS.ID.eq(id)
+                    .and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                    .and(categoryOwnedBy(authenticatedUser))
+            )
             .fetchSingle { mapToDTO(it) }
     }
+
+    private fun categoryOwnedBy(authenticatedUser: UserDTO): Condition =
+        CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull)
 
     override fun create(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO

@@ -3,6 +3,7 @@ package beer.thierry.centsible.core.services.recurring
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.services.recurring.IRecurringTransactionService
 import org.slf4j.LoggerFactory
@@ -14,6 +15,7 @@ import java.util.*
 @Service
 class RecurringTransactionService(
     private val repository: IRecurringTransactionRepository,
+    private val categoriesRepository: ICategoriesRepository,
 ) : IRecurringTransactionService {
 
     private val log = LoggerFactory.getLogger(RecurringTransactionService::class.java)
@@ -25,6 +27,7 @@ class RecurringTransactionService(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
         validate(form)
+        assertCategoryOwned(authenticatedUser, form.categoryId)
         val created = repository.create(accountId, form, authenticatedUser)
         log.info(
             "Created recurring transaction id={} accountId={} userId={} frequency={}",
@@ -37,6 +40,7 @@ class RecurringTransactionService(
         id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
         validate(form)
+        assertCategoryOwned(authenticatedUser, form.categoryId)
         val updated = repository.update(id, form, authenticatedUser)
         log.info(
             "Updated recurring transaction id={} userId={} frequency={} active={}",
@@ -89,5 +93,13 @@ class RecurringTransactionService(
     private fun validate(form: RecurringTransactionForm) {
         val end = form.endDate ?: return
         require(!end.isBefore(form.startDate)) { "End date must be on or after start date." }
+    }
+
+    private fun assertCategoryOwned(authenticatedUser: UserDTO, categoryId: Long) {
+        if (!categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))
+                .containsKey(categoryId)
+        ) {
+            throw IllegalArgumentException("Category $categoryId not found or not accessible")
+        }
     }
 }

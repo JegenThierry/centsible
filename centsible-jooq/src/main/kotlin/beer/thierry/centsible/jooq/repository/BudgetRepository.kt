@@ -39,7 +39,10 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             BUDGETS.ROLLOVER_ENABLED,
         )
             .from(BUDGETS)
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID))
+            .join(CATEGORIES).on(
+                CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
+                    .and(CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull))
+            )
             .where(BUDGETS.USER_ID.eq(authenticatedUser.id))
             .orderBy(CATEGORIES.NAME.asc())
             .fetch()
@@ -109,7 +112,10 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             BUDGETS.ROLLOVER_ENABLED,
         )
             .from(BUDGETS)
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID))
+            .join(CATEGORIES).on(
+                CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
+                    .and(CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull))
+            )
             .where(BUDGETS.ID.eq(id).and(BUDGETS.USER_ID.eq(authenticatedUser.id)))
             .fetchSingle { record ->
                 val pt = parsePeriodType(record[BUDGETS.PERIOD_TYPE])
