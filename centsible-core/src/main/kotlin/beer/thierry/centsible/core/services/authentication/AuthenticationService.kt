@@ -13,6 +13,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Async
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.security.MessageDigest
@@ -45,9 +46,14 @@ class AuthenticationService(
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
     }
 
+    private val dummyPasswordHash: String by lazy {
+        passwordEncoder.encode(DUMMY_PASSWORD) ?: error("password encoder returned a null hash")
+    }
+
     override fun authenticate(authRequest: AuthRequest): AuthResponse {
         val user = userRepository.findUserByUsername(authRequest.username)
         if (user == null) {
+            passwordEncoder.matches(authRequest.password, dummyPasswordHash)
             log.warn("Authentication failed: unknown username='{}'", authRequest.username)
             throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
         }
@@ -116,6 +122,11 @@ class AuthenticationService(
         return confirmed
     }
 
+    // Runs off the request thread so the controller can write its 204 with branch-independent latency.
+    // Otherwise a valid+confirmed username pays a full synchronous Resend round-trip (the token UPDATE
+    // plus the outbound email) while every other input returns near-instantly — a timing oracle that
+    // defeats the "always 204" enumeration defence. Fire-and-forget: failures are logged, never surfaced.
+    @Async
     override fun requestPasswordReset(username: String) {
         // Always silent: don't leak which usernames exist. Trim only — no other normalisation,
         // since findUserByUsername is case-sensitive on the username column.
@@ -171,8 +182,8 @@ class AuthenticationService(
         MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
 
     companion object {
+        private const val DUMMY_PASSWORD = "centsible-timing-equalizer"
         private const val REGISTRATION_TOKEN_BYTES = 32
-        // 32 bytes base64url-encoded (no padding) is exactly 43 chars; cap a bit higher for safety.
         private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
         private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
         private const val PASSWORD_RESET_TOKEN_TTL_MINUTES = 15L

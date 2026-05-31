@@ -29,6 +29,16 @@ skip.email.verification=true
 cors.allowed-origins=http://localhost:3000
 
 # ============================================================================
+# Lifecycle
+# ============================================================================
+# Drain in-flight HTTP requests on SIGTERM instead of severing them (Spring's default is IMMEDIATE),
+# so redeploys don't 502 a multi-second upload/import/export-enqueue. In the Docker deployment these
+# are also injected via env in docker-compose.yml; keep the compose stop_grace_period above the
+# timeout so the JVM can finish draining before SIGKILL.
+server.shutdown=graceful
+spring.lifecycle.timeout-per-shutdown-phase=20s
+
+# ============================================================================
 # Observability
 # ============================================================================
 management.endpoints.web.exposure.include=health

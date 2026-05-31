@@ -46,6 +46,11 @@ class ContactService(private val contactsRepository: IContactsRepository) : ICon
     }
 
     override fun deleteContact(authenticatedUser: UserDTO, id: UUID): Boolean {
+        // Verify ownership BEFORE probing loan state. fetchContactById is user-scoped, so a contact the
+        // caller doesn't own (or that doesn't exist) returns null here and yields the same not-found
+        // result — the outstanding-loans 400 is never reachable for a foreign id, closing the
+        // cross-tenant yes/no oracle over guessable contact UUIDs.
+        contactsRepository.fetchContactById(authenticatedUser, id) ?: return false
         if (contactsRepository.hasOutstandingLoans(id)) {
             throw IllegalArgumentException("Cannot delete a contact with outstanding loans.")
         }

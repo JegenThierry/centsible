@@ -75,6 +75,8 @@ services:
       dockerfile: centsible-rest/Dockerfile
     container_name: centsible-rest
 
+    stop_grace_period: 30s
+
     develop:
       watch:
         - action: rebuild
@@ -114,8 +116,9 @@ services:
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
-      # Only enable behind a trusted proxy — otherwise the rate-limit IP can be spoofed.
       SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-framework}
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 20s
       INTEGRATIONS_ENCRYPTION_KEY: ${INTEGRATIONS_ENCRYPTION_KEY:-}
       INTEGRATIONS_ENCRYPTION_SALT: ${INTEGRATIONS_ENCRYPTION_SALT:-}
       INTEGRATIONS_SYNC_POLL_INTERVAL_MS: ${INTEGRATIONS_SYNC_POLL_INTERVAL_MS:-300000}
@@ -167,6 +170,8 @@ services:
       context: .
       dockerfile: centsible-export/Dockerfile
     container_name: centsible-export
+
+    stop_grace_period: 30s
 
     develop:
       watch:

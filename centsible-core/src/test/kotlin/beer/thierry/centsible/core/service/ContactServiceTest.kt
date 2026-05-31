@@ -31,6 +31,7 @@ class ContactServiceTest {
     @Test
     fun `deleteContact refuses while outstanding loans exist`() {
         val id = UUID.randomUUID()
+        `when`(repository.fetchContactById(user, id)).thenReturn(ContactDTO(id = id, firstName = "Alice"))
         `when`(repository.hasOutstandingLoans(id)).thenReturn(true)
 
         val ex = assertThrows(IllegalArgumentException::class.java) {
@@ -43,11 +44,24 @@ class ContactServiceTest {
     @Test
     fun `deleteContact delegates to repository when there are no outstanding loans`() {
         val id = UUID.randomUUID()
+        `when`(repository.fetchContactById(user, id)).thenReturn(ContactDTO(id = id, firstName = "Alice"))
         `when`(repository.hasOutstandingLoans(id)).thenReturn(false)
         `when`(repository.deleteContact(user, id)).thenReturn(true)
 
         assertEquals(true, service.deleteContact(user, id))
         verify(repository).deleteContact(user, id)
+    }
+
+    @Test
+    fun `deleteContact never probes loan state for a contact the user does not own`() {
+        // fetchContactById is user-scoped: a foreign/non-existent id returns null. The method must
+        // return not-found WITHOUT calling hasOutstandingLoans, so the 400-vs-404 oracle is closed.
+        val id = UUID.randomUUID()
+        `when`(repository.fetchContactById(user, id)).thenReturn(null)
+
+        assertEquals(false, service.deleteContact(user, id))
+        verify(repository, never()).hasOutstandingLoans(id)
+        verify(repository, never()).deleteContact(user, id)
     }
 
     @Test
