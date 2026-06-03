@@ -9,6 +9,7 @@ import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import RecurringRow from "~/components/_molecules/recurring/recurring-row.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 const CreateRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/create-recurring-modal.vue"));
 const EditRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/edit-recurring-modal.vue"));
 const DeleteRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/delete-recurring-modal.vue"));
@@ -70,9 +71,9 @@ watch(() => accountsStore.activeAccount?.id, () => refresh(), {immediate: true})
                    icon="i-lucide-repeat"
                    :title="t('transactions.recurring.emptyTitle')">
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
           {{ t('transactions.recurring.newRule') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
 

@@ -5,6 +5,7 @@ import {type Category, type CategoryForm, CategoryType} from "~/models/category/
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useValidator} from "~/composables/use-validator";
 
@@ -71,7 +72,7 @@ async function handleSave() {
           :title="t('categories.edit.title')">
     <template #body>
       <div class="space-y-4">
-        <URadioGroup v-model="form.type"
+        <AppRadioGroup v-model="form.type"
                      :items="typeOptions"
                      :legend="t('categories.type.legend')"
                      orientation="horizontal"/>

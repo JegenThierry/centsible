@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import adze from 'adze'
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {useActiveCurrency} from "~/composables/use-active-currency";
@@ -36,9 +37,9 @@ onMounted(async () => {
         <h3 class="text-base font-semibold text-highlighted">
           {{ t('contacts.loansGlance.title') }}
         </h3>
-        <UButton color="neutral" size="xs" variant="ghost" to="/loans">
+        <AppButton color="neutral" size="xs" variant="ghost" to="/loans">
           {{ t('contacts.loansGlance.viewAll') }}
-        </UButton>
+        </AppButton>
       </div>
     </template>
 

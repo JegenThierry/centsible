@@ -6,6 +6,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 import {formatBytes} from "~/utils/format";
 import {iconFor} from "~/utils/file-type";
 import {openBlobInNewTab} from "~/utils/blob-download";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   transactionId: string;
@@ -54,13 +55,13 @@ async function download(file: Attachment) {
 
 <template>
   <UPopover v-model:open="open" :ui="{content: 'p-0 w-80'}">
-    <UButton :aria-label="t('transactions.attachments.popover.triggerAria', {count})"
+    <AppButton :aria-label="t('transactions.attachments.popover.triggerAria', {count})"
              color="neutral"
              icon="i-lucide-paperclip"
              size="xs"
              variant="ghost">
       {{ count }}
-    </UButton>
+    </AppButton>
 
     <template #content>
       <div class="p-2 space-y-1.5">

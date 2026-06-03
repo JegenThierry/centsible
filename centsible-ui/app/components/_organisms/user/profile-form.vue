@@ -33,14 +33,15 @@
       type="email"
     />
 
-    <UButton :loading="loading" class="ml-auto" type="submit">
+    <AppButton :loading="loading" class="ml-auto" type="submit">
       {{ t('profile.form.submit') }}
-    </UButton>
+    </AppButton>
   </UForm>
 </template>
 
 <script lang="ts" setup>
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 import {useValidator} from "~/composables/use-validator";
 import {useUnsavedChangesGuard} from "~/composables/use-unsaved-changes-guard";

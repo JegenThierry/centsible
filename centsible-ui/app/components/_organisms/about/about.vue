@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import AboutSummary from "~/components/_organisms/about/about-summary.vue";
@@ -44,12 +45,12 @@ onMounted(async () => {
                    icon="i-lucide-circle-alert"
                    :title="t('landing.about.loadingTitle')">
       <template #actions>
-        <UButton color="neutral"
-                 icon="i-lucide-refresh-cw"
-                 variant="outline"
-                 @click="systemInformationStore.fetchSystemInformation()">
+        <AppButton color="neutral"
+                   icon="i-lucide-refresh-cw"
+                   variant="outline"
+                   @click="systemInformationStore.fetchSystemInformation()">
           {{ t('landing.about.tryAgain') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
   </UContainer>

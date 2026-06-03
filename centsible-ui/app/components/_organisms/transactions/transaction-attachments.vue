@@ -6,6 +6,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {formatBytes} from "~/utils/format";
 import {iconFor} from "~/utils/file-type";
 import {openBlobInNewTab} from "~/utils/blob-download";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   transactionId?: string;
@@ -157,13 +158,13 @@ watch(() => props.transactionId, () => refresh(), {immediate: true});
   <div class="space-y-3">
     <div class="flex items-center justify-between">
       <h4 class="text-sm font-semibold">{{ t('transactions.attachments.title') }}</h4>
-      <UButton :loading="uploading"
+      <AppButton :loading="uploading"
                icon="i-lucide-paperclip"
                size="xs"
                variant="soft"
                @click="onPick">
         {{ t('transactions.attachments.add') }}
-      </UButton>
+      </AppButton>
       <input ref="fileInput"
              :accept="ACCEPTED"
              class="hidden"
@@ -184,7 +185,7 @@ watch(() => props.transactionId, () => refresh(), {immediate: true});
           {{ a.filename }}
         </button>
         <span class="text-xs text-muted tabular-nums shrink-0">{{ formatBytes(a.sizeBytes) }}</span>
-        <UButton :aria-label="t('transactions.attachments.deleteAria')"
+        <AppButton :aria-label="t('transactions.attachments.deleteAria')"
                  color="error"
                  icon="i-lucide-trash"
                  size="xs"
@@ -198,7 +199,7 @@ watch(() => props.transactionId, () => refresh(), {immediate: true});
         <span class="flex-1 truncate text-default text-left">{{ item.file.name }}</span>
         <span class="text-xs text-muted italic shrink-0">{{ t('transactions.attachments.pending') }}</span>
         <span class="text-xs text-muted tabular-nums shrink-0">{{ formatBytes(item.file.size) }}</span>
-        <UButton :aria-label="t('transactions.attachments.deleteAria')"
+        <AppButton :aria-label="t('transactions.attachments.deleteAria')"
                  color="error"
                  icon="i-lucide-trash"
                  size="xs"

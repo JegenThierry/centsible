@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import adze from 'adze'
+import AppSwitch from "~/components/_atoms/ui/app-switch.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import type {NotificationSettings} from "~/models/notification/notification-settings";
 import {DEFAULT_NOTIFICATION_SETTINGS} from "~/models/notification/notification-settings";
 import {useUserService} from "~/services/user/user-service";
@@ -69,9 +72,9 @@ onMounted(() => load());
           <p class="font-medium text-sm">{{ t('profile.notifications.largeTransaction.title') }}</p>
           <p class="text-xs text-muted">{{ t('profile.notifications.largeTransaction.description') }}</p>
         </div>
-        <USwitch v-model="enableLargeTxn" :disabled="loading"/>
+        <AppSwitch v-model="enableLargeTxn" :disabled="loading"/>
       </div>
-      <UInput v-if="enableLargeTxn"
+      <AppInput v-if="enableLargeTxn"
               v-model.number="settings.largeTransactionThreshold"
               :min="0"
               :placeholder="t('profile.notifications.largeTransaction.placeholder')"
@@ -84,9 +87,9 @@ onMounted(() => load());
           <p class="font-medium text-sm">{{ t('profile.notifications.lowBalance.title') }}</p>
           <p class="text-xs text-muted">{{ t('profile.notifications.lowBalance.description') }}</p>
         </div>
-        <USwitch v-model="enableLowBalance" :disabled="loading"/>
+        <AppSwitch v-model="enableLowBalance" :disabled="loading"/>
       </div>
-      <UInput v-if="enableLowBalance"
+      <AppInput v-if="enableLowBalance"
               v-model.number="settings.lowBalanceThreshold"
               :min="0"
               :placeholder="t('profile.notifications.lowBalance.placeholder')"
@@ -96,14 +99,14 @@ onMounted(() => load());
 
       <div class="grid grid-cols-2 gap-3 pt-2 border-t border-default">
         <UFormField :label="t('profile.notifications.loanDueDaysAhead')">
-          <UInput v-model.number="settings.loanDueDaysAhead"
+          <AppInput v-model.number="settings.loanDueDaysAhead"
                   :min="0"
                   :max="30"
                   :disabled="loading"
                   type="number"/>
         </UFormField>
         <UFormField :label="t('profile.notifications.recurringDueDaysAhead')">
-          <UInput v-model.number="settings.recurringDueDaysAhead"
+          <AppInput v-model.number="settings.recurringDueDaysAhead"
                   :min="0"
                   :max="30"
                   :disabled="loading"
@@ -112,7 +115,7 @@ onMounted(() => load());
       </div>
 
       <div class="flex justify-end pt-2">
-        <UButton :loading="saving" @click="save">{{ t('profile.notifications.save') }}</UButton>
+        <AppButton :loading="saving" @click="save">{{ t('profile.notifications.save') }}</AppButton>
       </div>
     </div>
   </div>

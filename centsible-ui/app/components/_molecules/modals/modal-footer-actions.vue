@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 
 defineProps<{
@@ -20,7 +21,7 @@ const emit = defineEmits<{
 <template>
   <div class="flex justify-end gap-2">
     <CancelButton :disabled="cancelDisabled || loading" @click="emit('cancel')"/>
-    <UButton :color="submitColor ?? 'primary'"
+    <AppButton :color="submitColor ?? 'primary'"
              :disabled="disabled"
              :form="form"
              :icon="submitIcon"
@@ -28,6 +29,6 @@ const emit = defineEmits<{
              :type="form ? 'submit' : 'button'"
              @click="form ? undefined : emit('submit')">
       {{ submitLabel }}
-    </UButton>
+    </AppButton>
   </div>
 </template>

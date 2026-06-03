@@ -4,6 +4,10 @@ import {useAuthStore} from "~/stores/authStore";
 import type {CreateExportRequest, ExportFormat, ExportRequestParams, ExportType} from "~/models/export/export-job";
 import {EXPORT_FORMATS} from "~/models/export/export-job";
 import {type DateRangePreset, DATE_RANGE_PRESETS, resolvePreset} from "~/utils/date-range";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
+import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   type: ExportType;
@@ -90,43 +94,43 @@ function submit() {
       <div class="p-4 space-y-3 w-80">
         <div>
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.titleLabel') }}</label>
-          <UInput v-model="title" :placeholder="defaultTitle" class="w-full mt-1"/>
+          <AppInput v-model="title" :placeholder="defaultTitle" class="w-full mt-1"/>
         </div>
 
         <div>
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.formatLabel') }}</label>
-          <USelect v-model="format" :items="formatOptions" class="w-full mt-1" value-key="value"/>
+          <AppSelect v-model="format" :items="formatOptions" class="w-full mt-1" value-key="value"/>
         </div>
 
         <div v-if="supportsDateRange">
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.rangeLabel') }}</label>
-          <USelect v-model="preset" :items="presetOptions" class="w-full mt-1"/>
+          <AppSelect v-model="preset" :items="presetOptions" class="w-full mt-1"/>
         </div>
 
         <div v-if="supportsDateRange && preset === 'CUSTOM'" class="grid grid-cols-2 gap-2">
           <div>
             <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.fromLabel') }}</label>
-            <UInput v-model="customFrom" class="w-full mt-1" type="date"/>
+            <AppInput v-model="customFrom" class="w-full mt-1" type="date"/>
           </div>
           <div>
             <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.toLabel') }}</label>
-            <UInput v-model="customTo" class="w-full mt-1" type="date"/>
+            <AppInput v-model="customTo" class="w-full mt-1" type="date"/>
           </div>
         </div>
 
         <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3">
-          <UCheckbox v-model="sendEmail" :label="t('exports.options.emailMe')"/>
+          <AppCheckbox v-model="sendEmail" :label="t('exports.options.emailMe')"/>
         </div>
 
         <div v-if="sendEmail">
           <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.recipientLabel') }}</label>
-          <UInput v-model="recipient" :placeholder="userEmail" class="w-full mt-1" type="email"/>
+          <AppInput v-model="recipient" :placeholder="userEmail" class="w-full mt-1" type="email"/>
           <p class="text-xs text-neutral-500 mt-1">{{ t('exports.options.recipientHelp') }}</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
-          <UButton color="neutral" variant="ghost" @click="open = false">{{ t('exports.options.cancel') }}</UButton>
-          <UButton :loading="pending" color="primary" @click="submit">{{ t('exports.options.start') }}</UButton>
+          <AppButton color="neutral" variant="ghost" @click="open = false">{{ t('exports.options.cancel') }}</AppButton>
+          <AppButton :loading="pending" color="primary" @click="submit">{{ t('exports.options.start') }}</AppButton>
         </div>
       </div>
     </template>

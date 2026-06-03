@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const props = defineProps<{
   required?: boolean;
   disabled?: boolean;
@@ -38,7 +41,7 @@ defineExpose({validate});
               :help="description"
               :label="label"
               :required="required">
-    <UInput
+    <AppInput
       v-model="password"
       :disabled="disabled"
       :placeholder="placeholder"
@@ -47,7 +50,7 @@ defineExpose({validate});
       class="w-full"
     >
       <template #trailing>
-        <UButton
+        <AppButton
           :aria-label="show ? t('auth.password.hide') : t('auth.password.show')"
           :aria-pressed="show"
           :disabled="disabled"
@@ -59,6 +62,6 @@ defineExpose({validate});
           @click="show = !show"
         />
       </template>
-    </UInput>
+    </AppInput>
   </UFormField>
 </template>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import Profile from "~/components/_organisms/nav/profile.vue";
 import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
 import ThemePicker from "~/components/_organisms/theme/theme-picker.vue";
@@ -33,7 +34,7 @@ onMounted(async () => {
   <div class="h-(--ui-header-height) shrink-0 flex items-center px-4 border-b border-default">
     <div class="flex-1 flex items-center gap-2">
       <ClientOnly>
-        <UButton v-if="authStore.isAuthenticated"
+        <AppButton v-if="authStore.isAuthenticated"
                  :aria-label="t('nav.toggleSidebar')"
                  :icon="currentPanelIcon"
                  color="neutral"
@@ -57,12 +58,12 @@ onMounted(async () => {
           <Profile v-if="userStore.user" :user="userStore.user"/>
           <ProfileSkeleton v-else/>
         </template>
-        <UButton v-else
+        <AppButton v-else
                  color="primary"
                  icon="i-lucide-log-in"
                  to="/auth">
           {{ t('auth.login.signIn') }}
-        </UButton>
+        </AppButton>
       </div>
     </ClientOnly>
   </div>

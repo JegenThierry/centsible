@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const {t} = useI18n();
 
@@ -29,28 +30,28 @@ const items = computed<NavigationMenuItem[]>(() => [
                      variant="link"/>
 
     <template #right>
-      <UButton :aria-label="t('nav.footer.donate')"
+      <AppButton :aria-label="t('nav.footer.donate')"
                color="neutral"
                icon="i-simple-icons-kofi"
                target="_blank"
                to="https://ko-fi.com/thierryjegen"
                variant="ghost"/>
 
-      <UButton :aria-label="t('nav.footer.instagram')"
+      <AppButton :aria-label="t('nav.footer.instagram')"
                color="neutral"
                icon="i-simple-icons-instagram"
                target="_blank"
                to="https://www.instagram.com/thierryjegen/"
                variant="ghost"/>
 
-      <UButton :aria-label="t('nav.footer.twitter')"
+      <AppButton :aria-label="t('nav.footer.twitter')"
                color="neutral"
                icon="i-simple-icons-x"
                target="_blank"
                to="https://x.com/ThierryJegen1"
                variant="ghost"/>
 
-      <UButton :aria-label="t('nav.footer.codeberg')"
+      <AppButton :aria-label="t('nav.footer.codeberg')"
                color="neutral"
                icon="i-simple-icons-codeberg"
                target="_blank"

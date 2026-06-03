@@ -2,6 +2,7 @@
 import {computed, onMounted} from 'vue';
 import FilterPopoverButton from "~/components/_molecules/inputs/filter-popover-button.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const model = defineModel<number[]>({required: true});
 
@@ -40,13 +41,13 @@ onMounted(() => {
     <div class="w-64 max-h-80 flex flex-col">
       <div class="flex items-center justify-between pb-2 mb-1 border-b border-default">
         <span class="text-xs font-semibold uppercase text-muted">{{ t('transactions.filters.categoryLabel') }}</span>
-        <UButton v-if="model.length > 0"
+        <AppButton v-if="model.length > 0"
                  color="neutral"
                  size="xs"
                  variant="ghost"
                  @click="clear">
           {{ t('transactions.filters.clear') }}
-        </UButton>
+        </AppButton>
       </div>
 
       <div v-if="categoriesStore.categories.length === 0" class="py-4 text-sm text-muted text-center">

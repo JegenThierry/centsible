@@ -5,6 +5,7 @@ import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useValidator} from "~/composables/use-validator";
 
 const api = useApi();
@@ -65,17 +66,17 @@ function onSubmit() {
                    required/>
 
     <div class="flex justify-end">
-      <UButton color="neutral"
+      <AppButton color="neutral"
                size="sm"
                to="/auth/forgot-password"
                variant="link"
                class="px-0">
         {{ t('auth.login.forgotPassword') }}
-      </UButton>
+      </AppButton>
     </div>
 
-    <UButton :loading="loading" class="ml-auto" type="submit">
+    <AppButton :loading="loading" class="ml-auto" type="submit">
       {{ t('auth.login.submit') }}
-    </UButton>
+    </AppButton>
   </UForm>
 </template>

@@ -6,6 +6,8 @@ import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-b
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
 const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
@@ -73,18 +75,18 @@ onMounted(() => refresh());
         <label class="text-xs font-semibold text-muted uppercase tracking-wide">
           {{ t('budgets.list.asOf') }}
         </label>
-        <USelect v-model="selectedMonth"
+        <AppSelect v-model="selectedMonth"
                  :items="monthItems"
                  class="w-40"
                  value-key="value"/>
       </div>
-      <UButton :color="showHistory ? 'primary' : 'neutral'"
+      <AppButton :color="showHistory ? 'primary' : 'neutral'"
                :variant="showHistory ? 'soft' : 'ghost'"
                icon="i-lucide-history"
                size="sm"
                @click="showHistory = !showHistory">
         {{ t('budgets.list.showHistory') }}
-      </UButton>
+      </AppButton>
     </div>
 
     <div v-if="store.loading && store.items.length === 0" class="space-y-3">
@@ -96,9 +98,9 @@ onMounted(() => refresh());
                    icon="i-lucide-target"
                    :title="t('budgets.list.emptyTitle')">
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
           {{ t('budgets.list.emptyAction') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
 

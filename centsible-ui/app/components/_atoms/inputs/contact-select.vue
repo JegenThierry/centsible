@@ -40,15 +40,12 @@ defineExpose({validate})
                  :placeholder="t('transactions.selects.selectContact')"
                  searchable>
       <template #default="{ modelValue }">
-        <UButton color="neutral" variant="outline" class="w-full justify-between">
-          <div v-if="modelValue" class="flex items-center gap-2">
-            <UAvatar v-if="modelValue.picture" :src="modelValue.picture" size="2xs"/>
-            <UIcon v-else class="w-4 h-4" name="i-lucide-user"/>
-            <span>{{ modelValue.name }}</span>
-          </div>
-          <span v-else class="text-neutral-500">{{ t('transactions.selects.selectContact') }}</span>
-          <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-500"/>
-        </UButton>
+        <div v-if="modelValue" class="flex items-center gap-2">
+          <UAvatar v-if="modelValue.picture" :src="modelValue.picture" size="2xs"/>
+          <UIcon v-else class="w-4 h-4" name="i-lucide-user"/>
+          <span>{{ modelValue.name }}</span>
+        </div>
+        <span v-else class="text-neutral-500">{{ t('transactions.selects.selectContact') }}</span>
       </template>
 
       <template #item-leading="{ item }">

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import ExportOptionsPopover from "~/components/_molecules/exports/export-options-popover.vue";
+import ExportOptionsPopover from "~/components/_organisms/exports/export-options-popover.vue";
 import ExportTriggerButton from "~/components/_atoms/exports/export-trigger-button.vue";
 import {useExports} from "~/composables/use-exports";
 import {useToasts} from "~/services/toasts/toast-service";

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+
 const props = defineProps<{
   label: string;
   description?: string;
@@ -31,7 +33,7 @@ defineExpose({
               :hint="hint"
               :label="label"
               :required="required">
-    <UInput v-model="model"
+    <AppInput v-model="model"
             :disabled="disabled"
             class="w-full"
             type="date"/>

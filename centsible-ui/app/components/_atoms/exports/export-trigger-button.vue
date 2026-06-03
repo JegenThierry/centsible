@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const {t} = useI18n();
 
 const props = withDefaults(defineProps<{
@@ -20,7 +22,7 @@ const emit = defineEmits<{ (e: 'trigger'): void }>();
 </script>
 
 <template>
-  <UButton
+  <AppButton
     :disabled="disabled"
     :icon="icon"
     :loading="loading"
@@ -30,5 +32,5 @@ const emit = defineEmits<{ (e: 'trigger'): void }>();
     @click="emit('trigger')"
   >
     {{ resolvedLabel }}
-  </UButton>
+  </AppButton>
 </template>

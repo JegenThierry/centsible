@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import adze from 'adze'
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
-import LoanForm from "~/components/_molecules/loans/loan-form.vue";
+import LoanForm from "~/components/_organisms/loans/loan-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {todayIsoDate} from "~/utils/date";

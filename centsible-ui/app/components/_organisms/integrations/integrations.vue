@@ -7,6 +7,7 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import IntegrationCard, {type IntegrationCardBadge} from "~/components/_molecules/integrations/integration-card.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 const ConnectProviderModal = defineAsyncComponent(() => import("~/components/_organisms/integrations/modals/connect-provider-modal.vue"));
 const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
@@ -100,9 +101,9 @@ onMounted(() => {
                          icon="i-lucide-plug"
                          :title="d.displayName">
           <template #footer>
-            <UButton icon="i-lucide-plus" @click="openConnect(d)">
+            <AppButton icon="i-lucide-plus" @click="openConnect(d)">
               {{ t('integrations.available.connect') }}
-            </UButton>
+            </AppButton>
           </template>
         </IntegrationCard>
       </div>
@@ -130,24 +131,24 @@ onMounted(() => {
           </p>
 
           <template #footer>
-            <UButton v-if="conn.status === 'REVOKED' || conn.status === 'NEW'"
+            <AppButton v-if="conn.status === 'REVOKED' || conn.status === 'NEW'"
                      color="primary"
                      icon="i-lucide-link"
                      @click="onReconnect(conn)">
               {{ t('integrations.connections.reconnect') }}
-            </UButton>
-            <UButton color="neutral"
+            </AppButton>
+            <AppButton color="neutral"
                      icon="i-lucide-refresh-cw"
                      variant="soft"
                      @click="onSync(conn)">
               {{ t('integrations.connections.syncNow') }}
-            </UButton>
-            <UButton color="error"
+            </AppButton>
+            <AppButton color="error"
                      icon="i-lucide-trash-2"
                      variant="soft"
                      @click="onDelete(conn)">
               {{ t('integrations.connections.disconnect') }}
-            </UButton>
+            </AppButton>
           </template>
         </IntegrationCard>
       </div>

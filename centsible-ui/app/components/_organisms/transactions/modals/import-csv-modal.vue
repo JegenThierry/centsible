@@ -14,8 +14,10 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
-import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
-import CsvMappingRow from "~/components/_molecules/transactions/csv-mapping-row.vue";
+import CsvMappingStep from "~/components/_organisms/transactions/modals/csv-mapping-step.vue";
+import CsvImportPreviewTable from "~/components/_organisms/transactions/modals/csv-import-preview-table.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -204,95 +206,49 @@ async function handleImport() {
         <p class="text-sm text-neutral-500">
           {{ t('transactions.import.uploadHint') }}
         </p>
-        <UInput accept=".csv,text/csv"
-                class="w-full"
-                type="file"
-                @change="onFileChange"/>
+        <AppInput accept=".csv,text/csv"
+                  class="w-full"
+                  type="file"
+                  @change="onFileChange"/>
       </div>
 
-      <div v-else-if="step === 'map'" class="space-y-4">
-        <div class="border border-neutral-200 dark:border-neutral-800 rounded-md divide-y divide-neutral-200 dark:divide-neutral-800">
-          <CsvMappingRow v-for="(header, idx) in parsed?.headers ?? []"
-                         :key="idx"
-                         v-model="fieldByColumn[idx]!"
-                         :header="header"
-                         :preview="parsed?.rows[0]?.cells[idx] ?? ''"/>
-        </div>
+      <CsvMappingStep v-else-if="step === 'map'"
+                      v-model:field-by-column="fieldByColumn"
+                      v-model:default-category="defaultCategory"
+                      v-model:date-format="dateFormat"
+                      :headers="parsed?.headers ?? []"
+                      :first-row="parsed?.rows[0]?.cells ?? []"
+                      :expense-categories="expenseCategories"
+                      :date-format-options="dateFormatOptions"
+                      :mapping-valid="mappingValid"/>
 
-        <CategorySelect v-model="defaultCategory"
-                        :options="expenseCategories"
-                        :description="t('transactions.import.assignCategoryHelp')"
-                        :label="t('transactions.import.assignCategoryLabel')"
-                        required/>
-
-        <UFormField :description="t('transactions.import.dateFormatHelp')"
-                    :label="t('transactions.import.dateFormatLabel')">
-          <USelect v-model="dateFormat"
-                   :items="dateFormatOptions"
-                   class="w-full"
-                   value-key="value"/>
-        </UFormField>
-
-        <UAlert v-if="!mappingValid"
-                color="warning"
-                :description="t('transactions.import.missingMappingsDescription')"
-                :title="t('transactions.import.missingMappingsTitle')"
-                variant="subtle"/>
-      </div>
-
-      <div v-else class="space-y-4">
-        <div class="flex items-center justify-between gap-4 text-sm">
-          <p>{{ t('transactions.import.readyToImport', {count: previewRows.length}) }}</p>
-          <p v-if="invalidRowCount > 0" class="text-warning">
-            {{ t('transactions.import.skippedRows', {count: invalidRowCount}) }}
-          </p>
-        </div>
-        <div class="max-h-64 overflow-auto border border-default rounded-md">
-          <table class="w-full text-sm">
-            <thead class="bg-muted sticky top-0">
-              <tr>
-                <th class="text-left p-2">{{ t('transactions.table.date') }}</th>
-                <th class="text-left p-2">{{ t('transactions.table.description') }}</th>
-                <th class="text-right p-2">{{ t('transactions.table.amount') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, i) in previewRows.slice(0, 50)" :key="i" class="border-t border-muted">
-                <td class="p-2 tabular-nums">{{ row.transactionDate }}</td>
-                <td class="p-2 truncate max-w-[20rem]">{{ row.description }}</td>
-                <td class="p-2 text-right tabular-nums">{{ row.amount.toFixed(2) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p v-if="previewRows.length > 50" class="text-xs text-neutral-500">
-          {{ t('transactions.import.previewShowingFirst', {count: previewRows.length}) }}
-        </p>
-      </div>
+      <CsvImportPreviewTable v-else
+                             :rows="previewRows"
+                             :invalid-count="invalidRowCount"/>
     </template>
 
     <template #footer>
       <div class="flex justify-between gap-2 w-full">
-        <UButton v-if="step !== 'upload'"
-                 color="neutral"
-                 variant="ghost"
-                 @click="step = step === 'confirm' ? 'map' : 'upload'">
+        <AppButton v-if="step !== 'upload'"
+                   color="neutral"
+                   variant="ghost"
+                   @click="step = step === 'confirm' ? 'map' : 'upload'">
           {{ t('common.actions.back') }}
-        </UButton>
+        </AppButton>
         <div v-else></div>
         <div class="flex gap-2">
           <CancelButton @click="isOpen = false"/>
-          <UButton v-if="step === 'map'"
-                   :disabled="!mappingValid || !defaultCategory"
-                   @click="goToConfirm">
+          <AppButton v-if="step === 'map'"
+                     :disabled="!mappingValid || !defaultCategory"
+                     @click="goToConfirm">
             {{ t('common.actions.next') }}
-          </UButton>
-          <UButton v-if="step === 'confirm'"
-                   :disabled="previewRows.length === 0"
-                   :loading="loading"
-                   @click="handleImport">
+          </AppButton>
+          <AppButton v-if="step === 'confirm'"
+                     :disabled="previewRows.length === 0"
+                     :loading="loading"
+                     @click="handleImport">
             {{ t('transactions.import.importRows', {count: previewRows.length}) }}
-          </UButton>
+          </AppButton>
         </div>
       </div>
     </template>

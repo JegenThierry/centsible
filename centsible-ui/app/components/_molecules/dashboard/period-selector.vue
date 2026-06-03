@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue';
 import {DASHBOARD_PERIODS, type DashboardPeriod, useDashboardPeriod} from "~/composables/use-dashboard-period";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const {period} = useDashboardPeriod();
 const {t} = useI18n();
@@ -16,7 +17,7 @@ function select(value: DashboardPeriod) {
 
 <template>
   <div class="inline-flex flex-wrap items-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-800 p-1">
-    <UButton
+    <AppButton
       v-for="item in items"
       :key="item.value"
       :color="period === item.value ? 'primary' : 'neutral'"
@@ -25,6 +26,6 @@ function select(value: DashboardPeriod) {
       @click="select(item.value)"
     >
       {{ item.label }}
-    </UButton>
+    </AppButton>
   </div>
 </template>

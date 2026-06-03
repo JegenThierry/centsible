@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import adze from 'adze'
-import AccountBalance from "~/components/_organisms/dashboard/account-balance.vue";
-import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
-import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
+import AccountBalance from "~/components/_molecules/dashboard/account-balance.vue";
+import AccountHistoryGraph from "~/components/_molecules/dashboard/account-history-graph.vue";
+import AccountHistoryList from "~/components/_molecules/dashboard/account-history-list.vue";
 import SpendingByCategoryChart from "~/components/_organisms/dashboard/spending-by-category-chart.vue";
 import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-expense-chart.vue";
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";

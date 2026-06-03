@@ -6,7 +6,7 @@
  * so existing installations don't re-trigger onboarding after upgrading.
  */
 export const useOnboarded = () =>
-  useStorage<boolean>('centsible.onboarded', false, undefined, {
+  useLocalStorage<boolean>('centsible.onboarded', false, {
     serializer: {
       read: (v: string) => v === '1' || v === 'true',
       write: (v: boolean) => (v ? '1' : '0'),

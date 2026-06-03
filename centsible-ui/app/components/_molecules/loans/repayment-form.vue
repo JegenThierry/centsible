@@ -4,6 +4,7 @@ import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import AccountSelect from "~/components/_atoms/inputs/account-select.vue";
+import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useValidator} from "~/composables/use-validator";
 
@@ -57,7 +58,7 @@ defineExpose({
 
 <template>
   <div class="space-y-4">
-    <UCheckbox v-model="form.affectBalance"
+    <AppCheckbox v-model="form.affectBalance"
                :label="t('contacts.loans.repayment.form.affectBalanceLabel')"
                :description="t('contacts.loans.repayment.form.affectBalanceDescription')"/>
 

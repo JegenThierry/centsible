@@ -3,6 +3,9 @@ import {computed, ref, watch} from 'vue';
 import type {TransactionFilters, TransactionSort} from "~/models/transactions/transaction-filters";
 import TransactionCategoryFilter from "~/components/_molecules/transactions/transaction-category-filter.vue";
 import TransactionDateRangeFilter from "~/components/_molecules/transactions/transaction-date-range-filter.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const model = defineModel<TransactionFilters>({required: true});
 
@@ -58,7 +61,7 @@ function reset() {
 
 <template>
   <div class="flex flex-wrap items-center gap-2 mb-4">
-    <UInput v-model="searchDraft"
+    <AppInput v-model="searchDraft"
             :placeholder="t('transactions.filters.searchPlaceholder')"
             class="flex-1 min-w-[200px] max-w-md"
             icon="i-lucide-search"
@@ -68,13 +71,13 @@ function reset() {
 
     <TransactionDateRangeFilter v-model:from-date="fromDate" v-model:to-date="toDate"/>
 
-    <USelect v-model="sort"
+    <AppSelect v-model="sort"
              :items="sortOptions"
              class="min-w-[160px]"
              icon="i-lucide-arrow-up-down"
              size="sm"/>
 
-    <UButton v-if="hasFilters"
+    <AppButton v-if="hasFilters"
              :aria-label="t('transactions.filters.clear')"
              color="neutral"
              icon="i-lucide-x"
@@ -82,6 +85,6 @@ function reset() {
              variant="ghost"
              @click="reset">
       {{ t('transactions.filters.clear') }}
-    </UButton>
+    </AppButton>
   </div>
 </template>

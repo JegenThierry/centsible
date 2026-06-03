@@ -3,7 +3,8 @@ import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
-import RegisterPasswordInput from "~/components/_organisms/inputs/register-password-input.vue";
+import RegisterPasswordInput from "~/components/_molecules/inputs/register-password-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useValidator} from "~/composables/use-validator";
 import {useApiErrors} from "~/composables/use-api-errors";
 
@@ -122,8 +123,8 @@ function validate(): boolean {
                            v-model:password="state.password"
                            :disabled="loading"/>
 
-    <UButton :loading="loading" class="ml-auto" type="submit">
+    <AppButton :loading="loading" class="ml-auto" type="submit">
       {{ t('auth.register.submit') }}
-    </UButton>
+    </AppButton>
   </UForm>
 </template>

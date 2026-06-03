@@ -4,6 +4,8 @@ import {type Category, CategoryType} from "~/models/category/category";
 import {BUDGET_PERIOD_TYPES, type BudgetForm} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
+import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 import {useCategoryService} from "~/services/category/category-service";
 
 const props = defineProps<{
@@ -67,10 +69,10 @@ defineExpose({
       <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">
         {{ t('budgets.form.periodLabel') }}
       </label>
-      <USelect v-model="form.periodType" :items="periodOptions" class="w-full mt-1"/>
+      <AppSelect v-model="form.periodType" :items="periodOptions" class="w-full mt-1"/>
     </div>
 
-    <UCheckbox v-model="form.rolloverEnabled"
+    <AppCheckbox v-model="form.rolloverEnabled"
                :label="t('budgets.form.rolloverLabel')"
                :description="t('budgets.form.rolloverDescription')"/>
   </div>

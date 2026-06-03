@@ -6,7 +6,8 @@ import ModalFooterActions from "~/components/_molecules/modals/modal-footer-acti
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import SetBalanceFormFields from "~/components/_molecules/transactions/set-balance-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
-import LoanFormFields from "~/components/_molecules/loans/loan-form.vue";
+import LoanFormFields from "~/components/_organisms/loans/loan-form.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useLoansStore} from "~/stores/loansStore";
 import {useCategoriesStore} from "~/stores/categoriesStore";
@@ -222,11 +223,11 @@ async function saveSetBalance() {
           @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :state="form" class="space-y-4" @submit="handleSave">
-        <URadioGroup v-model="mode"
-                     :disabled="loading"
-                     :items="modeOptions"
-                     :legend="t('transactions.create.modeLegend')"
-                     orientation="horizontal"/>
+        <AppRadioGroup v-model="mode"
+                       :disabled="loading"
+                       :items="modeOptions"
+                       :legend="t('transactions.create.modeLegend')"
+                       orientation="horizontal"/>
         <TransactionFormFields v-if="mode === 'standard'"
                                ref="formRef"
                                v-model="form"

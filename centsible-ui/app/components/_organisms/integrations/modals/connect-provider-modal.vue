@@ -4,6 +4,7 @@ import {useProvidersStore} from "~/stores/providersStore";
 import type {ProviderDescriptor} from "~/models/integrations/provider-descriptor";
 import DynamicConfigForm from "~/components/_organisms/integrations/dynamic-config-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
   descriptor?: ProviderDescriptor;
@@ -121,7 +122,7 @@ async function launchOAuth(connectionId: string) {
                     :help="t('integrations.modal.displayNameHelp')"
                     :label="t('integrations.modal.displayNameLabel')"
                     required>
-          <UInput v-model="displayName"
+          <AppInput v-model="displayName"
                   :disabled="!!createdConnectionId"
                   :placeholder="descriptor.displayName"
                   class="w-full"/>

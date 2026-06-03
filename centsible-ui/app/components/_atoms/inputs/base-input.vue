@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+
 const props = defineProps<{
   label: string;
   description?: string;
@@ -101,7 +103,7 @@ defineExpose({
               :hint="hint"
               :label="label"
               :required="required">
-    <UInput v-model="model"
+    <AppInput v-model="model"
             :disabled="disabled"
             :placeholder="placeholder"
             :type="type"
@@ -112,6 +114,6 @@ defineExpose({
           {{ trailingText }}
         </span>
       </template>
-    </UInput>
+    </AppInput>
   </UFormField>
 </template>

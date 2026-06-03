@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 interface Props {
   src?: string | null;
   alt?: string;
@@ -38,7 +40,7 @@ function onAvatarClick() {
       @click="onAvatarClick"
     />
     <div v-if="editable" class="absolute bottom-1 right-1">
-      <UButton
+      <AppButton
         class="rounded-full shadow-md"
         icon="i-lucide-camera"
         size="sm"

@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import type {ConfigField, SelectOption} from "~/models/integrations/provider-descriptor";
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppSelectMenu from "~/components/_atoms/ui/app-select-menu.vue";
+import AppTextarea from "~/components/_atoms/ui/app-textarea.vue";
+import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 
 const props = defineProps<{
   fields: ConfigField[];
@@ -125,7 +130,7 @@ defineExpose({validate});
                   :error="errors[field.name]"
                   :help="field.helpText"
                   :label="field.label">
-        <UCheckbox v-model="(values[field.name] as boolean)"
+        <AppCheckbox v-model="(values[field.name] as boolean)"
                    :label="field.placeholder ?? field.label"/>
       </UFormField>
 
@@ -134,7 +139,7 @@ defineExpose({validate});
                   :help="field.helpText"
                   :label="field.label"
                   :required="field.required">
-        <USelectMenu v-model="values[field.name]"
+        <AppSelectMenu v-model="values[field.name]"
                      :items="field.options"
                      :placeholder="field.placeholder ?? t('integrations.form.selectPlaceholder')"
                      class="w-full"
@@ -147,7 +152,7 @@ defineExpose({validate});
                   :help="field.helpText"
                   :label="field.label"
                   :required="field.required">
-        <USelectMenu v-model="values[field.name]"
+        <AppSelectMenu v-model="values[field.name]"
                      :items="remoteOptions[field.name] ?? []"
                      :loading="!!remotePending[field.name]"
                      :placeholder="field.placeholder ?? t('integrations.form.selectPlaceholder')"
@@ -164,7 +169,7 @@ defineExpose({validate});
                   :help="field.helpText"
                   :label="field.label"
                   :required="field.required">
-        <UTextarea v-model="(values[field.name] as string)"
+        <AppTextarea v-model="(values[field.name] as string)"
                    :placeholder="field.placeholder"
                    :rows="3"
                    class="w-full"/>
@@ -173,12 +178,12 @@ defineExpose({validate});
       <UFormField v-else-if="field.type === 'OAUTH_LAUNCH' && oauthLaunch"
                   :help="field.helpText"
                   :label="field.label">
-        <UButton block
+        <AppButton block
                  icon="i-lucide-external-link"
                  variant="soft"
                  @click="oauthLaunch?.()">
           {{ field.label }}
-        </UButton>
+        </AppButton>
       </UFormField>
 
       <!-- OAUTH_LAUNCH with no callback: skip rendering entirely. The connect-provider modal
@@ -198,7 +203,7 @@ defineExpose({validate});
                   :help="field.helpText"
                   :label="field.label"
                   :required="field.required">
-        <UInput v-model="values[field.name]"
+        <AppInput v-model="values[field.name]"
                 :placeholder="field.placeholder"
                 :type="field.type === 'NUMBER' ? 'number' : 'text'"
                 class="w-full"/>

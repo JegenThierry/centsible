@@ -28,7 +28,7 @@ export const useTheme = () => {
   const appConfig = useAppConfig();
   const colorMode = useColorMode();
   const currentThemeId = useState<ThemeId>('centsible.theme.id', () => DEFAULT_THEME_ID);
-  const storedThemeId = useStorage<ThemeId>(STORAGE_KEY, DEFAULT_THEME_ID);
+  const storedThemeId = useLocalStorage<ThemeId>(STORAGE_KEY, DEFAULT_THEME_ID);
 
   const current = computed<ThemeDefinition>(
     () => themes.find(t => t.id === currentThemeId.value) ?? themes[0]!,

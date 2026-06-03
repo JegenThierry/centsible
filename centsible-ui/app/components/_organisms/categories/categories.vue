@@ -3,11 +3,12 @@ import {useCategoriesStore} from "~/stores/categoriesStore";
 const CreateCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/create-category-modal.vue"));
 const EditCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/edit-category-modal.vue"));
 const DeleteCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/delete-category-modal.vue"));
-import CategoryCard from "~/components/_organisms/cards/category-card.vue";
+import CategoryCard from "~/components/_molecules/cards/category-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import type {Category} from "~/models/category/category";
 
 const categoriesStore = useCategoriesStore();
@@ -43,9 +44,9 @@ onMounted(() => {
       :title="t('categories.page.title')"
     >
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">
           {{ t('categories.page.createAction') }}
-        </UButton>
+        </AppButton>
       </template>
     </PageHeader>
 
@@ -60,9 +61,9 @@ onMounted(() => {
       :title="t('categories.empty.title')"
     >
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
           {{ t('categories.empty.action') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
 

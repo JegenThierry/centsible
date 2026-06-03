@@ -26,14 +26,13 @@ const STORAGE_KEY_PREFIX = 'centsible.reports.range.';
  * the preset key.
  */
 export function useReportDateRange(storageKey: string, defaultPreset: ReportRangePreset = '6m') {
-  const state = useStorage(
+  const state = useLocalStorage(
     `${STORAGE_KEY_PREFIX}${storageKey}`,
     {
       preset: defaultPreset,
       from: '',
       to: todayIsoDate(),
     },
-    undefined,
     {mergeDefaults: true},
   );
 

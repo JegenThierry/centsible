@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import PageHeader from "~/components/_molecules/page/page-header.vue";
-import AllAttachmentsList from "~/components/_organisms/attachments/all-attachments-list.vue";
+import Attachments from "~/components/_organisms/attachments/attachments.vue";
 
 definePageMeta({
   middleware: ['auth-guard'],
@@ -14,8 +13,5 @@ useHead({
 </script>
 
 <template>
-  <UContainer class="py-6 sm:py-10 space-y-4 sm:space-y-6">
-    <PageHeader :title="t('attachments.title')" :description="t('attachments.description')"/>
-    <AllAttachmentsList/>
-  </UContainer>
+  <Attachments/>
 </template>

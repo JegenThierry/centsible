@@ -3,10 +3,10 @@ package beer.thierry.centsiblerest.config
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.stereotype.Component
 
-@Configuration
+@Component
 class ProductionGuard(
     private val environment: Environment,
     @Value("\${skip.email.verification:false}") private val skipEmailVerification: Boolean,
@@ -32,10 +32,6 @@ class ProductionGuard(
                 "auth.cookie.secure must be true under the prod profile. " +
                     "Set AUTH_COOKIE_SECURE=true and front the stack with HTTPS."
             }
-            // Reject the publicly-known placeholders shipped in .env.example. Because .env.example sets
-            // SPRING_PROFILES_ACTIVE=prod, an operator who copies it and replaces only the obvious DB
-            // password would otherwise boot with a credential-encryption key, KDF salt and JWT secret
-            // that are committed to a public repo (and therefore not secret).
             rejectPlaceholder("JWT_SECRET", "jwt.secret", jwtSecret, PLACEHOLDER_JWT_SECRET)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_KEY", "integrations.encryption-key", encryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_SALT", "integrations.encryption-salt", encryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)

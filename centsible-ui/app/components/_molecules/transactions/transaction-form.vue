@@ -5,6 +5,7 @@ import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {AMOUNT_INPUT} from "~/utils/money";
 
@@ -77,7 +78,7 @@ defineExpose({
 
     <div v-if="!filterType" class="flex flex-col gap-1">
       <span class="text-sm text-neutral-500">{{ t('transactions.form.typeLabel') }}</span>
-      <URadioGroup :model-value="form.type"
+      <AppRadioGroup :model-value="form.type"
                    :disabled="disabled"
                    :items="typeOptions"
                    orientation="horizontal"

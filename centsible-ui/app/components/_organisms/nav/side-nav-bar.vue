@@ -3,6 +3,7 @@ import {computed} from 'vue';
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useSidebar} from "~/composables/use-sidebar";
 import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const accountStore = useBudgetAccountsStore();
 const {open} = useSidebar();
@@ -128,7 +129,7 @@ const items = computed(() => {
                   to="/accounts">
           <BrandMark :show-wordmark="open"/>
         </NuxtLink>
-        <UButton
+        <AppButton
           :aria-label="t('nav.closeSidebar')"
           class="lg:hidden"
           color="neutral"
