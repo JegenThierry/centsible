@@ -17,14 +17,7 @@ const {t} = useI18n();
 </script>
 
 <template>
-  <UCard
-    :class="[
-      'group transition-all',
-      category.system
-        ? 'bg-muted border-default'
-        : 'border-primary-200 dark:border-primary-900/40'
-    ]"
-  >
+  <UCard class="group transition-all border-primary-200 dark:border-primary-900/40">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <CategoryIcon :color="category.color" :icon="category.icon" size="lg"/>
@@ -32,14 +25,15 @@ const {t} = useI18n();
           <p class="font-semibold">{{ category.name }}</p>
           <div class="flex gap-2">
             <CategoryTypeBadge :type="category.type"/>
-            <UBadge v-if="category.system" color="neutral" size="xs" variant="outline">{{ t('common.category.system') }}</UBadge>
+            <UBadge v-if="category.system" color="neutral" size="xs" variant="outline">
+              {{ t('common.category.system') }}
+            </UBadge>
           </div>
         </div>
       </div>
       <EditDeleteActions v-if="!category.system"
-                         hide-on-hover
-                         @edit="emit('edit', category)"
-                         @delete="emit('delete', category)"/>
+                         @delete="emit('delete', category)"
+                         @edit="emit('edit', category)"/>
     </div>
   </UCard>
 </template>

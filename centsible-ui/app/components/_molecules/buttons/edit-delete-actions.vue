@@ -4,7 +4,6 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 defineProps<{
   editAriaLabel?: string;
   deleteAriaLabel?: string;
-  hideOnHover?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -14,13 +13,14 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div :class="['flex items-center gap-1', hideOnHover && 'opacity-0 group-hover:opacity-100 transition-opacity']">
+  <div class="flex items-center gap-1">
     <AppButton :aria-label="editAriaLabel"
                color="neutral"
                icon="i-lucide-pencil"
                size="sm"
                variant="ghost"
                @click.stop="emit('edit')"/>
+
     <AppButton :aria-label="deleteAriaLabel"
                color="error"
                icon="i-lucide-trash"

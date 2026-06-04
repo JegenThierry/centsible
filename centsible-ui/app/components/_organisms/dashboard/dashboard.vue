@@ -65,9 +65,6 @@ async function fetchData() {
   const id = accountStore.activeAccount.id;
   const periodWindow = window.value;
 
-  // Fire every dashboard fetch in parallel, including the ones children would otherwise kick off
-  // after they mount. The dedup caches in useMonthlyAggregates / useCategoryAggregates mean the
-  // children find a resolved entry when they read these later.
   const tasks: Promise<unknown>[] = [
     historyStore.fetchSnapshots(id),
     transactionStore.fetchTransactions(id),
@@ -96,8 +93,6 @@ function onOpenCreateTransactionModal(): void {
 }
 
 async function onCreated() {
-  // A transaction was just created — bust the aggregate caches so the post-fetch reflects the
-  // new totals instead of returning the previous (stale) numbers.
   invalidateMonthlyAggregates();
   invalidateCategoryAggregates();
   await accountStore.updateActiveAccount();

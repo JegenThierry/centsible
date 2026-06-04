@@ -16,7 +16,7 @@ function select(value: DashboardPeriod) {
 </script>
 
 <template>
-  <div class="inline-flex flex-wrap items-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-800 p-1">
+  <div class="inline-flex flex-wrap items-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-1">
     <AppButton
       v-for="item in items"
       :key="item.value"
