@@ -5,12 +5,13 @@ services:
     container_name: centsible-db
 
     restart: unless-stopped
+    init: true
 
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8 -c app.db_name=${POSTGRES_DB}"
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-centsible}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8 -c app.db_name=${POSTGRES_DB:-centsible}"
       TZ: ${TZ:-UTC}
       PGTZ: ${TZ:-UTC}
 
@@ -18,20 +19,20 @@ services:
       - postgres_data:/var/lib/postgresql
       - ./centsible-db/database.sql:/docker-entrypoint-initdb.d/00_database.sql:ro,z
       - ./centsible-db/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro,z
-      - ./centsible-db/categories.sql:/docker-entrypoint-initdb.d/02_categories.sql:ro,z
       - ./centsible-db/migrations:/migrations:ro,z
-      - ./centsible-db/run-migrations.sh:/docker-entrypoint-initdb.d/03_run-migrations.sh:ro,z
-
-    # 127.0.0.1 only — host-local access (jooqCodegen, psql), never public.
-    ports:
-      - "127.0.0.1:${DB_HOST_PORT:-5432}:5432"
+      - ./centsible-db/run-migrations.sh:/docker-entrypoint-initdb.d/02_run-migrations.sh:ro,z
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-centsible}" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
 
     deploy:
       resources:
@@ -59,13 +60,17 @@ services:
       - ./centsible-db/migrations:/migrations:ro,z
       - ./centsible-db/run-migrations.sh:/run-migrations.sh:ro,z
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGPASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-centsible}
       PGHOST: centsible-db
       TZ: ${TZ:-UTC}
     entrypoint: [ "/bin/bash", "/run-migrations.sh" ]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
     networks:
       - centsible-net
 
@@ -73,48 +78,34 @@ services:
     build:
       context: .
       dockerfile: centsible-rest/Dockerfile
+    image: centsible-rest:${CENTSIBLE_VERSION:-local}
     container_name: centsible-rest
 
-    stop_grace_period: 30s
-
-    develop:
-      watch:
-        - action: rebuild
-          path: ./centsible-rest/src
-        - action: rebuild
-          path: ./centsible-core/src
-        - action: rebuild
-          path: ./centsible-api/src
-        - action: rebuild
-          path: ./centsible-jooq/src
-        - action: rebuild
-          path: ./build.gradle.kts
-
     restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
 
     depends_on:
       centsible-migrations:
         condition: service_completed_successfully
 
     environment:
-      # Set to "prod" in .env for public deployments — activates ProductionGuard.
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB:-centsible}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-14400000}
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
       SKIP_EMAIL_VERIFICATION: ${SKIP_EMAIL_VERIFICATION:-false}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
-      # 11MB / 12MB give a small headroom over the 10MB attachment cap enforced in the controller.
       SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${MULTIPART_MAX_FILE_SIZE:-11MB}
       SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${MULTIPART_MAX_REQUEST_SIZE:-12MB}
       ATTACHMENTS_DIRECTORY: /var/centsible/attachments
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
       SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-framework}
       SERVER_SHUTDOWN: graceful
@@ -136,9 +127,6 @@ services:
       JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx384m}
       TZ: ${TZ:-UTC}
 
-    ports:
-      - "${REST_HOST_PORT:-8080}:8080"
-
     volumes:
       - attachments_data:/var/centsible/attachments
 
@@ -148,6 +136,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
 
     deploy:
       resources:
@@ -164,38 +157,27 @@ services:
 
     networks:
       - centsible-net
+      - proxy-net
 
   centsible-export:
     build:
       context: .
       dockerfile: centsible-export/Dockerfile
+    image: centsible-export:${CENTSIBLE_VERSION:-local}
     container_name: centsible-export
 
-    stop_grace_period: 30s
-
-    develop:
-      watch:
-        - action: rebuild
-          path: ./centsible-export/src
-        - action: rebuild
-          path: ./centsible-proto/src
-        - action: rebuild
-          path: ./centsible-api/src
-        - action: rebuild
-          path: ./centsible-jooq/src
-        - action: rebuild
-          path: ./build.gradle.kts
-
     restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
 
     depends_on:
       centsible-migrations:
         condition: service_completed_successfully
 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB:-centsible}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       EXPORT_POLL_INTERVAL_MS: ${EXPORT_POLL_INTERVAL_MS:-2000}
@@ -203,13 +185,17 @@ services:
       JAVA_OPTS: ${EXPORT_JAVA_OPTS:--Xms256m -Xmx512m}
       TZ: ${TZ:-UTC}
 
-    # Internal worker — no auth on its endpoints; never publish ports.
     healthcheck:
       test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8081/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 60s
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
 
     deploy:
       resources:
@@ -231,18 +217,13 @@ services:
     build:
       context: ./centsible-ui
       dockerfile: Dockerfile
-      target: dev
+      target: release
+    image: centsible-ui:${CENTSIBLE_VERSION:-local}
     container_name: centsible-ui
 
-    develop:
-      watch:
-        - action: sync
-          path: ./centsible-ui/app
-          target: /app/app
-        - action: rebuild
-          path: ./centsible-ui/package.json
-
     restart: unless-stopped
+    init: true
+    stop_grace_period: 15s
 
     depends_on:
       centsible-rest:
@@ -253,12 +234,24 @@ services:
       NUXT_API_BASE_SSR: ${NUXT_API_BASE_SSR:-http://centsible-rest:8080/api}
       TZ: ${TZ:-UTC}
 
-    ports:
-      - "${UI_HOST_PORT:-3000}:3000"
+    healthcheck:
+      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
-    volumes:
-      - ./centsible-ui:/app:z
-      - node_modules_ui:/app/node_modules
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 192M
 
     logging:
       driver: json-file
@@ -268,15 +261,17 @@ services:
 
     networks:
       - centsible-net
+      - proxy-net
 
 networks:
   centsible-net:
     driver: bridge
+  proxy-net:
+    name: ${PROXY_NETWORK:-nginx-proxy-manager_default}
+    external: true
 
 volumes:
   postgres_data:
-    driver: local
-  node_modules_ui:
     driver: local
   attachments_data:
     driver: local
