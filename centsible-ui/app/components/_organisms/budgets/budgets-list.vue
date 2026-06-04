@@ -3,6 +3,7 @@ import {useBudgetsStore} from "~/stores/budgetsStore";
 import type {Budget} from "~/models/budget/budget";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-bar.vue";
+import BudgetSummary from "~/components/_molecules/budgets/budget-summary.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
@@ -105,6 +106,8 @@ onMounted(() => refresh());
     </AppEmptyState>
 
     <div v-else class="space-y-4">
+      <BudgetSummary :budgets="store.items" :currency="currency" :month="selectedMonth"/>
+
       <UCard v-for="budget in store.items"
              :key="budget.id"
              :ui="{body: 'p-4 sm:p-5'}"

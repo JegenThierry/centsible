@@ -7,6 +7,7 @@ package beer.thierry.jooq.generated.keys
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
@@ -25,6 +26,7 @@ import beer.thierry.jooq.generated.tables.Users
 import beer.thierry.jooq.generated.tables.records.AccountsRecord
 import beer.thierry.jooq.generated.tables.records.BudgetsRecord
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
+import beer.thierry.jooq.generated.tables.records.CategorizationRulesRecord
 import beer.thierry.jooq.generated.tables.records.ContactsRecord
 import beer.thierry.jooq.generated.tables.records.ExportJobsRecord
 import beer.thierry.jooq.generated.tables.records.ExportPostProcessingRecord
@@ -56,6 +58,7 @@ val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> = Internal.createUniqueKey(Accounts
 val BUDGETS_PKEY: UniqueKey<BudgetsRecord> = Internal.createUniqueKey(Budgets.BUDGETS, DSL.name("budgets_pkey"), arrayOf(Budgets.BUDGETS.ID), true)
 val UQ_BUDGETS_USER_CATEGORY: UniqueKey<BudgetsRecord> = Internal.createUniqueKey(Budgets.BUDGETS, DSL.name("uq_budgets_user_category"), arrayOf(Budgets.BUDGETS.USER_ID, Budgets.BUDGETS.CATEGORY_ID), true)
 val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), arrayOf(Categories.CATEGORIES.ID), true)
+val CATEGORIZATION_RULES_PKEY: UniqueKey<CategorizationRulesRecord> = Internal.createUniqueKey(CategorizationRules.CATEGORIZATION_RULES, DSL.name("categorization_rules_pkey"), arrayOf(CategorizationRules.CATEGORIZATION_RULES.ID), true)
 val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("contacts_pkey"), arrayOf(Contacts.CONTACTS.ID), true)
 val UQ_CONTACTS_ID_USER: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("uq_contacts_id_user"), arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
 val EXPORT_JOBS_PKEY: UniqueKey<ExportJobsRecord> = Internal.createUniqueKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_pkey"), arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
@@ -87,6 +90,8 @@ val ACCOUNTS__ACCOUNTS_USER_ID_FKEY: ForeignKey<AccountsRecord, UsersRecord> = I
 val BUDGETS__BUDGETS_CATEGORY_ID_FKEY: ForeignKey<BudgetsRecord, CategoriesRecord> = Internal.createForeignKey(Budgets.BUDGETS, DSL.name("budgets_category_id_fkey"), arrayOf(Budgets.BUDGETS.CATEGORY_ID), beer.thierry.jooq.generated.keys.CATEGORIES_PKEY, arrayOf(Categories.CATEGORIES.ID), true)
 val BUDGETS__BUDGETS_USER_ID_FKEY: ForeignKey<BudgetsRecord, UsersRecord> = Internal.createForeignKey(Budgets.BUDGETS, DSL.name("budgets_user_id_fkey"), arrayOf(Budgets.BUDGETS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val CATEGORIES__CATEGORIES_USER_ID_FKEY: ForeignKey<CategoriesRecord, UsersRecord> = Internal.createForeignKey(Categories.CATEGORIES, DSL.name("categories_user_id_fkey"), arrayOf(Categories.CATEGORIES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
+val CATEGORIZATION_RULES__CATEGORIZATION_RULES_CATEGORY_ID_FKEY: ForeignKey<CategorizationRulesRecord, CategoriesRecord> = Internal.createForeignKey(CategorizationRules.CATEGORIZATION_RULES, DSL.name("categorization_rules_category_id_fkey"), arrayOf(CategorizationRules.CATEGORIZATION_RULES.CATEGORY_ID), beer.thierry.jooq.generated.keys.CATEGORIES_PKEY, arrayOf(Categories.CATEGORIES.ID), true)
+val CATEGORIZATION_RULES__CATEGORIZATION_RULES_USER_ID_FKEY: ForeignKey<CategorizationRulesRecord, UsersRecord> = Internal.createForeignKey(CategorizationRules.CATEGORIZATION_RULES, DSL.name("categorization_rules_user_id_fkey"), arrayOf(CategorizationRules.CATEGORIZATION_RULES.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val CONTACTS__CONTACTS_USER_ID_FKEY: ForeignKey<ContactsRecord, UsersRecord> = Internal.createForeignKey(Contacts.CONTACTS, DSL.name("contacts_user_id_fkey"), arrayOf(Contacts.CONTACTS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY: ForeignKey<ExportJobsRecord, UsersRecord> = Internal.createForeignKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_user_id_fkey"), arrayOf(ExportJobs.EXPORT_JOBS.USER_ID), beer.thierry.jooq.generated.keys.USERS_PKEY, arrayOf(Users.USERS.ID), true)
 val EXPORT_POST_PROCESSING__EXPORT_POST_PROCESSING_EXPORT_JOB_ID_FKEY: ForeignKey<ExportPostProcessingRecord, ExportJobsRecord> = Internal.createForeignKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_export_job_id_fkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.EXPORT_JOB_ID), beer.thierry.jooq.generated.keys.EXPORT_JOBS_PKEY, arrayOf(ExportJobs.EXPORT_JOBS.ID), true)

@@ -1,5 +1,7 @@
 package beer.thierry.centsible.api.repository
 
+import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
@@ -68,13 +70,21 @@ interface ITransactionRepository {
         months: Int,
     ): List<MonthlyAggregateDTO>
 
-    /** Inserts rows skipping duplicates by [account_id, import_hash]. Returns inserted-row net adjustment. */
     fun importBatch(
         accountId: UUID,
         rows: List<ImportTransactionRow>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
+        providerConnectionId: UUID? = null,
     ): BatchImportOutcome
+
+    fun recategorizeByDescription(
+        authenticatedUser: UserDTO,
+        matchType: MatchType,
+        pattern: String,
+        categoryId: Long,
+        type: CategoryType,
+    ): Int
 }
 
 data class BatchImportOutcome(

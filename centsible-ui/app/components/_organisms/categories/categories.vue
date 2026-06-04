@@ -9,6 +9,7 @@ import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import CategorizationRules from "~/components/_organisms/categories/categorization-rules.vue";
 import type {Category} from "~/models/category/category";
 
 const categoriesStore = useCategoriesStore();
@@ -21,6 +22,12 @@ const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedCategory = ref<Category>();
+
+const activeTab = ref<'categories' | 'rules'>('categories');
+const tabs = computed(() => [
+  {label: t('categories.tabs.categories'), icon: 'i-lucide-tag', slot: 'categories', value: 'categories'},
+  {label: t('categories.tabs.rules'), icon: 'i-lucide-wand-sparkles', slot: 'rules', value: 'rules'},
+]);
 
 function openEditModal(category: Category) {
   selectedCategory.value = category;
@@ -44,62 +51,77 @@ onMounted(() => {
       :title="t('categories.page.title')"
     >
       <template #actions>
-        <AppButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="isCreateModalOpen = true">
+        <AppButton v-if="activeTab === 'categories'"
+                   class="w-full sm:w-auto justify-center"
+                   icon="i-lucide-plus"
+                   @click="isCreateModalOpen = true">
           {{ t('categories.page.createAction') }}
         </AppButton>
       </template>
     </PageHeader>
 
-    <div v-if="categoriesStore.pending && categoriesStore.categories.length > 0" class="flex justify-center mb-6">
-      <LoadingAnimation/>
-    </div>
+    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+      <template #categories>
+        <div class="pt-4">
+          <div v-if="categoriesStore.pending && categoriesStore.categories.length > 0" class="flex justify-center mb-6">
+            <LoadingAnimation/>
+          </div>
 
-    <AppEmptyState
-      v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending"
-      :description="t('categories.empty.description')"
-      icon="i-lucide-tag"
-      :title="t('categories.empty.title')"
-    >
-      <template #actions>
-        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
-          {{ t('categories.empty.action') }}
-        </AppButton>
-      </template>
-    </AppEmptyState>
+          <AppEmptyState
+            v-if="categoriesStore.categories.length === 0 && !categoriesStore.pending"
+            :description="t('categories.empty.description')"
+            icon="i-lucide-tag"
+            :title="t('categories.empty.title')"
+          >
+            <template #actions>
+              <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+                {{ t('categories.empty.action') }}
+              </AppButton>
+            </template>
+          </AppEmptyState>
 
-    <div v-else class="space-y-12">
-      <template v-if="categoriesStore.pending && categoriesStore.categories.length === 0">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <CardSkeleton v-for="i in 6" :key="i"/>
+          <div v-else class="space-y-12">
+            <template v-if="categoriesStore.pending && categoriesStore.categories.length === 0">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <CardSkeleton v-for="i in 6" :key="i"/>
+              </div>
+            </template>
+
+            <section v-if="userCategories.length > 0">
+              <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                <UIcon class="w-5 h-5 text-primary-500" name="i-lucide-user"/>
+                {{ t('categories.sections.yours') }}
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <CategoryCard v-for="category in userCategories"
+                              :key="category.id"
+                              :category="category"
+                              @delete="openDeleteModal"
+                              @edit="openEditModal"/>
+              </div>
+            </section>
+
+            <section v-if="systemCategories.length > 0">
+              <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                <UIcon class="w-5 h-5" name="i-lucide-settings"/>
+                {{ t('categories.sections.system') }}
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <CategoryCard v-for="category in systemCategories"
+                              :key="category.id"
+                              :category="category"/>
+              </div>
+            </section>
+          </div>
         </div>
       </template>
 
-      <section v-if="userCategories.length > 0">
-        <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-          <UIcon class="w-5 h-5 text-primary-500" name="i-lucide-user"/>
-          {{ t('categories.sections.yours') }}
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <CategoryCard v-for="category in userCategories"
-                        :key="category.id"
-                        :category="category"
-                        @delete="openDeleteModal"
-                        @edit="openEditModal"/>
+      <template #rules>
+        <div class="pt-4">
+          <CategorizationRules/>
         </div>
-      </section>
-
-      <section v-if="systemCategories.length > 0">
-        <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-          <UIcon class="w-5 h-5" name="i-lucide-settings"/>
-          {{ t('categories.sections.system') }}
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <CategoryCard v-for="category in systemCategories"
-                        :key="category.id"
-                        :category="category"/>
-        </div>
-      </section>
-    </div>
+      </template>
+    </UTabs>
 
     <CreateCategoryModal v-model:open="isCreateModalOpen"/>
     <EditCategoryModal v-model:open="isEditModalOpen" :category="selectedCategory"/>

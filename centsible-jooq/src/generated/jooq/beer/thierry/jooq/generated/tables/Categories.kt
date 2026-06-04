@@ -12,9 +12,11 @@ import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_SYSTEM_KEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES_PKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.CATEGORIZATION_RULES__CATEGORIZATION_RULES_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
+import beer.thierry.jooq.generated.tables.CategorizationRules.CategorizationRulesPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
@@ -201,6 +203,22 @@ open class Categories(
 
     val budgets: BudgetsPath
         get(): BudgetsPath = budgets()
+
+    private lateinit var _categorizationRules: CategorizationRulesPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.categorization_rules</code> table
+     */
+    fun categorizationRules(): CategorizationRulesPath {
+        if (!this::_categorizationRules.isInitialized)
+            _categorizationRules = CategorizationRulesPath(this, null, CATEGORIZATION_RULES__CATEGORIZATION_RULES_CATEGORY_ID_FKEY.inverseKey)
+
+        return _categorizationRules;
+    }
+
+    val categorizationRules: CategorizationRulesPath
+        get(): CategorizationRulesPath = categorizationRules()
 
     private lateinit var _recurringTransactions: RecurringTransactionsPath
 

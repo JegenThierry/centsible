@@ -8,6 +8,7 @@ import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
@@ -64,6 +65,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.categories</code>.
      */
     val CATEGORIES: Categories get() = Categories.CATEGORIES
+
+    /**
+     * The table <code>public.categorization_rules</code>.
+     */
+    val CATEGORIZATION_RULES: CategorizationRules get() = CategorizationRules.CATEGORIZATION_RULES
 
     /**
      * The table <code>public.contact_balances</code>.
@@ -152,6 +158,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         Accounts.ACCOUNTS,
         Budgets.BUDGETS,
         Categories.CATEGORIES,
+        CategorizationRules.CATEGORIZATION_RULES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,
         ExportJobs.EXPORT_JOBS,

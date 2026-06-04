@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.resources.export
 
 import beer.thierry.centsible.api.model.export.ExportJobDTO
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.account.IBudgetAccountService
 import beer.thierry.centsible.api.services.export.IExportService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -25,6 +26,7 @@ import java.util.UUID
 class ExportResource(
     private val exportService: IExportService,
     private val protoBuilder: ExportProtoBuilder,
+    private val budgetAccountService: IBudgetAccountService,
 ) {
 
     private val log = LoggerFactory.getLogger(ExportResource::class.java)
@@ -40,8 +42,8 @@ class ExportResource(
         val payload = protoBuilder.build(
             user = user,
             params = params,
-            locale = "en",
-            currency = "EUR",
+            locale = user.locale,
+            currency = primaryCurrencyOf(budgetAccountService.fetchAccounts(user).map { it.currency }),
             format = request.format,
         )
         val postProcessing = request.postProcessing.orEmpty().map {

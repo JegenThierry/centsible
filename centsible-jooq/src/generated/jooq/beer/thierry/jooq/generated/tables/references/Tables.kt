@@ -8,6 +8,7 @@ import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
@@ -46,6 +47,11 @@ val BUDGETS: Budgets = Budgets.BUDGETS
  * The table <code>public.categories</code>.
  */
 val CATEGORIES: Categories = Categories.CATEGORIES
+
+/**
+ * The table <code>public.categorization_rules</code>.
+ */
+val CATEGORIZATION_RULES: CategorizationRules = CategorizationRules.CATEGORIZATION_RULES
 
 /**
  * The table <code>public.contact_balances</code>.

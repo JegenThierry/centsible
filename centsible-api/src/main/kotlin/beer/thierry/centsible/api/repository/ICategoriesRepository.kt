@@ -9,6 +9,8 @@ interface ICategoriesRepository {
     fun fetchAllCategories(authenticatedUser: UserDTO): List<CategoryDTO>
     fun fetchCategoryById(authenticatedUser: UserDTO, id: Long): CategoryDTO?
 
+    fun fetchSystemCategoryByKey(systemKey: String): CategoryDTO?
+
     /**
      * Returns the category's default transaction type plus its managed flag.
      * Unlike [fetchCategoryById], this does NOT exclude managed categories

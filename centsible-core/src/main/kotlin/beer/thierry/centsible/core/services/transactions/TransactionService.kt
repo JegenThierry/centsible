@@ -1,6 +1,8 @@
 package beer.thierry.centsible.core.services.transactions
 
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.categorization.firstMatch
+import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
@@ -16,6 +18,7 @@ import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.services.categorization.ICategorizationService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import org.slf4j.LoggerFactory
@@ -26,6 +29,8 @@ import java.security.MessageDigest
 import java.time.LocalDate
 import java.util.*
 
+private const val UNCATEGORIZED_SYSTEM_KEY = "UNCATEGORIZED"
+
 @Service
 class TransactionService(
     private val transactionRepository: ITransactionRepository,
@@ -33,6 +38,7 @@ class TransactionService(
     private val categoriesRepository: ICategoriesRepository,
     private val attachmentRepository: IAttachmentRepository,
     private val notificationService: INotificationService,
+    private val categorizationService: ICategorizationService,
 ) : ITransactionService {
 
     private val log = LoggerFactory.getLogger(TransactionService::class.java)
@@ -221,6 +227,59 @@ class TransactionService(
             imported = outcome.insertedCount,
             skippedDuplicates = rows.size - outcome.insertedCount,
         )
+    }
+
+    @Transactional
+    override fun importProviderTransactions(
+        accountId: UUID,
+        providerConnectionId: UUID,
+        transactions: List<ImportedTransactionDTO>,
+        authenticatedUser: UserDTO,
+    ): ImportResult {
+        if (transactions.isEmpty()) return ImportResult(0, 0)
+
+        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
+        if (fallbackCategoryId == null) {
+            log.error("Cannot persist synced transactions: '{}' system category is missing", UNCATEGORIZED_SYSTEM_KEY)
+            return ImportResult(0, 0)
+        }
+
+        val rules = categorizationService.list(authenticatedUser)
+        val priced = transactions.filter { it.amount.signum() != 0 }
+        val rows = priced.map { tx ->
+            val type = if (tx.amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME
+            val description = tx.description.ifBlank { tx.counterparty ?: "Imported transaction" }.take(255)
+            ImportTransactionRow(
+                amount = tx.amount.abs(),
+                categoryId = rules.firstMatch(description, type)?.category?.id ?: fallbackCategoryId,
+                description = description,
+                transactionDate = tx.occurredAt.toLocalDate(),
+                type = type,
+            )
+        }
+        val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
+
+        val outcome = transactionRepository.importBatch(accountId, rows, hashes, authenticatedUser, providerConnectionId)
+        if (outcome.netBalanceAdjustment.signum() != 0) {
+            accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
+            checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
+        }
+
+        log.info(
+            "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
+            accountId, providerConnectionId, authenticatedUser.id, transactions.size,
+            outcome.insertedCount, priced.size - outcome.insertedCount,
+        )
+        return ImportResult(
+            imported = outcome.insertedCount,
+            skippedDuplicates = priced.size - outcome.insertedCount,
+        )
+    }
+
+    private fun providerRowHash(providerConnectionId: UUID, externalId: String): String {
+        val payload = "provider:$providerConnectionId:$externalId"
+        val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
+        return digest.joinToString("") { "%02x".format(it) }
     }
 
     @Transactional

@@ -14,14 +14,15 @@
     },
     "card": {
       "currentBalance": "Solde courant",
-      "sinceOpening": "Depuis l'ouverture"
+      "last30Days": "30 derniers jours"
     },
     "breakdown": {
       "title": "Solde par compte"
     },
     "overview": {
       "accountsLabel": "Comptes",
-      "totalBalanceLabel": "Solde total"
+      "totalBalanceLabel": "Solde total",
+      "last30Days": "30 derniers jours"
     },
     "modals": {
       "create": {

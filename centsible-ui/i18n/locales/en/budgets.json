@@ -14,7 +14,17 @@
       "asOf": "As of",
       "showHistory": "Show history",
       "historyHeading": "Past periods",
-      "noBudgetsInPeriod": "No budgets defined for this period."
+      "noBudgetsInPeriod": "No budgets defined for this period.",
+      "rolloverNote": "Includes {amount} carried over from last period."
+    },
+    "summary": {
+      "spent": "spent",
+      "budgeted": "budgeted",
+      "used": "{percent}% used",
+      "left": "left",
+      "overBy": "over",
+      "overCount": "{over} of {total} categories over budget",
+      "allWithin": "All {total} categories within budget"
     },
     "form": {
       "categoryLabel": "Category",

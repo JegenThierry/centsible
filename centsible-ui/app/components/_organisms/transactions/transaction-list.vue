@@ -19,6 +19,7 @@ const EditTransactionModal = defineAsyncComponent(() => import("~/components/_or
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
+const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -45,6 +46,16 @@ const isDeleteModalOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const selectedIds = ref<Set<string>>(new Set());
+
+const isRuleModalOpen = ref(false);
+const rulePresetPattern = ref('');
+const rulePresetCategoryId = ref<number | undefined>(undefined);
+
+function openCreateRule(transaction: Transaction) {
+  rulePresetPattern.value = transaction.description;
+  rulePresetCategoryId.value = transaction.category?.id;
+  isRuleModalOpen.value = true;
+}
 
 function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
@@ -88,6 +99,7 @@ const columns = createTransactionColumns({
   onToggleOne: toggleOne,
   onEdit: openEditModal,
   onDelete: openDeleteModal,
+  onCreateRule: openCreateRule,
 })
 
 async function bulkDelete() {
@@ -179,4 +191,9 @@ watch(
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <RuleModal v-if="isRuleModalOpen"
+             v-model:open="isRuleModalOpen"
+             :preset-pattern="rulePresetPattern"
+             :preset-category-id="rulePresetCategoryId"/>
 </template>

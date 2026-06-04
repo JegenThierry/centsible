@@ -18,6 +18,7 @@
       "amount": "Montant",
       "actionsLabel": "Actions de la transaction",
       "actionEdit": "Modifier",
+      "actionCreateRule": "Créer une règle",
       "actionDelete": "Supprimer"
     },
     "bulk": {

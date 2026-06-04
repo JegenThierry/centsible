@@ -14,6 +14,7 @@ import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.services.categorization.ICategorizationService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.core.services.transactions.TransactionService
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -55,6 +56,9 @@ class TransactionServiceTest {
 
     @Mock
     private lateinit var attachmentRepository: IAttachmentRepository
+
+    @Mock
+    private lateinit var categorizationService: ICategorizationService
 
     @InjectMocks
     private lateinit var service: TransactionService

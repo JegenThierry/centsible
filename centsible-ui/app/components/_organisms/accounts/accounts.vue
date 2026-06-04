@@ -12,14 +12,20 @@ import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {todayIsoDate} from "~/utils/date";
 
 const accountStore = useBudgetAccountsStore();
+const {previousBalances, refresh: refreshTrends} = useAccountBalanceTrends(30);
 const {t} = useI18n();
 
-function onRefresh(): void {
+function load(): void {
   accountStore.updateAvailableAccounts();
+  refreshTrends();
+}
+
+function onRefresh(): void {
+  load();
 }
 
 accountStore.clearActiveAccount();
-accountStore.updateAvailableAccounts();
+load();
 </script>
 
 <template>
@@ -57,13 +63,18 @@ accountStore.updateAvailableAccounts();
     </template>
 
     <template v-else>
-      <AccountsOverview :accounts="accountStore.availableAccounts" class="mb-4 sm:mb-6"/>
+      <AccountsOverview
+        :accounts="accountStore.availableAccounts"
+        :previous-balances="previousBalances"
+        class="mb-4 sm:mb-6"
+      />
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <AccountCard
           v-for="account in accountStore.availableAccounts"
           :key="account.id"
           :account="account"
+          :previous-balance="previousBalances[account.id]"
           @click="navigateTo(`/${account.id}/dashboard`)"
         />
       </div>

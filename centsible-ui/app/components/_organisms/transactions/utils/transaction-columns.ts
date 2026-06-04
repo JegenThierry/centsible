@@ -26,10 +26,11 @@ export interface TransactionColumnsOptions {
   onToggleOne: (id: string, checked: boolean) => void
   onEdit: (transaction: Transaction) => void
   onDelete: (transaction: Transaction) => void
+  onCreateRule: (transaction: Transaction) => void
 }
 
 export function createTransactionColumns(options: TransactionColumnsOptions): TableColumn<Transaction>[] {
-  const {t, currency, isSelected, isAllSelected, onToggleAll, onToggleOne, onEdit, onDelete} = options
+  const {t, currency, isSelected, isAllSelected, onToggleAll, onToggleOne, onEdit, onDelete, onCreateRule} = options
 
   return [
     {
@@ -106,6 +107,11 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
             label: t('transactions.table.actionEdit'),
             icon: 'i-lucide-pencil',
             onSelect: () => onEdit(row.original),
+          },
+          {
+            label: t('transactions.table.actionCreateRule'),
+            icon: 'i-lucide-wand-sparkles',
+            onSelect: () => onCreateRule(row.original),
           },
           {
             label: t('transactions.table.actionDelete'),

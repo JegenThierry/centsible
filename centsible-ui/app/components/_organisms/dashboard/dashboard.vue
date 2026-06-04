@@ -160,13 +160,13 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
                                  @slice-click="onCategorySlice"/>
       </div>
 
-      <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
-                            :currency="accountStore.activeAccount.currency"/>
-
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
+                              :currency="accountStore.activeAccount.currency"/>
         <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
-        <LoansGlance/>
       </div>
+
+      <LoansGlance/>
 
       <AccountHistoryList :currency="accountStore.activeAccount.currency"
                           :snapshots="historyStore.snapshots"/>

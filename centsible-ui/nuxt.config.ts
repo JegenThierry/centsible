@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    apiBaseSSR: 'http://centsible-rest:8080/api',
+    apiBaseSSR: 'http://localhost:8080/api',
     public: {
       apiBase: "http://localhost:8080/api",
     }

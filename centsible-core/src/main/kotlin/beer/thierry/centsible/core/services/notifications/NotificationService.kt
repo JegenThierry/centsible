@@ -21,6 +21,7 @@ import java.util.*
 
 private val THRESHOLD = BigDecimal("0.85")
 private val EXCEEDED = BigDecimal("1.00")
+private const val PACE_MIN_DAYS = 4
 
 @Service
 class NotificationService(
@@ -78,6 +79,7 @@ class NotificationService(
         evaluateLoanDue(user, settings)
         evaluateRecurringUpcoming(user, settings)
         evaluateLowBalance(user, settings, null)
+        evaluateBudgetPacing(user)
     }
 
     private fun evaluateLargeTransaction(
@@ -191,6 +193,40 @@ class NotificationService(
                     "recurringId" to id.toString(),
                     "runDate" to next.toString(),
                     "description" to (rule.description ?: ""),
+                ),
+            )
+        }
+    }
+
+    private fun evaluateBudgetPacing(user: UserDTO) {
+        val now = YearMonth.now()
+        val daysElapsed = LocalDate.now().dayOfMonth
+        if (daysElapsed < PACE_MIN_DAYS) return
+        val daysInMonth = now.lengthOfMonth()
+
+        for (b in budgets.fetchAllWithSpentForMonth(user, now)) {
+            val limit = b.amountLimit + b.rolloverAmount
+            if (limit.signum() <= 0 || b.amountSpent.signum() <= 0) continue
+
+            val ratio = b.amountSpent.divide(limit, 4, RoundingMode.HALF_UP)
+            if (ratio >= THRESHOLD) continue
+
+            val projected = b.amountSpent
+                .multiply(BigDecimal(daysInMonth))
+                .divide(BigDecimal(daysElapsed), 2, RoundingMode.HALF_UP)
+            if (projected <= limit) continue
+
+            val budgetId = b.id?.toString() ?: continue
+            val periodKey = b.period ?: continue
+            val category = b.category.name ?: ""
+            raise(
+                user, NotificationType.BUDGET_PACE, budgetId, periodKey,
+                title = "On track to exceed: $category",
+                body = "At your current pace you'll spend about ${projected.toPlainString()} on $category this month, over your ${limit.toPlainString()} budget.",
+                extras = mapOf(
+                    "categoryName" to category,
+                    "projected" to projected.toPlainString(),
+                    "limit" to limit.toPlainString(),
                 ),
             )
         }

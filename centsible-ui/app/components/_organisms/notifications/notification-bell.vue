@@ -28,6 +28,7 @@ onUnmounted(() => {
 const NOTIFICATION_STYLE: Record<NotificationType, {icon: string; color: string}> = {
   BUDGET_EXCEEDED: {icon: 'i-lucide-alert-circle', color: 'text-error'},
   BUDGET_THRESHOLD: {icon: 'i-lucide-bell-ring', color: 'text-warning'},
+  BUDGET_PACE: {icon: 'i-lucide-trending-up', color: 'text-warning'},
   LOAN_DUE: {icon: 'i-lucide-hand-coins', color: 'text-warning'},
   RECURRING_UPCOMING: {icon: 'i-lucide-repeat', color: 'text-muted'},
   LARGE_TRANSACTION: {icon: 'i-lucide-arrow-up-right', color: 'text-info'},

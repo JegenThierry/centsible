@@ -6,6 +6,7 @@ import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-ba
 
 defineProps<{
   account: BudgetAccount
+  previousBalance?: number
 }>()
 
 defineEmits<{
@@ -43,12 +44,13 @@ const {t} = useI18n();
           />
         </p>
         <BalanceChangeBadge
+          v-if="previousBalance !== undefined"
           :currency="account.currency"
           :current-balance="account.balance"
-          :previous-balance="account.initialBalance"
+          :previous-balance="previousBalance"
         />
       </div>
-      <p class="text-xs text-muted">{{ account.currency }} · {{ t('accounts.card.sinceOpening') }}</p>
+      <p class="text-xs text-muted">{{ account.currency }} · {{ t('accounts.card.last30Days') }}</p>
     </div>
   </UCard>
 </template>

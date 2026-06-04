@@ -14,14 +14,15 @@
     },
     "card": {
       "currentBalance": "Aktueller Saldo",
-      "sinceOpening": "Seit Eröffnung"
+      "last30Days": "Letzte 30 Tage"
     },
     "breakdown": {
       "title": "Saldo pro Konto"
     },
     "overview": {
       "accountsLabel": "Konten",
-      "totalBalanceLabel": "Gesamtsaldo"
+      "totalBalanceLabel": "Gesamtsaldo",
+      "last30Days": "Letzte 30 Tage"
     },
     "modals": {
       "create": {

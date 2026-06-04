@@ -7,6 +7,7 @@ package beer.thierry.jooq.generated.indexes
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
@@ -34,6 +35,7 @@ import org.jooq.impl.Internal
 val IDX_ACCOUNTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_accounts_user_id"), Accounts.ACCOUNTS, arrayOf(Accounts.ACCOUNTS.USER_ID), false)
 val IDX_BUDGETS_USER_ID: Index = Internal.createIndex(DSL.name("idx_budgets_user_id"), Budgets.BUDGETS, arrayOf(Budgets.BUDGETS.USER_ID), false)
 val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
+val IDX_CATEGORIZATION_RULES_USER_PRIORITY: Index = Internal.createIndex(DSL.name("idx_categorization_rules_user_priority"), CategorizationRules.CATEGORIZATION_RULES, arrayOf(CategorizationRules.CATEGORIZATION_RULES.USER_ID, CategorizationRules.CATEGORIZATION_RULES.PRIORITY.desc(), CategorizationRules.CATEGORIZATION_RULES.CREATED_AT), false)
 val IDX_CONTACTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_contacts_user_id"), Contacts.CONTACTS, arrayOf(Contacts.CONTACTS.USER_ID), false)
 val IDX_EXPORT_JOBS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_jobs_claimable"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.STATUS, ExportJobs.EXPORT_JOBS.CREATED_AT), false)
 val IDX_EXPORT_JOBS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_export_jobs_user_created"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.USER_ID, ExportJobs.EXPORT_JOBS.CREATED_AT.desc()), false)

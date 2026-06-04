@@ -14,14 +14,15 @@
     },
     "card": {
       "currentBalance": "Current Balance",
-      "sinceOpening": "Since opening"
+      "last30Days": "Last 30 days"
     },
     "breakdown": {
       "title": "Balance by account"
     },
     "overview": {
       "accountsLabel": "Accounts",
-      "totalBalanceLabel": "Total balance"
+      "totalBalanceLabel": "Total balance",
+      "last30Days": "Last 30 days"
     },
     "modals": {
       "create": {

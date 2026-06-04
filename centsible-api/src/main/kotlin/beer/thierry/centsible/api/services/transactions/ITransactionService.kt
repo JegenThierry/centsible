@@ -1,6 +1,7 @@
 package beer.thierry.centsible.api.services.transactions
 
 import beer.thierry.centsible.api.model.DEFAULT_PAGE_SIZE
+import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
@@ -52,6 +53,19 @@ interface ITransactionService {
     fun importBatch(
         accountId: UUID,
         request: ImportTransactionsRequest,
+        authenticatedUser: UserDTO,
+    ): ImportResult
+
+    /**
+     * Persists transactions fetched from a provider sync into [accountId], deduping by the
+     * provider's stable external id and stamping [providerConnectionId] for provenance. Rows land
+     * in the "Uncategorized" fallback category until a rule or the user assigns one. Returns how
+     * many rows were inserted versus skipped as duplicates.
+     */
+    fun importProviderTransactions(
+        accountId: UUID,
+        providerConnectionId: UUID,
+        transactions: List<ImportedTransactionDTO>,
         authenticatedUser: UserDTO,
     ): ImportResult
 

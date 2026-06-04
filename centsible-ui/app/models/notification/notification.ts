@@ -1,6 +1,7 @@
 export type NotificationType =
   | 'BUDGET_THRESHOLD'
   | 'BUDGET_EXCEEDED'
+  | 'BUDGET_PACE'
   | 'LOAN_DUE'
   | 'RECURRING_UPCOMING'
   | 'LARGE_TRANSACTION'

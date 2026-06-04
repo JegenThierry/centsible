@@ -1,6 +1,7 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
@@ -266,6 +267,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         rows: List<ImportTransactionRow>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
+        providerConnectionId: UUID?,
     ): BatchImportOutcome {
         require(rows.size == hashes.size) { "rows and hashes must have equal length" }
         if (rows.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
@@ -281,14 +283,14 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
-            TRANSACTIONS.IMPORT_HASH,
+            TRANSACTIONS.IMPORT_HASH, TRANSACTIONS.PROVIDER_CONNECTION_ID,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
         rows.forEachIndexed { i, row ->
             insertStep.values(
                 accountId, row.categoryId, row.amount,
                 row.description, row.transactionDate, row.type!!.value,
-                hashes[i],
+                hashes[i], providerConnectionId,
                 now, now,
             )
         }
@@ -310,6 +312,40 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
         return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)
     }
+
+    override fun recategorizeByDescription(
+        authenticatedUser: UserDTO,
+        matchType: MatchType,
+        pattern: String,
+        categoryId: Long,
+        type: CategoryType,
+    ): Int {
+        val descMatch = when (matchType) {
+            MatchType.CONTAINS -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%${escapeLike(pattern)}%")
+            MatchType.STARTS_WITH -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("${escapeLike(pattern)}%")
+            MatchType.EQUALS -> DSL.lower(TRANSACTIONS.DESCRIPTION).eq(pattern.lowercase())
+        }
+        return dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.CATEGORY_ID, categoryId)
+            .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
+            .where(
+                TRANSACTIONS.ACCOUNT_ID.`in`(
+                    dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                )
+                    .and(TRANSACTIONS.TYPE.eq(type.value))
+                    .and(TRANSACTIONS.CATEGORY_ID.ne(categoryId))
+                    .and(
+                        TRANSACTIONS.CATEGORY_ID.notIn(
+                            dsl.select(CATEGORIES.ID).from(CATEGORIES).where(CATEGORIES.IS_MANAGED.isTrue)
+                        )
+                    )
+                    .and(descMatch)
+            )
+            .execute()
+    }
+
+    private fun escapeLike(s: String): String =
+        s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =
         TRANSACTIONS.ACCOUNT_ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))

@@ -3,6 +3,7 @@ package beer.thierry.centsible.core.services.integrations
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.integrations.ExternalAccountDTO
+import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.integrations.ProviderContext
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IProviderConnectionAccountsRepository
@@ -11,6 +12,7 @@ import beer.thierry.centsible.api.repository.ProviderSyncCandidate
 import beer.thierry.centsible.api.services.integrations.IAccountProvider
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.api.services.integrations.ITransactionImporter
+import beer.thierry.centsible.api.services.transactions.ITransactionService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -28,8 +30,8 @@ import java.util.UUID
  *     a corresponding centsible accounts row, recording the mapping in provider_connection_accounts.
  *     Auto-create centsible accounts for external ids we have not seen before.
  *  3. If the provider implements ITransactionImporter, fetch new transactions since the last
- *     cursor. (Transaction persistence is delegated to the existing transactions pipeline in
- *     a follow-up; for v1 we log the count.)
+ *     cursor and persist them via the transactions pipeline — routed to the mapped centsible
+ *     account, deduped by the provider's external id, and tagged with the connection for provenance.
  */
 @Component
 class ProviderSyncOrchestrator(
@@ -39,6 +41,7 @@ class ProviderSyncOrchestrator(
     private val tokenRefreshGuard: TokenRefreshGuard,
     private val accountsRepository: IBudgetAccountsRepository,
     private val connectionAccountsRepository: IProviderConnectionAccountsRepository,
+    private val transactionService: ITransactionService,
     @Value("\${integrations.sync.lease-timeout-seconds:300}") private val leaseTimeoutSeconds: Long,
     @Value("\${integrations.sync.interval-seconds:3600}") private val syncIntervalSeconds: Long,
 ) {
@@ -103,6 +106,7 @@ class ProviderSyncOrchestrator(
                 "Provider {} returned {} transaction(s) (nextCursor={}) for connection {}",
                 candidate.providerKey, page.transactions.size, page.nextCursor, candidate.connectionId,
             )
+            persistImportedTransactions(candidate, page.transactions)
             page.nextCursor ?: candidate.lastSyncCursor
         } else {
             candidate.lastSyncCursor
@@ -147,6 +151,35 @@ class ProviderSyncOrchestrator(
                 created.id, account.externalId, candidate.connectionId,
             )
         }
+    }
+
+    private fun persistImportedTransactions(
+        candidate: ProviderSyncCandidate,
+        transactions: List<ImportedTransactionDTO>,
+    ) {
+        if (transactions.isEmpty()) return
+        val user = syntheticUser(candidate.userId)
+        var inserted = 0
+        var skipped = 0
+        for ((externalAccountId, txns) in transactions.groupBy { it.externalAccountId }) {
+            val accountId = connectionAccountsRepository
+                .fetchByExternalId(candidate.connectionId, externalAccountId)
+                ?.accountId
+            if (accountId == null) {
+                log.warn(
+                    "No centsible account mapped for external account {} on connection {}; skipping {} transaction(s)",
+                    externalAccountId, candidate.connectionId, txns.size,
+                )
+                continue
+            }
+            val result = transactionService.importProviderTransactions(accountId, candidate.connectionId, txns, user)
+            inserted += result.imported
+            skipped += result.skippedDuplicates
+        }
+        log.info(
+            "Persisted provider transactions for connection {}: inserted={} skippedDuplicates={}",
+            candidate.connectionId, inserted, skipped,
+        )
     }
 
     private fun buildMetadata(account: ExternalAccountDTO): Map<String, Any?> = buildMap {

@@ -54,6 +54,12 @@ class CategoriesRepository(private val dsl: DSLContext) : ICategoriesRepository 
             .fetchOne { mapCategory(it) }
     }
 
+    override fun fetchSystemCategoryByKey(systemKey: String): CategoryDTO? =
+        dsl.select(*categoryProjection)
+            .from(CATEGORIES)
+            .where(CATEGORIES.USER_ID.isNull.and(this.systemKey.eq(systemKey)))
+            .fetchOne { mapCategory(it) }
+
     override fun fetchCategoryClassifications(
         authenticatedUser: UserDTO,
         ids: Collection<Long>,
