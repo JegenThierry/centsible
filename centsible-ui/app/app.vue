@@ -22,7 +22,7 @@ useHead({
     <div class="flex flex-1 h-screen overflow-hidden">
       <SideNavBar v-if="authStore.isAuthenticated"/>
 
-      <MainContentWrapper :inset="authStore.isAuthenticated">
+      <MainContentWrapper>
         <template #header>
           <TopNavBar/>
         </template>

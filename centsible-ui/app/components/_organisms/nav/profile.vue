@@ -18,11 +18,6 @@ const items = computed(() => [
       onSelect: () => navigateTo('/profile')
     },
     {
-      label: t('profile.dropdown.settings'),
-      icon: 'i-lucide-settings',
-      onSelect: () => navigateTo('/settings')
-    },
-    {
       label: t('profile.dropdown.about'),
       icon: 'i-lucide-info',
       onSelect: () => navigateTo('/about')
