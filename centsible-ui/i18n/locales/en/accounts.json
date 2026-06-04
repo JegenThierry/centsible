@@ -13,7 +13,15 @@
       "createAccount": "Create Budget Account"
     },
     "card": {
-      "currentBalance": "Current Balance"
+      "currentBalance": "Current Balance",
+      "sinceOpening": "Since opening"
+    },
+    "breakdown": {
+      "title": "Balance by account"
+    },
+    "overview": {
+      "accountsLabel": "Accounts",
+      "totalBalanceLabel": "Total balance"
     },
     "modals": {
       "create": {

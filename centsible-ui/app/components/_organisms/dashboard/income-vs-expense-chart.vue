@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const {t} = useI18n();
 const localeTag = useLocaleTag();
-const {isDark, tickColor, currencyFmt} = useChartTheme(() => props.currency);
+const {isDark, tickColor, currencyFmt, successColor, errorColor} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
 const resolvedMonths = computed(() => Math.max(1, Math.min(36, props.months ?? window.value.months)));
@@ -37,13 +37,13 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: t('accounts.dashboard.income'),
       data: aggregates.value.map(a => Number(a.income) || 0),
-      backgroundColor: '#10b981',
+      backgroundColor: successColor.value,
       borderRadius: 4,
     },
     {
       label: t('accounts.dashboard.expense'),
       data: aggregates.value.map(a => Number(a.expense) || 0),
-      backgroundColor: '#ef4444',
+      backgroundColor: errorColor.value,
       borderRadius: 4,
     },
   ],

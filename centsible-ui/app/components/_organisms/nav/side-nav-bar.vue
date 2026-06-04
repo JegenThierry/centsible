@@ -4,6 +4,8 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useSidebar} from "~/composables/use-sidebar";
 import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AccountSwitcher from "~/components/_organisms/nav/account-switcher.vue";
+import SidebarUserMenu from "~/components/_organisms/nav/sidebar-user-menu.vue";
 
 const accountStore = useBudgetAccountsStore();
 const {open} = useSidebar();
@@ -11,103 +13,45 @@ const {t} = useI18n();
 
 const items = computed(() => {
   const accountId = accountStore.activeAccount?.id;
-  const menuItems: any[] = [
-    {
-      label: t('nav.sidebar.accounts'),
-      to: '/accounts',
-      icon: 'i-lucide-wallet',
-      target: '_self'
-    },
+
+  // Primary: the account list plus, when an account is active, its scoped views.
+  const primary: any[] = [
+    {label: t('nav.sidebar.accounts'), to: '/accounts', icon: 'i-lucide-wallet', target: '_self'},
   ];
 
   if (accountId) {
-    menuItems.push(
-      {
-        label: t('nav.sidebar.dashboard'),
-        to: `/${accountId}/dashboard`,
-        icon: 'i-lucide-layout-dashboard',
-        target: '_self'
-      },
-      {
-        label: t('nav.sidebar.transactions'),
-        to: `/${accountId}/transactions`,
-        icon: 'i-lucide-arrow-right-left',
-        target: '_self'
-      },
+    primary.push(
+      {label: t('nav.sidebar.dashboard'), to: `/${accountId}/dashboard`, icon: 'i-lucide-layout-dashboard', target: '_self'},
+      {label: t('nav.sidebar.transactions'), to: `/${accountId}/transactions`, icon: 'i-lucide-arrow-right-left', target: '_self'},
       {
         label: t('nav.sidebar.plan'),
         icon: 'i-lucide-target',
         defaultOpen: true,
         children: [
-          {
-            label: t('nav.sidebar.budgets'),
-            to: '/budgets',
-            icon: 'i-lucide-piggy-bank',
-            target: '_self'
-          },
-          {
-            label: t('nav.sidebar.recurring'),
-            to: `/${accountId}/recurring`,
-            icon: 'i-lucide-repeat',
-            target: '_self'
-          },
-          {
-            label: t('nav.sidebar.loans'),
-            to: '/loans',
-            icon: 'i-lucide-hand-coins',
-            target: '_self'
-          }
-        ]
-      }
+          {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
+          {label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'},
+          {label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'},
+        ],
+      },
     );
   }
 
-  menuItems.push(
-    {
-      label: t('nav.sidebar.reports'),
-      to: '/reports',
-      icon: 'i-lucide-trending-up',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.categories'),
-      to: '/categories',
-      icon: 'i-lucide-tag',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.contacts'),
-      to: '/contacts',
-      icon: 'i-lucide-users',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.exports'),
-      to: '/exports',
-      icon: 'i-lucide-file-text',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.documents'),
-      to: '/attachments',
-      icon: 'i-lucide-paperclip',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.integrations'),
-      to: '/integrations',
-      icon: 'i-lucide-plug',
-      target: '_self'
-    },
-    {
-      label: t('nav.sidebar.profile'),
-      to: '/profile',
-      icon: 'i-lucide-user',
-      target: '_self'
-    }
-  );
+  // Secondary sections — grouped with labels (hidden automatically when the sidebar collapses to icons).
+  const manage: any[] = [
+    {label: t('nav.sidebar.sections.manage'), type: 'label'},
+    {label: t('nav.sidebar.reports'), to: '/reports', icon: 'i-lucide-trending-up', target: '_self'},
+    {label: t('nav.sidebar.categories'), to: '/categories', icon: 'i-lucide-tag', target: '_self'},
+    {label: t('nav.sidebar.contacts'), to: '/contacts', icon: 'i-lucide-users', target: '_self'},
+  ];
 
-  return menuItems;
+  const data: any[] = [
+    {label: t('nav.sidebar.sections.data'), type: 'label'},
+    {label: t('nav.sidebar.exports'), to: '/exports', icon: 'i-lucide-file-text', target: '_self'},
+    {label: t('nav.sidebar.documents'), to: '/attachments', icon: 'i-lucide-paperclip', target: '_self'},
+    {label: t('nav.sidebar.integrations'), to: '/integrations', icon: 'i-lucide-plug', target: '_self'},
+  ];
+
+  return [primary, manage, data];
 })
 </script>
 
@@ -116,7 +60,8 @@ const items = computed(() => {
     v-model:open="open"
     :ui="{
       container: 'h-full m-0',
-      content: 'rounded-none sm:rounded-xl'
+      content: 'rounded-none sm:rounded-xl',
+      footer: 'border-t border-default'
     }"
     collapsible="icon"
     side="left"
@@ -140,10 +85,16 @@ const items = computed(() => {
       </div>
     </template>
 
+    <AccountSwitcher/>
+
     <UNavigationMenu
       :items="items"
       :ui="{ link: 'p-1.5 overflow-hidden' }"
       orientation="vertical"
     />
+
+    <template #footer>
+      <SidebarUserMenu/>
+    </template>
   </USidebar>
 </template>

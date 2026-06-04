@@ -13,7 +13,15 @@
       "createAccount": "Budgetkonto erstellen"
     },
     "card": {
-      "currentBalance": "Aktueller Saldo"
+      "currentBalance": "Aktueller Saldo",
+      "sinceOpening": "Seit Eröffnung"
+    },
+    "breakdown": {
+      "title": "Saldo pro Konto"
+    },
+    "overview": {
+      "accountsLabel": "Konten",
+      "totalBalanceLabel": "Gesamtsaldo"
     },
     "modals": {
       "create": {

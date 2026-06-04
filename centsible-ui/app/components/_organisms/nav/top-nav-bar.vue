@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import Profile from "~/components/_organisms/nav/profile.vue";
-import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
+import NavBreadcrumb from "~/components/_molecules/nav/nav-breadcrumb.vue";
+import GlobalSearch from "~/components/_organisms/nav/global-search.vue";
 import ThemePicker from "~/components/_organisms/theme/theme-picker.vue";
 import LanguagePicker from "~/components/_atoms/language/language-picker.vue";
 import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
@@ -31,39 +31,45 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-(--ui-header-height) shrink-0 flex items-center px-4 border-b border-default">
-    <div class="flex-1 flex items-center gap-2">
-      <ClientOnly>
-        <AppButton v-if="authStore.isAuthenticated"
-                 :aria-label="t('nav.toggleSidebar')"
-                 :icon="currentPanelIcon"
-                 color="neutral"
-                 variant="ghost"
-                 @click="onToggleOpen()"/>
-        <NuxtLink v-else
-                  aria-label="Centsible home"
-                  class="flex items-center transition-opacity hover:opacity-90"
-                  to="/">
-          <BrandMark/>
-        </NuxtLink>
-      </ClientOnly>
-    </div>
+  <div class="h-(--ui-header-height) shrink-0 flex items-center gap-2 px-4 border-b border-default">
+    <ClientOnly>
+      <template v-if="authStore.isAuthenticated">
+        <AppButton
+          :aria-label="t('nav.toggleSidebar')"
+          :icon="currentPanelIcon"
+          color="neutral"
+          variant="ghost"
+          @click="onToggleOpen()"/>
+        <USeparator class="hidden md:flex h-6" orientation="vertical"/>
+        <NavBreadcrumb class="hidden md:flex min-w-0"/>
+      </template>
+      <NuxtLink v-else
+                aria-label="Centsible home"
+                class="flex items-center transition-opacity hover:opacity-90"
+                to="/">
+        <BrandMark/>
+      </NuxtLink>
+    </ClientOnly>
+
+    <div class="flex-1"/>
 
     <ClientOnly>
       <div class="flex items-center gap-2">
-        <LanguagePicker/>
-        <ThemePicker/>
-        <template v-if="authStore.isAuthenticated">
-          <NotificationBell/>
-          <Profile v-if="userStore.user" :user="userStore.user"/>
-          <ProfileSkeleton v-else/>
-        </template>
-        <AppButton v-else
-                 color="primary"
-                 icon="i-lucide-log-in"
-                 to="/auth">
-          {{ t('auth.login.signIn') }}
-        </AppButton>
+        <GlobalSearch v-if="authStore.isAuthenticated"/>
+        <div class="flex items-center gap-1">
+          <LanguagePicker/>
+          <ThemePicker/>
+          <template v-if="authStore.isAuthenticated">
+            <NotificationBell/>
+          </template>
+          <AppButton v-else
+                   class="ms-1"
+                   color="primary"
+                   icon="i-lucide-log-in"
+                   to="/auth">
+            {{ t('auth.login.signIn') }}
+          </AppButton>
+        </div>
       </div>
     </ClientOnly>
   </div>

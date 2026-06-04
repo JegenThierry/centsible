@@ -13,7 +13,15 @@
       "createAccount": "Créer un compte budgétaire"
     },
     "card": {
-      "currentBalance": "Solde courant"
+      "currentBalance": "Solde courant",
+      "sinceOpening": "Depuis l'ouverture"
+    },
+    "breakdown": {
+      "title": "Solde par compte"
+    },
+    "overview": {
+      "accountsLabel": "Comptes",
+      "totalBalanceLabel": "Solde total"
     },
     "modals": {
       "create": {
