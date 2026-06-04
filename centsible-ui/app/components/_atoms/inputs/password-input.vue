@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import AppInput from "~/components/_atoms/ui/app-input.vue";
-import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   required?: boolean;
@@ -12,7 +11,6 @@ const props = defineProps<{
   additionalValidationMessage?: string;
 }>();
 
-const show = ref(false);
 const error = ref<string | undefined>(undefined);
 const password = defineModel<string>({required: true});
 const {t} = useI18n();
@@ -45,23 +43,8 @@ defineExpose({validate});
       v-model="password"
       :disabled="disabled"
       :placeholder="placeholder"
-      :type="show ? 'text' : 'password'"
+      :type="'password'"
       :ui="{ trailing: 'pe-1' }"
-      class="w-full"
-    >
-      <template #trailing>
-        <AppButton
-          :aria-label="show ? t('auth.password.hide') : t('auth.password.show')"
-          :aria-pressed="show"
-          :disabled="disabled"
-          :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-          aria-controls="password"
-          color="neutral"
-          size="sm"
-          variant="link"
-          @click="show = !show"
-        />
-      </template>
-    </AppInput>
+      class="w-full"/>
   </UFormField>
 </template>
