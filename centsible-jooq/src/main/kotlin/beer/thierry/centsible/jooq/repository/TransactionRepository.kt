@@ -3,6 +3,7 @@ package beer.thierry.centsible.jooq.repository
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -260,6 +261,40 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             val ym = firstMonth.plusMonths(offset.toLong()).toString()
             rows[ym] ?: MonthlyAggregateDTO(yearMonth = ym)
         }
+    }
+
+    override fun aggregateByDay(
+        accountId: UUID, authenticatedUser: UserDTO, days: Int
+    ): List<DailyAggregateDTO> {
+        require(days in 1..731) { "days must be between 1 and 731" }
+        val start = LocalDate.now().minusDays((days - 1).toLong())
+
+        val dayExpr = DSL.field("to_char({0}, 'YYYY-MM-DD')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("day")
+        val incomeExpr = DSL.sum(
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("income")
+        val expenseExpr = DSL.sum(
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("expense")
+
+        return dsl.select(dayExpr, incomeExpr, expenseExpr)
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                baseCondition(accountId, authenticatedUser)
+                    .and(TRANSACTIONS.TRANSACTION_DATE.ge(start))
+            )
+            .groupBy(dayExpr)
+            .orderBy(dayExpr.asc())
+            .fetch { record ->
+                DailyAggregateDTO(
+                    date = record[dayExpr]!!,
+                    income = record[incomeExpr] ?: BigDecimal.ZERO,
+                    expense = record[expenseExpr] ?: BigDecimal.ZERO,
+                )
+            }
     }
 
     override fun importBatch(

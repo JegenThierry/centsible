@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import type {
-  CategoryAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest
+  CategoryAggregate, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest
 } from "~/models/transactions/transaction";
 import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
@@ -50,6 +50,11 @@ export function useTransactionService(api: AxiosInstance) {
     return validateRequest<MonthlyAggregate[]>(response);
   }
 
+  async function aggregateByDay(accountId: string, days: number = 371): Promise<DailyAggregate[]> {
+    const response = await api.get<DailyAggregate[]>(`/transactions/${encodeURIComponent(accountId)}/aggregates/by-day`, {params: {days}});
+    return validateRequest<DailyAggregate[]>(response);
+  }
+
   async function bulkDelete(accountId: string, ids: string[]): Promise<number> {
     const response = await api.post<{
       affected: number
@@ -83,6 +88,7 @@ export function useTransactionService(api: AxiosInstance) {
     bulkCategorize,
     aggregateByCategory,
     aggregateByMonth,
+    aggregateByDay,
     importBatch,
     setAccountBalance,
   }

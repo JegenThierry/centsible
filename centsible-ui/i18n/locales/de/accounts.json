@@ -67,6 +67,11 @@
       "netSavings": "Nettoersparnis",
       "budgetsThisMonth": "Budgets diesen Monat",
       "budgetsViewAll": "Alle anzeigen",
+      "activityTitle": "Aktivität",
+      "activitySubtitle": "Tägliche Netto-Einnahmen und Ausgaben im letzten Jahr",
+      "activitySpent": "Ausgegeben",
+      "activityEarned": "Eingenommen",
+      "activityNoData": "Keine Transaktionen",
       "periods": {
         "CURRENT_MONTH": "Dieser Monat",
         "PAST_3_MONTHS": "Letzte 3 Monate",

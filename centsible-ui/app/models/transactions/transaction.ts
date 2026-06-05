@@ -55,3 +55,9 @@ export interface MonthlyAggregate {
   income: number,
   expense: number,
 }
+
+export interface DailyAggregate {
+  date: string,
+  income: number,
+  expense: number,
+}

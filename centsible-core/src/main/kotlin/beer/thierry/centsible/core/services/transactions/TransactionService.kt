@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -193,6 +194,11 @@ class TransactionService(
         accountId: UUID, authenticatedUser: UserDTO, months: Int
     ): List<MonthlyAggregateDTO> =
         transactionRepository.aggregateByMonth(accountId, authenticatedUser, months)
+
+    override fun aggregateByDay(
+        accountId: UUID, authenticatedUser: UserDTO, days: Int
+    ): List<DailyAggregateDTO> =
+        transactionRepository.aggregateByDay(accountId, authenticatedUser, days)
 
     @Transactional
     override fun importBatch(

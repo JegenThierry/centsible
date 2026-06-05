@@ -3,6 +3,7 @@ package beer.thierry.centsible.api.repository
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -69,6 +70,12 @@ interface ITransactionRepository {
         authenticatedUser: UserDTO,
         months: Int,
     ): List<MonthlyAggregateDTO>
+
+    fun aggregateByDay(
+        accountId: UUID,
+        authenticatedUser: UserDTO,
+        days: Int,
+    ): List<DailyAggregateDTO>
 
     fun importBatch(
         accountId: UUID,

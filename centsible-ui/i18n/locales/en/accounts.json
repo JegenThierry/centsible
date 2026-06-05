@@ -67,6 +67,11 @@
       "netSavings": "Net Savings",
       "budgetsThisMonth": "Budgets this month",
       "budgetsViewAll": "View all",
+      "activityTitle": "Activity",
+      "activitySubtitle": "Daily net income vs spending over the past year",
+      "activitySpent": "Spent",
+      "activityEarned": "Earned",
+      "activityNoData": "No transactions",
       "periods": {
         "CURRENT_MONTH": "This month",
         "PAST_3_MONTHS": "Past 3 months",

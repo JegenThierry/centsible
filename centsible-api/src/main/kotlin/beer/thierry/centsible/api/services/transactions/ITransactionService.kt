@@ -3,6 +3,7 @@ package beer.thierry.centsible.api.services.transactions
 import beer.thierry.centsible.api.model.DEFAULT_PAGE_SIZE
 import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
@@ -49,6 +50,12 @@ interface ITransactionService {
         authenticatedUser: UserDTO,
         months: Int = 6,
     ): List<MonthlyAggregateDTO>
+
+    fun aggregateByDay(
+        accountId: UUID,
+        authenticatedUser: UserDTO,
+        days: Int = 365,
+    ): List<DailyAggregateDTO>
 
     fun importBatch(
         accountId: UUID,

@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionsRequest
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
@@ -104,6 +105,14 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<MonthlyAggregateDTO>> =
         ResponseEntity.ok(transactionService.aggregateByMonth(accountId, authenticatedUser, months))
+
+    @GetMapping("/{accountId}/aggregates/by-day")
+    fun aggregateByDay(
+        @PathVariable accountId: UUID,
+        @RequestParam(defaultValue = "371") @Min(1) @Max(731) days: Int,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<DailyAggregateDTO>> =
+        ResponseEntity.ok(transactionService.aggregateByDay(accountId, authenticatedUser, days))
 
     @PostMapping("/{accountId}/import")
     fun importTransactions(
