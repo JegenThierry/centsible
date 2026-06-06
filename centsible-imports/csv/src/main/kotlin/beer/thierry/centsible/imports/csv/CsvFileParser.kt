@@ -20,7 +20,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
-/** Currency symbols safe to strip from an amount cell; the value's currency comes from the mapping/account, not the cell. */
 private val CURRENCY_NOISE = setOf('€', '$', '£', '¥', '₣', '¤', '₽', '₹')
 
 /**
@@ -162,8 +161,6 @@ class CsvFileParser : FileFormatParser {
             categoryId = defaultCategoryId,
             description = description,
             transactionDate = date,
-            // The sign carries the direction (debit = expense, credit = income); resolveAmount
-            // already produced a signed value, so derive the type from it instead of discarding it.
             type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
         )
     }
@@ -193,13 +190,8 @@ class CsvFileParser : FileFormatParser {
                 when {
                     ch.isDigit() || ch == '-' || ch == '+' -> append(ch)
                     ch == mapping.decimalSeparator -> append('.')
-                    // Only known "noise" is dropped: the configured grouping separator, whitespace
-                    // (including the non-breaking spaces common in EU exports) and currency symbols.
                     mapping.thousandsSeparator != null && ch == mapping.thousandsSeparator -> Unit
                     ch.isWhitespace() || ch in CURRENCY_NOISE -> Unit
-                    // Any other character means the mapping doesn't fit this cell (e.g. a stray ','
-                    // while '.' is the decimal separator). Fail loudly instead of silently mis-scaling
-                    // the amount — dropping the ',' in "12,50" would yield 1250.
                     else -> return null
                 }
             }

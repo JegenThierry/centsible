@@ -22,10 +22,6 @@ const FORMATTERS: Record<DateFormat, (d: Date, tag: string) => string> = {
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-// Date-only ISO strings (LocalDate fields like transactionDate / loanDate / dueDate) must be read in
-// local time. `new Date('2026-06-06')` parses as UTC midnight, so toLocale* renders a day early west
-// of UTC; build a local Date from the parts instead. Datetime strings (with a time/offset) and Date
-// objects are passed through unchanged.
 function toLocalDate(value: string | Date): Date {
   if (value instanceof Date) return value;
   const m = DATE_ONLY.exec(value);
