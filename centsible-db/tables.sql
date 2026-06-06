@@ -518,9 +518,13 @@ WHERE user_id IS NULL DO NOTHING;
 INSERT INTO system_information (id, name, version, description, license, repository, released_at)
 VALUES (1,
         'Centsible',
-        '0.3.0',
+        '0.4.0',
         'A self-hosted personal budget planning application for tracking accounts, transactions, categories, and lending.',
         'AGPL-3.0',
         'https://codeberg.org/thierryjegen/budget-planner',
         CURRENT_DATE)
 ON CONFLICT (id) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.4.0/01_uncategorized_category.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.4.0/02_categorization_rules.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.4.0/03_multi_currency.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.4.0/04_SetVersion_0_4_0.sql') ON CONFLICT (version) DO NOTHING;
