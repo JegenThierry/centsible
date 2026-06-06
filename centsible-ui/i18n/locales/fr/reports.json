@@ -57,7 +57,8 @@
     "drillDown": {
       "title": "Transactions pour cette catégorie",
       "loading": "Chargement…",
-      "empty": "Aucune transaction sur cette période."
+      "empty": "Aucune transaction sur cette période.",
+      "total": "Total"
     }
   }
 }

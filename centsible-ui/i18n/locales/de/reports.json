@@ -57,7 +57,8 @@
     "drillDown": {
       "title": "Transaktionen dieser Kategorie",
       "loading": "Lade…",
-      "empty": "Keine Transaktionen in diesem Zeitraum."
+      "empty": "Keine Transaktionen in diesem Zeitraum.",
+      "total": "Gesamt"
     }
   }
 }

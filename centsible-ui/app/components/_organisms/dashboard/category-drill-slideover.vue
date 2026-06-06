@@ -80,7 +80,7 @@ const total = computed(() =>
         </ul>
 
         <div v-if="transactions.length > 0" class="flex items-center justify-between border-t border-default pt-3 mt-3">
-          <span class="font-semibold">Total</span>
+          <span class="font-semibold">{{ t('reports.drillDown.total') }}</span>
           <span class="font-bold">
             <BalanceNumberFormat :balance="total" :currency="currency"/>
           </span>
