@@ -136,6 +136,14 @@ Local development runs the three pieces **directly** — no Docker:
    ```
    Override `NUXT_PUBLIC_API_BASE` if the API isn't at `http://localhost:8080/api`.
 
+**Enable the git hooks (one-time, after cloning).** The repo ships a pre-commit hook in `.githooks/` that refuses to commit any `application.properties` (these hold secrets — JWT, DB credentials, API keys). Git does not enable hooks automatically, so opt in once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This is the safety net behind the gitignore rule; see [ADR-0014](docs/adr/0014-secrets-handling-precommit-hook.md) for the full secrets-handling convention.
+
 ## Module Scripts
 
 ### Frontend (`centsible-ui`)
