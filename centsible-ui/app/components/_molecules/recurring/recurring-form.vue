@@ -2,20 +2,20 @@
 import adze from 'adze'
 import {type Category} from "~/models/category/category";
 import {Frequency, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
-import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import CurrencySelect from "~/components/_atoms/inputs/currency-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import FrequencySelect from "~/components/_atoms/inputs/frequency-select.vue";
 import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import {useCategoryService} from "~/services/category/category-service";
 import {ISO_DATE} from "~/utils/date";
+import {AMOUNT_INPUT} from "~/utils/money";
 import {addDays, addMonths, addWeeks, addYears, format, parseISO} from 'date-fns';
 
 const props = defineProps<{
   modelValue: RecurringTransactionForm;
-  currency?: Currency;
   disabled?: boolean;
 }>();
 
@@ -98,14 +98,20 @@ defineExpose({
       <CategoryTypeBadge :type="form.category.type"/>
     </div>
 
+    <UFormField :label="t('transactions.recurring.form.currency')" name="currency">
+      <CurrencySelect v-model="form.currency"
+                      :disabled="disabled"
+                      :placeholder="t('transactions.recurring.form.currencyPlaceholder')"/>
+    </UFormField>
+
     <BaseInput ref="amountInput"
                v-model="form.amount"
-               :max="9999999.99"
-               :min="0.01"
+               :max="AMOUNT_INPUT.max"
+               :min="AMOUNT_INPUT.min"
                :disabled="disabled"
                :label="t('transactions.recurring.form.amount')"
                :placeholder="t('transactions.recurring.form.amountPlaceholder')"
-               :trailing-text="currency"
+               :trailing-text="form.currency"
                required
                type="number"/>
 

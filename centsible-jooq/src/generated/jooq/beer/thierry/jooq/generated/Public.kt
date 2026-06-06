@@ -11,6 +11,7 @@ import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
@@ -80,6 +81,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.contacts</code>.
      */
     val CONTACTS: Contacts get() = Contacts.CONTACTS
+
+    /**
+     * The table <code>public.exchange_rates</code>.
+     */
+    val EXCHANGE_RATES: ExchangeRates get() = ExchangeRates.EXCHANGE_RATES
 
     /**
      * The table <code>public.export_jobs</code>.
@@ -161,6 +167,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         CategorizationRules.CATEGORIZATION_RULES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,
+        ExchangeRates.EXCHANGE_RATES,
         ExportJobs.EXPORT_JOBS,
         ExportPostProcessing.EXPORT_POST_PROCESSING,
         ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES,

@@ -2,6 +2,7 @@ package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
@@ -73,5 +74,12 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .execute()
         // Must throw, not no-op: @Transactional callers rely on this to roll back.
         if (rows == 0) throw IllegalArgumentException("Account not found or not owned by user")
+    }
+
+    override fun fetchAccountCurrency(accountId: UUID): Currency {
+        val record = dsl.select(ACCOUNTS.CURRENCY).from(ACCOUNTS)
+            .where(ACCOUNTS.ID.eq(accountId))
+            .fetchOne() ?: throw IllegalArgumentException("Account not found: $accountId")
+        return Currency.valueOf(record[ACCOUNTS.CURRENCY]!!)
     }
 }

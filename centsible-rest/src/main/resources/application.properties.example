@@ -90,3 +90,8 @@ integrations.banking-gocardless.secret-id=${INTEGRATIONS_BANKING_GOCARDLESS_SECR
 integrations.banking-gocardless.secret-key=${INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY:}
 integrations.banking-gocardless.api-base=${INTEGRATIONS_BANKING_GOCARDLESS_API_BASE:https://bankaccountdata.gocardless.com/api/v2}
 integrations.banking-gocardless.min-sync-interval-seconds=${INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS:21600}
+
+# --- Currency conversion (foreign-currency transactions) ---
+fx.frankfurter.enabled=${FX_FRANKFURTER_ENABLED:true}
+fx.frankfurter.api-base=${FX_FRANKFURTER_API_BASE:https://api.frankfurter.dev}
+fx.stale-tolerance-days=${FX_STALE_TOLERANCE_DAYS:7}

@@ -1,5 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -26,6 +27,10 @@ internal object TransactionRecordMapper {
         TRANSACTIONS.TYPE,
         TRANSACTIONS.CREATED_AT,
         TRANSACTIONS.MODIFIED_AT,
+        TRANSACTIONS.ORIGINAL_AMOUNT,
+        TRANSACTIONS.ORIGINAL_CURRENCY,
+        TRANSACTIONS.EXCHANGE_RATE,
+        TRANSACTIONS.RATE_DATE,
         CATEGORIES.ID,
         CATEGORIES.NAME,
         CATEGORIES.ICON,
@@ -43,6 +48,10 @@ internal object TransactionRecordMapper {
         transactionDate = record[TRANSACTIONS.TRANSACTION_DATE]!!,
         createdAt = record[TRANSACTIONS.CREATED_AT]!!,
         updatedAt = record[TRANSACTIONS.MODIFIED_AT]!!,
+        originalAmount = record[TRANSACTIONS.ORIGINAL_AMOUNT],
+        originalCurrency = record[TRANSACTIONS.ORIGINAL_CURRENCY]?.let { Currency.valueOf(it) },
+        exchangeRate = record[TRANSACTIONS.EXCHANGE_RATE],
+        rateDate = record[TRANSACTIONS.RATE_DATE],
     )
 
     fun mapTransactionOrNull(record: Record): TransactionDTO? =

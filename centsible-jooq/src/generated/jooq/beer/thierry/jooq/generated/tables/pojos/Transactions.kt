@@ -27,7 +27,11 @@ data class Transactions(
     val recurringTransactionId: UUID? = null,
     val importHash: String? = null,
     val type: String? = null,
-    val providerConnectionId: UUID? = null
+    val providerConnectionId: UUID? = null,
+    val originalAmount: BigDecimal? = null,
+    val originalCurrency: String? = null,
+    val exchangeRate: BigDecimal? = null,
+    val rateDate: LocalDate? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -110,6 +114,30 @@ data class Transactions(
         }
         else if (this.providerConnectionId != o.providerConnectionId)
             return false
+        if (this.originalAmount == null) {
+            if (o.originalAmount != null)
+                return false
+        }
+        else if (this.originalAmount != o.originalAmount)
+            return false
+        if (this.originalCurrency == null) {
+            if (o.originalCurrency != null)
+                return false
+        }
+        else if (this.originalCurrency != o.originalCurrency)
+            return false
+        if (this.exchangeRate == null) {
+            if (o.exchangeRate != null)
+                return false
+        }
+        else if (this.exchangeRate != o.exchangeRate)
+            return false
+        if (this.rateDate == null) {
+            if (o.rateDate != null)
+                return false
+        }
+        else if (this.rateDate != o.rateDate)
+            return false
         return true
     }
 
@@ -128,6 +156,10 @@ data class Transactions(
         result = prime * result + (if (this.importHash == null) 0 else this.importHash.hashCode())
         result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         result = prime * result + (if (this.providerConnectionId == null) 0 else this.providerConnectionId.hashCode())
+        result = prime * result + (if (this.originalAmount == null) 0 else this.originalAmount.hashCode())
+        result = prime * result + (if (this.originalCurrency == null) 0 else this.originalCurrency.hashCode())
+        result = prime * result + (if (this.exchangeRate == null) 0 else this.exchangeRate.hashCode())
+        result = prime * result + (if (this.rateDate == null) 0 else this.rateDate.hashCode())
         return result
     }
 
@@ -146,6 +178,10 @@ data class Transactions(
         sb.append(", ").append(importHash)
         sb.append(", ").append(type)
         sb.append(", ").append(providerConnectionId)
+        sb.append(", ").append(originalAmount)
+        sb.append(", ").append(originalCurrency)
+        sb.append(", ").append(exchangeRate)
+        sb.append(", ").append(rateDate)
 
         sb.append(")")
         return sb.toString()

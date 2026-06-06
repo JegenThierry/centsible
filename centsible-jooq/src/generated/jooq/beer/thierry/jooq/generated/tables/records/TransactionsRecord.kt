@@ -69,6 +69,22 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         set(value): Unit = set(11, value)
         get(): UUID? = get(11) as UUID?
 
+    open var originalAmount: BigDecimal?
+        set(value): Unit = set(12, value)
+        get(): BigDecimal? = get(12) as BigDecimal?
+
+    open var originalCurrency: String?
+        set(value): Unit = set(13, value)
+        get(): String? = get(13) as String?
+
+    open var exchangeRate: BigDecimal?
+        set(value): Unit = set(14, value)
+        get(): BigDecimal? = get(14) as BigDecimal?
+
+    open var rateDate: LocalDate?
+        set(value): Unit = set(15, value)
+        get(): LocalDate? = get(15) as LocalDate?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -78,7 +94,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null, providerConnectionId: UUID? = null): this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null, providerConnectionId: UUID? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null, exchangeRate: BigDecimal? = null, rateDate: LocalDate? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
@@ -91,6 +107,10 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         this.importHash = importHash
         this.type = type
         this.providerConnectionId = providerConnectionId
+        this.originalAmount = originalAmount
+        this.originalCurrency = originalCurrency
+        this.exchangeRate = exchangeRate
+        this.rateDate = rateDate
         resetChangedOnNotNull()
     }
 
@@ -111,6 +131,10 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
             this.importHash = value.importHash
             this.type = value.type
             this.providerConnectionId = value.providerConnectionId
+            this.originalAmount = value.originalAmount
+            this.originalCurrency = value.originalCurrency
+            this.exchangeRate = value.exchangeRate
+            this.rateDate = value.rateDate
             resetChangedOnNotNull()
         }
     }

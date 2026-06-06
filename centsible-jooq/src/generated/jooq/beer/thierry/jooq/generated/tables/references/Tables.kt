@@ -11,6 +11,7 @@ import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
@@ -62,6 +63,11 @@ val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
  * The table <code>public.contacts</code>.
  */
 val CONTACTS: Contacts = Contacts.CONTACTS
+
+/**
+ * The table <code>public.exchange_rates</code>.
+ */
+val EXCHANGE_RATES: ExchangeRates = ExchangeRates.EXCHANGE_RATES
 
 /**
  * The table <code>public.export_jobs</code>.

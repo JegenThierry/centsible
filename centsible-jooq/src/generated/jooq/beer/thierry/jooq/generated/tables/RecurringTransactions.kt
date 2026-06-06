@@ -146,6 +146,16 @@ open class RecurringTransactions(
      */
     val MODIFIED_AT: TableField<RecurringTransactionsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    /**
+     * The column <code>public.recurring_transactions.original_amount</code>.
+     */
+    val ORIGINAL_AMOUNT: TableField<RecurringTransactionsRecord, BigDecimal?> = createField(DSL.name("original_amount"), SQLDataType.NUMERIC(15, 2), this, "")
+
+    /**
+     * The column <code>public.recurring_transactions.original_currency</code>.
+     */
+    val ORIGINAL_CURRENCY: TableField<RecurringTransactionsRecord, String?> = createField(DSL.name("original_currency"), SQLDataType.VARCHAR(3), this, "")
+
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

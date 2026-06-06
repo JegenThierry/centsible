@@ -9,6 +9,7 @@ import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
@@ -28,6 +29,7 @@ import beer.thierry.jooq.generated.tables.records.BudgetsRecord
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
 import beer.thierry.jooq.generated.tables.records.CategorizationRulesRecord
 import beer.thierry.jooq.generated.tables.records.ContactsRecord
+import beer.thierry.jooq.generated.tables.records.ExchangeRatesRecord
 import beer.thierry.jooq.generated.tables.records.ExportJobsRecord
 import beer.thierry.jooq.generated.tables.records.ExportPostProcessingRecord
 import beer.thierry.jooq.generated.tables.records.ImportMappingTemplatesRecord
@@ -61,6 +63,7 @@ val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Cate
 val CATEGORIZATION_RULES_PKEY: UniqueKey<CategorizationRulesRecord> = Internal.createUniqueKey(CategorizationRules.CATEGORIZATION_RULES, DSL.name("categorization_rules_pkey"), arrayOf(CategorizationRules.CATEGORIZATION_RULES.ID), true)
 val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("contacts_pkey"), arrayOf(Contacts.CONTACTS.ID), true)
 val UQ_CONTACTS_ID_USER: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("uq_contacts_id_user"), arrayOf(Contacts.CONTACTS.ID, Contacts.CONTACTS.USER_ID), true)
+val EXCHANGE_RATES_PKEY: UniqueKey<ExchangeRatesRecord> = Internal.createUniqueKey(ExchangeRates.EXCHANGE_RATES, DSL.name("exchange_rates_pkey"), arrayOf(ExchangeRates.EXCHANGE_RATES.ID), true)
 val EXPORT_JOBS_PKEY: UniqueKey<ExportJobsRecord> = Internal.createUniqueKey(ExportJobs.EXPORT_JOBS, DSL.name("export_jobs_pkey"), arrayOf(ExportJobs.EXPORT_JOBS.ID), true)
 val EXPORT_POST_PROCESSING_PKEY: UniqueKey<ExportPostProcessingRecord> = Internal.createUniqueKey(ExportPostProcessing.EXPORT_POST_PROCESSING, DSL.name("export_post_processing_pkey"), arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.ID), true)
 val IMPORT_MAPPING_TEMPLATES_PKEY: UniqueKey<ImportMappingTemplatesRecord> = Internal.createUniqueKey(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES, DSL.name("import_mapping_templates_pkey"), arrayOf(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES.ID), true)

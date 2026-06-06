@@ -45,7 +45,7 @@ const {t} = useI18n();
 
       <div class="flex items-center justify-between sm:justify-end gap-3">
         <TransactionAmount :amount="rule.amount"
-                           :currency="currency"
+                           :currency="rule.originalCurrency ?? currency"
                            :type="rule.category.type"/>
         <div class="flex items-center gap-1">
           <AppButton :aria-label="rule.active ? t('transactions.recurring.ariaPause') : t('transactions.recurring.ariaResume')"

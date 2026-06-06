@@ -1,6 +1,8 @@
 package beer.thierry.centsible.api.services.transactions
 
 import beer.thierry.centsible.api.model.DEFAULT_PAGE_SIZE
+import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
@@ -12,6 +14,7 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 
@@ -81,4 +84,12 @@ interface ITransactionService {
         form: SetBalanceForm,
         authenticatedUser: UserDTO,
     ): TransactionDTO
+
+    fun previewConversion(
+        accountId: UUID,
+        amount: BigDecimal,
+        currency: Currency,
+        date: LocalDate,
+        authenticatedUser: UserDTO,
+    ): ConversionResult
 }

@@ -1,7 +1,9 @@
 package beer.thierry.centsible.core.services.transactions
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.firstMatch
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
@@ -20,6 +22,7 @@ import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import org.slf4j.LoggerFactory
@@ -40,6 +43,7 @@ class TransactionService(
     private val attachmentRepository: IAttachmentRepository,
     private val notificationService: INotificationService,
     private val categorizationService: ICategorizationService,
+    private val currencyConversionService: ICurrencyConversionService,
 ) : ITransactionService {
 
     private val log = LoggerFactory.getLogger(TransactionService::class.java)
@@ -88,10 +92,17 @@ class TransactionService(
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        val conversion = currencyConversionService.convert(
+            transactionForm.amount,
+            transactionForm.currency ?: account.currency,
+            account.currency,
+            transactionForm.transactionDate,
+        )
         val resolvedForm = transactionForm.copy(
             type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
         )
-        val transaction = transactionRepository.createTransaction(accountId, resolvedForm, authenticatedUser)
+        val transaction = transactionRepository.createTransaction(accountId, resolvedForm, conversion, authenticatedUser)
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
         checkBudgetAlerts(authenticatedUser, listOf(resolvedForm.categoryId))
@@ -113,11 +124,18 @@ class TransactionService(
         val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
 
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        val conversion = currencyConversionService.convert(
+            transactionForm.amount,
+            transactionForm.currency ?: account.currency,
+            account.currency,
+            transactionForm.transactionDate,
+        )
         val resolvedForm = transactionForm.copy(
             type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
         )
         val updatedTransaction =
-            transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, authenticatedUser)
+            transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
         val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
@@ -209,6 +227,7 @@ class TransactionService(
         val rows = request.rows
         if (rows.isEmpty()) return ImportResult(0, 0)
 
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
         val classifications = categoriesRepository.fetchCategoryClassifications(
             authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
         )
@@ -217,8 +236,9 @@ class TransactionService(
             row.copy(type = resolveType(classification, row.type))
         }
 
+        val conversions = convertRows(resolvedRows, account.currency)
         val hashes = resolvedRows.map { rowHash(accountId, it) }
-        val outcome = transactionRepository.importBatch(accountId, resolvedRows, hashes, authenticatedUser)
+        val outcome = transactionRepository.importBatch(accountId, resolvedRows, conversions, hashes, authenticatedUser)
 
         if (outcome.netBalanceAdjustment.signum() != 0) {
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
@@ -250,6 +270,7 @@ class TransactionService(
             return ImportResult(0, 0)
         }
 
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
         val rules = categorizationService.list(authenticatedUser)
         val priced = transactions.filter { it.amount.signum() != 0 }
         val rows = priced.map { tx ->
@@ -261,11 +282,14 @@ class TransactionService(
                 description = description,
                 transactionDate = tx.occurredAt.toLocalDate(),
                 type = type,
+                currency = parseProviderCurrency(tx.currency),
             )
         }
+        val conversions = convertRows(rows, account.currency)
         val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
 
-        val outcome = transactionRepository.importBatch(accountId, rows, hashes, authenticatedUser, providerConnectionId)
+        val outcome =
+            transactionRepository.importBatch(accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId)
         if (outcome.netBalanceAdjustment.signum() != 0) {
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
             checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
@@ -310,11 +334,39 @@ class TransactionService(
         return createTransaction(accountId, adjustmentForm, authenticatedUser)
     }
 
+    override fun previewConversion(
+        accountId: UUID,
+        amount: BigDecimal,
+        currency: Currency,
+        date: LocalDate,
+        authenticatedUser: UserDTO,
+    ): ConversionResult {
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        return currencyConversionService.convert(amount, currency, account.currency, date)
+    }
+
     private fun rowHash(accountId: UUID, row: ImportTransactionRow): String {
-        val payload = "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}"
+        val currencyPart = row.currency?.let { "|${it.name}" } ?: ""
+        val payload =
+            "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}$currencyPart"
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
         return digest.joinToString("") { "%02x".format(it) }
     }
+
+    private fun convertRows(rows: List<ImportTransactionRow>, accountCurrency: Currency): List<ConversionResult> =
+        rows.map { row ->
+            currencyConversionService.convert(
+                row.amount, row.currency ?: accountCurrency, accountCurrency, row.transactionDate
+            )
+        }
+
+    private fun parseProviderCurrency(code: String?): Currency? =
+        code?.trim()?.takeIf { it.isNotBlank() }?.let { raw ->
+            runCatching { Currency.valueOf(raw.uppercase()) }.getOrElse {
+                log.warn("Unknown provider currency '{}'; defaulting to account currency", raw)
+                null
+            }
+        }
 
     private fun resolveType(
         user: UserDTO,

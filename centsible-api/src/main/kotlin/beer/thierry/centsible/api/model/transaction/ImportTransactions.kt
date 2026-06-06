@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.model.transaction
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
@@ -16,8 +17,8 @@ import java.time.LocalDate
 data class ImportTransactionRow(
     @field:NotNull
     @field:DecimalMin(value = "0.01")
-    @field:DecimalMax(value = "9999999.99")
-    @field:Digits(integer = 7, fraction = 2)
+    @field:DecimalMax(value = "999999999999.99")
+    @field:Digits(integer = 12, fraction = 2)
     var amount: BigDecimal = BigDecimal.ZERO,
 
     @field:NotNull
@@ -32,6 +33,8 @@ data class ImportTransactionRow(
     var transactionDate: LocalDate = LocalDate.now(),
 
     var type: CategoryType? = null,
+
+    var currency: Currency? = null,
 )
 
 data class ImportTransactionsRequest(

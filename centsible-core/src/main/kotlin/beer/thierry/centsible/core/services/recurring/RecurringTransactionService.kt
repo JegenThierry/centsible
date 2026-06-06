@@ -3,12 +3,13 @@ package beer.thierry.centsible.core.services.recurring
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.recurring.IRecurringTransactionService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.*
 
@@ -16,6 +17,8 @@ import java.util.*
 class RecurringTransactionService(
     private val repository: IRecurringTransactionRepository,
     private val categoriesRepository: ICategoriesRepository,
+    private val accountRepository: IBudgetAccountsRepository,
+    private val currencyConversionService: ICurrencyConversionService,
 ) : IRecurringTransactionService {
 
     private val log = LoggerFactory.getLogger(RecurringTransactionService::class.java)
@@ -73,14 +76,22 @@ class RecurringTransactionService(
         return updated
     }
 
-    @Transactional
     override fun runMaterializationPass(): Int {
         val today = LocalDate.now()
         var count = 0
         for (rule in repository.fetchDueRules(today)) {
+            val accountId = rule.accountId ?: continue
+            val accountCurrency = accountRepository.fetchAccountCurrency(accountId)
             var working = rule
             while (working.active && (working.nextRunAt?.let { it <= today } == true)) {
-                val newNext = repository.materializeOnce(working)
+                val occurrenceDate = working.nextRunAt!!
+                val conversion = currencyConversionService.convert(
+                    working.amount!!,
+                    working.originalCurrency ?: accountCurrency,
+                    accountCurrency,
+                    occurrenceDate,
+                )
+                val newNext = repository.materializeOnce(working, conversion)
                 count++
                 if (newNext == null || newNext > today) break
                 working = working.copy(nextRunAt = newNext)

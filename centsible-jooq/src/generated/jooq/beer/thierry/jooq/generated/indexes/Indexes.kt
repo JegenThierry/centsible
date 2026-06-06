@@ -9,6 +9,7 @@ import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
 import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
@@ -37,6 +38,7 @@ val IDX_BUDGETS_USER_ID: Index = Internal.createIndex(DSL.name("idx_budgets_user
 val IDX_CATEGORIES_USER_LOOKUP: Index = Internal.createIndex(DSL.name("idx_categories_user_lookup"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID), false)
 val IDX_CATEGORIZATION_RULES_USER_PRIORITY: Index = Internal.createIndex(DSL.name("idx_categorization_rules_user_priority"), CategorizationRules.CATEGORIZATION_RULES, arrayOf(CategorizationRules.CATEGORIZATION_RULES.USER_ID, CategorizationRules.CATEGORIZATION_RULES.PRIORITY.desc(), CategorizationRules.CATEGORIZATION_RULES.CREATED_AT), false)
 val IDX_CONTACTS_USER_ID: Index = Internal.createIndex(DSL.name("idx_contacts_user_id"), Contacts.CONTACTS, arrayOf(Contacts.CONTACTS.USER_ID), false)
+val IDX_EXCHANGE_RATES_LOOKUP: Index = Internal.createIndex(DSL.name("idx_exchange_rates_lookup"), ExchangeRates.EXCHANGE_RATES, arrayOf(ExchangeRates.EXCHANGE_RATES.BASE_CURRENCY, ExchangeRates.EXCHANGE_RATES.QUOTE_CURRENCY, ExchangeRates.EXCHANGE_RATES.RATE_DATE.desc()), false)
 val IDX_EXPORT_JOBS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_jobs_claimable"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.STATUS, ExportJobs.EXPORT_JOBS.CREATED_AT), false)
 val IDX_EXPORT_JOBS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_export_jobs_user_created"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.USER_ID, ExportJobs.EXPORT_JOBS.CREATED_AT.desc()), false)
 val IDX_EXPORT_POST_PROCESSING_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_post_processing_claimable"), ExportPostProcessing.EXPORT_POST_PROCESSING, arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.STATUS, ExportPostProcessing.EXPORT_POST_PROCESSING.CREATED_AT), false)
@@ -67,4 +69,5 @@ val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("id
 val UQ_CATEGORIES_NAME_PER_USER: Index = Internal.createIndex(DSL.name("uq_categories_name_per_user"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID, Categories.CATEGORIES.NAME), true)
 val UQ_CATEGORIES_NAME_SYSTEM: Index = Internal.createIndex(DSL.name("uq_categories_name_system"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.NAME), true)
 val UQ_CATEGORIES_SYSTEM_KEY: Index = Internal.createIndex(DSL.name("uq_categories_system_key"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.SYSTEM_KEY), true)
+val UQ_EXCHANGE_RATES_BASE_QUOTE_DATE: Index = Internal.createIndex(DSL.name("uq_exchange_rates_base_quote_date"), ExchangeRates.EXCHANGE_RATES, arrayOf(ExchangeRates.EXCHANGE_RATES.BASE_CURRENCY, ExchangeRates.EXCHANGE_RATES.QUOTE_CURRENCY, ExchangeRates.EXCHANGE_RATES.RATE_DATE), true)
 val UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH: Index = Internal.createIndex(DSL.name("uq_transactions_account_import_hash"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.IMPORT_HASH), true)

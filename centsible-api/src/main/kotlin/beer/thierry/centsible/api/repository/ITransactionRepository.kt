@@ -2,6 +2,7 @@ package beer.thierry.centsible.api.repository
 
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.MatchType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
@@ -23,12 +24,18 @@ interface ITransactionRepository {
         filters: TransactionFilters = TransactionFilters(),
     ): List<TransactionDTO>
     fun fetchTransactionById(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO
-    fun createTransaction(accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO): TransactionDTO
+    fun createTransaction(
+        accountId: UUID,
+        transactionForm: TransactionForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): TransactionDTO
     fun updateTransaction(
         transactionId: UUID,
         accountId: UUID,
         transactionForm: TransactionForm,
-        authenticatedUser: UserDTO
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
     ): TransactionDTO
 
     /** Deletes transaction [transactionId] belonging to [accountId] owned by [authenticatedUser]; throws if none matches. */
@@ -80,6 +87,7 @@ interface ITransactionRepository {
     fun importBatch(
         accountId: UUID,
         rows: List<ImportTransactionRow>,
+        conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
         providerConnectionId: UUID? = null,

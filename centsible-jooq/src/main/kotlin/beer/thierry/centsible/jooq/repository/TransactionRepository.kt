@@ -2,6 +2,7 @@ package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.MatchType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
@@ -72,10 +73,11 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     }
 
     override fun createTransaction(
-        accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
+        accountId: UUID, transactionForm: TransactionForm, conversion: ConversionResult, authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
             ?: throw IllegalArgumentException("Transaction type is required")
+        val fx = FxColumns.from(conversion)
 
         // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
         val now = OffsetDateTime.now()
@@ -83,13 +85,19 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
+            TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
+            TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
             .select(
                 dsl.select(
-                    DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(transactionForm.amount),
+                    DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(conversion.convertedAmount),
                     DSL.value(transactionForm.description), DSL.value(transactionForm.transactionDate),
                     DSL.value(type.value),
+                    DSL.value(fx.originalAmount, TRANSACTIONS.ORIGINAL_AMOUNT),
+                    DSL.value(fx.originalCurrency, TRANSACTIONS.ORIGINAL_CURRENCY),
+                    DSL.value(fx.rate, TRANSACTIONS.EXCHANGE_RATE),
+                    DSL.value(fx.rateDate, TRANSACTIONS.RATE_DATE),
                     DSL.value(now), DSL.value(now),
                 ).whereExists(
                     dsl.selectOne().from(ACCOUNTS)
@@ -104,17 +112,23 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     }
 
     override fun updateTransaction(
-        transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
+        transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, conversion: ConversionResult,
+        authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
             ?: throw IllegalArgumentException("Transaction type is required")
+        val fx = FxColumns.from(conversion)
 
         // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
         val updated = dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
-            .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
+            .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
             .set(TRANSACTIONS.TYPE, type.value)
+            .set(TRANSACTIONS.ORIGINAL_AMOUNT, fx.originalAmount)
+            .set(TRANSACTIONS.ORIGINAL_CURRENCY, fx.originalCurrency)
+            .set(TRANSACTIONS.EXCHANGE_RATE, fx.rate)
+            .set(TRANSACTIONS.RATE_DATE, fx.rateDate)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 TRANSACTIONS.ID.eq(transactionId)
@@ -300,11 +314,13 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun importBatch(
         accountId: UUID,
         rows: List<ImportTransactionRow>,
+        conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
         providerConnectionId: UUID?,
     ): BatchImportOutcome {
         require(rows.size == hashes.size) { "rows and hashes must have equal length" }
+        require(rows.size == conversions.size) { "rows and conversions must have equal length" }
         if (rows.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
         require(rows.all { it.type != null }) { "Every import row must have a type" }
 
@@ -318,13 +334,18 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
+            TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
+            TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
             TRANSACTIONS.IMPORT_HASH, TRANSACTIONS.PROVIDER_CONNECTION_ID,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
         rows.forEachIndexed { i, row ->
+            val conversion = conversions[i]
+            val fx = FxColumns.from(conversion)
             insertStep.values(
-                accountId, row.categoryId, row.amount,
+                accountId, row.categoryId, conversion.convertedAmount,
                 row.description, row.transactionDate, row.type!!.value,
+                fx.originalAmount, fx.originalCurrency, fx.rate, fx.rateDate,
                 hashes[i], providerConnectionId,
                 now, now,
             )

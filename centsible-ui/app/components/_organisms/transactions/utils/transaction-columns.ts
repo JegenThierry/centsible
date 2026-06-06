@@ -95,6 +95,8 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
         amount: Number.parseFloat(row.getValue('amount')),
         type: transactionType(row.original),
         currency: currency(),
+        originalAmount: row.original.originalAmount,
+        originalCurrency: row.original.originalCurrency,
       }),
     },
     {

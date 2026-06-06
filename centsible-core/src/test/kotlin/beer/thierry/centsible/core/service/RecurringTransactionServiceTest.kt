@@ -1,13 +1,18 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.recurring.Frequency
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
+import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.core.services.recurring.RecurringTransactionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -34,6 +39,12 @@ class RecurringTransactionServiceTest {
 
     @Mock
     private lateinit var categoriesRepository: ICategoriesRepository
+
+    @Mock
+    private lateinit var accountRepository: IBudgetAccountsRepository
+
+    @Mock
+    private lateinit var currencyConversionService: ICurrencyConversionService
 
     @InjectMocks
     private lateinit var service: RecurringTransactionService
@@ -96,5 +107,43 @@ class RecurringTransactionServiceTest {
         }
 
         verify(repository, never()).update(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `runMaterializationPass converts each occurrence to the account currency at its own date`() {
+        val today = LocalDate.now()
+        val rule = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = accountId,
+            category = CategoryDTO(ownedCategoryId, "Rent", "icon", "#fff", CategoryType.EXPENSE),
+            amount = BigDecimal("10.00"),
+            description = "Rent",
+            frequency = Frequency.MONTHLY,
+            startDate = today,
+            nextRunAt = today,
+            active = true,
+            originalCurrency = Currency.USD,
+        )
+        val conversion = ConversionResult(
+            convertedAmount = BigDecimal("9.07"),
+            originalAmount = BigDecimal("10.00"),
+            originalCurrency = Currency.USD,
+            accountCurrency = Currency.EUR,
+            rate = BigDecimal("0.907"),
+            rateDate = today,
+            sameCurrency = false,
+        )
+        `when`(repository.fetchDueRules(today)).thenReturn(listOf(rule))
+        `when`(accountRepository.fetchAccountCurrency(accountId)).thenReturn(Currency.EUR)
+        `when`(currencyConversionService.convert(BigDecimal("10.00"), Currency.USD, Currency.EUR, today))
+            .thenReturn(conversion)
+        // Returning null deactivates/stops the rule after this single occurrence.
+        `when`(repository.materializeOnce(rule, conversion)).thenReturn(null)
+
+        val count = service.runMaterializationPass()
+
+        assertEquals(1, count)
+        verify(currencyConversionService).convert(BigDecimal("10.00"), Currency.USD, Currency.EUR, today)
+        verify(repository).materializeOnce(rule, conversion)
     }
 }

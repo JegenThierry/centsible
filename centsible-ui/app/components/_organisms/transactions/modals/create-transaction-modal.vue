@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
+import {Currency} from "~/models/budget-account/currency";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
@@ -73,6 +74,7 @@ function makeBlankTransactionForm(): TransactionForm {
     category: undefined,
     type: props.filterType ?? CategoryType.EXPENSE,
     transactionDate: todayIsoDate(),
+    currency: budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
   };
 }
 
@@ -153,6 +155,7 @@ async function saveStandard() {
         categoryId: form.value.category.id,
         transactionDate: form.value.transactionDate,
         type: form.value.type,
+        currency: form.value.currency,
       }
     );
     toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
@@ -231,7 +234,8 @@ async function saveSetBalance() {
         <TransactionFormFields v-if="mode === 'standard'"
                                ref="formRef"
                                v-model="form"
-                               :currency="activeCurrency"
+                               :account-id="budgetAccountsStore.activeAccount?.id"
+                               :account-currency="activeCurrency"
                                :disabled="loading"
                                :filter-type="filterType"/>
         <LoanFormFields v-else-if="mode === 'lending'"

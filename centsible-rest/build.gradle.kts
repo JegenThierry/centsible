@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":centsible-integrations:manual"))
     implementation(project(":centsible-integrations:paypal"))
     implementation(project(":centsible-integrations:banking-gocardless"))
+    implementation(project(":centsible-integrations:fx-frankfurter"))
 
     // File-import modules. Core defines the SPI; format sub-modules (csv, ofx, ...) register
     // themselves via Spring component scanning. To remove a format, delete its line.

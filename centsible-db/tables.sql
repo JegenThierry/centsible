@@ -149,6 +149,8 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
     active      BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at TIMESTAMPTZ    NOT NULL DEFAULT now(),
+    original_amount   DECIMAL(15, 2),
+    original_currency VARCHAR(3),
     CONSTRAINT chk_recurring_end_after_start CHECK (end_date IS NULL OR end_date >= start_date)
 );
 
@@ -170,6 +172,10 @@ CREATE TABLE IF NOT EXISTS transactions
     import_hash              VARCHAR(64),
     type                     VARCHAR(10)    NOT NULL,
     provider_connection_id   UUID           REFERENCES provider_connections (id) ON DELETE SET NULL,
+    original_amount          DECIMAL(15, 2),
+    original_currency        VARCHAR(3),
+    exchange_rate            NUMERIC(20, 10),
+    rate_date                DATE,
     CONSTRAINT transactions_type_check CHECK (type IN ('INCOME', 'EXPENSE'))
 );
 
@@ -186,6 +192,23 @@ CREATE INDEX IF NOT EXISTS idx_transactions_provider_connection_id
     WHERE provider_connection_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_transactions_account_date
     ON transactions (account_id, transaction_date, id);
+
+
+CREATE TABLE IF NOT EXISTS exchange_rates
+(
+    id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
+    base_currency  VARCHAR(3)      NOT NULL,
+    quote_currency VARCHAR(3)      NOT NULL,
+    rate           NUMERIC(20, 10) NOT NULL CHECK (rate > 0),
+    rate_date      DATE            NOT NULL,
+    source         VARCHAR(32)     NOT NULL DEFAULT 'frankfurter',
+    fetched_at     TIMESTAMPTZ     NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_exchange_rates_base_quote_date
+    ON exchange_rates (base_currency, quote_currency, rate_date);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_lookup
+    ON exchange_rates (base_currency, quote_currency, rate_date DESC);
 
 
 CREATE TABLE IF NOT EXISTS contacts

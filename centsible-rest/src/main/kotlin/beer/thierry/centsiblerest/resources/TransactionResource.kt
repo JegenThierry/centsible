@@ -1,5 +1,7 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -171,6 +174,18 @@ class TransactionResource(private val transactionService: ITransactionService) {
         log.info("Set balance accountId={} userId={} adjustmentTxId={}", accountId, authenticatedUser.id, adjustment.id)
         return ResponseEntity.ok(adjustment)
     }
+
+    @GetMapping("/{accountId}/conversion-preview")
+    fun previewConversion(
+        @PathVariable accountId: UUID,
+        @RequestParam amount: BigDecimal,
+        @RequestParam currency: Currency,
+        @RequestParam(required = false) date: LocalDate?,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<ConversionResult> =
+        ResponseEntity.ok(
+            transactionService.previewConversion(accountId, amount, currency, date ?: LocalDate.now(), authenticatedUser)
+        )
 }
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())

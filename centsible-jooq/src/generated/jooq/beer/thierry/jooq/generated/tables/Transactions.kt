@@ -160,6 +160,26 @@ open class Transactions(
      */
     val PROVIDER_CONNECTION_ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("provider_connection_id"), SQLDataType.UUID, this, "")
 
+    /**
+     * The column <code>public.transactions.original_amount</code>.
+     */
+    val ORIGINAL_AMOUNT: TableField<TransactionsRecord, BigDecimal?> = createField(DSL.name("original_amount"), SQLDataType.NUMERIC(15, 2), this, "")
+
+    /**
+     * The column <code>public.transactions.original_currency</code>.
+     */
+    val ORIGINAL_CURRENCY: TableField<TransactionsRecord, String?> = createField(DSL.name("original_currency"), SQLDataType.VARCHAR(3), this, "")
+
+    /**
+     * The column <code>public.transactions.exchange_rate</code>.
+     */
+    val EXCHANGE_RATE: TableField<TransactionsRecord, BigDecimal?> = createField(DSL.name("exchange_rate"), SQLDataType.NUMERIC(20, 10), this, "")
+
+    /**
+     * The column <code>public.transactions.rate_date</code>.
+     */
+    val RATE_DATE: TableField<TransactionsRecord, LocalDate?> = createField(DSL.name("rate_date"), SQLDataType.LOCALDATE, this, "")
+
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

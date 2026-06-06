@@ -1,4 +1,5 @@
 import {type Category, type CategoryType} from "~/models/category/category";
+import type {Currency} from "~/models/budget-account/currency";
 
 export interface Transaction {
   id: string,
@@ -10,6 +11,10 @@ export interface Transaction {
   createdAt: string,
   updatedAt: string,
   attachmentCount: number,
+  originalAmount?: number | null,
+  originalCurrency?: Currency | null,
+  exchangeRate?: number | null,
+  rateDate?: string | null,
 }
 
 export interface TransactionRequest {
@@ -18,6 +23,7 @@ export interface TransactionRequest {
   categoryId: number,
   transactionDate: string,
   type?: CategoryType,
+  currency?: Currency,
 }
 
 export interface TransactionForm {
@@ -26,6 +32,17 @@ export interface TransactionForm {
   category: Category | undefined,
   type: CategoryType,
   transactionDate: string | undefined,
+  currency: Currency,
+}
+
+export interface ConversionPreview {
+  convertedAmount: number,
+  originalAmount: number,
+  originalCurrency: Currency,
+  accountCurrency: Currency,
+  rate: number,
+  rateDate: string,
+  sameCurrency: boolean,
 }
 
 export interface SetBalanceRequest {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {Frequency, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
+import {Currency} from "~/models/budget-account/currency";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import RecurringFormFields from "~/components/_molecules/recurring/recurring-form.vue";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
@@ -24,7 +25,6 @@ const form = ref<RecurringTransactionForm>(makeBlankForm());
 const formRef = ref<InstanceType<typeof RecurringFormFields>>();
 const loading = ref(false);
 const formId = useId();
-const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
 function makeBlankForm(): RecurringTransactionForm {
   return {
@@ -35,6 +35,7 @@ function makeBlankForm(): RecurringTransactionForm {
     startDate: todayIsoDate(),
     endDate: undefined,
     active: true,
+    currency: budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
   };
 }
 
@@ -61,6 +62,7 @@ async function handleSave() {
       startDate: form.value.startDate,
       endDate: form.value.endDate || null,
       active: form.value.active,
+      currency: form.value.currency,
     });
     toasts.success(t('transactions.recurring.create.toastSuccessTitle'), t('transactions.recurring.create.toastSuccessBody'));
     emit('created');
@@ -82,7 +84,6 @@ async function handleSave() {
       <UForm :id="formId" :state="form" @submit="handleSave">
         <RecurringFormFields ref="formRef"
                              v-model="form"
-                             :currency="activeCurrency"
                              :disabled="loading"/>
       </UForm>
     </template>
