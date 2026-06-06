@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS loans
     id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     user_id        UUID           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     contact_id     UUID           NOT NULL,
-    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE CASCADE,
+    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE SET NULL,
     lent_amount    DECIMAL(15, 2) NOT NULL CHECK (lent_amount > 0),
     owed_amount    DECIMAL(15, 2) NOT NULL CHECK (owed_amount >= 0),
     loan_date      DATE           NOT NULL DEFAULT CURRENT_DATE,
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS loan_repayments
 (
     id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     loan_id        UUID           NOT NULL REFERENCES loans (id) ON DELETE CASCADE,
-    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE CASCADE,
+    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE SET NULL,
     amount         DECIMAL(15, 2) NOT NULL CHECK (amount > 0),
     repaid_at      DATE           NOT NULL DEFAULT CURRENT_DATE,
     created_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
