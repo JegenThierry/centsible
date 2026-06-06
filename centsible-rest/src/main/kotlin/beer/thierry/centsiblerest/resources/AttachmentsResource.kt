@@ -65,7 +65,12 @@ class AttachmentsResource(private val service: IAttachmentService) {
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<InputStreamResource> {
         val download = service.open(user, attachmentId) ?: return ResponseEntity.notFound().build()
-        if (download.metadata.transactionId != transactionId) return ResponseEntity.notFound().build()
+        // service.open() eagerly opens the file stream; close it on this early-return path or the
+        // descriptor leaks (only the success path below hands the stream to Spring to close).
+        if (download.metadata.transactionId != transactionId) {
+            download.stream.close()
+            return ResponseEntity.notFound().build()
+        }
 
         val headers = HttpHeaders().apply {
             contentType = MediaType.parseMediaType(download.metadata.contentType)
