@@ -3,11 +3,13 @@ package beer.thierry.centsiblerest.exceptions
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.ErrorResponse
 import beer.thierry.centsiblerest.logging.MDC_REQUEST_ID
+import com.fasterxml.jackson.core.JacksonException
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -96,6 +98,23 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
         val fieldErrors = mapOf(ex.name to (ex.mostSpecificCause.message ?: t("validation.generic.invalid")))
         log.warn("Type mismatch on parameter '{}': {}", ex.name, ex.mostSpecificCause.message)
         return error(HttpStatus.BAD_REQUEST, t("error.validation.failed"), request, fieldErrors = fieldErrors)
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleDataIntegrity(ex: DataIntegrityViolationException, request: WebRequest): ResponseEntity<ErrorResponse> {
+        // A DB constraint rejected the write -- most commonly a unique violation (e.g. an email or
+        // username already in use). Map to 409 instead of a 500, and never echo ex.message: like the
+        // serverError path, it carries SQL/constraint names.
+        log.warn("Data integrity violation: {}", ex.mostSpecificCause.message)
+        return error(HttpStatus.CONFLICT, t("error.conflict"), request)
+    }
+
+    @ExceptionHandler(JacksonException::class)
+    fun handleJacksonParse(ex: JacksonException, request: WebRequest): ResponseEntity<ErrorResponse> {
+        // Raw Jackson failure from parsing a JSON-valued request parameter. (@RequestBody parse
+        // errors are wrapped by Spring into HttpMessageNotReadableException, handled above.) 400.
+        log.warn("Malformed JSON parameter: {}", ex.message)
+        return error(HttpStatus.BAD_REQUEST, t("error.request.malformed"), request)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)

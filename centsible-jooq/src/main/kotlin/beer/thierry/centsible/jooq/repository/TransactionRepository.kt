@@ -1,5 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.currency.ConversionResult
@@ -71,7 +72,10 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
-            .fetchSingle { TransactionRecordMapper.mapTransaction(it) }
+            // fetchSingle throws jOOQ's NoDataFoundException (a RuntimeException the REST handler
+            // can't see, so it 500s) when the id is unknown or not the user's. Map to a 404.
+            .fetchOne { TransactionRecordMapper.mapTransaction(it) }
+            ?: throw LocalizedException.NotFound("error.transaction.notFound")
     }
 
     override fun createTransaction(
