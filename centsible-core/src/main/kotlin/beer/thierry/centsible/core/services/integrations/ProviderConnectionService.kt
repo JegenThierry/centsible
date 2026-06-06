@@ -8,12 +8,15 @@ import beer.thierry.centsible.api.model.integrations.ProviderConnectionForm
 import beer.thierry.centsible.api.model.integrations.ProviderConnectionStatus
 import beer.thierry.centsible.api.model.integrations.ProviderContext
 import beer.thierry.centsible.api.model.integrations.ProviderDescriptor
+import beer.thierry.centsible.api.model.integrations.RemoteOptionsRequest
+import beer.thierry.centsible.api.model.integrations.SelectOption
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
-import beer.thierry.centsible.api.repository.ProviderConnectionRecord
 import beer.thierry.centsible.api.services.integrations.IProviderConnectionService
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
+import beer.thierry.centsible.api.services.integrations.IRemoteOptionsProvider
 import beer.thierry.centsible.api.services.integrations.ProviderModule
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -25,11 +28,13 @@ class ProviderConnectionService(
     private val cipher: CredentialCipher,
 ) : IProviderConnectionService {
 
+    private val log = LoggerFactory.getLogger(ProviderConnectionService::class.java)
+
     override fun fetchAllConnections(authenticatedUser: UserDTO): List<ProviderConnectionDTO> =
-        repository.fetchAll(authenticatedUser).map { it.toDTO() }
+        repository.fetchAll(authenticatedUser).map(ConnectionMappersImpl::toDTO)
 
     override fun fetchConnectionById(authenticatedUser: UserDTO, id: UUID): ProviderConnectionDTO? =
-        repository.fetchById(authenticatedUser, id)?.toDTO()
+        repository.fetchById(authenticatedUser, id)?.let(ConnectionMappersImpl::toDTO)
 
     @Transactional
     override fun createConnection(authenticatedUser: UserDTO, form: ProviderConnectionForm): ProviderConnectionDTO {
@@ -41,14 +46,19 @@ class ProviderConnectionService(
             AuthType.OAUTH2 -> ProviderConnectionStatus.NEW
             else -> ProviderConnectionStatus.ACTIVE
         }
-        return repository.create(
+        val record = repository.create(
             userId = authenticatedUser.id,
             providerKey = form.providerKey,
             displayName = form.displayName,
             status = initialStatus,
             config = config,
             credentials = cipher.encrypt(credentials),
-        ).toDTO()
+        )
+        log.info(
+            "Created provider connection id={} userId={} provider={} status={}",
+            record.id, authenticatedUser.id, form.providerKey, initialStatus,
+        )
+        return ConnectionMappersImpl.toDTO(record)
     }
 
     @Transactional
@@ -60,26 +70,69 @@ class ProviderConnectionService(
         val existing = repository.fetchById(authenticatedUser, id) ?: return null
         val module = registry.getModule(existing.providerKey)
             ?: throw IllegalArgumentException("Provider '${existing.providerKey}' is no longer registered")
-        // partial=true: omitted secret fields keep their current value.
         val (newConfig, submittedSecrets) = splitAndValidate(module.descriptor, form.values, partial = true)
         val existingSecrets = cipher.decrypt(repository.fetchEncryptedCredentialsById(authenticatedUser, id))
-        val mergedSecrets = existingSecrets.toMutableMap().apply { putAll(submittedSecrets) }
+        val mergedSecrets = existingSecrets.mergedWith(submittedSecrets)
         runProviderTest(module, authenticatedUser.id, existing.id, form.displayName, newConfig, mergedSecrets)
-        return repository.update(
+        val updated = repository.update(
             authenticatedUser = authenticatedUser,
             id = id,
             displayName = form.displayName,
             status = ProviderConnectionStatus.ACTIVE,
             config = newConfig,
             credentials = cipher.encrypt(mergedSecrets),
-        )?.toDTO()
+        )?.let(ConnectionMappersImpl::toDTO)
+        if (updated != null) {
+            log.info(
+                "Updated provider connection id={} userId={} provider={} secretFieldsChanged={}",
+                id, authenticatedUser.id, existing.providerKey, submittedSecrets.keys.sorted(),
+            )
+        }
+        return updated
     }
 
-    override fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean =
-        repository.delete(authenticatedUser, id)
+    override fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean {
+        val deleted = repository.delete(authenticatedUser, id)
+        if (deleted) {
+            log.info("Deleted provider connection id={} userId={}", id, authenticatedUser.id)
+        }
+        return deleted
+    }
 
-    override fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean =
-        repository.requeueForSync(authenticatedUser, id)
+    override fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean {
+        val requeued = repository.requeueForSync(authenticatedUser, id)
+        if (requeued) {
+            log.info("Requeued provider connection for sync id={} userId={}", id, authenticatedUser.id)
+        }
+        return requeued
+    }
+
+    override fun fetchRemoteOptions(
+        authenticatedUser: UserDTO,
+        providerKey: String,
+        fieldName: String,
+        query: String?,
+        values: Map<String, Any?>,
+    ): List<SelectOption> {
+        val module = registry.getModule(providerKey)
+            ?: throw IllegalArgumentException("Unknown provider key: $providerKey")
+        val field = module.descriptor.configFields.firstOrNull { it.name == fieldName }
+            ?: throw IllegalArgumentException("Unknown field '$fieldName' for provider $providerKey")
+        require(field.type == FieldType.SELECT_REMOTE) {
+            "Field '$fieldName' is not a SELECT_REMOTE field"
+        }
+        require(module is IRemoteOptionsProvider) {
+            "Provider '$providerKey' does not provide remote options"
+        }
+        val ctx = ProviderContext(
+            userId = authenticatedUser.id,
+            connectionId = UUID(0, 0),
+            displayName = "remote-options-lookup",
+            config = values.filterKeys { it != fieldName },
+            credentials = emptyMap(),
+        )
+        return module.fetchOptions(ctx, RemoteOptionsRequest(fieldName, query, values))
+    }
 
     private fun runProviderTest(
         module: ProviderModule,
@@ -100,7 +153,11 @@ class ProviderConnectionService(
                 )
             )
         } catch (e: Exception) {
-            throw IllegalArgumentException("Connection test failed: ${e.message ?: e.javaClass.simpleName}")
+            log.warn(
+                "Provider connection test failed userId={} connectionId={} provider={}",
+                userId, connectionId, module.descriptor.key, e,
+            )
+            throw IllegalArgumentException("Connection test failed: ${e.message ?: e.javaClass.simpleName}", e)
         }
     }
 
@@ -125,6 +182,7 @@ class ProviderConnectionService(
         val config = mutableMapOf<String, Any?>()
         val secrets = mutableMapOf<String, String>()
         for (field in descriptor.configFields) {
+            if (field.type == FieldType.OAUTH_LAUNCH) continue
             val raw = values[field.name]
             val isMissing = raw == null || (raw is String && raw.isBlank())
             if (isMissing) {
@@ -141,7 +199,7 @@ class ProviderConnectionService(
     }
 
     private fun coerce(field: ConfigField, raw: Any): Any = when (field.type) {
-        FieldType.STRING, FieldType.MULTILINE -> raw.toString()
+        FieldType.STRING, FieldType.MULTILINE, FieldType.SELECT_REMOTE -> raw.toString()
         FieldType.NUMBER -> when (raw) {
             is Number -> raw
             is String -> raw.toBigDecimalOrNull()
@@ -162,17 +220,7 @@ class ProviderConnectionService(
             }
             str
         }
+        FieldType.OAUTH_LAUNCH -> ""
     }
 
-    private fun ProviderConnectionRecord.toDTO(): ProviderConnectionDTO = ProviderConnectionDTO(
-        id = id,
-        providerKey = providerKey,
-        displayName = displayName,
-        status = status,
-        config = config,
-        lastSyncAt = lastSyncAt,
-        lastError = lastError,
-        createdAt = createdAt,
-        modifiedAt = modifiedAt,
-    )
 }

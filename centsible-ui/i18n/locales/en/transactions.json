@@ -18,6 +18,7 @@
       "amount": "Amount",
       "actionsLabel": "Transaction actions",
       "actionEdit": "Edit",
+      "actionCreateRule": "Create rule",
       "actionDelete": "Delete"
     },
     "bulk": {
@@ -73,6 +74,9 @@
       "typeExpense": "Expense",
       "amount": "Amount",
       "amountPlaceholder": "0.00",
+      "currency": "Currency",
+      "currencyPlaceholder": "Select a currency",
+      "conversionUnavailable": "Conversion unavailable",
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
       "date": "Date",
@@ -212,6 +216,8 @@
         "transactionType": "Transaction Type:",
         "amount": "Amount",
         "amountPlaceholder": "0.00",
+        "currency": "Currency",
+        "currencyPlaceholder": "Select a currency",
         "description": "Description",
         "descriptionPlaceholder": "Rent, Salary, Netflix, etc.",
         "frequency": "Frequency",

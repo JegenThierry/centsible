@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 import type {Notification} from "~/models/notification/notification";
 
 export function useNotificationService(api: AxiosInstance) {
@@ -14,8 +14,7 @@ export function useNotificationService(api: AxiosInstance) {
   }
 
   async function markRead(id: string): Promise<void> {
-    const response = await api.post(`/notifications/${encodeURIComponent(id)}/read`);
-    if (response.status !== 204 && response.status !== 200) throw new Error(response.statusText);
+    assertStatus(await api.post(`/notifications/${encodeURIComponent(id)}/read`));
   }
 
   async function markAllRead(): Promise<number> {
@@ -24,8 +23,7 @@ export function useNotificationService(api: AxiosInstance) {
   }
 
   async function remove(id: string): Promise<void> {
-    const response = await api.delete(`/notifications/${encodeURIComponent(id)}`);
-    if (response.status !== 204 && response.status !== 200) throw new Error(response.statusText);
+    assertStatus(await api.delete(`/notifications/${encodeURIComponent(id)}`));
   }
 
   return {list, unreadCount, markRead, markAllRead, remove};

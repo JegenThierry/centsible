@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {ContactForm as ContactFormModel} from "~/models/contact/contact";
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
 
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -29,7 +30,7 @@ async function handleSave() {
     await contactsStore.createContact(form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Create contact failed', error);
+    adze.ns('contacts').error('Create contact failed', error);
   } finally {
     loading.value = false;
   }
@@ -45,10 +46,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('contacts.create.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.create.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

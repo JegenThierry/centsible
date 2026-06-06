@@ -10,6 +10,10 @@ import beer.thierry.jooq.generated.indexes.IDX_PROVIDER_CONNECTIONS_CLAIMABLE
 import beer.thierry.jooq.generated.indexes.IDX_PROVIDER_CONNECTIONS_USER
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS_PKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTION_ACCOUNTS__PROVIDER_CONNECTION_ACCOUNTS_PROVIDER_CONNECTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY
+import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts.ProviderConnectionAccountsPath
+import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.ProviderConnectionsRecord
 
@@ -208,6 +212,38 @@ open class ProviderConnections(
 
     val users: UsersPath
         get(): UsersPath = users()
+
+    private lateinit var _providerConnectionAccounts: ProviderConnectionAccountsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.provider_connection_accounts</code> table
+     */
+    fun providerConnectionAccounts(): ProviderConnectionAccountsPath {
+        if (!this::_providerConnectionAccounts.isInitialized)
+            _providerConnectionAccounts = ProviderConnectionAccountsPath(this, null, PROVIDER_CONNECTION_ACCOUNTS__PROVIDER_CONNECTION_ACCOUNTS_PROVIDER_CONNECTION_ID_FKEY.inverseKey)
+
+        return _providerConnectionAccounts;
+    }
+
+    val providerConnectionAccounts: ProviderConnectionAccountsPath
+        get(): ProviderConnectionAccountsPath = providerConnectionAccounts()
+
+    private lateinit var _transactions: TransactionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transactions</code> table
+     */
+    fun transactions(): TransactionsPath {
+        if (!this::_transactions.isInitialized)
+            _transactions = TransactionsPath(this, null, TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY.inverseKey)
+
+        return _transactions;
+    }
+
+    val transactions: TransactionsPath
+        get(): TransactionsPath = transactions()
     override fun `as`(alias: String): ProviderConnections = ProviderConnections(DSL.name(alias), this)
     override fun `as`(alias: Name): ProviderConnections = ProviderConnections(alias, this)
     override fun `as`(alias: Table<*>): ProviderConnections = ProviderConnections(alias.qualifiedName, this)

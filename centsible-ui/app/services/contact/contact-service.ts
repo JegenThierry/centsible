@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, postMultipart, validateRequest} from "~/composables/use-api";
 import type {Contact, ContactForm} from "~/models/contact/contact";
 
 export function useContactService(api: AxiosInstance) {
@@ -24,14 +24,7 @@ export function useContactService(api: AxiosInstance) {
   }
 
   async function updateContactPicture(id: string, file: File): Promise<Contact> {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await api.post<Contact>(
-      `/contacts/${encodeURIComponent(id)}/picture`,
-      formData,
-      {headers: {'Content-Type': 'multipart/form-data'}}
-    );
-    return validateRequest<Contact>(response);
+    return postMultipart<Contact>(api, `/contacts/${encodeURIComponent(id)}/picture`, {file});
   }
 
   async function removeContactPicture(id: string): Promise<Contact> {
@@ -40,10 +33,7 @@ export function useContactService(api: AxiosInstance) {
   }
 
   async function deleteContact(id: string): Promise<void> {
-    const response = await api.delete(`/contacts/${encodeURIComponent(id)}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/contacts/${encodeURIComponent(id)}`));
   }
 
   return {

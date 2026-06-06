@@ -1,6 +1,5 @@
-import {computed, ref, watch} from 'vue';
-import {format, subMonths} from 'date-fns';
-import {ISO_DATE, todayIsoDate} from "~/utils/date";
+import {computed} from 'vue';
+import {monthsAgoIsoDate, todayIsoDate} from "~/utils/date";
 
 export type ReportRangePreset = '3m' | '6m' | '12m' | '24m' | 'custom';
 
@@ -27,51 +26,43 @@ const STORAGE_KEY_PREFIX = 'centsible.reports.range.';
  * the preset key.
  */
 export function useReportDateRange(storageKey: string, defaultPreset: ReportRangePreset = '6m') {
-  const preset = ref<ReportRangePreset>(defaultPreset);
-  const customFrom = ref<string>('');
-  const customTo = ref<string>(todayIsoDate());
+  const state = useLocalStorage(
+    `${STORAGE_KEY_PREFIX}${storageKey}`,
+    {
+      preset: defaultPreset,
+      from: '',
+      to: todayIsoDate(),
+    },
+    {mergeDefaults: true},
+  );
 
-  const storageId = `${STORAGE_KEY_PREFIX}${storageKey}`;
-
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = window.localStorage.getItem(storageId);
-      if (raw) {
-        const saved = JSON.parse(raw) as {preset?: ReportRangePreset; from?: string; to?: string};
-        if (saved.preset) preset.value = saved.preset;
-        if (saved.from) customFrom.value = saved.from;
-        if (saved.to) customTo.value = saved.to;
-      }
-    } catch {
-      // Ignore storage errors; defaults still apply.
-    }
-  }
-
-  watch([preset, customFrom, customTo], () => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem(storageId, JSON.stringify({
-        preset: preset.value,
-        from: customFrom.value,
-        to: customTo.value,
-      }));
-    } catch {
-      // Quota errors etc. are non-fatal.
-    }
-  }, {deep: false});
+  const preset = computed<ReportRangePreset>({
+    get: () => state.value.preset,
+    set: (v) => { state.value.preset = v; },
+  });
+  const customFrom = computed<string>({
+    get: () => state.value.from,
+    set: (v) => { state.value.from = v; },
+  });
+  const customTo = computed<string>({
+    get: () => state.value.to,
+    set: (v) => { state.value.to = v; },
+  });
 
   const resolved = computed<ResolvedReportRange>(() => {
     if (preset.value === 'custom') {
-      const from = customFrom.value || format(subMonths(new Date(), 6), ISO_DATE);
+      const from = customFrom.value || monthsAgoIsoDate(6);
       const to = customTo.value || todayIsoDate();
-      // Approximate months span for callers that still take a months-back number.
       const months = monthsBetween(from, to);
       return {startDate: from, endDate: to, months, preset: 'custom'};
     }
     const found = REPORT_RANGE_PRESETS.find(p => p.key === preset.value) ?? REPORT_RANGE_PRESETS[1]!;
-    const endDate = todayIsoDate();
-    const startDate = format(subMonths(new Date(), found.months), ISO_DATE);
-    return {startDate, endDate, months: found.months, preset: preset.value};
+    return {
+      startDate: monthsAgoIsoDate(found.months),
+      endDate: todayIsoDate(),
+      months: found.months,
+      preset: preset.value,
+    };
   });
 
   const isCustom = computed(() => preset.value === 'custom');

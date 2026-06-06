@@ -69,6 +69,14 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
         set(value): Unit = set(11, value)
         get(): OffsetDateTime? = get(11) as OffsetDateTime?
 
+    open var originalAmount: BigDecimal?
+        set(value): Unit = set(12, value)
+        get(): BigDecimal? = get(12) as BigDecimal?
+
+    open var originalCurrency: String?
+        set(value): Unit = set(13, value)
+        get(): String? = get(13) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -78,7 +86,7 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
     /**
      * Create a detached, initialised RecurringTransactionsRecord
      */
-    constructor(id: UUID? = null, accountId: UUID? = null, categoryId: Long? = null, amount: BigDecimal? = null, description: String? = null, frequency: String? = null, startDate: LocalDate? = null, endDate: LocalDate? = null, nextRunAt: LocalDate? = null, active: Boolean? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, accountId: UUID? = null, categoryId: Long? = null, amount: BigDecimal? = null, description: String? = null, frequency: String? = null, startDate: LocalDate? = null, endDate: LocalDate? = null, nextRunAt: LocalDate? = null, active: Boolean? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null): this() {
         this.id = id
         this.accountId = accountId
         this.categoryId = categoryId
@@ -91,6 +99,8 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
         this.active = active
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.originalAmount = originalAmount
+        this.originalCurrency = originalCurrency
         resetChangedOnNotNull()
     }
 
@@ -111,6 +121,8 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
             this.active = value.active
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.originalAmount = value.originalAmount
+            this.originalCurrency = value.originalCurrency
             resetChangedOnNotNull()
         }
     }

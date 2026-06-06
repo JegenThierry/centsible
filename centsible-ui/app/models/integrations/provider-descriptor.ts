@@ -1,6 +1,13 @@
 export type AuthType = 'OAUTH2' | 'API_KEY' | 'BASIC' | 'NONE';
-export type Capability = 'ACCOUNTS' | 'TRANSACTIONS' | 'QUOTES';
-export type FieldType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'SELECT' | 'MULTILINE';
+export type Capability = 'ACCOUNTS' | 'TRANSACTIONS' | 'QUOTES' | 'OAUTH_FLOW';
+export type FieldType =
+  | 'STRING'
+  | 'NUMBER'
+  | 'BOOLEAN'
+  | 'SELECT'
+  | 'MULTILINE'
+  | 'SELECT_REMOTE'
+  | 'OAUTH_LAUNCH';
 
 export interface SelectOption {
   value: string;
@@ -16,6 +23,7 @@ export interface ConfigField {
   options: SelectOption[];
   placeholder?: string;
   helpText?: string;
+  dependsOn?: string[];
 }
 
 export interface ProviderDescriptor {

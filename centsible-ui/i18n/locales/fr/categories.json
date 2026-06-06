@@ -5,6 +5,10 @@
       "description": "Gérez vos catégories de revenus et de dépenses",
       "createAction": "Créer une catégorie"
     },
+    "tabs": {
+      "categories": "Catégories",
+      "rules": "Règles"
+    },
     "sections": {
       "yours": "Vos catégories",
       "system": "Catégories système"
@@ -46,6 +50,33 @@
     "delete": {
       "title": "Supprimer la catégorie",
       "description": "Voulez-vous vraiment supprimer la catégorie « {name} » ? Cette action est irréversible."
+    },
+    "rules": {
+      "newRule": "Nouvelle règle",
+      "emptyTitle": "Aucune règle de catégorisation",
+      "emptyDescription": "Créez une règle pour catégoriser automatiquement les transactions importées et synchronisées selon leur description.",
+      "patternLabel": "Texte à rechercher",
+      "patternPlaceholder": "ex. Migros, Netflix, CFF",
+      "matchLabel": "Type de correspondance",
+      "categoryLabel": "Catégorie à attribuer",
+      "priorityLabel": "Priorité",
+      "priorityDescription": "Les règles de priorité plus élevée sont appliquées en premier.",
+      "createTitle": "Nouvelle règle",
+      "editTitle": "Modifier la règle",
+      "modalDescription": "Attribuez automatiquement une catégorie aux transactions dont la description correspond.",
+      "createSubmit": "Créer",
+      "editSubmit": "Enregistrer",
+      "entity": "règle",
+      "applyAria": "Appliquer la règle aux transactions existantes",
+      "editAria": "Modifier la règle",
+      "deleteAria": "Supprimer la règle",
+      "appliedTitle": "Règle appliquée",
+      "appliedBody": "{count} transaction(s) existante(s) recatégorisée(s).",
+      "match": {
+        "CONTAINS": "contient",
+        "EQUALS": "est égal à",
+        "STARTS_WITH": "commence par"
+      }
     }
   }
 }

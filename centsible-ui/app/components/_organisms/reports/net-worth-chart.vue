@@ -30,7 +30,6 @@ const {t} = useI18n();
       :currency="currency"
       :legend-label="t('reports.netWorth.legend')"
       :points="props.points"
-      :tension="0.3"
       color="#ee387e"
       fill-color="rgba(238, 56, 126, 0.12)"
       height-class="h-72"

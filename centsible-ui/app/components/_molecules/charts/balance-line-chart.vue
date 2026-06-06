@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<{
   tension?: number;
   heightClass?: string;
 }>(), {
-  tension: 0.4,
+  tension: 0,
   heightClass: 'h-64',
 });
 
@@ -37,6 +37,7 @@ const chartData = computed<ChartData<'line'>>(() => {
 
   const dateFmt = new Intl.DateTimeFormat(localeTag.value, {day: '2-digit', month: '2-digit', year: 'numeric'});
   const pointBorder = isDark.value ? '#171717' : '#fff';
+  const showDots = sorted.length <= 40;
   return {
     labels: sorted.map(p => dateFmt.format(parseISO(p.date))),
     datasets: [
@@ -48,7 +49,7 @@ const chartData = computed<ChartData<'line'>>(() => {
         pointBackgroundColor: props.color,
         pointBorderColor: pointBorder,
         pointBorderWidth: 1,
-        pointRadius: 3,
+        pointRadius: showDots ? 3 : 0,
         pointHoverRadius: 6,
         pointHoverBackgroundColor: props.color,
         pointHoverBorderColor: pointBorder,
@@ -63,9 +64,18 @@ const chartData = computed<ChartData<'line'>>(() => {
 
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   const fmt = currencyFmt();
+  const pts = sortedPoints.value;
+  const spanDays = pts.length > 1
+    ? (parseISO(pts[pts.length - 1]!.date).getTime() - parseISO(pts[0]!.date).getTime()) / 86_400_000
+    : 0;
+  const tickFmt = new Intl.DateTimeFormat(
+    localeTag.value,
+    spanDays > 100 ? {month: 'short', year: '2-digit'} : {day: '2-digit', month: 'short'},
+  );
   return {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {mode: 'index', intersect: false},
     plugins: {
       legend: {display: false},
       tooltip: {
@@ -84,7 +94,16 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
       },
       x: {
         grid: {display: false},
-        ticks: {color: tickColor.value}
+        ticks: {
+          color: tickColor.value,
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 12,
+          callback: (value) => {
+            const p = sortedPoints.value[Number(value)];
+            return p ? tickFmt.format(parseISO(p.date)) : '';
+          },
+        }
       }
     },
     onClick: (_evt, elements) => {

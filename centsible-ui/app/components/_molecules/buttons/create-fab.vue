@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const emit = defineEmits<{
   (e: 'create'): void;
 }>();
@@ -11,7 +13,7 @@ function onCreate() {
 </script>
 
 <template>
-  <UButton :aria-label="t('common.actions.create')"
+  <AppButton :aria-label="t('common.actions.create')"
            class="fixed bottom-12 right-12 rounded-full shadow-lg z-50"
            color="primary"
            icon="i-lucide-plus"

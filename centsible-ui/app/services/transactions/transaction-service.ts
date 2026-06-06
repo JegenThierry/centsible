@@ -1,23 +1,15 @@
 import type {AxiosInstance} from "axios";
 import type {
-  CategoryAggregate,
-  MonthlyAggregate,
-  SetBalanceRequest,
-  Transaction,
-  TransactionRequest
+  CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest
 } from "~/models/transactions/transaction";
+import type {Currency} from "~/models/budget-account/currency";
 import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useTransactionService(api: AxiosInstance) {
-  async function fetchTransactions(
-    accountId: string,
-    page: number = 1,
-    size: number = 25,
-    filters: TransactionFilters = {},
-  ): Promise<Transaction[]> {
-    const params: Record<string, unknown> = {page, size};
+  async function fetchTransactions(accountId: string, page: number = 1, size: number = 25, filters: TransactionFilters = {},): Promise<Transaction[]> {
+    const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
     if (filters.search) params.search = filters.search;
     if (filters.categoryIds?.length) params.categoryIds = filters.categoryIds.join(',');
     if (filters.fromDate) params.fromDate = filters.fromDate;
@@ -38,65 +30,61 @@ export function useTransactionService(api: AxiosInstance) {
   }
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
-    const response = await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`,));
   }
 
-  async function aggregateByCategory(
-    accountId: string,
-    options?: { month?: string; fromDate?: string; toDate?: string },
-  ): Promise<CategoryAggregate[]> {
+  async function aggregateByCategory(accountId: string, options?: {
+    month?: string;
+    fromDate?: string;
+    toDate?: string
+  },): Promise<CategoryAggregate[]> {
     const params: Record<string, string> = {};
     if (options?.month) params.month = options.month;
     if (options?.fromDate) params.fromDate = options.fromDate;
     if (options?.toDate) params.toDate = options.toDate;
-    const response = await api.get<CategoryAggregate[]>(
-      `/transactions/${encodeURIComponent(accountId)}/aggregates/by-category`,
-      {params: Object.keys(params).length ? params : undefined}
-    );
+    const response = await api.get<CategoryAggregate[]>(`/transactions/${encodeURIComponent(accountId)}/aggregates/by-category`, {params: Object.keys(params).length ? params : undefined});
     return validateRequest<CategoryAggregate[]>(response);
   }
 
   async function aggregateByMonth(accountId: string, months: number = 6): Promise<MonthlyAggregate[]> {
-    const response = await api.get<MonthlyAggregate[]>(
-      `/transactions/${encodeURIComponent(accountId)}/aggregates/by-month`,
-      {params: {months}}
-    );
+    const response = await api.get<MonthlyAggregate[]>(`/transactions/${encodeURIComponent(accountId)}/aggregates/by-month`, {params: {months}});
     return validateRequest<MonthlyAggregate[]>(response);
   }
 
+  async function aggregateByDay(accountId: string, days: number = 371): Promise<DailyAggregate[]> {
+    const response = await api.get<DailyAggregate[]>(`/transactions/${encodeURIComponent(accountId)}/aggregates/by-day`, {params: {days}});
+    return validateRequest<DailyAggregate[]>(response);
+  }
+
   async function bulkDelete(accountId: string, ids: string[]): Promise<number> {
-    const response = await api.post<{affected: number}>(
-      `/transactions/${encodeURIComponent(accountId)}/bulk-delete`,
-      {ids}
-    );
-    return validateRequest<{affected: number}>(response).affected;
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-delete`, {ids});
+    return validateRequest<{ affected: number }>(response).affected;
   }
 
   async function bulkCategorize(accountId: string, ids: string[], categoryId: number): Promise<number> {
-    const response = await api.post<{affected: number}>(
-      `/transactions/${encodeURIComponent(accountId)}/bulk-categorize`,
-      {ids, categoryId}
-    );
-    return validateRequest<{affected: number}>(response).affected;
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-categorize`, {ids, categoryId});
+    return validateRequest<{ affected: number }>(response).affected;
   }
 
   async function importBatch(accountId: string, rows: ImportPayloadRow[]): Promise<ImportResult> {
-    const response = await api.post<ImportResult>(
-      `/transactions/${encodeURIComponent(accountId)}/import`,
-      {rows}
-    );
+    const response = await api.post<ImportResult>(`/transactions/${encodeURIComponent(accountId)}/import`, {rows});
     return validateRequest<ImportResult>(response);
   }
 
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
-    const response = await api.post<Transaction>(
-      `/transactions/${encodeURIComponent(accountId)}/set-balance`,
-      payload,
-    );
+    const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
     return validateRequest<Transaction>(response);
+  }
+
+  async function previewConversion(accountId: string, amount: number, currency: Currency, date?: string): Promise<ConversionPreview> {
+    const params: Record<string, unknown> = {amount, currency};
+    if (date) params.date = date;
+    const response = await api.get<ConversionPreview>(`/transactions/${encodeURIComponent(accountId)}/conversion-preview`, {params});
+    return validateRequest<ConversionPreview>(response);
   }
 
   return {
@@ -108,7 +96,9 @@ export function useTransactionService(api: AxiosInstance) {
     bulkCategorize,
     aggregateByCategory,
     aggregateByMonth,
+    aggregateByDay,
     importBatch,
     setAccountBalance,
+    previewConversion,
   }
 }

@@ -3,7 +3,7 @@ import type {
   RecurringTransaction,
   RecurringTransactionRequest
 } from "~/models/recurring/recurring-transaction";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useRecurringTransactionService(api: AxiosInstance) {
   async function fetchAll(accountId?: string): Promise<RecurringTransaction[]> {
@@ -30,10 +30,7 @@ export function useRecurringTransactionService(api: AxiosInstance) {
   }
 
   async function remove(id: string): Promise<void> {
-    const response = await api.delete(`/recurring-transactions/${encodeURIComponent(id)}`);
-    if (response.status !== 204 && response.status !== 200) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/recurring-transactions/${encodeURIComponent(id)}`));
   }
 
   async function pause(id: string): Promise<RecurringTransaction> {

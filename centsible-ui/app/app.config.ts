@@ -1,15 +1,21 @@
 export default defineAppConfig({
   ui: {
+    // Brand palette — swapped at runtime by `useTheme` (composables/use-theme.ts).
+    // `primary` is reserved for accents, CTAs and active states; `neutral` carries every surface.
     colors: {
       primary: 'blush',
       neutral: 'blush-neutral',
     },
 
+    // Flat surface language: solid `bg-default`, a hairline `ring-default` border and a subtle
+    // shadow for gentle elevation — no translucency or backdrop-blur. Overlay components below
+    // (modal, popover, menus, toast, ...) intentionally inherit Nuxt UI's defaults, which already
+    // ship this exact treatment (`bg-default shadow-lg ring ring-default`), so they need no override.
     card: {
       variants: {
         variant: {
           outline: {
-            root: 'bg-default/80 dark:bg-default/60 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25 divide-y divide-primary/10 dark:divide-primary/15',
+            root: 'bg-default ring ring-default divide-y divide-default shadow-sm',
           },
         },
       },
@@ -19,7 +25,7 @@ export default defineAppConfig({
       variants: {
         variant: {
           outline: {
-            root: 'bg-default/80 dark:bg-default/60 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
+            root: 'bg-default ring ring-default shadow-sm',
           },
         },
       },
@@ -32,12 +38,13 @@ export default defineAppConfig({
       variants: {
         variant: {
           outline: {
-            root: 'bg-default/80 dark:bg-default/60 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
+            root: 'bg-default ring ring-default shadow-sm',
           },
         },
       },
     },
 
+    // Wayfinding: the active item gets a subtle primary pill; inactive items hover neutral.
     navigationMenu: {
       compoundVariants: [
         {
@@ -83,93 +90,24 @@ export default defineAppConfig({
       },
     },
 
+    // Menus keep a primary accent on the *selected* item only; hover stays neutral (Nuxt UI default).
     dropdownMenu: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
       variants: {
         active: {
           true: {
             item: 'text-highlighted before:bg-primary/10 dark:before:bg-primary/20',
           },
-          false: {
-            item: [
-              'text-default data-highlighted:text-highlighted data-[state=open]:text-highlighted data-highlighted:before:bg-primary/5 dark:data-highlighted:before:bg-primary/10 data-[state=open]:before:bg-primary/5',
-              'transition-colors before:transition-colors',
-            ],
-          },
         },
-      },
-    },
-
-    modal: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25 divide-y divide-primary/10 dark:divide-primary/15',
-        header: 'border-b-0',
-        footer: 'border-t-0',
-      },
-    },
-
-    slideover: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25 divide-y divide-primary/10 dark:divide-primary/15',
-        header: 'border-b-0',
-        footer: 'border-t-0',
-      },
-    },
-
-    drawer: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
-    },
-
-    popover: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
-    },
-
-    tooltip: {
-      slots: {
-        content: 'bg-default/95 dark:bg-default/85 backdrop-blur-sm ring ring-primary/20 dark:ring-primary/30',
       },
     },
 
     contextMenu: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
       variants: {
         active: {
           true: {
             item: 'text-highlighted before:bg-primary/10 dark:before:bg-primary/20',
           },
-          false: {
-            item: [
-              'text-default data-highlighted:text-highlighted data-[state=open]:text-highlighted data-highlighted:before:bg-primary/5 dark:data-highlighted:before:bg-primary/10 data-[state=open]:before:bg-primary/5',
-              'transition-colors before:transition-colors',
-            ],
-          },
         },
-      },
-    },
-
-    selectMenu: {
-      slots: {
-        content: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
-    },
-
-    commandPalette: {
-      slots: {
-        root: 'bg-default/90 dark:bg-default/80 backdrop-blur-sm ring ring-primary/15 dark:ring-primary/25',
-      },
-    },
-
-    toast: {
-      slots: {
-        root: 'bg-default/95 dark:bg-default/85 backdrop-blur-sm ring ring-primary/20 dark:ring-primary/30',
       },
     },
   },

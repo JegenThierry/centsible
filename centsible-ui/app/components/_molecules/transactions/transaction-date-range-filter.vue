@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import {computed} from 'vue';
-import FilterPopoverButton from "~/components/_atoms/inputs/filter-popover-button.vue";
+import FilterPopoverButton from "~/components/_molecules/inputs/filter-popover-button.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const fromDate = defineModel<string>('fromDate', {required: true});
 const toDate = defineModel<string>('toDate', {required: true});
@@ -29,23 +31,23 @@ function clear() {
     <div class="w-64 space-y-3">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold uppercase text-muted">{{ t('transactions.filters.dateRangeLabel') }}</span>
-        <UButton v-if="active"
+        <AppButton v-if="active"
                  color="neutral"
                  size="xs"
                  variant="ghost"
                  @click="clear">
           {{ t('transactions.filters.clear') }}
-        </UButton>
+        </AppButton>
       </div>
 
       <div class="space-y-2">
         <label class="block text-xs font-medium text-muted">{{ t('transactions.filters.fromLabel') }}</label>
-        <UInput v-model="fromDate" class="w-full" type="date"/>
+        <AppInput v-model="fromDate" class="w-full" type="date"/>
       </div>
 
       <div class="space-y-2">
         <label class="block text-xs font-medium text-muted">{{ t('transactions.filters.toLabel') }}</label>
-        <UInput v-model="toDate" class="w-full" type="date"/>
+        <AppInput v-model="toDate" class="w-full" type="date"/>
       </div>
     </div>
   </FilterPopoverButton>

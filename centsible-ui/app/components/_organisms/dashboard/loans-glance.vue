@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import adze from 'adze'
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {useActiveCurrency} from "~/composables/use-active-currency";
@@ -19,10 +21,10 @@ const topLoans = computed(() =>
 onMounted(async () => {
   const tasks: Promise<unknown>[] = [];
   if (!loansStore.allLoansLoaded) {
-    tasks.push(loansStore.refreshAllLoans().catch(e => console.error('Failed to load loans glance', e)));
+    tasks.push(loansStore.refreshAllLoans().catch(e => adze.ns('dashboard').error('Failed to load loans glance', e)));
   }
   if (!loansStore.outstandingLoaded) {
-    tasks.push(loansStore.refreshOutstanding().catch(e => console.error('Failed to load outstanding total', e)));
+    tasks.push(loansStore.refreshOutstanding().catch(e => adze.ns('dashboard').error('Failed to load outstanding total', e)));
   }
   await Promise.all(tasks);
 });
@@ -35,9 +37,9 @@ onMounted(async () => {
         <h3 class="text-base font-semibold text-highlighted">
           {{ t('contacts.loansGlance.title') }}
         </h3>
-        <UButton color="neutral" size="xs" variant="ghost" to="/loans">
+        <AppButton color="neutral" size="xs" variant="ghost" to="/loans">
           {{ t('contacts.loansGlance.viewAll') }}
-        </UButton>
+        </AppButton>
       </div>
     </template>
 

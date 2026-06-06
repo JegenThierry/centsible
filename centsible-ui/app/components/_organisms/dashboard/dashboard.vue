@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import AccountBalance from "~/components/_organisms/dashboard/account-balance.vue";
-import AccountHistoryGraph from "~/components/_organisms/dashboard/account-history-graph.vue";
-import AccountHistoryList from "~/components/_organisms/dashboard/account-history-list.vue";
+import adze from 'adze'
+import AccountBalance from "~/components/_molecules/dashboard/account-balance.vue";
+import AccountHistoryGraph from "~/components/_molecules/dashboard/account-history-graph.vue";
+import AccountHistoryList from "~/components/_molecules/dashboard/account-history-list.vue";
 import SpendingByCategoryChart from "~/components/_organisms/dashboard/spending-by-category-chart.vue";
 import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-expense-chart.vue";
+import ActivityHeatmap from "~/components/_organisms/dashboard/activity-heatmap.vue";
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
 import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
@@ -16,13 +18,14 @@ import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skelet
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {useAccountHistoryStore} from "~/stores/accountHistoryStore";
 import {useTransactionStore} from "~/stores/transactionStore";
 import {useBudgetsStore} from "~/stores/budgetsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {invalidateMonthlyAggregates, prefetchMonthlyAggregates} from "~/composables/use-monthly-aggregates";
 import {invalidateCategoryAggregates, prefetchCategoryAggregates} from "~/composables/use-category-aggregates";
+import {invalidateDailyAggregates, prefetchDailyAggregates} from "~/composables/use-daily-aggregates";
+import {invalidateAccountSnapshots, useAccountSnapshots} from "~/composables/use-account-snapshots";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 
@@ -30,13 +33,19 @@ const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_
 
 const route = useRoute();
 const accountStore = useBudgetAccountsStore();
-const historyStore = useAccountHistoryStore();
 const transactionStore = useTransactionStore();
 const budgetsStore = useBudgetsStore();
 const loansStore = useLoansStore();
 const transactionService = useTransactionService(useApi());
 const {window} = useDashboardPeriod();
 const {t} = useI18n();
+
+const {data: snapshots, loading: snapshotsLoading, reload: reloadSnapshots} = useAccountSnapshots(
+  () => accountStore.activeAccount?.id ?? '',
+  () => window.value.fromIso,
+  () => window.value.toIso,
+);
+const recentSnapshots = computed(() => snapshots.value.slice(-30));
 
 const isCreateTransactionModalVisible = ref(false);
 const isCategoryDrillOpen = ref(false);
@@ -52,7 +61,8 @@ const isAccountReady = computed(
   () => !!accountStore.activeAccount && accountStore.activeAccount.id === routeAccountId.value,
 );
 const isLoading = computed(
-  () => !isAccountReady.value || accountStore.pending || historyStore.pending || transactionStore.pending,
+  () => !isAccountReady.value || accountStore.pending || transactionStore.pending
+    || (snapshotsLoading.value && snapshots.value.length === 0),
 );
 const headerDescription = computed(() => {
   if (!isAccountReady.value || !accountStore.activeAccount) return t('accounts.dashboard.headerLoading');
@@ -64,20 +74,17 @@ async function fetchData() {
   const id = accountStore.activeAccount.id;
   const periodWindow = window.value;
 
-  // Fire every dashboard fetch in parallel, including the ones children would otherwise kick off
-  // after they mount. The dedup caches in useMonthlyAggregates / useCategoryAggregates mean the
-  // children find a resolved entry when they read these later.
   const tasks: Promise<unknown>[] = [
-    historyStore.fetchSnapshots(id),
     transactionStore.fetchTransactions(id),
     prefetchMonthlyAggregates(transactionService, id, periodWindow.months),
     prefetchCategoryAggregates(transactionService, id, periodWindow.fromIso, periodWindow.toIso),
+    prefetchDailyAggregates(transactionService, id, 371),
   ];
   if (budgetsStore.items.length === 0) {
     tasks.push(budgetsStore.fetchCurrentMonth());
   }
   if (!loansStore.allLoansLoaded) {
-    tasks.push(loansStore.refreshAllLoans().catch(e => console.error('Failed to load loans', e)));
+    tasks.push(loansStore.refreshAllLoans().catch(e => adze.ns('dashboard').error('Failed to load loans', e)));
   }
   if (!loansStore.outstandingLoaded) {
     tasks.push(loansStore.refreshOutstanding());
@@ -86,7 +93,7 @@ async function fetchData() {
   try {
     await Promise.all(tasks);
   } catch (error) {
-    console.error("Failed to fetch dashboard data", error);
+    adze.ns('dashboard').error("Failed to fetch dashboard data", error);
   }
 }
 
@@ -95,12 +102,12 @@ function onOpenCreateTransactionModal(): void {
 }
 
 async function onCreated() {
-  // A transaction was just created — bust the aggregate caches so the post-fetch reflects the
-  // new totals instead of returning the previous (stale) numbers.
   invalidateMonthlyAggregates();
   invalidateCategoryAggregates();
+  invalidateDailyAggregates();
+  invalidateAccountSnapshots();
   await accountStore.updateActiveAccount();
-  await fetchData();
+  await Promise.all([fetchData(), reloadSnapshots()]);
 }
 
 watch(() => accountStore.activeAccount?.id, (newId) => {
@@ -131,9 +138,16 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
         </div>
       </div>
 
+      <ChartCardSkeleton/>
+
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <ListCardSkeleton/>
         <ChartCardSkeleton/>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ChartCardSkeleton/>
+        <ListCardSkeleton/>
       </div>
 
       <ListCardSkeleton/>
@@ -151,9 +165,12 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
 
         <div class="md:col-span-2">
           <AccountHistoryGraph :currency="accountStore.activeAccount.currency"
-                               :snapshots="historyStore.snapshots"/>
+                               :snapshots="snapshots"/>
         </div>
       </div>
+
+      <ActivityHeatmap :account-id="accountStore.activeAccount.id"
+                       :currency="accountStore.activeAccount.currency"/>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <RecentTransactions :currency="accountStore.activeAccount.currency"
@@ -164,16 +181,16 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
                                  @slice-click="onCategorySlice"/>
       </div>
 
-      <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
-                            :currency="accountStore.activeAccount.currency"/>
-
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
-        <LoansGlance/>
+        <IncomeVsExpenseChart :account-id="accountStore.activeAccount.id"
+                              :currency="accountStore.activeAccount.currency"/>
+        <AccountHistoryList :currency="accountStore.activeAccount.currency"
+                            :snapshots="recentSnapshots"/>
       </div>
 
-      <AccountHistoryList :currency="accountStore.activeAccount.currency"
-                          :snapshots="historyStore.snapshots"/>
+      <LoansGlance/>
+
+      <BudgetsOverview :currency="accountStore.activeAccount.currency"/>
     </div>
 
     <CreateFab @create="onOpenCreateTransactionModal"/>

@@ -2,7 +2,9 @@
 import NoAccountAction from "~/components/_organisms/accounts/no-account-action.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
-import AccountCard from "~/components/_organisms/cards/account-card.vue";
+import AccountCard from "~/components/_molecules/cards/account-card.vue";
+import AccountsOverview from "~/components/_molecules/accounts/accounts-overview.vue";
+import AccountsBalanceBreakdown from "~/components/_molecules/accounts/accounts-balance-breakdown.vue";
 import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-budget-account-button.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
@@ -10,14 +12,20 @@ import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import {todayIsoDate} from "~/utils/date";
 
 const accountStore = useBudgetAccountsStore();
+const {previousBalances, refresh: refreshTrends} = useAccountBalanceTrends(30);
 const {t} = useI18n();
 
-function onRefresh(): void {
+function load(): void {
   accountStore.updateAvailableAccounts();
+  refreshTrends();
+}
+
+function onRefresh(): void {
+  load();
 }
 
 accountStore.clearActiveAccount();
-accountStore.updateAvailableAccounts();
+load();
 </script>
 
 <template>
@@ -54,13 +62,28 @@ accountStore.updateAvailableAccounts();
       </div>
     </template>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      <AccountCard
-        v-for="account in accountStore.availableAccounts"
-        :key="account.id"
-        :account="account"
-        @click="navigateTo(`/${account.id}/dashboard`)"
+    <template v-else>
+      <AccountsOverview
+        :accounts="accountStore.availableAccounts"
+        :previous-balances="previousBalances"
+        class="mb-4 sm:mb-6"
       />
-    </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <AccountCard
+          v-for="account in accountStore.availableAccounts"
+          :key="account.id"
+          :account="account"
+          :previous-balance="previousBalances[account.id]"
+          @click="navigateTo(`/${account.id}/dashboard`)"
+        />
+      </div>
+
+      <AccountsBalanceBreakdown
+        v-if="accountStore.availableAccounts.length > 1"
+        :accounts="accountStore.availableAccounts"
+        class="mt-4 sm:mt-6"
+      />
+    </template>
   </UContainer>
 </template>

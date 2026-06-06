@@ -18,6 +18,7 @@
       "amount": "Betrag",
       "actionsLabel": "Transaktionsaktionen",
       "actionEdit": "Bearbeiten",
+      "actionCreateRule": "Regel erstellen",
       "actionDelete": "Löschen"
     },
     "bulk": {
@@ -73,6 +74,9 @@
       "typeExpense": "Ausgabe",
       "amount": "Betrag",
       "amountPlaceholder": "0,00",
+      "currency": "Währung",
+      "currencyPlaceholder": "Währung auswählen",
+      "conversionUnavailable": "Umrechnung nicht verfügbar",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
       "date": "Datum",
@@ -212,6 +216,8 @@
         "transactionType": "Transaktionstyp:",
         "amount": "Betrag",
         "amountPlaceholder": "0,00",
+        "currency": "Währung",
+        "currencyPlaceholder": "Währung auswählen",
         "description": "Beschreibung",
         "descriptionPlaceholder": "Miete, Gehalt, Netflix usw.",
         "frequency": "Frequenz",

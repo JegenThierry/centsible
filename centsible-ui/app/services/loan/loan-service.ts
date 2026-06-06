@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 import type {Loan, LoanForm, Repayment, RepaymentForm} from "~/models/loan/loan";
 
 export function useLoanService(api: AxiosInstance) {
@@ -21,10 +21,7 @@ export function useLoanService(api: AxiosInstance) {
   }
 
   async function deleteLoan(id: string): Promise<void> {
-    const response = await api.delete(`/loans/${encodeURIComponent(id)}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/loans/${encodeURIComponent(id)}`));
   }
 
   async function fetchRepayments(loanId: string): Promise<Repayment[]> {
@@ -41,12 +38,9 @@ export function useLoanService(api: AxiosInstance) {
   }
 
   async function deleteRepayment(loanId: string, repaymentId: string): Promise<void> {
-    const response = await api.delete(
-      `/loans/${encodeURIComponent(loanId)}/repayments/${encodeURIComponent(repaymentId)}`
-    );
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(
+      `/loans/${encodeURIComponent(loanId)}/repayments/${encodeURIComponent(repaymentId)}`,
+    ));
   }
 
   async function fetchOutstanding(): Promise<number> {

@@ -5,6 +5,10 @@
       "description": "Verwalte deine Einnahmen- und Ausgabenkategorien",
       "createAction": "Kategorie erstellen"
     },
+    "tabs": {
+      "categories": "Kategorien",
+      "rules": "Regeln"
+    },
     "sections": {
       "yours": "Deine Kategorien",
       "system": "Systemkategorien"
@@ -46,6 +50,33 @@
     "delete": {
       "title": "Kategorie löschen",
       "description": "Möchtest du die Kategorie „{name}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "rules": {
+      "newRule": "Neue Regel",
+      "emptyTitle": "Noch keine Kategorisierungsregeln",
+      "emptyDescription": "Erstelle eine Regel, um importierte und synchronisierte Transaktionen automatisch anhand ihrer Beschreibung zu kategorisieren.",
+      "patternLabel": "Suchtext",
+      "patternPlaceholder": "z. B. Migros, Netflix, SBB",
+      "matchLabel": "Vergleichsart",
+      "categoryLabel": "Kategorie zuweisen",
+      "priorityLabel": "Priorität",
+      "priorityDescription": "Regeln mit höherer Priorität werden zuerst angewendet.",
+      "createTitle": "Neue Regel",
+      "editTitle": "Regel bearbeiten",
+      "modalDescription": "Weise Transaktionen, deren Beschreibung übereinstimmt, automatisch eine Kategorie zu.",
+      "createSubmit": "Erstellen",
+      "editSubmit": "Speichern",
+      "entity": "Regel",
+      "applyAria": "Regel auf bestehende Transaktionen anwenden",
+      "editAria": "Regel bearbeiten",
+      "deleteAria": "Regel löschen",
+      "appliedTitle": "Regel angewendet",
+      "appliedBody": "{count} bestehende Transaktion(en) neu kategorisiert.",
+      "match": {
+        "CONTAINS": "enthält",
+        "EQUALS": "ist gleich",
+        "STARTS_WITH": "beginnt mit"
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 
 const CreateAccountModal = defineAsyncComponent(() => import("~/components/_organisms/accounts/modals/create-account-modal.vue"));
@@ -17,9 +18,9 @@ function onRefresh(): void {
 </script>
 
 <template>
-  <UButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="onCreateAccount()">
+  <AppButton class="w-full sm:w-auto justify-center" icon="i-lucide-plus" @click="onCreateAccount()">
     {{ t('accounts.buttons.createAccount') }}
-  </UButton>
+  </AppButton>
 
   <CreateAccountModal v-if="isCreateAccountModalVisible"
                       v-model="isCreateAccountModalVisible"

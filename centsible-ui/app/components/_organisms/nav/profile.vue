@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {UserDto} from "~/models/user/user-dto";
 import {useAuthStore} from "~/stores/authStore";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 defineProps<{
   user: UserDto,
@@ -15,11 +16,6 @@ const items = computed(() => [
       label: t('profile.dropdown.profile'),
       icon: 'i-lucide-user',
       onSelect: () => navigateTo('/profile')
-    },
-    {
-      label: t('profile.dropdown.settings'),
-      icon: 'i-lucide-settings',
-      onSelect: () => navigateTo('/settings')
     },
     {
       label: t('profile.dropdown.about'),
@@ -41,7 +37,7 @@ const items = computed(() => [
 
 <template>
   <UDropdownMenu :content="{ align: 'end' }" :items="items">
-    <UButton class="h-auto cursor-pointer" color="neutral" variant="ghost">
+    <AppButton class="h-auto cursor-pointer" color="neutral" variant="ghost">
       <UUser
         :avatar="{
             src: user.profilePicture || undefined,
@@ -51,6 +47,6 @@ const items = computed(() => [
         :name="user.name"
       />
       <UIcon class="text-xl ml-1" name="i-lucide-chevron-down"/>
-    </UButton>
+    </AppButton>
   </UDropdownMenu>
 </template>

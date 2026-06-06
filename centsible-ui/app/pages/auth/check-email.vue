@@ -16,14 +16,8 @@ const {t} = useI18n();
 useHead({
   title: t('auth.pageTitle.checkEmail'),
 });
-
-const route = useRoute();
-const email = computed(() => {
-  const value = route.query.email;
-  return typeof value === 'string' ? value : undefined;
-});
 </script>
 
 <template>
-  <CheckEmailCard :email="email"/>
+  <CheckEmailCard/>
 </template>

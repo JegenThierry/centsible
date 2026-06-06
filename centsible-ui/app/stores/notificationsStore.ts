@@ -1,8 +1,13 @@
 import {defineStore} from 'pinia';
+import adze from 'adze'
 import {useNotificationService} from "~/services/notifications/notification-service";
 import type {Notification} from "~/models/notification/notification";
+import {fingerprint} from "~/utils/fingerprint";
 
 const POLL_INTERVAL_MS = 60_000;
+
+const notificationFingerprint = (xs: Notification[]) =>
+  fingerprint(xs, (n) => `${n.id}|${n.readAt ?? ''}`);
 
 export const useNotificationsStore = defineStore('notificationsStore', () => {
   const service = useNotificationService(useApi());
@@ -12,20 +17,16 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  function fingerprint(xs: Notification[]): string {
-    return xs.map((n) => `${n.id}|${n.readAt ?? ''}`).join(',');
-  }
-
   async function refresh() {
     loading.value = true;
     try {
       const next = await service.list(50);
-      if (fingerprint(next) !== fingerprint(notifications.value)) {
+      if (notificationFingerprint(next) !== notificationFingerprint(notifications.value)) {
         notifications.value = next;
       }
       unreadCount.value = next.filter((n) => !n.readAt).length;
     } catch (e) {
-      console.error('Failed to load notifications', e);
+      adze.ns('notifications').error('Failed to load notifications', e);
     } finally {
       loading.value = false;
     }
@@ -34,8 +35,8 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
   async function refreshCount() {
     try {
       unreadCount.value = await service.unreadCount();
-    } catch (e) {
-      // silent
+    } catch {
+      /* Polling may fire pre-auth; swallow to avoid noisy console spam. */
     }
   }
 

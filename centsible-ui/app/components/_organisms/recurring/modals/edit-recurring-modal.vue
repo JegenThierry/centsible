@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {RecurringTransaction, RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import {Currency} from "~/models/budget-account/currency";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import RecurringFormFields from "~/components/_molecules/recurring/recurring-form.vue";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -26,17 +27,17 @@ const form = ref<RecurringTransactionForm>(toForm(props.rule));
 const formRef = ref<InstanceType<typeof RecurringFormFields>>();
 const loading = ref(false);
 const formId = useId();
-const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
 function toForm(rule: RecurringTransaction): RecurringTransactionForm {
   return {
-    amount: rule.amount,
+    amount: rule.originalAmount ?? rule.amount,
     description: rule.description,
     category: rule.category,
     frequency: rule.frequency,
     startDate: rule.startDate.split('T')[0],
     endDate: rule.endDate ? rule.endDate.split('T')[0] : undefined,
     active: rule.active,
+    currency: rule.originalCurrency ?? budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
   };
 }
 
@@ -67,6 +68,7 @@ async function handleSave() {
       startDate: form.value.startDate,
       endDate: form.value.endDate || null,
       active: form.value.active,
+      currency: form.value.currency,
     });
     toasts.success(t('transactions.recurring.edit.toastSuccessTitle'), t('transactions.recurring.edit.toastSuccessBody'));
     emit('updated');
@@ -88,16 +90,15 @@ async function handleSave() {
       <UForm :id="formId" :state="form" @submit="handleSave">
         <RecurringFormFields ref="formRef"
                              v-model="form"
-                             :currency="activeCurrency"
                              :disabled="loading"/>
       </UForm>
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.recurring.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.recurring.edit.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

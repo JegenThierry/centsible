@@ -1,4 +1,5 @@
 import {type Category} from "~/models/category/category";
+import type {Currency} from "~/models/budget-account/currency";
 
 export enum Frequency {
   DAILY = 'DAILY',
@@ -27,6 +28,8 @@ export interface RecurringTransaction {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  originalAmount?: number | null;
+  originalCurrency?: Currency | null;
 }
 
 export interface RecurringTransactionRequest {
@@ -37,6 +40,7 @@ export interface RecurringTransactionRequest {
   startDate: string;
   endDate?: string | null;
   active: boolean;
+  currency?: Currency;
 }
 
 export interface RecurringTransactionForm {
@@ -47,4 +51,5 @@ export interface RecurringTransactionForm {
   startDate: string | undefined;
   endDate?: string | undefined;
   active: boolean;
+  currency: Currency;
 }

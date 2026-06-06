@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.services.account.IBudgetAccountService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -21,12 +22,20 @@ class BudgetAccountService(
     private val accountHistoryRepository: IBudgetAccountHistoryRepository
 ) : IBudgetAccountService {
 
+    private val log = LoggerFactory.getLogger(BudgetAccountService::class.java)
+
     @Transactional
     override fun createAccount(
         createBudgetAccountRequest: CreateBudgetAccountRequest,
         authenticatedUser: UserDTO,
-    ): BudgetAccountDTO =
-        accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
+    ): BudgetAccountDTO {
+        val created = accountRepository.createAccount(authenticatedUser, createBudgetAccountRequest)
+        log.info(
+            "Created budget account id={} userId={} currency={}",
+            created.id, authenticatedUser.id, created.currency,
+        )
+        return created
+    }
 
     override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> =
         accountRepository.fetchAllAccounts(authenticatedUser)

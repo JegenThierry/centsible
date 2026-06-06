@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {type Category, type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useValidator} from "~/composables/use-validator";
 
 const props = defineProps<{
@@ -57,7 +59,7 @@ async function handleSave() {
     await categoriesStore.updateCategory(props.category.id, form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Failed to update category:', error);
+    adze.ns('categories').error('Failed to update category', error);
   } finally {
     loading.value = false;
   }
@@ -70,7 +72,7 @@ async function handleSave() {
           :title="t('categories.edit.title')">
     <template #body>
       <div class="space-y-4">
-        <URadioGroup v-model="form.type"
+        <AppRadioGroup v-model="form.type"
                      :items="typeOptions"
                      :legend="t('categories.type.legend')"
                      orientation="horizontal"/>
@@ -94,10 +96,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('categories.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('categories.edit.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

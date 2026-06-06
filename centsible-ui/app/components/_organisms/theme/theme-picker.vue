@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import ThemeOption from "~/components/_molecules/theme/theme-option.vue";
 import ThemeModeToggle from "~/components/_molecules/theme/theme-mode-toggle.vue";
 import {swatchFor, useTheme} from "~/composables/use-theme";
@@ -10,10 +11,10 @@ const open = ref(false);
 
 <template>
   <UPopover v-model:open="open">
-    <UButton :aria-label="t('profile.theme.buttonAria')"
-             color="neutral"
-             icon="i-lucide-palette"
-             variant="ghost"/>
+    <AppButton :aria-label="t('profile.theme.buttonAria')"
+               color="neutral"
+               icon="i-lucide-palette"
+               variant="ghost"/>
 
     <template #content>
       <div class="p-3 w-72 flex flex-col gap-4">

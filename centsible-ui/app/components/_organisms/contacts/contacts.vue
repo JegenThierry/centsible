@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useContactsStore} from "~/stores/contactsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
@@ -6,13 +7,14 @@ const CreateContactModal = defineAsyncComponent(() => import("~/components/_orga
 const EditContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/edit-contact-modal.vue"));
 const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
 const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
-import ContactCard from "~/components/_organisms/cards/contact-card.vue";
+import ContactCard from "~/components/_molecules/cards/contact-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {todayIsoDate} from "~/utils/date";
 import type {Contact} from "~/models/contact/contact";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -56,7 +58,7 @@ onMounted(async () => {
         : Promise.resolve(),
     ]);
   } catch (error) {
-    console.error('Failed to load contacts data', error);
+    adze.ns('contacts').error('Failed to load contacts data', error);
     toasts.error(t('contacts.toasts.loadFailedTitle'), t('contacts.toasts.loadFailedBody'));
   }
 });
@@ -76,17 +78,17 @@ const contactsEmpty = computed(() => contactsStore.contacts.length === 0);
           :label="t('contacts.page.exportLabel')"
           type="LENDINGS_ALL"
         />
-        <UButton class="w-full sm:w-auto justify-center"
+        <AppButton class="w-full sm:w-auto justify-center"
                  icon="i-lucide-hand-coins"
                  variant="outline"
                  @click="isCreateLoanOpen = true">
           {{ t('contacts.page.recordLending') }}
-        </UButton>
-        <UButton class="w-full sm:w-auto justify-center"
+        </AppButton>
+        <AppButton class="w-full sm:w-auto justify-center"
                  icon="i-lucide-plus"
                  @click="isCreateContactOpen = true">
           {{ t('contacts.page.addContact') }}
-        </UButton>
+        </AppButton>
       </template>
     </PageHeader>
 
@@ -113,9 +115,9 @@ const contactsEmpty = computed(() => contactsStore.contacts.length === 0);
                    icon="i-lucide-users"
                    :title="t('contacts.empty.title')">
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateContactOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateContactOpen = true">
           {{ t('contacts.empty.action') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
 

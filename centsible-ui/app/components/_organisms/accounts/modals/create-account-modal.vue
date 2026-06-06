@@ -3,7 +3,8 @@ import {Currency, currencyOptions} from "~/models/budget-account/currency";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useValidator} from "~/composables/use-validator";
 import {useApiErrors} from "~/composables/use-api-errors";
 
@@ -94,7 +95,7 @@ function onCloseModal() {
                    type="number"/>
 
         <UFormField :label="t('accounts.modals.create.fieldCurrencyLabel')" name="currency" required>
-          <USelect v-model="state.currency"
+          <AppSelect v-model="state.currency"
                    :icon="activeIcon"
                    :items="currencyOptions"
                    class="w-full"
@@ -104,10 +105,10 @@ function onCloseModal() {
       </UForm>
     </template>
     <template #footer>
-      <CancelButton class="ml-auto" type="button" variant="subtle" @click="onCloseModal()"/>
-      <UButton :loading="loading" form="account-form" type="submit">
-        {{ t('accounts.modals.create.submit') }}
-      </UButton>
+      <ModalFooterActions form="account-form"
+                          :loading="loading"
+                          :submit-label="t('accounts.modals.create.submit')"
+                          @cancel="onCloseModal"/>
     </template>
   </UModal>
 </template>

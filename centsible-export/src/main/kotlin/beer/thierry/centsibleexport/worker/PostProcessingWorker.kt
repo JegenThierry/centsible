@@ -18,24 +18,46 @@ class PostProcessingWorker(
 
     @Scheduled(fixedDelayString = "\${export.worker.poll-interval-ms:2000}")
     fun pollOnce() {
-        val claimed = log.claimOrLog("Failed to claim next post-processing row") {
-            ppRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
-        } ?: return
-
-        val job = jobRepository.fetchByIdForWorker(claimed.exportJobId)
-        val pdf = jobRepository.fetchPdfForWorker(claimed.exportJobId)
-        if (job == null || pdf == null) {
-            ppRepository.markFailed(claimed.id, "Parent job ${claimed.exportJobId} missing PDF or row")
-            return
-        }
-
+        log.debug("Post-processing worker poll tick worker={}", workerProperties.id)
         try {
-            processors.forType(claimed.type).execute(job, pdf.bytes, pdf.filename, claimed.config)
-            ppRepository.markCompleted(claimed.id)
-            log.info("Completed post-processing {} ({}) for job {}", claimed.id, claimed.type, claimed.exportJobId)
+            val claimed = log.claimOrLog("Failed to claim next post-processing row") {
+                ppRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
+            } ?: return
+
+            val job = jobRepository.fetchByIdForWorker(claimed.exportJobId)
+            val pdf = jobRepository.fetchPdfForWorker(claimed.exportJobId)
+            if (job == null || pdf == null) {
+                log.warn(
+                    "Skipping post-processing ppId={} jobId={} reason=missing-job-or-pdf",
+                    claimed.id, claimed.exportJobId,
+                )
+                ppRepository.markFailed(claimed.id, "Parent job ${claimed.exportJobId} missing PDF or row")
+                return
+            }
+
+            val startNanos = System.nanoTime()
+            log.info(
+                "Leased post-processing ppId={} type={} jobId={}",
+                claimed.id, claimed.type, claimed.exportJobId,
+            )
+            try {
+                processors.forType(claimed.type).execute(job, pdf.bytes, pdf.filename, claimed.config)
+                ppRepository.markCompleted(claimed.id)
+                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                log.info(
+                    "Completed post-processing ppId={} type={} jobId={} elapsedMs={}",
+                    claimed.id, claimed.type, claimed.exportJobId, elapsedMs,
+                )
+            } catch (ex: Exception) {
+                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                log.error(
+                    "Failed post-processing ppId={} type={} jobId={} elapsedMs={}",
+                    claimed.id, claimed.type, claimed.exportJobId, elapsedMs, ex,
+                )
+                ppRepository.markFailed(claimed.id, ex.failureReason())
+            }
         } catch (ex: Exception) {
-            log.error("Post-processing {} failed for job {}", claimed.id, claimed.exportJobId, ex)
-            ppRepository.markFailed(claimed.id, ex.failureReason())
+            log.error("Unhandled error in post-processing worker poll loop worker={}", workerProperties.id, ex)
         }
     }
 }

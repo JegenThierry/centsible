@@ -3,6 +3,7 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.transaction.AttachmentDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.IAttachmentService
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -28,6 +29,8 @@ private val ATTACHMENT_SIGNATURES: Map<String, List<MagicBytes>> = mapOf(
 @RestController
 class AttachmentsResource(private val service: IAttachmentService) {
 
+    private val log = LoggerFactory.getLogger(AttachmentsResource::class.java)
+
     @GetMapping
     fun list(
         @PathVariable transactionId: UUID,
@@ -48,6 +51,10 @@ class AttachmentsResource(private val service: IAttachmentService) {
         )
         val filename = sanitiseFilename(file.originalFilename ?: "attachment")
         val saved = service.store(user, transactionId, filename, declared, file.size, bytes)
+        log.info(
+            "Uploaded attachment id={} transactionId={} userId={} contentType={} sizeBytes={}",
+            saved.id, transactionId, user.id, declared, file.size,
+        )
         return ResponseEntity.ok(saved)
     }
 
@@ -77,8 +84,10 @@ class AttachmentsResource(private val service: IAttachmentService) {
         @PathVariable attachmentId: UUID,
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<Void> =
-        if (service.delete(user, attachmentId)) ResponseEntity.noContent().build()
-        else ResponseEntity.notFound().build()
+        if (service.delete(user, attachmentId)) {
+            log.info("Deleted attachment id={} transactionId={} userId={}", attachmentId, transactionId, user.id)
+            ResponseEntity.noContent().build()
+        } else ResponseEntity.notFound().build()
 
     private fun sanitiseFilename(name: String): String {
         val cleaned = name.replace(Regex("[\\r\\n\\t\\\\/]"), "_").trim()

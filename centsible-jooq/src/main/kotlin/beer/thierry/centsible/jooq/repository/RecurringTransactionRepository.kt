@@ -1,7 +1,9 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.recurring.Frequency
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
@@ -16,6 +18,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -28,20 +31,29 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         val filter: Condition = if (accountId != null) ownership.and(ACCOUNTS.ID.eq(accountId)) else ownership
 
         return baseSelect()
-            .where(filter)
+            .where(filter.and(categoryOwnedBy(authenticatedUser)))
             .orderBy(RECURRING_TRANSACTIONS.ACTIVE.desc(), RECURRING_TRANSACTIONS.NEXT_RUN_AT.asc())
             .fetch { mapToDTO(it) }
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): RecurringTransactionDTO {
         return baseSelect()
-            .where(RECURRING_TRANSACTIONS.ID.eq(id).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .where(
+                RECURRING_TRANSACTIONS.ID.eq(id)
+                    .and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                    .and(categoryOwnedBy(authenticatedUser))
+            )
             .fetchSingle { mapToDTO(it) }
     }
+
+    private fun categoryOwnedBy(authenticatedUser: UserDTO): Condition =
+        CATEGORIES.USER_ID.eq(authenticatedUser.id).or(CATEGORIES.USER_ID.isNull)
 
     override fun create(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
+        val originalAmount: BigDecimal? = form.currency?.let { form.amount }
+        val originalCurrency: String? = form.currency?.name
         val now = OffsetDateTime.now()
         val record = dsl.insertInto(
             RECURRING_TRANSACTIONS,
@@ -54,6 +66,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             RECURRING_TRANSACTIONS.END_DATE,
             RECURRING_TRANSACTIONS.NEXT_RUN_AT,
             RECURRING_TRANSACTIONS.ACTIVE,
+            RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT,
+            RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY,
             RECURRING_TRANSACTIONS.CREATED_AT,
             RECURRING_TRANSACTIONS.MODIFIED_AT,
         )
@@ -68,6 +82,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
                     DSL.value(form.endDate),
                     DSL.value(form.startDate),
                     DSL.value(form.active),
+                    DSL.value(originalAmount, RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT),
+                    DSL.value(originalCurrency, RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY),
                     DSL.value(now),
                     DSL.value(now),
                 ).whereExists(
@@ -85,6 +101,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
     override fun update(
         id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
+        val originalAmount: BigDecimal? = form.currency?.let { form.amount }
+        val originalCurrency: String? = form.currency?.name
         val updated = dsl.update(RECURRING_TRANSACTIONS)
             .set(RECURRING_TRANSACTIONS.CATEGORY_ID, form.categoryId)
             .set(RECURRING_TRANSACTIONS.AMOUNT, form.amount)
@@ -93,6 +111,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             .set(RECURRING_TRANSACTIONS.START_DATE, form.startDate)
             .set(RECURRING_TRANSACTIONS.END_DATE, form.endDate)
             .set(RECURRING_TRANSACTIONS.ACTIVE, form.active)
+            .set(RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT, originalAmount)
+            .set(RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY, originalCurrency)
             .set(RECURRING_TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 RECURRING_TRANSACTIONS.ID.eq(id).and(
@@ -135,11 +155,10 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
     }
 
     @Transactional
-    override fun materializeOnce(rule: RecurringTransactionDTO): LocalDate? {
+    override fun materializeOnce(rule: RecurringTransactionDTO, conversion: ConversionResult): LocalDate? {
         val ruleId = rule.id ?: throw IllegalStateException("Rule id missing")
         val accountId = rule.accountId ?: throw IllegalStateException("Rule account missing")
         val type = rule.category.type ?: throw IllegalStateException("Rule category type missing")
-        val amount = rule.amount ?: throw IllegalStateException("Rule amount missing")
         val occurrenceDate = rule.nextRunAt ?: throw IllegalStateException("Rule next_run_at missing")
         val frequency = rule.frequency ?: throw IllegalStateException("Rule frequency missing")
         val now = OffsetDateTime.now()
@@ -162,20 +181,25 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
 
         if (advanced == 0) return null
 
+        val converted = conversion.convertedAmount
+        val fx = FxColumns.from(conversion)
         dsl.insertInto(
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
+            TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
+            TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
             TRANSACTIONS.RECURRING_TRANSACTION_ID,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         ).values(
-            accountId, rule.category.id, amount,
+            accountId, rule.category.id, converted,
             rule.description, occurrenceDate, type.value,
+            fx.originalAmount, fx.originalCurrency, fx.rate, fx.rateDate,
             ruleId,
             now, now,
         ).execute()
 
-        val adjustment = if (type == CategoryType.INCOME) amount else amount.negate()
+        val adjustment = if (type == CategoryType.INCOME) converted else converted.negate()
         dsl.update(ACCOUNTS)
             .set(ACCOUNTS.BALANCE, ACCOUNTS.BALANCE.plus(adjustment))
             .set(ACCOUNTS.MODIFIED_AT, now)
@@ -195,6 +219,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         RECURRING_TRANSACTIONS.END_DATE,
         RECURRING_TRANSACTIONS.NEXT_RUN_AT,
         RECURRING_TRANSACTIONS.ACTIVE,
+        RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT,
+        RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY,
         RECURRING_TRANSACTIONS.CREATED_AT,
         RECURRING_TRANSACTIONS.MODIFIED_AT,
         CATEGORIES.ID,
@@ -229,6 +255,8 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             active = record[RECURRING_TRANSACTIONS.ACTIVE]!!,
             createdAt = record[RECURRING_TRANSACTIONS.CREATED_AT]!!,
             updatedAt = record[RECURRING_TRANSACTIONS.MODIFIED_AT]!!,
+            originalAmount = record[RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT],
+            originalCurrency = record[RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY]?.let { Currency.valueOf(it) },
         )
     }
 }

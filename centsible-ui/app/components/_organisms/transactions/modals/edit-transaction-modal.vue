@@ -2,7 +2,8 @@
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
 import {transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import {Currency} from "~/models/budget-account/currency";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -32,6 +33,7 @@ const form = ref<TransactionForm>({
   category: undefined,
   type: CategoryType.EXPENSE,
   transactionDate: todayIsoDate(),
+  currency: Currency.EUR,
 });
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
@@ -41,11 +43,12 @@ const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currenc
 
 function loadTransaction(transaction: Transaction) {
   form.value = {
-    amount: transaction.amount,
+    amount: transaction.originalAmount ?? transaction.amount,
     description: transaction.description,
     category: transaction.category,
     type: transactionType(transaction),
     transactionDate: transaction.transactionDate.split('T')[0],
+    currency: transaction.originalCurrency ?? activeCurrency.value ?? Currency.EUR,
   };
 }
 
@@ -74,6 +77,7 @@ async function handleEdit() {
         categoryId: form.value.category.id,
         transactionDate: form.value.transactionDate,
         type: form.value.type,
+        currency: form.value.currency,
       }
     );
     emit('updated');
@@ -97,7 +101,8 @@ async function handleEdit() {
       <UForm :id="formId" :state="form" @submit="handleEdit">
         <TransactionFormFields ref="formRef"
                                v-model="form"
-                               :currency="activeCurrency"
+                               :account-id="budgetAccountsStore.activeAccount?.id"
+                               :account-currency="activeCurrency"
                                :disabled="loading"/>
       </UForm>
       <div class="mt-6 border-t border-default pt-4">
@@ -106,10 +111,10 @@ async function handleEdit() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.edit.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.edit.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

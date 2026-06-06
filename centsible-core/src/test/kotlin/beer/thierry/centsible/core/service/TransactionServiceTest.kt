@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
@@ -14,14 +15,20 @@ import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.core.services.transactions.TransactionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.lenient
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -56,13 +63,35 @@ class TransactionServiceTest {
     @Mock
     private lateinit var attachmentRepository: IAttachmentRepository
 
+    @Mock
+    private lateinit var categorizationService: ICategorizationService
+
+    @Mock
+    private lateinit var currencyConversionService: ICurrencyConversionService
+
     @InjectMocks
     private lateinit var service: TransactionService
 
     private val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User", "Name", "User Name", null)
     private val accountId = UUID.randomUUID()
+    private val eurAccount = BudgetAccountDTO(accountId, "Account", BigDecimal("0.00"), BigDecimal("0.00"), Currency.EUR)
     private val expenseCategory = CategoryDTO(1L, "Category", "icon", "#FF0000", CategoryType.EXPENSE)
     private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", "#00FF00", CategoryType.INCOME)
+
+    // By default the account is EUR and conversions are same-currency no-ops echoing the amount, so the
+    // balance-math assertions below are unaffected. lenient() because delete/bulk tests never convert.
+    @BeforeEach
+    fun stubAccountAndConversion() {
+        lenient().`when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(eurAccount)
+        // doAnswer (not when/thenAnswer) so a per-test re-stub of convert() doesn't re-trigger this answer.
+        lenient().doAnswer { inv ->
+            val amount = inv.getArgument<BigDecimal>(0)
+            val from = inv.getArgument<Currency>(1)
+            val to = inv.getArgument<Currency>(2)
+            val date = inv.getArgument<LocalDate>(3)
+            ConversionResult(amount, amount, from, to, BigDecimal.ONE, date, from == to)
+        }.`when`(currencyConversionService).convert(anyArg(), anyArg(), anyArg(), anyArg())
+    }
 
     private fun stubCategoryType(categoryId: Long, type: CategoryType, isManaged: Boolean = false) {
         `when`(categoriesRepository.fetchCategoryClassifications(user, listOf(categoryId)))
@@ -81,8 +110,11 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
         stubCategoryType(2L, CategoryType.INCOME)
-        `when`(transactionRepository.createTransaction(accountId, form.copy(type = CategoryType.INCOME), user))
-            .thenReturn(transaction)
+        `when`(
+            transactionRepository.createTransaction(
+                eqArg(accountId), eqArg(form.copy(type = CategoryType.INCOME)), anyArg(), eqArg(user)
+            )
+        ).thenReturn(transaction)
 
         val result = service.createTransaction(accountId, form, user)
 
@@ -102,13 +134,51 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
         stubCategoryType(1L, CategoryType.EXPENSE)
-        `when`(transactionRepository.createTransaction(accountId, form.copy(type = CategoryType.EXPENSE), user))
-            .thenReturn(transaction)
+        `when`(
+            transactionRepository.createTransaction(
+                eqArg(accountId), eqArg(form.copy(type = CategoryType.EXPENSE)), anyArg(), eqArg(user)
+            )
+        ).thenReturn(transaction)
 
         val result = service.createTransaction(accountId, form, user)
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-30.00"), user)
+    }
+
+    @Test
+    fun `createTransaction converts a foreign-currency amount and adjusts balance by the converted value`() {
+        val form = TransactionForm(BigDecimal("10.00"), 1L, "Coffee", LocalDate.now(), currency = Currency.USD)
+        val conversion = ConversionResult(
+            convertedAmount = BigDecimal("9.07"),
+            originalAmount = BigDecimal("10.00"),
+            originalCurrency = Currency.USD,
+            accountCurrency = Currency.EUR,
+            rate = BigDecimal("0.907"),
+            rateDate = LocalDate.now(),
+            sameCurrency = false,
+        )
+        val stored = TransactionDTO(
+            id = UUID.randomUUID(),
+            category = expenseCategory,
+            type = CategoryType.EXPENSE,
+            amount = BigDecimal("9.07"),
+            description = "Coffee",
+            transactionDate = LocalDate.now(),
+            originalAmount = BigDecimal("10.00"),
+            originalCurrency = Currency.USD,
+            exchangeRate = BigDecimal("0.907"),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        doReturn(conversion).`when`(currencyConversionService)
+            .convert(eqArg(BigDecimal("10.00")), eqArg(Currency.USD), eqArg(Currency.EUR), anyArg())
+        `when`(transactionRepository.createTransaction(eqArg(accountId), anyArg(), eqArg(conversion), eqArg(user)))
+            .thenReturn(stored)
+
+        service.createTransaction(accountId, form, user)
+
+        // Balance moves by the converted EUR amount, never the original 10 USD.
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-9.07"), user)
     }
 
     @Test
@@ -124,7 +194,8 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
         stubCategoryType(2L, CategoryType.INCOME)
-        `when`(transactionRepository.createTransaction(accountId, form, user)).thenReturn(transaction)
+        `when`(transactionRepository.createTransaction(eqArg(accountId), eqArg(form), anyArg(), eqArg(user)))
+            .thenReturn(transaction)
 
         service.createTransaction(accountId, form, user)
 
@@ -146,8 +217,11 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
         stubCategoryType(managedCategoryId, CategoryType.EXPENSE, isManaged = true)
-        `when`(transactionRepository.createTransaction(accountId, form.copy(type = CategoryType.EXPENSE), user))
-            .thenReturn(transaction)
+        `when`(
+            transactionRepository.createTransaction(
+                eqArg(accountId), eqArg(form.copy(type = CategoryType.EXPENSE)), anyArg(), eqArg(user)
+            )
+        ).thenReturn(transaction)
 
         service.createTransaction(accountId, form, user)
 
@@ -181,7 +255,9 @@ class TransactionServiceTest {
         stubCategoryType(2L, CategoryType.INCOME)
         `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(oldTransaction)
         `when`(
-            transactionRepository.updateTransaction(transactionId, accountId, form.copy(type = CategoryType.INCOME), user)
+            transactionRepository.updateTransaction(
+                eqArg(transactionId), eqArg(accountId), eqArg(form.copy(type = CategoryType.INCOME)), anyArg(), eqArg(user)
+            )
         ).thenReturn(updatedTransaction)
 
         val result = service.updateTransaction(transactionId, accountId, form, user)
@@ -203,7 +279,7 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
 
-        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user)).thenReturn(transaction)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
@@ -223,12 +299,27 @@ class TransactionServiceTest {
             transactionDate = LocalDate.now(),
         )
 
-        `when`(transactionRepository.deleteTransaction(transactionId, user)).thenReturn(transaction)
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user)).thenReturn(transaction)
 
         val result = service.deleteTransaction(transactionId, accountId, user)
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("25.00"), user)
+    }
+
+    @Test
+    fun `deleteTransaction with a mismatched account is rejected and never touches the balance`() {
+        val transactionId = UUID.randomUUID()
+        // The guarded repository delete finds 0 rows for this (transaction, account) pair and throws,
+        // so the service must abort before adjusting any balance — the core of the fixed bug.
+        `when`(transactionRepository.deleteTransaction(transactionId, accountId, user))
+            .thenThrow(IllegalArgumentException("Transaction not found or not owned by user"))
+
+        assertThrows(IllegalArgumentException::class.java) {
+            service.deleteTransaction(transactionId, accountId, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
     }
 
     @Test
@@ -256,7 +347,9 @@ class TransactionServiceTest {
         stubCategoryType(1L, CategoryType.EXPENSE)
         `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(oldTransaction)
         `when`(
-            transactionRepository.updateTransaction(transactionId, accountId, form.copy(type = CategoryType.EXPENSE), user)
+            transactionRepository.updateTransaction(
+                eqArg(transactionId), eqArg(accountId), eqArg(form.copy(type = CategoryType.EXPENSE)), anyArg(), eqArg(user)
+            )
         ).thenReturn(updatedTransaction)
 
         val result = service.updateTransaction(transactionId, accountId, form, user)
@@ -318,7 +411,7 @@ class TransactionServiceTest {
         `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
         stubCategoryType(2L, CategoryType.INCOME)
         `when`(
-            transactionRepository.createTransaction(eqArg(accountId), anyArg(), eqArg(user))
+            transactionRepository.createTransaction(eqArg(accountId), anyArg(), anyArg(), eqArg(user))
         ).thenReturn(createdTx)
 
         val result = service.createBalanceAdjustment(accountId, form, user)
@@ -348,7 +441,7 @@ class TransactionServiceTest {
         `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
         stubCategoryType(1L, CategoryType.EXPENSE)
         `when`(
-            transactionRepository.createTransaction(eqArg(accountId), anyArg(), eqArg(user))
+            transactionRepository.createTransaction(eqArg(accountId), anyArg(), anyArg(), eqArg(user))
         ).thenReturn(createdTx)
 
         val result = service.createBalanceAdjustment(accountId, form, user)

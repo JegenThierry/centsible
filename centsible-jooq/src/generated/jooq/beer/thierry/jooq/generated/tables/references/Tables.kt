@@ -8,16 +8,20 @@ import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
+import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
+import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
 import beer.thierry.jooq.generated.tables.Notifications
+import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
+import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
@@ -46,6 +50,11 @@ val BUDGETS: Budgets = Budgets.BUDGETS
 val CATEGORIES: Categories = Categories.CATEGORIES
 
 /**
+ * The table <code>public.categorization_rules</code>.
+ */
+val CATEGORIZATION_RULES: CategorizationRules = CategorizationRules.CATEGORIZATION_RULES
+
+/**
  * The table <code>public.contact_balances</code>.
  */
 val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
@@ -54,6 +63,11 @@ val CONTACT_BALANCES: ContactBalances = ContactBalances.CONTACT_BALANCES
  * The table <code>public.contacts</code>.
  */
 val CONTACTS: Contacts = Contacts.CONTACTS
+
+/**
+ * The table <code>public.exchange_rates</code>.
+ */
+val EXCHANGE_RATES: ExchangeRates = ExchangeRates.EXCHANGE_RATES
 
 /**
  * The table <code>public.export_jobs</code>.
@@ -86,6 +100,11 @@ val LOANS: Loans = Loans.LOANS
 val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
 
 /**
+ * The table <code>public.provider_connection_accounts</code>.
+ */
+val PROVIDER_CONNECTION_ACCOUNTS: ProviderConnectionAccounts = ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS
+
+/**
  * The table <code>public.provider_connections</code>.
  */
 val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CONNECTIONS
@@ -94,6 +113,11 @@ val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CON
  * The table <code>public.recurring_transactions</code>.
  */
 val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURRING_TRANSACTIONS
+
+/**
+ * The table <code>public.schema_migrations</code>.
+ */
+val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
 
 /**
  * The table <code>public.system_information</code>.

@@ -2,8 +2,10 @@ package beer.thierry.centsiblerest.resources.export
 
 import beer.thierry.centsible.api.model.export.ExportJobDTO
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.account.IBudgetAccountService
 import beer.thierry.centsible.api.services.export.IExportService
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -24,7 +26,10 @@ import java.util.UUID
 class ExportResource(
     private val exportService: IExportService,
     private val protoBuilder: ExportProtoBuilder,
+    private val budgetAccountService: IBudgetAccountService,
 ) {
+
+    private val log = LoggerFactory.getLogger(ExportResource::class.java)
 
     @PostMapping
     fun create(
@@ -37,14 +42,16 @@ class ExportResource(
         val payload = protoBuilder.build(
             user = user,
             params = params,
-            locale = "en",
-            currency = "EUR",
+            locale = user.locale,
+            currency = primaryCurrencyOf(budgetAccountService.fetchAccounts(user).map { it.currency }),
             format = request.format,
         )
         val postProcessing = request.postProcessing.orEmpty().map {
             requireNotNull(it.type) { "post-processing type required" } to it.config.orEmpty()
         }
-        return ResponseEntity.ok(exportService.create(user, type, title, payload, postProcessing))
+        val job = exportService.create(user, type, title, payload, postProcessing)
+        log.info("Created export job id={} type={} userId={}", job.id, type, user.id)
+        return ResponseEntity.ok(job)
     }
 
     @GetMapping
@@ -91,6 +98,7 @@ class ExportResource(
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ExportJobDTO> {
         val job = exportService.retrigger(user, jobId) ?: return ResponseEntity.notFound().build()
+        log.info("Retriggered export job id={} userId={}", jobId, user.id)
         return ResponseEntity.ok(job)
     }
 
@@ -99,6 +107,8 @@ class ExportResource(
         @PathVariable jobId: UUID,
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<Void> =
-        if (exportService.delete(user, jobId)) ResponseEntity.noContent().build()
-        else ResponseEntity.notFound().build()
+        if (exportService.delete(user, jobId)) {
+            log.info("Deleted export job id={} userId={}", jobId, user.id)
+            ResponseEntity.noContent().build()
+        } else ResponseEntity.notFound().build()
 }

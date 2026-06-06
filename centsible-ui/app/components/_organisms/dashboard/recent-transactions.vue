@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {type Transaction} from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import RecentTransactionItem from "~/components/_molecules/dashboard/recent-transaction-item.vue";
 
 const props = defineProps<{
@@ -26,9 +27,9 @@ const recentTransactions = computed(() =>
         <h3 class="text-base font-semibold text-highlighted">
           {{ t('accounts.dashboard.recentTransactions') }}
         </h3>
-        <UButton :to="`/${accountId}/transactions`" color="neutral" size="xs" variant="ghost">
+        <AppButton :to="`/${accountId}/transactions`" color="neutral" size="xs" variant="ghost">
           {{ t('accounts.dashboard.viewAll') }}
-        </UButton>
+        </AppButton>
       </div>
     </template>
 

@@ -1,4 +1,5 @@
 import {defineStore} from "pinia";
+import adze from 'adze'
 import type {Loan, LoanForm, Repayment, RepaymentForm} from "~/models/loan/loan";
 import {useLoanService} from "~/services/loan/loan-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -17,8 +18,10 @@ export const useLoansStore = defineStore('loansStore', () => {
   const totalOutstanding = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
-  // Track "have we ever successfully loaded this" so consumers can skip a redundant fetch when
-  // the dashboard already warmed it. Distinct from `pending` (in-flight) and zero-valued data.
+  /**
+   * Sticky "loaded at least once" flags. Distinct from `pending` (in-flight) and from zero-valued
+   * data — consumers use these to skip a redundant fetch when the dashboard already warmed them.
+   */
   const allLoansLoaded = ref(false);
   const outstandingLoaded = ref(false);
 
@@ -63,7 +66,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       totalOutstanding.value = await loanService.fetchOutstanding();
       outstandingLoaded.value = true;
     } catch (error) {
-      console.error('Failed to fetch outstanding total', error);
+      adze.ns('loans').error('Failed to fetch outstanding total', error);
     }
   }
 

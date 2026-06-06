@@ -1,7 +1,7 @@
 import type {AxiosInstance} from "axios";
 import type {UserDto} from "~/models/user/user-dto";
 import type {NotificationSettings} from "~/models/notification/notification-settings";
-import {validateRequest} from "~/composables/use-api";
+import {postMultipart, validateRequest} from "~/composables/use-api";
 
 export function useUserService(api: AxiosInstance) {
   async function fetchMyself(): Promise<UserDto> {
@@ -15,14 +15,7 @@ export function useUserService(api: AxiosInstance) {
   }
 
   async function updateProfilePicture(file: File): Promise<UserDto> {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await api.post<UserDto>('/users/profile/picture', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return validateRequest(response);
+    return postMultipart<UserDto>(api, '/users/profile/picture', {file});
   }
 
   async function updateLocale(locale: string): Promise<UserDto> {

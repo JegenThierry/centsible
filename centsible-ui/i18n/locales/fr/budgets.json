@@ -14,7 +14,17 @@
       "asOf": "Au mois de",
       "showHistory": "Afficher l'historique",
       "historyHeading": "Périodes passées",
-      "noBudgetsInPeriod": "Aucun budget défini pour cette période."
+      "noBudgetsInPeriod": "Aucun budget défini pour cette période.",
+      "rolloverNote": "Inclut {amount} reporté de la période précédente."
+    },
+    "summary": {
+      "spent": "dépensés",
+      "budgeted": "budgétés",
+      "used": "{percent}% utilisé",
+      "left": "restants",
+      "overBy": "de dépassement",
+      "overCount": "{over} catégorie(s) sur {total} dépassée(s)",
+      "allWithin": "Les {total} catégories dans le budget"
     },
     "form": {
       "categoryLabel": "Catégorie",

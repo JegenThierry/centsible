@@ -14,7 +14,17 @@
       "asOf": "Stand",
       "showHistory": "Verlauf anzeigen",
       "historyHeading": "Frühere Perioden",
-      "noBudgetsInPeriod": "Keine Budgets in dieser Periode."
+      "noBudgetsInPeriod": "Keine Budgets in dieser Periode.",
+      "rolloverNote": "Enthält {amount} Übertrag aus der Vorperiode."
+    },
+    "summary": {
+      "spent": "ausgegeben",
+      "budgeted": "budgetiert",
+      "used": "{percent}% genutzt",
+      "left": "übrig",
+      "overBy": "über Budget",
+      "overCount": "{over} von {total} Kategorien über Budget",
+      "allWithin": "Alle {total} Kategorien im Budget"
     },
     "form": {
       "categoryLabel": "Kategorie",

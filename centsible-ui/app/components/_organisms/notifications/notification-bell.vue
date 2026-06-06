@@ -3,6 +3,7 @@ import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {useNotificationsStore} from "~/stores/notificationsStore";
 import type {NotificationType} from "~/models/notification/notification";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const store = useNotificationsStore();
 const {t} = useI18n();
@@ -27,6 +28,7 @@ onUnmounted(() => {
 const NOTIFICATION_STYLE: Record<NotificationType, {icon: string; color: string}> = {
   BUDGET_EXCEEDED: {icon: 'i-lucide-alert-circle', color: 'text-error'},
   BUDGET_THRESHOLD: {icon: 'i-lucide-bell-ring', color: 'text-warning'},
+  BUDGET_PACE: {icon: 'i-lucide-trending-up', color: 'text-warning'},
   LOAN_DUE: {icon: 'i-lucide-hand-coins', color: 'text-warning'},
   RECURRING_UPCOMING: {icon: 'i-lucide-repeat', color: 'text-muted'},
   LARGE_TRANSACTION: {icon: 'i-lucide-arrow-up-right', color: 'text-info'},
@@ -44,7 +46,7 @@ function colorFor(type: NotificationType): string {
 
 <template>
   <UPopover :open="open" @update:open="onOpen">
-    <UButton :aria-label="t('notifications.aria')"
+    <AppButton :aria-label="t('notifications.aria')"
              color="neutral"
              icon="i-lucide-bell"
              variant="ghost">
@@ -53,19 +55,19 @@ function colorFor(type: NotificationType): string {
           {{ store.unreadCount > 9 ? '9+' : store.unreadCount }}
         </span>
       </template>
-    </UButton>
+    </AppButton>
 
     <template #content>
       <div class="w-96 max-w-[90vw] max-h-[70vh] flex flex-col">
         <div class="flex items-center justify-between p-3 border-b border-default">
           <h3 class="text-sm font-semibold">{{ t('notifications.title') }}</h3>
-          <UButton v-if="store.unreadCount > 0"
+          <AppButton v-if="store.unreadCount > 0"
                    color="neutral"
                    size="xs"
                    variant="ghost"
                    @click="store.markAllRead">
             {{ t('notifications.markAllRead') }}
-          </UButton>
+          </AppButton>
         </div>
 
         <div v-if="items.length === 0" class="p-8 text-center text-sm text-muted">
@@ -88,14 +90,14 @@ function colorFor(type: NotificationType): string {
               </p>
             </div>
             <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <UButton v-if="!n.readAt"
+              <AppButton v-if="!n.readAt"
                        :aria-label="t('notifications.markRead')"
                        color="neutral"
                        icon="i-lucide-check"
                        size="xs"
                        variant="ghost"
                        @click="store.markRead(n.id)"/>
-              <UButton :aria-label="t('notifications.delete')"
+              <AppButton :aria-label="t('notifications.delete')"
                        color="neutral"
                        icon="i-lucide-x"
                        size="xs"

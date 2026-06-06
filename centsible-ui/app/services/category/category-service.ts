@@ -1,5 +1,5 @@
 import type {AxiosInstance} from "axios";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 import type {Category, CategoryForm} from "~/models/category/category";
 
 export function useCategoryService(api: AxiosInstance) {
@@ -19,10 +19,7 @@ export function useCategoryService(api: AxiosInstance) {
   }
 
   async function deleteCategory(id: number): Promise<void> {
-    const response = await api.delete(`/categories/${id}`);
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/categories/${id}`));
   }
 
   return {

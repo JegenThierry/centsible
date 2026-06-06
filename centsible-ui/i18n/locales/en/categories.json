@@ -5,6 +5,10 @@
       "description": "Manage your income and expense categories",
       "createAction": "Create category"
     },
+    "tabs": {
+      "categories": "Categories",
+      "rules": "Rules"
+    },
     "sections": {
       "yours": "Your categories",
       "system": "System categories"
@@ -46,6 +50,33 @@
     "delete": {
       "title": "Delete category",
       "description": "Are you sure you want to delete the category '{name}'? This action cannot be undone."
+    },
+    "rules": {
+      "newRule": "New rule",
+      "emptyTitle": "No categorization rules yet",
+      "emptyDescription": "Create a rule to automatically categorize imported and synced transactions by their description.",
+      "patternLabel": "Text to match",
+      "patternPlaceholder": "e.g. Migros, Netflix, SBB",
+      "matchLabel": "Match type",
+      "categoryLabel": "Assign category",
+      "priorityLabel": "Priority",
+      "priorityDescription": "Higher priority rules are applied first.",
+      "createTitle": "New rule",
+      "editTitle": "Edit rule",
+      "modalDescription": "Automatically assign a category to transactions whose description matches.",
+      "createSubmit": "Create",
+      "editSubmit": "Save",
+      "entity": "rule",
+      "applyAria": "Apply rule to existing transactions",
+      "editAria": "Edit rule",
+      "deleteAria": "Delete rule",
+      "appliedTitle": "Rule applied",
+      "appliedBody": "Re-categorized {count} existing transaction(s).",
+      "match": {
+        "CONTAINS": "contains",
+        "EQUALS": "equals",
+        "STARTS_WITH": "starts with"
+      }
     }
   }
 }

@@ -10,6 +10,7 @@ import beer.thierry.jooq.generated.indexes.IDX_USERS_REGISTRATION_TOKEN_HASH
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.CATEGORIZATION_RULES__CATEGORIZATION_RULES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY
@@ -23,6 +24,7 @@ import beer.thierry.jooq.generated.keys.USERS_USERNAME_KEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
+import beer.thierry.jooq.generated.tables.CategorizationRules.CategorizationRulesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates.ImportMappingTemplatesPath
@@ -269,6 +271,22 @@ open class Users(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+
+    private lateinit var _categorizationRules: CategorizationRulesPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.categorization_rules</code> table
+     */
+    fun categorizationRules(): CategorizationRulesPath {
+        if (!this::_categorizationRules.isInitialized)
+            _categorizationRules = CategorizationRulesPath(this, null, CATEGORIZATION_RULES__CATEGORIZATION_RULES_USER_ID_FKEY.inverseKey)
+
+        return _categorizationRules;
+    }
+
+    val categorizationRules: CategorizationRulesPath
+        get(): CategorizationRulesPath = categorizationRules()
 
     private lateinit var _contacts: ContactsPath
 

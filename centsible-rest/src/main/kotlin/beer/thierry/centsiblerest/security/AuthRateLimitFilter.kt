@@ -6,6 +6,7 @@ import io.github.bucket4j.Bucket
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -16,13 +17,27 @@ import java.time.Duration
 // or every request appears to come from the proxy IP.
 @Component
 class AuthRateLimitFilter : OncePerRequestFilter() {
+    private val log = LoggerFactory.getLogger(AuthRateLimitFilter::class.java)
+
     private val buckets = Caffeine.newBuilder()
         .maximumSize(100_000)
         .expireAfterAccess(Duration.ofMinutes(15))
         .build<String, Bucket>()
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean =
-        request.requestURI !in RATE_LIMITED_PATHS
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val uri = request.requestURI ?: return true
+        if (uri in RATE_LIMITED_PATHS) return false
+        // Integrations sync trigger and OAuth dance: defend against trigger floods + state
+        // brute-force on the public callback. Same bucket as auth.
+        if (uri.startsWith("/api/integrations/oauth/")) return false
+        if (uri.endsWith("/sync") && uri.startsWith("/api/integrations/connections/")) return false
+        if (uri.endsWith("/oauth/start") && uri.startsWith("/api/integrations/connections/")) return false
+        // Remote-options forwards user-supplied queries to the provider's API (e.g. GoCardless
+        // listInstitutions) — without a limit any authenticated user could burn the operator's
+        // upstream quota.
+        if (uri.startsWith("/api/integrations/providers/") && uri.contains("/options/")) return false
+        return true
+    }
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -37,6 +52,10 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
             return
         }
         val retryAfterSeconds = (probe.nanosToWaitForRefill / 1_000_000_000).coerceAtLeast(1)
+        log.warn(
+            "Rate limit exceeded path={} ip={} retryAfterSeconds={}",
+            request.requestURI, request.remoteAddr, retryAfterSeconds,
+        )
         response.status = HttpStatus.TOO_MANY_REQUESTS.value()
         response.setHeader("Retry-After", retryAfterSeconds.toString())
         response.contentType = "application/json"

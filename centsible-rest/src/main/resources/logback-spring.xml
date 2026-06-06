@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        Spring Boot's default console appender, wrapped with a regex that scrubs common token
+        substrings before logging. This is a defense-in-depth: production code routes secrets
+        through CredentialCipher and should never log them, but accidental leaks from third-party
+        libraries (HTTP client traces, Jackson deserialization errors, etc.) get masked here.
+
+        The patterns intentionally lean broad — false positives mask too much, false negatives
+        leak a credential. If a benign log line gets clobbered, narrow the regex; do not weaken it.
+    -->
+    <conversionRule conversionWord="redactedMsg"
+                    converterClass="beer.thierry.centsiblerest.logging.SecretRedactingConverter"/>
+
+    <appender name="REDACTED_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{ISO8601} %-5level [%thread] [%X{requestId:-}] [%X{userId:-}] %logger{36} - %redactedMsg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="REDACTED_CONSOLE"/>
+    </root>
+
+    <!-- Centsible code can be verbose at startup; bump to DEBUG only when chasing a bug. -->
+    <logger name="beer.thierry.centsible" level="INFO"/>
+    <logger name="beer.thierry.centsiblerest" level="INFO"/>
+</configuration>

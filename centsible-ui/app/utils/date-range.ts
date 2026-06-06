@@ -46,7 +46,7 @@ export function resolveWindow(preset: Exclude<DateRangePreset, 'CUSTOM'>, refere
     case 'ALL_TIME': {
       const from = new Date(1970, 0, 1);
       const to = endOfYear(reference);
-      // `from`/`to` left null so client-side range tests treat ALL_TIME as "match everything".
+      /* `from`/`to` are nulled out so client-side range tests treat ALL_TIME as "match everything". */
       return {from: null, to: null, fromDate: iso(from), toDate: iso(to), months: 36};
     }
   }

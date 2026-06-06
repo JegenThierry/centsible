@@ -1,29 +1,25 @@
 <script lang="ts" setup>
-import {computed, h, ref} from 'vue'
-import type {TableColumn} from '@nuxt/ui'
+import {computed, ref} from 'vue'
 import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {type Transaction} from "~/models/transactions/transaction";
-import {transactionType} from "~/utils/transaction";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {useToasts} from "~/services/toasts/toast-service";
-import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
-import TransactionAttachmentsPopover from "~/components/_molecules/transactions/transaction-attachments-popover.vue";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
+import {createTransactionColumns} from "~/components/_organisms/transactions/utils/transaction-columns";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
-import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
-import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import BaseTable from "~/components/_molecules/tables/base-table.vue";
-import TableRowActionsMenu from "~/components/_molecules/tables/table-row-actions-menu.vue";
 import TransactionFilterBar from "~/components/_molecules/transactions/transaction-filter-bar.vue";
+import TransactionBulkActionBar from "~/components/_molecules/transactions/transaction-bulk-action-bar.vue";
 
 const EditTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transaction-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
+const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -50,6 +46,16 @@ const isDeleteModalOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const selectedIds = ref<Set<string>>(new Set());
+
+const isRuleModalOpen = ref(false);
+const rulePresetPattern = ref('');
+const rulePresetCategoryId = ref<number | undefined>(undefined);
+
+function openCreateRule(transaction: Transaction) {
+  rulePresetPattern.value = transaction.description;
+  rulePresetCategoryId.value = transaction.category?.id;
+  isRuleModalOpen.value = true;
+}
 
 function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
@@ -84,92 +90,17 @@ function clearSelection() {
 
 // Columns are built once. Header strings use thunks so locale changes still surface, and cell
 // closures read reactive state (currency, selection) lazily — TanStack calls them per render.
-const columns: TableColumn<Transaction>[] = [
-  {
-    id: 'select',
-    header: () => h('input', {
-      type: 'checkbox',
-      'aria-label': t('transactions.bulk.selectAll'),
-      checked: allOnPageSelected.value,
-      class: 'cursor-pointer',
-      onChange: (e: Event) => toggleAll((e.target as HTMLInputElement).checked),
-    }),
-    cell: ({row}) => h('input', {
-      type: 'checkbox',
-      'aria-label': t('transactions.bulk.selectRow'),
-      checked: selectedIds.value.has(row.original.id),
-      class: 'cursor-pointer',
-      onChange: (e: Event) => toggleOne(row.original.id, (e.target as HTMLInputElement).checked),
-    }),
-  },
-  {
-    accessorKey: 'transactionDate',
-    header: () => t('transactions.table.date'),
-    cell: ({row}) => h(FormattedDate, {
-      date: row.getValue('transactionDate'),
-      format: 'full',
-    }),
-  },
-  {
-    accessorKey: 'description',
-    header: () => t('transactions.table.description'),
-  },
-  {
-    accessorKey: 'category',
-    header: () => t('transactions.table.category'),
-    cell: ({row}) => {
-      const category = row.getValue('category') as any
-      return h(CategoryBadge, {
-        name: category?.name,
-        icon: category?.icon,
-        color: category?.color,
-      })
-    },
-  },
-  {
-    id: 'attachments',
-    header: '',
-    meta: {class: {th: 'w-10', td: 'w-10'}},
-    cell: ({row}) => {
-      const count = row.original.attachmentCount ?? 0
-      if (count === 0) return null
-      return h(TransactionAttachmentsPopover, {
-        transactionId: row.original.id,
-        count,
-      })
-    },
-  },
-  {
-    accessorKey: 'amount',
-    header: () => t('transactions.table.amount'),
-    meta: {class: {th: 'text-right', td: 'text-right font-medium'}},
-    cell: ({row}) => h(TransactionAmount, {
-      amount: Number.parseFloat(row.getValue('amount')),
-      type: transactionType(row.original),
-      currency: currency.value,
-    }),
-  },
-  {
-    id: 'actions',
-    meta: {class: {td: 'text-right'}},
-    cell: ({row}) => h(TableRowActionsMenu, {
-      menuLabel: t('transactions.table.actionsLabel'),
-      items: [
-        {
-          label: t('transactions.table.actionEdit'),
-          icon: 'i-lucide-pencil',
-          onSelect: () => openEditModal(row.original),
-        },
-        {
-          label: t('transactions.table.actionDelete'),
-          icon: 'i-lucide-trash',
-          color: 'error' as any,
-          onSelect: () => openDeleteModal(row.original),
-        },
-      ],
-    }),
-  },
-]
+const columns = createTransactionColumns({
+  t,
+  currency: () => currency.value,
+  isSelected: (id) => selectedIds.value.has(id),
+  isAllSelected: () => allOnPageSelected.value,
+  onToggleAll: toggleAll,
+  onToggleOne: toggleOne,
+  onEdit: openEditModal,
+  onDelete: openDeleteModal,
+  onCreateRule: openCreateRule,
+})
 
 async function bulkDelete() {
   const ids = Array.from(selectedIds.value);
@@ -223,21 +154,11 @@ watch(
 <template>
   <TransactionFilterBar v-model="filters"/>
 
-  <div v-if="selectedIds.size > 0"
-       class="flex items-center gap-2 mb-3 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
-    <span class="text-sm font-medium">{{ t('transactions.bulk.selectedCount', {count: selectedIds.size}) }}</span>
-    <div class="ml-auto flex gap-2">
-      <UButton color="primary" icon="i-lucide-tag" size="sm" variant="outline" @click="isBulkCategorizeOpen = true">
-        {{ t('transactions.bulk.recategorize') }}
-      </UButton>
-      <UButton color="error" icon="i-lucide-trash" size="sm" variant="outline" @click="bulkDelete">
-        {{ t('transactions.bulk.delete') }}
-      </UButton>
-      <UButton color="neutral" size="sm" variant="ghost" @click="clearSelection">
-        {{ t('transactions.bulk.clear') }}
-      </UButton>
-    </div>
-  </div>
+  <TransactionBulkActionBar v-if="selectedIds.size > 0"
+                            :count="selectedIds.size"
+                            @recategorize="isBulkCategorizeOpen = true"
+                            @delete="bulkDelete"
+                            @clear="clearSelection"/>
 
   <BaseTable :columns="columns"
              :data="transactions"
@@ -270,4 +191,9 @@ watch(
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <RuleModal v-if="isRuleModalOpen"
+             v-model:open="isRuleModalOpen"
+             :preset-pattern="rulePresetPattern"
+             :preset-category-id="rulePresetCategoryId"/>
 </template>

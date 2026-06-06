@@ -39,6 +39,9 @@ class TransactionsRenderer(
         val expense = transactions.filter { it.categoryType == CategoryType.EXPENSE }.sumAmount()
         val net = income - expense
 
+        val summaryCurrency = accounts.map { it.currency }.distinct().singleOrNull()
+            ?: request.meta.currency.ifBlank { "EUR" }
+
         val byAccount = transactions.groupBy { it.accountId }
         val perAccount = accounts.map { acc ->
             val rows = byAccount[acc.id].orEmpty()
@@ -69,6 +72,7 @@ class TransactionsRenderer(
                 "expense" to expense,
                 "net" to net,
                 "count" to transactions.size,
+                "currency" to summaryCurrency,
             ),
         )
 

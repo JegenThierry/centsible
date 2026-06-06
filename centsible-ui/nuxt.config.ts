@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: {enabled: false},
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n', '@vueuse/nuxt'],
   css: ['@/assets/css/main.css'],
   vite: {
     optimizeDeps: {
@@ -14,8 +14,6 @@ export default defineNuxtConfig({
     build: {
       rollupOptions: {
         output: {
-          // Pin chart libs to their own chunk so non-chart routes don't ship them, and so the
-          // chunk is cached separately from app code that changes more often.
           manualChunks: {
             'chart-vendor': ['chart.js', 'vue-chartjs'],
           },
@@ -24,7 +22,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    apiBaseSSR: 'http://centsible-rest:8080/api',
+    apiBaseSSR: 'http://localhost:8080/api',
     public: {
       apiBase: "http://localhost:8080/api",
     }
@@ -37,10 +35,6 @@ export default defineNuxtConfig({
       {code: 'fr', name: 'Français', language: 'fr-FR', files: ['fr/common.json', 'fr/nav.json', 'fr/auth.json', 'fr/landing.json', 'fr/accounts.json', 'fr/transactions.json', 'fr/budgets.json', 'fr/categories.json', 'fr/contacts.json', 'fr/profile.json', 'fr/exports.json', 'fr/integrations.json', 'fr/notifications.json', 'fr/onboarding.json', 'fr/reports.json', 'fr/attachments.json']},
       {code: 'de', name: 'Deutsch', language: 'de-DE', files: ['de/common.json', 'de/nav.json', 'de/auth.json', 'de/landing.json', 'de/accounts.json', 'de/transactions.json', 'de/budgets.json', 'de/categories.json', 'de/contacts.json', 'de/profile.json', 'de/exports.json', 'de/integrations.json', 'de/notifications.json', 'de/onboarding.json', 'de/reports.json', 'de/attachments.json']},
     ],
-    lazy: true,
-    bundle: {
-      optimizeTranslationDirective: false,
-    },
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'centsible_locale',

@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import adze from 'adze'
 import type {RecurringTransaction} from "~/models/recurring/recurring-transaction";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 
@@ -12,7 +13,7 @@ export const useRecurringTransactionsStore = defineStore('recurringTransactionsS
     try {
       items.value = await service.fetchAll(accountId);
     } catch (error) {
-      console.error('Failed to fetch recurring transactions', error);
+      adze.ns('recurring').error('Failed to fetch recurring transactions', error);
       items.value = [];
     } finally {
       loading.value = false;

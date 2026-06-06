@@ -22,30 +22,21 @@ const hoverClass = computed(() => props.src
   : 'transition-colors hover:bg-elevated');
 
 function onAvatarClick() {
-  if (props.editable) emit('edit');
+  if (!props.editable) {
+    return;
+  }
+  emit('edit');
 }
 </script>
 
 <template>
   <div class="relative inline-block" v-bind="$attrs">
-    <UAvatar
-      :alt="alt"
-      :class="['cursor-pointer ring-2 ring-primary/20', hoverClass]"
-      :icon="src ? undefined : 'i-lucide-user'"
-      :size="size"
-      :src="src ?? undefined"
-      :ui="ui"
-      @click="onAvatarClick"
-    />
-    <div v-if="editable" class="absolute bottom-1 right-1">
-      <UButton
-        class="rounded-full shadow-md"
-        color="white"
-        icon="i-lucide-camera"
-        size="sm"
-        square
-        @click="emit('edit')"
-      />
-    </div>
+    <UAvatar :alt="alt"
+             :class="['cursor-pointer ring-2 ring-primary/20', hoverClass]"
+             :icon="src ? undefined : 'i-lucide-user'"
+             :size="size"
+             :src="src ?? undefined"
+             :ui="ui"
+             @click="onAvatarClick"/>
   </div>
 </template>

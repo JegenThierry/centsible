@@ -17,7 +17,20 @@
       "exports": "Exporte",
       "documents": "Dokumente",
       "integrations": "Integrationen",
-      "profile": "Profil"
+      "profile": "Profil",
+      "sections": {
+        "manage": "Verwalten",
+        "data": "Daten"
+      }
+    },
+    "switcher": {
+      "allAccounts": "Alle Konten",
+      "label": "Konto wechseln"
+    },
+    "search": {
+      "placeholder": "Suchen…",
+      "goTo": "Gehe zu",
+      "accounts": "Konten"
     },
     "footer": {
       "copyright": "Copyright © {year}",

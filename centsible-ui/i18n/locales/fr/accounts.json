@@ -13,7 +13,16 @@
       "createAccount": "Créer un compte budgétaire"
     },
     "card": {
-      "currentBalance": "Solde courant"
+      "currentBalance": "Solde courant",
+      "last30Days": "30 derniers jours"
+    },
+    "breakdown": {
+      "title": "Solde par compte"
+    },
+    "overview": {
+      "accountsLabel": "Comptes",
+      "totalBalanceLabel": "Solde total",
+      "last30Days": "30 derniers jours"
     },
     "modals": {
       "create": {
@@ -58,6 +67,11 @@
       "netSavings": "Épargne nette",
       "budgetsThisMonth": "Budgets ce mois-ci",
       "budgetsViewAll": "Tout voir",
+      "activityTitle": "Activité",
+      "activitySubtitle": "Revenus nets et dépenses au jour le jour sur l'année écoulée",
+      "activitySpent": "Dépensé",
+      "activityEarned": "Gagné",
+      "activityNoData": "Aucune transaction",
       "periods": {
         "CURRENT_MONTH": "Ce mois-ci",
         "PAST_3_MONTHS": "3 derniers mois",

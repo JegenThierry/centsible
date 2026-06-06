@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.model.transaction
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import java.math.BigDecimal
@@ -17,4 +18,8 @@ data class TransactionDTO(
     var createdAt: OffsetDateTime? = null,
     var updatedAt: OffsetDateTime? = null,
     var attachmentCount: Int = 0,
+    var originalAmount: BigDecimal? = null,
+    var originalCurrency: Currency? = null,
+    var exchangeRate: BigDecimal? = null,
+    var rateDate: LocalDate? = null,
 )

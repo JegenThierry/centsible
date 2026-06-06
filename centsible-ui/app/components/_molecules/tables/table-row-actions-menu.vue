@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type {DropdownMenuItem} from '@nuxt/ui';
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   items: DropdownMenuItem[];
@@ -15,6 +16,6 @@ const resolvedMenuLabel = computed(() => props.menuLabel ?? t('transactions.tabl
 
 <template>
   <UDropdownMenu :items="items" :content="{ align: 'end' }" :aria-label="resolvedMenuLabel">
-    <UButton :aria-label="resolvedTriggerLabel" color="neutral" icon="i-lucide-ellipsis-vertical" variant="ghost"/>
+    <AppButton :aria-label="resolvedTriggerLabel" color="neutral" icon="i-lucide-ellipsis-vertical" variant="ghost"/>
   </UDropdownMenu>
 </template>

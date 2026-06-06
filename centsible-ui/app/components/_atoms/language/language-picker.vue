@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const {locale, locales, t} = useI18n();
 const {apply} = useLocaleSwitcher();
 
@@ -18,12 +20,12 @@ const currentLabel = computed(() => {
 
 <template>
   <UDropdownMenu :items="items">
-    <UButton :aria-label="t('common.language.label')"
+    <AppButton :aria-label="t('common.language.label')"
              color="neutral"
              icon="i-lucide-languages"
              size="sm"
              variant="ghost">
       <span class="hidden sm:inline">{{ currentLabel }}</span>
-    </UButton>
+    </AppButton>
   </UDropdownMenu>
 </template>

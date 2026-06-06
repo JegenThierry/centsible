@@ -1,45 +1,21 @@
 import {ref, watch} from 'vue';
+import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {MonthlyAggregate} from "~/models/transactions/transaction";
+import {createAsyncCache} from "~/utils/async-cache";
 
 type TransactionService = ReturnType<typeof useTransactionService>;
 
-interface CacheEntry {
-  data: MonthlyAggregate[];
-  promise: Promise<MonthlyAggregate[]> | null;
-}
-
-const cache = new Map<string, CacheEntry>();
+const cache = createAsyncCache<MonthlyAggregate[]>(() => []);
 
 function key(accountId: string, months: number): string {
   return `${accountId}|${months}`;
 }
 
-async function loadOrCache(
-  service: TransactionService,
-  accountId: string,
-  months: number,
-): Promise<MonthlyAggregate[]> {
-  const k = key(accountId, months);
-  const entry = cache.get(k);
-  if (entry) {
-    if (entry.promise) return entry.promise;
-    return entry.data;
-  }
-  const promise = service.aggregateByMonth(accountId, months);
-  cache.set(k, {data: [], promise});
-  try {
-    const result = await promise;
-    cache.set(k, {data: result, promise: null});
-    return result;
-  } catch (e) {
-    cache.delete(k);
-    throw e;
-  }
-}
-
-// Warm the cache from a parent (e.g. the dashboard) so children mounting later hit a resolved
-// entry instead of kicking off a second wave of network calls.
+/**
+ * Warm the cache from a parent (e.g. the dashboard) so children mounting later hit a resolved
+ * entry instead of kicking off a second wave of network calls.
+ */
 export async function prefetchMonthlyAggregates(
   service: TransactionService,
   accountId: string,
@@ -47,9 +23,9 @@ export async function prefetchMonthlyAggregates(
 ): Promise<void> {
   if (!accountId) return;
   try {
-    await loadOrCache(service, accountId, months);
+    await cache.loadOrCache(key(accountId, months), () => service.aggregateByMonth(accountId, months));
   } catch (e) {
-    console.error('Failed to prefetch monthly aggregates', e);
+    adze.ns('dashboard').error('Failed to prefetch monthly aggregates', e);
   }
 }
 
@@ -67,9 +43,9 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
     }
     loading.value = true;
     try {
-      data.value = await loadOrCache(service, id, m);
+      data.value = await cache.loadOrCache(key(id, m), () => service.aggregateByMonth(id, m));
     } catch (e) {
-      console.error('Failed to load monthly aggregates', e);
+      adze.ns('dashboard').error('Failed to load monthly aggregates', e);
       data.value = [];
     } finally {
       loading.value = false;
@@ -82,5 +58,5 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
 }
 
 export function invalidateMonthlyAggregates() {
-  cache.clear();
+  cache.invalidate();
 }

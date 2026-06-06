@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
+import {Currency} from "~/models/budget-account/currency";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import SetBalanceFormFields from "~/components/_molecules/transactions/set-balance-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
-import LoanFormFields from "~/components/_molecules/loans/loan-form.vue";
+import LoanFormFields from "~/components/_organisms/loans/loan-form.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useLoansStore} from "~/stores/loansStore";
 import {useCategoriesStore} from "~/stores/categoriesStore";
@@ -72,6 +74,7 @@ function makeBlankTransactionForm(): TransactionForm {
     category: undefined,
     type: props.filterType ?? CategoryType.EXPENSE,
     transactionDate: todayIsoDate(),
+    currency: budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
   };
 }
 
@@ -152,6 +155,7 @@ async function saveStandard() {
         categoryId: form.value.category.id,
         transactionDate: form.value.transactionDate,
         type: form.value.type,
+        currency: form.value.currency,
       }
     );
     toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
@@ -222,15 +226,16 @@ async function saveSetBalance() {
           @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :state="form" class="space-y-4" @submit="handleSave">
-        <URadioGroup v-model="mode"
-                     :disabled="loading"
-                     :items="modeOptions"
-                     :legend="t('transactions.create.modeLegend')"
-                     orientation="horizontal"/>
+        <AppRadioGroup v-model="mode"
+                       :disabled="loading"
+                       :items="modeOptions"
+                       :legend="t('transactions.create.modeLegend')"
+                       orientation="horizontal"/>
         <TransactionFormFields v-if="mode === 'standard'"
                                ref="formRef"
                                v-model="form"
-                               :currency="activeCurrency"
+                               :account-id="budgetAccountsStore.activeAccount?.id"
+                               :account-currency="activeCurrency"
                                :disabled="loading"
                                :filter-type="filterType"/>
         <LoanFormFields v-else-if="mode === 'lending'"
@@ -250,10 +255,10 @@ async function saveSetBalance() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton :disabled="loading" @click="requestClose(false)"/>
-        <UButton :form="formId" :loading="loading" type="submit">{{ t('transactions.create.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
+                          :submit-label="t('transactions.create.submit')"
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

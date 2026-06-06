@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {type ImportColumnField} from "~/models/transactions/csv-import";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 defineProps<{
   header: string;
@@ -22,7 +23,7 @@ const options = computed(() => (['date', 'amount', 'description', 'category', 'i
     <div class="text-xs text-neutral-500 truncate sm:col-span-1">
       <span class="text-neutral-400">{{ t('transactions.import.previewExample') }}</span> {{ preview || '—' }}
     </div>
-    <USelect v-model="model"
+    <AppSelect v-model="model"
              :items="options"
              class="w-full"
              value-key="value"/>

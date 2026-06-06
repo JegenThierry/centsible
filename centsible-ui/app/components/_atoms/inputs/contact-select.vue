@@ -39,13 +39,13 @@ defineExpose({validate})
                  label-key="name"
                  :placeholder="t('transactions.selects.selectContact')"
                  searchable>
-      <template #label>
-        <div v-if="model" class="flex items-center gap-2">
-          <UAvatar v-if="model.picture" :src="model.picture" size="2xs"/>
+      <template #default="{ modelValue }">
+        <div v-if="modelValue" class="flex items-center gap-2">
+          <UAvatar v-if="modelValue.picture" :src="modelValue.picture" size="2xs"/>
           <UIcon v-else class="w-4 h-4" name="i-lucide-user"/>
-          <span>{{ model.name }}</span>
+          <span>{{ modelValue.name }}</span>
         </div>
-        <span v-else>{{ t('transactions.selects.selectContact') }}</span>
+        <span v-else class="text-neutral-500">{{ t('transactions.selects.selectContact') }}</span>
       </template>
 
       <template #item-leading="{ item }">

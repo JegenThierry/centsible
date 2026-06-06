@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import adze from 'adze'
 import {useUserStore} from "~/stores/userStore";
 import {useAuthService} from "~/services/auth/auth-service";
 
@@ -16,7 +17,7 @@ export const useAuthStore = defineStore('authStore', () => {
     isAuthenticated.value = false
     useUserStore().clear();
     authService.logout().catch((error) => {
-      console.warn('Server logout failed; cookie may still be valid until it expires.', error)
+      adze.ns('auth').warn('Server logout failed; cookie may still be valid until it expires.', error)
     })
     return navigateTo('/auth')
   }

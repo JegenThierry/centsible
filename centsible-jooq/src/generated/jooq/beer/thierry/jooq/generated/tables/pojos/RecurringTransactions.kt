@@ -27,7 +27,9 @@ data class RecurringTransactions(
     val nextRunAt: LocalDate? = null,
     val active: Boolean? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val originalAmount: BigDecimal? = null,
+    val originalCurrency: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -110,6 +112,18 @@ data class RecurringTransactions(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.originalAmount == null) {
+            if (o.originalAmount != null)
+                return false
+        }
+        else if (this.originalAmount != o.originalAmount)
+            return false
+        if (this.originalCurrency == null) {
+            if (o.originalCurrency != null)
+                return false
+        }
+        else if (this.originalCurrency != o.originalCurrency)
+            return false
         return true
     }
 
@@ -128,6 +142,8 @@ data class RecurringTransactions(
         result = prime * result + (if (this.active == null) 0 else this.active.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.originalAmount == null) 0 else this.originalAmount.hashCode())
+        result = prime * result + (if (this.originalCurrency == null) 0 else this.originalCurrency.hashCode())
         return result
     }
 
@@ -146,6 +162,8 @@ data class RecurringTransactions(
         sb.append(", ").append(active)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(originalAmount)
+        sb.append(", ").append(originalCurrency)
 
         sb.append(")")
         return sb.toString()

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Loan, RepaymentForm as RepaymentFormModel} from "~/models/loan/loan";
 import RepaymentForm from "~/components/_molecules/loans/repayment-form.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {todayIsoDate} from "~/utils/date";
 
@@ -51,7 +52,7 @@ async function handleSave() {
     emit('recorded');
     isOpen.value = false;
   } catch (error) {
-    console.error('Record repayment failed', error);
+    adze.ns('loans').error('Record repayment failed', error);
   } finally {
     loading.value = false;
   }
@@ -67,10 +68,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('contacts.loans.repayment.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.loans.repayment.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

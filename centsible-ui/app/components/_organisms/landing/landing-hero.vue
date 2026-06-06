@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const {t} = useI18n();
 </script>
 
@@ -24,20 +26,20 @@ const {t} = useI18n();
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 mt-2">
-          <UButton color="primary"
-                   icon="i-lucide-rocket"
-                   size="xl"
-                   to="/auth"
-                   trailing-icon="i-lucide-arrow-right">
+          <AppButton color="primary"
+                     icon="i-lucide-rocket"
+                     size="xl"
+                     to="/auth"
+                     trailing-icon="i-lucide-arrow-right">
             {{ t('landing.hero.getStarted') }}
-          </UButton>
-          <UButton color="neutral"
-                   icon="i-lucide-info"
-                   size="xl"
-                   to="/about"
-                   variant="outline">
+          </AppButton>
+          <AppButton color="neutral"
+                     icon="i-lucide-info"
+                     size="xl"
+                     to="/about"
+                     variant="outline">
             {{ t('landing.hero.learnMore') }}
-          </UButton>
+          </AppButton>
         </div>
 
         <p class="text-xs text-muted mt-2">

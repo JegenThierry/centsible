@@ -1,9 +1,13 @@
 package beer.thierry.centsible.core.services.integrations
 
+import beer.thierry.centsible.api.model.integrations.AuthType
+import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
 import org.springframework.security.crypto.encrypt.BytesEncryptor
 import org.springframework.security.crypto.encrypt.Encryptors
 import org.springframework.stereotype.Component
@@ -14,14 +18,17 @@ import org.springframework.stereotype.Component
  *
  * Both the password and the salt come from env (INTEGRATIONS_ENCRYPTION_KEY /
  * INTEGRATIONS_ENCRYPTION_SALT). The encryptor is built lazily so a fresh dev checkout with
- * no integrations configured does not break startup — but the first encrypt/decrypt fails fast
- * with a clear error.
+ * no integrations configured does not break startup. As a safety net, when at least one
+ * credentialled provider (anything other than AuthType.NONE) is registered, the cipher fails
+ * fast at boot via the [validateAtBoot] @PostConstruct hook — so a misconfigured production
+ * deploy is caught at startup, not on the first user trying to connect.
  */
 @Component
 class CredentialCipher(
     @Value("\${integrations.encryption-key:}") private val encryptionKey: String,
     @Value("\${integrations.encryption-salt:}") private val encryptionSalt: String,
     private val objectMapper: ObjectMapper,
+    private val applicationContext: ApplicationContext,
 ) {
     private val log = LoggerFactory.getLogger(CredentialCipher::class.java)
 
@@ -43,14 +50,47 @@ class CredentialCipher(
         }
     }
 
+    @PostConstruct
+    fun validateAtBoot() {
+        // Look up the registry lazily — both beans are constructed in undefined order, but by the
+        // time @PostConstruct runs Spring guarantees all singletons exist. Going through the
+        // application context avoids a constructor cycle.
+        val registry = runCatching { applicationContext.getBean(IProviderRegistry::class.java) }
+            .getOrNull() ?: return
+        val needsCipher = registry.listDescriptors().any { it.authType != AuthType.NONE }
+        if (!needsCipher) return
+        try {
+            // Touch the lazy encryptor to fail fast with a clear message at boot.
+            encryptor
+            log.info("Credential cipher ready; {} credentialled provider(s) enabled.",
+                registry.listDescriptors().count { it.authType != AuthType.NONE })
+        } catch (e: IllegalArgumentException) {
+            throw IllegalStateException(
+                "At least one provider that stores credentials is enabled, but the credential " +
+                    "cipher is not configured: ${e.message}",
+                e,
+            )
+        }
+    }
+
     fun encrypt(credentials: Map<String, String>): ByteArray? {
         if (credentials.isEmpty()) return null
-        return encryptor.encrypt(objectMapper.writeValueAsBytes(credentials))
+        return try {
+            encryptor.encrypt(objectMapper.writeValueAsBytes(credentials))
+        } catch (e: Exception) {
+            log.error("Credential encryption failed (fields={})", credentials.keys.sorted(), e)
+            throw e
+        }
     }
 
     fun decrypt(ciphertext: ByteArray?): Map<String, String> {
         if (ciphertext == null || ciphertext.isEmpty()) return emptyMap()
-        return objectMapper.readValue(encryptor.decrypt(ciphertext), mapType)
+        return try {
+            objectMapper.readValue(encryptor.decrypt(ciphertext), mapType)
+        } catch (e: Exception) {
+            log.error("Credential decryption failed (cipherBytes={})", ciphertext.size, e)
+            throw e
+        }
     }
 
     companion object {

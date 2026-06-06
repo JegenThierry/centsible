@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {Frequency} from "~/models/recurring/recurring-transaction";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 const props = defineProps<{
   label: string;
@@ -36,7 +37,7 @@ defineExpose({validate});
               :hint="hint"
               :label="label"
               :required="required">
-    <USelect v-model="model"
+    <AppSelect v-model="model"
              :disabled="disabled"
              :items="options"
              class="w-full"

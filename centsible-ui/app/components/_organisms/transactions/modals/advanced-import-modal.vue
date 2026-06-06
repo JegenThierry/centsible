@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {ref, watch} from 'vue';
+import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
 import {useImportService} from "~/services/imports/import-service";
 import {useCategoryService} from "~/services/category/category-service";
@@ -14,6 +15,8 @@ import type {
 } from "~/models/imports/imports";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -52,7 +55,7 @@ watch(isOpen, async (open) => {
     try {
       categories.value = await categoryService.fetchCategories();
     } catch (error) {
-      console.error('Failed to load categories', error);
+      adze.ns('imports').error('Failed to load categories', error);
     }
   }
 });
@@ -136,12 +139,11 @@ async function commit() {
           :description="step === 'upload' ? t('transactions.advancedImport.descUpload') : t('transactions.advancedImport.descReview')"
           :ui="{content: 'max-w-2xl'}">
     <template #body>
-      <!-- Step 1: upload + default category -->
       <div v-if="step === 'upload'" class="space-y-4">
         <p class="text-sm text-neutral-500">
           {{ t('transactions.advancedImport.uploadHint') }}
         </p>
-        <UInput accept=".csv,.tsv,.ofx,.qfx,.qbo,text/csv,application/x-ofx"
+        <AppInput accept=".csv,.tsv,.ofx,.qfx,.qbo,text/csv,application/x-ofx"
                 class="w-full"
                 type="file"
                 @change="onFileChange"/>
@@ -152,7 +154,6 @@ async function commit() {
                         required/>
       </div>
 
-      <!-- Step 2: review -->
       <div v-else-if="step === 'review'" class="space-y-4">
         <div class="flex items-center gap-2 flex-wrap text-sm">
           <UBadge color="primary" variant="subtle">{{ detection?.displayName ?? '?' }}</UBadge>
@@ -201,27 +202,27 @@ async function commit() {
 
     <template #footer>
       <div class="flex justify-between gap-2 w-full">
-        <UButton v-if="step === 'review'"
+        <AppButton v-if="step === 'review'"
                  color="neutral"
                  variant="ghost"
                  @click="step = 'upload'">
           {{ t('common.actions.back') }}
-        </UButton>
+        </AppButton>
         <div v-else></div>
         <div class="flex gap-2">
           <CancelButton @click="isOpen = false"/>
-          <UButton v-if="step === 'upload'"
+          <AppButton v-if="step === 'upload'"
                    :disabled="!file || !defaultCategory"
                    :loading="loading"
                    @click="detectAndPreview">
             {{ t('common.actions.next') }}
-          </UButton>
-          <UButton v-if="step === 'review'"
+          </AppButton>
+          <AppButton v-if="step === 'review'"
                    :disabled="!preview || preview.totalRows === 0"
                    :loading="committing"
                    @click="commit">
             {{ t('transactions.advancedImport.importRows', {count: preview?.totalRows ?? 0}) }}
-          </UButton>
+          </AppButton>
         </div>
       </div>
     </template>

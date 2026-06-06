@@ -7,18 +7,28 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
+import java.time.Duration
 
 @Service
 class ResendEmailProvider(
     @Value("\${resend.api.key:dummy}") private val apiKey: String,
-    @Value("\${resend.from.email:dummy@example.com}") private val fromEmail: String
+    @Value("\${resend.from.email:dummy@example.com}") private val fromEmail: String,
+    @Value("\${resend.connect-timeout-ms:10000}") connectTimeoutMs: Long,
+    @Value("\${resend.read-timeout-ms:30000}") readTimeoutMs: Long,
 ) : IEmailProvider {
     private val log = LoggerFactory.getLogger(ResendEmailProvider::class.java)
-    private val restTemplate = RestTemplate()
+
+    private val restTemplate = RestTemplate(
+        SimpleClientHttpRequestFactory().apply {
+            setConnectTimeout(Duration.ofMillis(connectTimeoutMs))
+            setReadTimeout(Duration.ofMillis(readTimeoutMs))
+        }
+    )
     private val apiUrl = "https://api.resend.com/emails"
 
     @PostConstruct

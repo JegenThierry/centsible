@@ -4,6 +4,8 @@ import {Currency} from "~/models/budget-account/currency";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 defineProps<{
   rule: RecurringTransaction;
@@ -43,24 +45,18 @@ const {t} = useI18n();
 
       <div class="flex items-center justify-between sm:justify-end gap-3">
         <TransactionAmount :amount="rule.amount"
-                           :currency="currency"
+                           :currency="rule.originalCurrency ?? currency"
                            :type="rule.category.type"/>
         <div class="flex items-center gap-1">
-          <UButton :aria-label="rule.active ? t('transactions.recurring.ariaPause') : t('transactions.recurring.ariaResume')"
+          <AppButton :aria-label="rule.active ? t('transactions.recurring.ariaPause') : t('transactions.recurring.ariaResume')"
                    :icon="rule.active ? 'i-lucide-pause' : 'i-lucide-play'"
                    color="neutral"
                    variant="ghost"
                    @click="$emit('toggle', rule)"/>
-          <UButton :aria-label="t('transactions.recurring.ariaEdit')"
-                   color="neutral"
-                   icon="i-lucide-pencil"
-                   variant="ghost"
-                   @click="$emit('edit', rule)"/>
-          <UButton :aria-label="t('transactions.recurring.ariaDelete')"
-                   color="error"
-                   icon="i-lucide-trash"
-                   variant="ghost"
-                   @click="$emit('delete', rule)"/>
+          <EditDeleteActions :delete-aria-label="t('transactions.recurring.ariaDelete')"
+                             :edit-aria-label="t('transactions.recurring.ariaEdit')"
+                             @edit="$emit('edit', rule)"
+                             @delete="$emit('delete', rule)"/>
         </div>
       </div>
     </div>

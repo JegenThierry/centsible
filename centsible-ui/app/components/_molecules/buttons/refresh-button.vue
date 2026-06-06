@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+
 const emit = defineEmits<{
   (e: 'refresh'): void;
 }>();
@@ -11,7 +13,7 @@ function onRefresh() {
 </script>
 
 <template>
-  <UButton color="neutral" icon="i-lucide-refresh-cw" variant="subtle" @click="onRefresh">
+  <AppButton color="neutral" icon="i-lucide-refresh-cw" variant="subtle" @click="onRefresh">
     {{ t('common.actions.refresh') }}
-  </UButton>
+  </AppButton>
 </template>

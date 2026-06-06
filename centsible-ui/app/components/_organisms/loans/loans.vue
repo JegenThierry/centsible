@@ -5,6 +5,8 @@ const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organis
 const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
 const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import {useLoansStore} from "~/stores/loansStore";
 import {useActiveCurrency} from "~/composables/use-active-currency";
@@ -75,12 +77,12 @@ onMounted(() => refresh());
       :title="t('contacts.loansPage.title')"
     >
       <template #actions>
-        <USelect v-model="filter" :items="filterItems" class="w-48" value-key="value"/>
-        <UButton color="primary"
+        <AppSelect v-model="filter" :items="filterItems" class="w-48" value-key="value"/>
+        <AppButton color="primary"
                  icon="i-lucide-hand-coins"
                  @click="isCreateOpen = true">
           {{ t('contacts.page.recordLending') }}
-        </UButton>
+        </AppButton>
       </template>
     </PageHeader>
 

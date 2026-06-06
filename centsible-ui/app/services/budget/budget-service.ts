@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import type {Budget, BudgetRequest} from "~/models/budget/budget";
-import {validateRequest} from "~/composables/use-api";
+import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useBudgetService(api: AxiosInstance) {
   async function fetchAll(month?: string): Promise<Budget[]> {
@@ -21,10 +21,7 @@ export function useBudgetService(api: AxiosInstance) {
   }
 
   async function remove(id: string): Promise<void> {
-    const response = await api.delete(`/budgets/${encodeURIComponent(id)}`);
-    if (response.status !== 204 && response.status !== 200) {
-      throw new Error(response.statusText);
-    }
+    assertStatus(await api.delete(`/budgets/${encodeURIComponent(id)}`));
   }
 
   return {fetchAll, create, update, remove};

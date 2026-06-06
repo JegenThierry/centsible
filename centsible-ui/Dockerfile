@@ -1,20 +1,23 @@
-FROM node:24-alpine AS base
+# syntax=docker/dockerfile:1
+
+FROM node:24-alpine AS builder
 WORKDIR /app
 
-FROM base AS dev
-ENV NODE_ENV=development
-EXPOSE 3000
-CMD ["sh", "-c", "npm install && npx nuxt dev --host 0.0.0.0"]
-
-FROM base AS builder
 COPY package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
+
 COPY . .
 RUN npx nuxt build
 
-FROM base AS release
+FROM node:24-alpine AS release
+WORKDIR /app
 ENV NODE_ENV=production
+
+LABEL org.opencontainers.image.title="centsible-ui" \
+      org.opencontainers.image.description="Centsible Nuxt 4 frontend (SSR)"
+
 USER node
 COPY --chown=node:node --from=builder /app/.output ./.output
+
 EXPOSE 3000
 CMD ["node", ".output/server/index.mjs"]

@@ -1,13 +1,13 @@
-import {computed, onUnmounted, ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
 import {useApi} from "~/composables/use-api";
 import {useExportService} from "~/services/export/export-service";
 import type {CreateExportRequest, ExportJob} from "~/models/export/export-job";
+import {fingerprint} from "~/utils/fingerprint";
 
 const POLL_INTERVAL_MS = 3000;
 
-function fingerprint(jobs: ExportJob[]): string {
-  return jobs.map((j) => `${j.id}|${j.status}|${j.modifiedAt}`).join(',');
-}
+const jobFingerprint = (jobs: ExportJob[]) =>
+  fingerprint(jobs, (j) => `${j.id}|${j.status}|${j.modifiedAt}`);
 
 export function useExports() {
   const api = useApi();
@@ -22,15 +22,12 @@ export function useExports() {
     exports.value.some((j) => j.status === 'PENDING' || j.status === 'IN_PROGRESS')
   );
 
-  let pollTimer: ReturnType<typeof setInterval> | null = null;
-  let pollingRequested = false;
-
   async function refresh() {
     loading.value = true;
     error.value = null;
     try {
       const next = await service.listExports();
-      if (fingerprint(next) !== fingerprint(exports.value)) {
+      if (jobFingerprint(next) !== jobFingerprint(exports.value)) {
         exports.value = next;
       }
     } catch (e: unknown) {
@@ -40,37 +37,25 @@ export function useExports() {
     }
   }
 
+  const {pause, resume} = useIntervalFn(async () => {
+    if (!hasUnsettledJobs.value) {
+      pause();
+      return;
+    }
+    await refresh();
+  }, POLL_INTERVAL_MS, {immediate: false});
+
   function startPolling() {
-    pollingRequested = true;
-    ensureTimer();
+    if (hasUnsettledJobs.value) resume();
   }
 
   function stopPolling() {
-    pollingRequested = false;
-    clearTimer();
-  }
-
-  function ensureTimer() {
-    if (pollTimer || !pollingRequested) return;
-    pollTimer = setInterval(async () => {
-      if (!hasUnsettledJobs.value) {
-        clearTimer();
-        return;
-      }
-      await refresh();
-    }, POLL_INTERVAL_MS);
-  }
-
-  function clearTimer() {
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
+    pause();
   }
 
   watch(hasUnsettledJobs, (unsettled) => {
-    if (unsettled) ensureTimer();
-    else clearTimer();
+    if (unsettled) resume();
+    else pause();
   });
 
   async function create(payload: CreateExportRequest): Promise<ExportJob | null> {
@@ -101,8 +86,6 @@ export function useExports() {
   async function download(job: ExportJob) {
     await service.downloadExport(job.id, job.pdfFilename ?? undefined);
   }
-
-  onUnmounted(stopPolling);
 
   return {
     exports,

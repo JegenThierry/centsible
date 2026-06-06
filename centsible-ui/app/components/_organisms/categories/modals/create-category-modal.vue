@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useValidator} from "~/composables/use-validator";
 
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -55,7 +57,7 @@ async function handleSave() {
     await categoriesStore.createCategory(form.value);
     isOpen.value = false;
   } catch (error) {
-    console.error('Failed to create category:', error);
+    adze.ns('categories').error('Failed to create category', error);
   } finally {
     loading.value = false;
   }
@@ -68,7 +70,7 @@ async function handleSave() {
           :title="t('categories.create.title')">
     <template #body>
       <div class="space-y-4">
-        <URadioGroup v-model="form.type"
+        <AppRadioGroup v-model="form.type"
                      :items="typeOptions"
                      :legend="t('categories.type.legend')"
                      orientation="horizontal"/>
@@ -92,10 +94,10 @@ async function handleSave() {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" @click="handleSave">{{ t('categories.create.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('categories.create.submit')"
+                          @cancel="isOpen = false"
+                          @submit="handleSave"/>
     </template>
   </UModal>
 </template>

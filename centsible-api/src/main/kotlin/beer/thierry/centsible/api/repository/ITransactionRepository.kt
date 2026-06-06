@@ -1,6 +1,10 @@
 package beer.thierry.centsible.api.repository
 
+import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.categorization.MatchType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -20,15 +24,22 @@ interface ITransactionRepository {
         filters: TransactionFilters = TransactionFilters(),
     ): List<TransactionDTO>
     fun fetchTransactionById(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO
-    fun createTransaction(accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO): TransactionDTO
+    fun createTransaction(
+        accountId: UUID,
+        transactionForm: TransactionForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): TransactionDTO
     fun updateTransaction(
         transactionId: UUID,
         accountId: UUID,
         transactionForm: TransactionForm,
-        authenticatedUser: UserDTO
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
     ): TransactionDTO
 
-    fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO
+    /** Deletes transaction [transactionId] belonging to [accountId] owned by [authenticatedUser]; throws if none matches. */
+    fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
 
     /** Returns the transactions matching [ids] that belong to [accountId] owned by [authenticatedUser]. */
     fun fetchTransactionsByIds(
@@ -67,13 +78,28 @@ interface ITransactionRepository {
         months: Int,
     ): List<MonthlyAggregateDTO>
 
-    /** Inserts rows skipping duplicates by [account_id, import_hash]. Returns inserted-row net adjustment. */
+    fun aggregateByDay(
+        accountId: UUID,
+        authenticatedUser: UserDTO,
+        days: Int,
+    ): List<DailyAggregateDTO>
+
     fun importBatch(
         accountId: UUID,
         rows: List<ImportTransactionRow>,
+        conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
+        providerConnectionId: UUID? = null,
     ): BatchImportOutcome
+
+    fun recategorizeByDescription(
+        authenticatedUser: UserDTO,
+        matchType: MatchType,
+        pattern: String,
+        categoryId: Long,
+        type: CategoryType,
+    ): Int
 }
 
 data class BatchImportOutcome(

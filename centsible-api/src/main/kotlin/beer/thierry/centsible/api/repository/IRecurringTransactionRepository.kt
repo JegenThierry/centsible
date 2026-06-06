@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.repository
 
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -17,9 +18,10 @@ interface IRecurringTransactionRepository {
     fun fetchDueRules(today: LocalDate): List<RecurringTransactionDTO>
 
     /**
-     * Inserts a transaction for the rule, advances next_run_at by one frequency step,
-     * and adjusts the account balance — all in a single SQL transaction.
+     * Inserts a transaction for the rule using the pre-computed [conversion] (the converted amount in
+     * the account currency plus the original amount/currency/rate for audit), advances next_run_at by
+     * one frequency step, and adjusts the account balance — all in a single SQL transaction.
      * Returns the new next_run_at, or null if the rule was deactivated (end_date passed).
      */
-    fun materializeOnce(rule: RecurringTransactionDTO): LocalDate?
+    fun materializeOnce(rule: RecurringTransactionDTO, conversion: ConversionResult): LocalDate?
 }

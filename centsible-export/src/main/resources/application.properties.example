@@ -16,6 +16,16 @@ export.worker.id=${random.uuid}
 export.worker.poll-interval-ms=${EXPORT_POLL_INTERVAL_MS:2000}
 export.worker.lease-timeout-seconds=${EXPORT_LEASE_TIMEOUT_SECONDS:300}
 
+# --- Graceful shutdown ---
+# Drain on SIGTERM instead of severing (Spring's default is IMMEDIATE). server.shutdown drains the
+# embedded server; await-termination lets the @Scheduled poll loop finish the export it's rendering so
+# a redeploy doesn't SIGKILL mid-PDF and waste a full lease window + attempt. Keep the compose
+# stop_grace_period above these timeouts so the JVM can drain before SIGKILL.
+server.shutdown=graceful
+spring.lifecycle.timeout-per-shutdown-phase=20s
+spring.task.scheduling.shutdown.await-termination=true
+spring.task.scheduling.shutdown.await-termination-period=20s
+
 resend.api.key=${RESEND_API_KEY:dummy}
 resend.from.email=${RESEND_FROM_EMAIL:onboarding@resend.dev}
 

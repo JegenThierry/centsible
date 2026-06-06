@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import adze from 'adze'
 import type {Contact} from "~/models/contact/contact";
-import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
 
 const props = defineProps<{
@@ -33,7 +34,7 @@ async function handleDelete() {
     isOpen.value = false;
     emit('deleted');
   } catch (error) {
-    console.error('Delete contact failed', error);
+    adze.ns('contacts').error('Delete contact failed', error);
   } finally {
     loading.value = false;
   }
@@ -45,10 +46,11 @@ async function handleDelete() {
           :description="description"
           :title="t('contacts.delete.title')">
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <CancelButton @click="isOpen = false"/>
-        <UButton :loading="loading" color="error" @click="handleDelete">{{ t('contacts.delete.submit') }}</UButton>
-      </div>
+      <ModalFooterActions :loading="loading"
+                          :submit-label="t('contacts.delete.submit')"
+                          submit-color="error"
+                          @cancel="isOpen = false"
+                          @submit="handleDelete"/>
     </template>
   </UModal>
 </template>

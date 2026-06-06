@@ -3,8 +3,12 @@ import {useBudgetsStore} from "~/stores/budgetsStore";
 import type {Budget} from "~/models/budget/budget";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
 import BudgetProgressBar from "~/components/_molecules/budgets/budget-progress-bar.vue";
+import BudgetSummary from "~/components/_molecules/budgets/budget-summary.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
 const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
@@ -72,18 +76,18 @@ onMounted(() => refresh());
         <label class="text-xs font-semibold text-muted uppercase tracking-wide">
           {{ t('budgets.list.asOf') }}
         </label>
-        <USelect v-model="selectedMonth"
+        <AppSelect v-model="selectedMonth"
                  :items="monthItems"
                  class="w-40"
                  value-key="value"/>
       </div>
-      <UButton :color="showHistory ? 'primary' : 'neutral'"
+      <AppButton :color="showHistory ? 'primary' : 'neutral'"
                :variant="showHistory ? 'soft' : 'ghost'"
                icon="i-lucide-history"
                size="sm"
                @click="showHistory = !showHistory">
         {{ t('budgets.list.showHistory') }}
-      </UButton>
+      </AppButton>
     </div>
 
     <div v-if="store.loading && store.items.length === 0" class="space-y-3">
@@ -95,13 +99,15 @@ onMounted(() => refresh());
                    icon="i-lucide-target"
                    :title="t('budgets.list.emptyTitle')">
       <template #actions>
-        <UButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
+        <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
           {{ t('budgets.list.emptyAction') }}
-        </UButton>
+        </AppButton>
       </template>
     </AppEmptyState>
 
     <div v-else class="space-y-4">
+      <BudgetSummary :budgets="store.items" :currency="currency" :month="selectedMonth"/>
+
       <UCard v-for="budget in store.items"
              :key="budget.id"
              :ui="{body: 'p-4 sm:p-5'}"
@@ -110,18 +116,12 @@ onMounted(() => refresh());
           <div class="flex-1 min-w-0">
             <BudgetProgressBar :budget="budget" :currency="currency"/>
           </div>
-          <div v-if="selectedMonth === currentMonth" class="flex items-center gap-1 shrink-0">
-            <UButton :aria-label="t('budgets.list.editAria')"
-                     color="neutral"
-                     icon="i-lucide-pencil"
-                     variant="ghost"
-                     @click="openEdit(budget)"/>
-            <UButton :aria-label="t('budgets.list.deleteAria')"
-                     color="error"
-                     icon="i-lucide-trash"
-                     variant="ghost"
-                     @click="openDelete(budget)"/>
-          </div>
+          <EditDeleteActions v-if="selectedMonth === currentMonth"
+                             class="shrink-0"
+                             :delete-aria-label="t('budgets.list.deleteAria')"
+                             :edit-aria-label="t('budgets.list.editAria')"
+                             @edit="openEdit(budget)"
+                             @delete="openDelete(budget)"/>
         </div>
       </UCard>
     </div>

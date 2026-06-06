@@ -4,34 +4,47 @@ import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.ExportRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVPrinter
+import org.slf4j.LoggerFactory
+import java.io.StringWriter
 
 /**
- * Lightweight RFC 4180-style CSV writer. Quotes cells that contain a comma, quote, or
- * newline; doubles embedded quotes. Lines end with CRLF. Output is UTF-8 with a BOM so
- * Excel opens it correctly on Windows.
+ * Thin facade over Apache Commons CSV's [CSVPrinter] using [CSVFormat.RFC4180] (CRLF + double-
+ * quoted escaping). Output is UTF-8 with a BOM so Excel on Windows treats the file as UTF-8 by
+ * default; without the BOM Excel falls back to its system codepage and mangles non-ASCII.
  */
 class CsvBuilder {
-    private val sb = StringBuilder()
+    private val writer = StringWriter()
+    private val printer = CSVPrinter(writer, CSVFormat.RFC4180)
+    private var rowCount: Int = 0
 
     fun row(vararg cells: Any?): CsvBuilder = apply {
-        sb.append(cells.joinToString(",") { quote(it?.toString() ?: "") })
-        sb.append("\r\n")
+        printer.printRecord(*cells.map { sanitizeCell(it) }.toTypedArray())
+        rowCount += 1
     }
 
     fun row(cells: List<Any?>): CsvBuilder = apply {
-        sb.append(cells.joinToString(",") { quote(it?.toString() ?: "") })
-        sb.append("\r\n")
+        printer.printRecord(cells.map { sanitizeCell(it) })
+        rowCount += 1
     }
 
-    fun bytes(): ByteArray = UTF8_BOM + sb.toString().toByteArray(Charsets.UTF_8)
+    fun rowCount(): Int = rowCount
 
-    private fun quote(s: String): String {
-        val needsQuoting = s.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
-        return if (needsQuoting) "\"${s.replace("\"", "\"\"")}\"" else s
+    private fun sanitizeCell(cell: Any?): String {
+        val text = cell?.toString() ?: ""
+        return if (cell is String && text.isNotEmpty() && text[0] in FORMULA_TRIGGERS) "'$text" else text
+    }
+
+    fun bytes(): ByteArray {
+        printer.flush()
+        return UTF8_BOM + writer.toString().toByteArray(Charsets.UTF_8)
     }
 
     private companion object {
         val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+
+        val FORMULA_TRIGGERS = charArrayOf('=', '+', '-', '@', '\t', '\r')
     }
 }
 
@@ -41,14 +54,27 @@ class CsvBuilder {
  * is handled here.
  */
 abstract class CsvExportRenderer : ExportRenderer {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     final override fun supportedFormat(): ExportFormat = ExportFormat.CSV
 
     final override fun render(request: ExportRequest): RenderedExport {
-        val csv = buildCsv(request)
-        return RenderedExport(
-            pdf = csv.bytes(), // Field name is historical; carries CSV bytes for CSV renderers.
-            filename = "${filenameStem(request)}-${filenameTimestamp()}.csv",
-        )
+        log.debug("Rendering CSV renderer={} type={}", javaClass.simpleName, supports())
+        try {
+            val csv = buildCsv(request)
+            val bytes = csv.bytes()
+            log.info(
+                "Rendered CSV renderer={} type={} rows={} bytes={}",
+                javaClass.simpleName, supports(), csv.rowCount(), bytes.size,
+            )
+            return RenderedExport(
+                pdf = bytes, // Field name is historical; carries CSV bytes for CSV renderers.
+                filename = "${filenameStem(request)}-${filenameTimestamp()}.csv",
+            )
+        } catch (ex: Exception) {
+            log.error("Failed to render CSV renderer={} type={}", javaClass.simpleName, supports(), ex)
+            throw ex
+        }
     }
 
     protected abstract fun buildCsv(request: ExportRequest): CsvBuilder

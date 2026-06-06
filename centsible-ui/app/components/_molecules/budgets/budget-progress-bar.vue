@@ -29,6 +29,12 @@ const barColor = computed(() => {
 
 const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
 const periodLabel = computed(() => t(`budgets.periods.${props.budget.periodType ?? 'MONTHLY'}`));
+
+const localeTag = useLocaleTag();
+const rolloverFormatted = computed(() => new Intl.NumberFormat(localeTag.value, {
+  style: 'currency',
+  currency: resolvedCurrency.value,
+}).format(props.budget.rolloverAmount ?? 0));
 </script>
 
 <template>
@@ -59,5 +65,9 @@ const periodLabel = computed(() => t(`budgets.periods.${props.budget.periodType 
            :style="{width: percent + '%'}"
            class="h-full transition-all"/>
     </div>
+    <p v-if="budget.rolloverEnabled && budget.rolloverAmount > 0"
+       class="text-xs text-muted">
+      {{ t('budgets.list.rolloverNote', {amount: rolloverFormatted}) }}
+    </p>
   </div>
 </template>

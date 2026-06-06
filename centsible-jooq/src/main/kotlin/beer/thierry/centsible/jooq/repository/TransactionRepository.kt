@@ -1,7 +1,10 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.categorization.MatchType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
+import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -70,10 +73,11 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     }
 
     override fun createTransaction(
-        accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
+        accountId: UUID, transactionForm: TransactionForm, conversion: ConversionResult, authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
             ?: throw IllegalArgumentException("Transaction type is required")
+        val fx = FxColumns.from(conversion)
 
         // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
         val now = OffsetDateTime.now()
@@ -81,13 +85,19 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
+            TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
+            TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
             .select(
                 dsl.select(
-                    DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(transactionForm.amount),
+                    DSL.value(accountId), DSL.value(transactionForm.categoryId), DSL.value(conversion.convertedAmount),
                     DSL.value(transactionForm.description), DSL.value(transactionForm.transactionDate),
                     DSL.value(type.value),
+                    DSL.value(fx.originalAmount, TRANSACTIONS.ORIGINAL_AMOUNT),
+                    DSL.value(fx.originalCurrency, TRANSACTIONS.ORIGINAL_CURRENCY),
+                    DSL.value(fx.rate, TRANSACTIONS.EXCHANGE_RATE),
+                    DSL.value(fx.rateDate, TRANSACTIONS.RATE_DATE),
                     DSL.value(now), DSL.value(now),
                 ).whereExists(
                     dsl.selectOne().from(ACCOUNTS)
@@ -102,17 +112,23 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     }
 
     override fun updateTransaction(
-        transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, authenticatedUser: UserDTO
+        transactionId: UUID, accountId: UUID, transactionForm: TransactionForm, conversion: ConversionResult,
+        authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
             ?: throw IllegalArgumentException("Transaction type is required")
+        val fx = FxColumns.from(conversion)
 
         // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
         val updated = dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
-            .set(TRANSACTIONS.AMOUNT, transactionForm.amount)
+            .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
             .set(TRANSACTIONS.TRANSACTION_DATE, transactionForm.transactionDate)
             .set(TRANSACTIONS.TYPE, type.value)
+            .set(TRANSACTIONS.ORIGINAL_AMOUNT, fx.originalAmount)
+            .set(TRANSACTIONS.ORIGINAL_CURRENCY, fx.originalCurrency)
+            .set(TRANSACTIONS.EXCHANGE_RATE, fx.rate)
+            .set(TRANSACTIONS.RATE_DATE, fx.rateDate)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 TRANSACTIONS.ID.eq(transactionId)
@@ -132,10 +148,24 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return fetchTransactionById(transactionId, authenticatedUser)
     }
 
-    override fun deleteTransaction(transactionId: UUID, authenticatedUser: UserDTO): TransactionDTO {
+    override fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO {
         val transaction = fetchTransactionById(transactionId, authenticatedUser)
 
-        dsl.deleteFrom(TRANSACTIONS).where(TRANSACTIONS.ID.eq(transactionId)).execute()
+        val deleted = dsl.deleteFrom(TRANSACTIONS)
+            .where(
+                TRANSACTIONS.ID.eq(transactionId)
+                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+                    .and(
+                        TRANSACTIONS.ACCOUNT_ID.`in`(
+                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
+                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                        )
+                    )
+            ).execute()
+
+        if (deleted == 0) {
+            throw IllegalArgumentException("Transaction not found or not owned by user")
+        }
 
         return transaction
     }
@@ -211,7 +241,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         accountId: UUID, authenticatedUser: UserDTO, months: Int
     ): List<MonthlyAggregateDTO> {
         require(months in 1..36) { "months must be between 1 and 36" }
-        val today = java.time.LocalDate.now()
+        val today = LocalDate.now()
         val firstMonth = YearMonth.from(today).minusMonths((months - 1).toLong())
         val start = firstMonth.atDay(1)
 
@@ -247,13 +277,50 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         }
     }
 
+    override fun aggregateByDay(
+        accountId: UUID, authenticatedUser: UserDTO, days: Int
+    ): List<DailyAggregateDTO> {
+        require(days in 1..731) { "days must be between 1 and 731" }
+        val start = LocalDate.now().minusDays((days - 1).toLong())
+
+        val dayExpr = DSL.field("to_char({0}, 'YYYY-MM-DD')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("day")
+        val incomeExpr = DSL.sum(
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("income")
+        val expenseExpr = DSL.sum(
+            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value), TRANSACTIONS.AMOUNT)
+                .otherwise(BigDecimal.ZERO)
+        ).`as`("expense")
+
+        return dsl.select(dayExpr, incomeExpr, expenseExpr)
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                baseCondition(accountId, authenticatedUser)
+                    .and(TRANSACTIONS.TRANSACTION_DATE.ge(start))
+            )
+            .groupBy(dayExpr)
+            .orderBy(dayExpr.asc())
+            .fetch { record ->
+                DailyAggregateDTO(
+                    date = record[dayExpr]!!,
+                    income = record[incomeExpr] ?: BigDecimal.ZERO,
+                    expense = record[expenseExpr] ?: BigDecimal.ZERO,
+                )
+            }
+    }
+
     override fun importBatch(
         accountId: UUID,
         rows: List<ImportTransactionRow>,
+        conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
+        providerConnectionId: UUID?,
     ): BatchImportOutcome {
         require(rows.size == hashes.size) { "rows and hashes must have equal length" }
+        require(rows.size == conversions.size) { "rows and conversions must have equal length" }
         if (rows.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
         require(rows.all { it.type != null }) { "Every import row must have a type" }
 
@@ -267,14 +334,19 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS,
             TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.CATEGORY_ID, TRANSACTIONS.AMOUNT,
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
-            TRANSACTIONS.IMPORT_HASH,
+            TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
+            TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
+            TRANSACTIONS.IMPORT_HASH, TRANSACTIONS.PROVIDER_CONNECTION_ID,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
         rows.forEachIndexed { i, row ->
+            val conversion = conversions[i]
+            val fx = FxColumns.from(conversion)
             insertStep.values(
-                accountId, row.categoryId, row.amount,
+                accountId, row.categoryId, conversion.convertedAmount,
                 row.description, row.transactionDate, row.type!!.value,
-                hashes[i],
+                fx.originalAmount, fx.originalCurrency, fx.rate, fx.rateDate,
+                hashes[i], providerConnectionId,
                 now, now,
             )
         }
@@ -296,6 +368,40 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
         return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)
     }
+
+    override fun recategorizeByDescription(
+        authenticatedUser: UserDTO,
+        matchType: MatchType,
+        pattern: String,
+        categoryId: Long,
+        type: CategoryType,
+    ): Int {
+        val descMatch = when (matchType) {
+            MatchType.CONTAINS -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%${escapeLike(pattern)}%")
+            MatchType.STARTS_WITH -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("${escapeLike(pattern)}%")
+            MatchType.EQUALS -> DSL.lower(TRANSACTIONS.DESCRIPTION).eq(pattern.lowercase())
+        }
+        return dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.CATEGORY_ID, categoryId)
+            .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
+            .where(
+                TRANSACTIONS.ACCOUNT_ID.`in`(
+                    dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                )
+                    .and(TRANSACTIONS.TYPE.eq(type.value))
+                    .and(TRANSACTIONS.CATEGORY_ID.ne(categoryId))
+                    .and(
+                        TRANSACTIONS.CATEGORY_ID.notIn(
+                            dsl.select(CATEGORIES.ID).from(CATEGORIES).where(CATEGORIES.IS_MANAGED.isTrue)
+                        )
+                    )
+                    .and(descMatch)
+            )
+            .execute()
+    }
+
+    private fun escapeLike(s: String): String =
+        s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =
         TRANSACTIONS.ACCOUNT_ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))

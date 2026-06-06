@@ -9,6 +9,7 @@ import beer.thierry.centsible.imports.core.ParseWarning
 import beer.thierry.centsible.imports.core.ParsedFile
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.StringReader
 import java.math.BigDecimal
@@ -26,15 +27,21 @@ import java.util.Locale
  */
 @Component
 class CsvFileParser : FileFormatParser {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override val id = "csv"
     override val displayName = "CSV"
     override val supportedMimeTypes = setOf("text/csv", "application/csv", "text/plain")
     override val supportedExtensions = setOf("csv", "tsv", "txt")
     override val requiresMapping = true
 
+    /**
+     * 1 KB is enough to see the header line of any real-world CSV without buffering the whole
+     * file just to answer "is this CSV?". We accept any of comma/semicolon/tab as a delimiter so
+     * European exports (semicolon, because their decimal separator is a comma) and spreadsheet
+     * TSVs are recognized too.
+     */
     override fun sniff(bytes: ByteArray, filename: String): Boolean {
-        // Peek at first 1 KB. If it parses as at least one well-formed row using a comma OR
-        // semicolon OR tab delimiter, treat as CSV.
         val sample = bytes.take(1024).toByteArray().toString(Charsets.UTF_8)
         if (sample.isBlank()) return false
         val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() } ?: return false
@@ -55,26 +62,46 @@ class CsvFileParser : FileFormatParser {
     }
 
     override fun parse(bytes: ByteArray, hints: ParseHints): ParsedFile {
-        val mapping = requireNotNull(hints.csvMapping) {
-            "CsvFileParser requires ParseHints.csvMapping; call probe() and let the user confirm before parsing."
-        }
-        val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
-            "CsvFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
-        }
-        val dialect = hints.csvDialect ?: detectDialect(bytes)
-        val all = readAllRecords(bytes, dialect)
-        val dataStart = if (dialect.hasHeader) 1 else 0
-        val dateParser = DateTimeFormatter.ofPattern(mapping.dateFormat, hints.locale ?: Locale.ENGLISH)
+        log.debug("Parsing CSV file bytes={} encodingHint={}", bytes.size, hints.csvDialect?.encoding)
+        try {
+            val mapping = requireNotNull(hints.csvMapping) {
+                "CsvFileParser requires ParseHints.csvMapping; call probe() and let the user confirm before parsing."
+            }
+            val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
+                "CsvFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
+            }
+            val dialect = hints.csvDialect ?: detectDialect(bytes)
+            val all = readAllRecords(bytes, dialect)
+            val dataStart = if (dialect.hasHeader) 1 else 0
+            val dateParser = DateTimeFormatter.ofPattern(mapping.dateFormat, hints.locale ?: Locale.ENGLISH)
 
-        val rows = mutableListOf<ImportTransactionRow>()
-        val warnings = mutableListOf<ParseWarning>()
+            val rows = mutableListOf<ImportTransactionRow>()
+            val warnings = mutableListOf<ParseWarning>()
 
-        all.drop(dataStart).forEachIndexed { index, cells ->
-            val sourceRow = index + dataStart + 1
-            val parsed = parseRow(cells, mapping, dateParser, defaultCategoryId, sourceRow, warnings)
-            if (parsed != null) rows.add(parsed)
+            all.drop(dataStart).forEachIndexed { index, cells ->
+                val sourceRow = index + dataStart + 1
+                val parsed = parseRow(cells, mapping, dateParser, defaultCategoryId, sourceRow, warnings)
+                if (parsed != null) rows.add(parsed)
+            }
+            logWarningSummary(warnings)
+            log.info("Parsed file format=csv rows={} warnings={}", rows.size, warnings.size)
+            return ParsedFile(rows = rows, warnings = warnings)
+        } catch (ex: Exception) {
+            log.error("Failed to parse CSV file bytes={}", bytes.size, ex)
+            throw ex
         }
-        return ParsedFile(rows = rows, warnings = warnings)
+    }
+
+    /**
+     * Logged once per distinct warning code as a summary (with row counts) rather than per row —
+     * a malformed CSV can emit thousands of skipped-row warnings, and flooding the log per row
+     * would drown out everything else.
+     */
+    private fun logWarningSummary(warnings: List<ParseWarning>) {
+        if (warnings.isEmpty()) return
+        warnings.groupingBy { it.code }.eachCount().forEach { (code, count) ->
+            log.warn("CSV parse warning code={} count={}", code, count)
+        }
     }
 
     /**
@@ -168,6 +195,12 @@ class CsvFileParser : FileFormatParser {
     private fun decode(bytes: ByteArray, encoding: String): String =
         bytes.toString(runCatching { Charset.forName(encoding) }.getOrDefault(Charsets.UTF_8))
 
+    /**
+     * Heuristic: header-line delimiter counts decide. Semicolon wins when it outnumbers comma
+     * (German/French bank exports — comma is the decimal separator there, so they use ';').
+     * Tab wins only when present and there are no commas at all (spreadsheet TSV without comma
+     * fields). Comma is the safe default for everything else.
+     */
     private fun detectDialect(bytes: ByteArray): CsvDialect {
         val sample = bytes.take(4096).toByteArray().toString(Charsets.UTF_8)
         val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() } ?: return CsvDialect()
