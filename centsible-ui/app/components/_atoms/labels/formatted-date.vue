@@ -20,7 +20,19 @@ const FORMATTERS: Record<DateFormat, (d: Date, tag: string) => string> = {
   full:  (d, tag) => d.toLocaleString(tag, {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false}),
 };
 
-const formattedDate = computed(() => FORMATTERS[props.format](new Date(props.date), activeLocale.value));
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// Date-only ISO strings (LocalDate fields like transactionDate / loanDate / dueDate) must be read in
+// local time. `new Date('2026-06-06')` parses as UTC midnight, so toLocale* renders a day early west
+// of UTC; build a local Date from the parts instead. Datetime strings (with a time/offset) and Date
+// objects are passed through unchanged.
+function toLocalDate(value: string | Date): Date {
+  if (value instanceof Date) return value;
+  const m = DATE_ONLY.exec(value);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+}
+
+const formattedDate = computed(() => FORMATTERS[props.format](toLocalDate(props.date), activeLocale.value));
 </script>
 
 <template>
