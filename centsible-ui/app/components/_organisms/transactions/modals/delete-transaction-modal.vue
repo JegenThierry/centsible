@@ -20,6 +20,12 @@ const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
+const entity = computed(() =>
+  props.transaction?.transferGroupId
+    ? t('transactions.transfer.entity')
+    : t('transactions.delete.entity'),
+);
+
 async function deleteTransaction() {
   if (!props.transaction || !budgetAccountsStore.activeAccount?.id) {
     throw new Error("Missing transaction or active account");
@@ -36,5 +42,5 @@ async function deleteTransaction() {
 <template>
   <ConfirmationModal v-model:open="isOpen"
                      :delete-callback="deleteTransaction"
-                     :entity="t('transactions.delete.entity')"/>
+                     :entity="entity"/>
 </template>

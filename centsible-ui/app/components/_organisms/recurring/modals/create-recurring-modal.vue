@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {Frequency, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
 import {Currency} from "~/models/budget-account/currency";
+import {CategoryType} from "~/models/category/category";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import RecurringFormFields from "~/components/_molecules/recurring/recurring-form.vue";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
@@ -36,6 +37,10 @@ function makeBlankForm(): RecurringTransactionForm {
     endDate: undefined,
     active: true,
     currency: budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
+    type: CategoryType.EXPENSE,
+    isTransfer: false,
+    sourceAccountId: budgetAccountsStore.activeAccount?.id,
+    destinationAccountId: undefined,
   };
 }
 
@@ -49,20 +54,37 @@ const {requestClose} = useModalDirtyGuard({
 async function handleSave() {
   if (loading.value) return;
   if (!formRef.value?.validate()) return;
-  if (!budgetAccountsStore.activeAccount?.id) return;
-  if (!form.value.category?.id || !form.value.startDate) return;
+  if (!form.value.startDate) return;
+
+  const sourceAccountId = form.value.isTransfer
+    ? form.value.sourceAccountId
+    : budgetAccountsStore.activeAccount?.id;
+  if (!sourceAccountId) return;
+
+  if (form.value.isTransfer) {
+    if (!form.value.destinationAccountId) return;
+    if (sourceAccountId === form.value.destinationAccountId) {
+      toasts.error(t('transactions.transfer.sameAccountTitle'), t('transactions.transfer.sameAccountBody'));
+      return;
+    }
+  } else if (!form.value.category?.id) {
+    return;
+  }
 
   loading.value = true;
   try {
-    await service.create(budgetAccountsStore.activeAccount.id, {
+    await service.create(sourceAccountId, {
       amount: form.value.amount,
       description: form.value.description,
-      categoryId: form.value.category.id,
+      categoryId: form.value.isTransfer ? null : form.value.category?.id,
       frequency: form.value.frequency,
       startDate: form.value.startDate,
       endDate: form.value.endDate || null,
       active: form.value.active,
-      currency: form.value.currency,
+      currency: form.value.isTransfer ? undefined : form.value.currency,
+      type: form.value.isTransfer ? null : form.value.type,
+      isTransfer: form.value.isTransfer,
+      destinationAccountId: form.value.isTransfer ? form.value.destinationAccountId : null,
     });
     toasts.success(t('transactions.recurring.create.toastSuccessTitle'), t('transactions.recurring.create.toastSuccessBody'));
     emit('created');

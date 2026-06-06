@@ -10,6 +10,7 @@ import beer.thierry.centsible.api.model.transaction.MonthlyAggregateDTO
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -40,6 +41,18 @@ interface ITransactionRepository {
 
     /** Deletes transaction [transactionId] belonging to [accountId] owned by [authenticatedUser]; throws if none matches. */
     fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
+
+    fun insertTransfer(
+        sourceAccountId: UUID,
+        destinationAccountId: UUID,
+        form: TransferForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO>
+
+    fun fetchTransferLegs(transferGroupId: UUID, authenticatedUser: UserDTO): List<TransferLeg>
+
+    fun deleteTransactionsByIds(ids: List<UUID>, authenticatedUser: UserDTO): Int
 
     /** Returns the transactions matching [ids] that belong to [accountId] owned by [authenticatedUser]. */
     fun fetchTransactionsByIds(
@@ -105,4 +118,11 @@ interface ITransactionRepository {
 data class BatchImportOutcome(
     val insertedCount: Int,
     val netBalanceAdjustment: BigDecimal,
+)
+
+data class TransferLeg(
+    val id: UUID,
+    val accountId: UUID,
+    val type: CategoryType,
+    val amount: BigDecimal,
 )

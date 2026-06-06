@@ -65,6 +65,7 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, TXN_MONTH_KEY)
             .fetch()
@@ -98,6 +99,7 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(TXN_MONTH_KEY, TRANSACTIONS.TYPE)
             .fetch()

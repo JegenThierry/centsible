@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm} from "~/models/transactions/transaction";
+import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm, type TransferForm as TransferFormModel} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
 import {Currency} from "~/models/budget-account/currency";
 import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
+import TransferFormFields from "~/components/_molecules/transactions/transfer-form.vue";
 import SetBalanceFormFields from "~/components/_molecules/transactions/set-balance-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import LoanFormFields from "~/components/_organisms/loans/loan-form.vue";
@@ -41,16 +42,18 @@ const categoriesStore = useCategoriesStore();
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
 
-type Mode = 'standard' | 'lending' | 'setBalance';
+type Mode = 'standard' | 'transfer' | 'lending' | 'setBalance';
 const mode = ref<Mode>('standard');
 
 const modeOptions = computed(() => [
   {label: t('transactions.create.modeStandard'), value: 'standard'},
+  {label: t('transactions.create.modeTransfer'), value: 'transfer'},
   {label: t('transactions.create.modeLending'), value: 'lending'},
   {label: t('transactions.create.modeSetBalance'), value: 'setBalance'},
 ]);
 
 const formRef = ref<InstanceType<typeof TransactionFormFields>>();
+const transferFormRef = ref<InstanceType<typeof TransferFormFields>>();
 const loanFormRef = ref<InstanceType<typeof LoanFormFields>>();
 const setBalanceFormRef = ref<InstanceType<typeof SetBalanceFormFields>>();
 const attachmentsRef = ref<InstanceType<typeof TransactionAttachments>>();
@@ -66,6 +69,7 @@ const balanceAdjustmentCategory = computed(() =>
 const form = ref<TransactionForm>(makeBlankTransactionForm());
 const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 const setBalanceForm = ref<SetBalanceFormModel>(makeBlankSetBalanceForm());
+const transferForm = ref<TransferFormModel>(makeBlankTransferForm());
 
 function makeBlankTransactionForm(): TransactionForm {
   return {
@@ -103,6 +107,16 @@ function makeBlankSetBalanceForm(): SetBalanceFormModel {
   };
 }
 
+function makeBlankTransferForm(): TransferFormModel {
+  return {
+    amount: 0,
+    sourceAccountId: budgetAccountsStore.activeAccount?.id,
+    destinationAccountId: undefined,
+    description: '',
+    transactionDate: todayIsoDate(),
+  };
+}
+
 // Categories may not be loaded when the modal first opens. Once they arrive,
 // prefill the set-balance form's category if it's still empty.
 watch(balanceAdjustmentCategory, (category) => {
@@ -114,6 +128,7 @@ watch(balanceAdjustmentCategory, (category) => {
 // The dirty guard only needs to see the form for the active mode — including
 // the inactive ones would flag fields the user can't currently see.
 function activeFormSnapshot() {
+  if (mode.value === 'transfer') return transferForm.value;
   if (mode.value === 'lending') return loanForm.value;
   if (mode.value === 'setBalance') return setBalanceForm.value;
   return form.value;
@@ -128,16 +143,47 @@ const {requestClose} = useModalDirtyGuard({
     form.value = makeBlankTransactionForm();
     loanForm.value = makeBlankLoanForm();
     setBalanceForm.value = makeBlankSetBalanceForm();
+    transferForm.value = makeBlankTransferForm();
     attachmentsRef.value?.clearPending();
     if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
+    if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
   },
 });
 
 async function handleSave() {
   if (loading.value) return;
+  if (mode.value === 'transfer') return saveTransfer();
   if (mode.value === 'lending') return saveLending();
   if (mode.value === 'setBalance') return saveSetBalance();
   return saveStandard();
+}
+
+async function saveTransfer() {
+  if (!transferFormRef.value?.validate()) return;
+  const sourceId = transferForm.value.sourceAccountId;
+  const destinationId = transferForm.value.destinationAccountId;
+  if (!sourceId || !destinationId || !transferForm.value.transactionDate) return;
+  if (sourceId === destinationId) {
+    toasts.error(t('transactions.transfer.sameAccountTitle'), t('transactions.transfer.sameAccountBody'));
+    return;
+  }
+
+  loading.value = true;
+  try {
+    await transactionService.createTransfer(sourceId, {
+      amount: transferForm.value.amount,
+      destinationAccountId: destinationId,
+      description: transferForm.value.description,
+      transactionDate: transferForm.value.transactionDate,
+    });
+    toasts.success(t('transactions.transfer.toastSuccessTitle'), t('transactions.transfer.toastSuccessBody'));
+    emit('created');
+    isOpen.value = false;
+  } catch (error) {
+    useApiErrors().toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.toastErrorBody'));
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function saveStandard() {
@@ -238,6 +284,11 @@ async function saveSetBalance() {
                                :account-currency="activeCurrency"
                                :disabled="loading"
                                :filter-type="filterType"/>
+        <TransferFormFields v-else-if="mode === 'transfer'"
+                            ref="transferFormRef"
+                            v-model="transferForm"
+                            :accounts="budgetAccountsStore.availableAccounts"
+                            :disabled="loading"/>
         <LoanFormFields v-else-if="mode === 'lending'"
                         ref="loanFormRef"
                         v-model="loanForm"

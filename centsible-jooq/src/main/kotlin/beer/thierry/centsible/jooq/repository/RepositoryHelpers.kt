@@ -8,6 +8,8 @@ import java.util.UUID
 internal object ManagedCategoryNames {
     const val LENDING = "Lending"
     const val REPAYMENT = "Repayment"
+    const val TRANSFER_OUT = "Transfer out"
+    const val TRANSFER_IN = "Transfer in"
 }
 
 internal fun DSLContext.ensureAccountOwnedByUser(accountId: UUID, userId: UUID) {

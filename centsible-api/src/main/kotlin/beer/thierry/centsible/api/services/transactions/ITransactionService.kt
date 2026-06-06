@@ -13,6 +13,8 @@ import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -36,6 +38,17 @@ interface ITransactionService {
     ): TransactionDTO
 
     fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
+
+    fun createTransfer(sourceAccountId: UUID, form: TransferForm, authenticatedUser: UserDTO): List<TransactionDTO>
+
+    fun updateTransfer(
+        transactionId: UUID,
+        sourceAccountId: UUID,
+        form: TransferForm,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO>
+
+    fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO
 
     fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int
 

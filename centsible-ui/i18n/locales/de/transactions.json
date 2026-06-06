@@ -99,6 +99,7 @@
       "title": "Transaktion erstellen",
       "description": "Neue Transaktion für Ihr aktives Konto erstellen.",
       "modeStandard": "Standard",
+      "modeTransfer": "Überweisung",
       "modeLending": "Kredit",
       "modeSetBalance": "Saldo festlegen",
       "modeLegend": "Typ",
@@ -119,6 +120,26 @@
     },
     "delete": {
       "entity": "Transaktion"
+    },
+    "transfer": {
+      "fromAccount": "Quellkonto",
+      "fromAccountHelp": "Das Konto, von dem das Geld abgeht.",
+      "toAccount": "Zielkonto",
+      "toAccountHelp": "Das Konto, auf dem das Geld eingeht.",
+      "amount": "Betrag",
+      "badge": "Überweisung",
+      "entity": "Überweisung",
+      "sameAccountTitle": "Wählen Sie zwei verschiedene Konten.",
+      "sameAccountBody": "Eine Überweisung muss zwischen zwei verschiedenen Konten erfolgen.",
+      "toastSuccessTitle": "Überweisung erstellt.",
+      "toastSuccessBody": "Das Geld wurde zwischen Ihren Konten verschoben.",
+      "toastErrorTitle": "Überweisung fehlgeschlagen.",
+      "toastErrorBody": "Ihre Überweisung konnte nicht gespeichert werden, bitte versuchen Sie es erneut.",
+      "loadErrorBody": "Diese Überweisung konnte nicht geladen werden, bitte versuchen Sie es erneut.",
+      "editTitle": "Überweisung bearbeiten",
+      "editDescription": "Beim Bearbeiten werden beide Seiten der Überweisung aktualisiert.",
+      "editToastSuccessTitle": "Überweisung aktualisiert.",
+      "editToastSuccessBody": "Beide Seiten der Überweisung wurden aktualisiert."
     },
     "confirm": {
       "title": "Löschen bestätigen",
@@ -212,6 +233,9 @@
       "toastToggleErrorTitle": "Aktion fehlgeschlagen.",
       "toastToggleErrorBody": "Der Status der Regel konnte nicht geändert werden.",
       "form": {
+        "modeLegend": "Typ",
+        "modeStandard": "Standard",
+        "modeTransfer": "Überweisung",
         "category": "Kategorie",
         "transactionType": "Transaktionstyp:",
         "amount": "Betrag",

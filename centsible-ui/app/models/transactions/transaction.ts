@@ -15,6 +15,7 @@ export interface Transaction {
   originalCurrency?: Currency | null,
   exchangeRate?: number | null,
   rateDate?: string | null,
+  transferGroupId?: string | null,
 }
 
 export interface TransactionRequest {
@@ -24,6 +25,30 @@ export interface TransactionRequest {
   transactionDate: string,
   type?: CategoryType,
   currency?: Currency,
+}
+
+export interface TransferRequest {
+  amount: number,
+  destinationAccountId: string,
+  description: string,
+  transactionDate: string,
+}
+
+export interface TransferForm {
+  amount: number,
+  sourceAccountId: string | undefined,
+  destinationAccountId: string | undefined,
+  description: string,
+  transactionDate: string | undefined,
+}
+
+export interface TransferDetails {
+  transferGroupId: string,
+  sourceAccountId: string,
+  destinationAccountId: string,
+  amount: number,
+  description: string | null,
+  transactionDate: string,
 }
 
 export interface TransactionForm {

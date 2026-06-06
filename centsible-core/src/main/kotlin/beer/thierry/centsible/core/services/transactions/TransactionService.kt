@@ -15,6 +15,8 @@ import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
 import beer.thierry.centsible.api.repository.IAttachmentRepository
@@ -154,28 +156,133 @@ class TransactionService(
         accountId: UUID,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val transaction = transactionRepository.deleteTransaction(transactionId, accountId, authenticatedUser)
-        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
+        val deleted = transactionRepository.deleteTransaction(transactionId, accountId, authenticatedUser)
+        val groupId = deleted.transferGroupId
+        if (groupId != null) {
+            val remaining = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
+            if (remaining.isNotEmpty()) {
+                transactionRepository.deleteTransactionsByIds(remaining.map { it.id }, authenticatedUser)
+            }
+            accountRepository.updateBalance(
+                accountId, calculateAdjustment(deleted.type, deleted.amount).negate(), authenticatedUser
+            )
+            remaining.forEach { leg ->
+                accountRepository.updateBalance(
+                    leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
+                )
+            }
+            log.info("Deleted transfer groupId={} legs={} userId={}", groupId, remaining.size + 1, authenticatedUser.id)
+            return deleted
+        }
+
+        val adjustment = calculateAdjustment(deleted.type, deleted.amount)
         accountRepository.updateBalance(accountId, adjustment.negate(), authenticatedUser)
         log.info(
             "Deleted transaction id={} accountId={} userId={}",
             transactionId, accountId, authenticatedUser.id,
         )
-        return transaction
+        return deleted
+    }
+
+    @Transactional
+    override fun createTransfer(
+        sourceAccountId: UUID,
+        form: TransferForm,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO> {
+        val destinationAccountId = form.destinationAccountId
+            ?: throw IllegalArgumentException("Destination account is required.")
+        require(sourceAccountId != destinationAccountId) { "Source and destination accounts must be different." }
+
+        val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
+        val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
+
+        val conversion = currencyConversionService.convert(
+            form.amount, source.currency, destination.currency, form.transactionDate
+        )
+
+        val legs = transactionRepository.insertTransfer(
+            sourceAccountId, destinationAccountId, form, conversion, authenticatedUser
+        )
+        accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
+        accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
+
+        log.info(
+            "Created transfer groupId={} sourceAccountId={} destinationAccountId={} userId={} amount={}",
+            legs.firstOrNull()?.transferGroupId, sourceAccountId, destinationAccountId, authenticatedUser.id, form.amount,
+        )
+        return legs
+    }
+
+    @Transactional
+    override fun updateTransfer(
+        transactionId: UUID,
+        sourceAccountId: UUID,
+        form: TransferForm,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO> {
+        val existing = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+        val groupId = existing.transferGroupId
+            ?: throw IllegalArgumentException("Transaction is not part of a transfer.")
+
+        val oldLegs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
+        oldLegs.forEach { leg ->
+            accountRepository.updateBalance(
+                leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
+            )
+        }
+        transactionRepository.deleteTransactionsByIds(oldLegs.map { it.id }, authenticatedUser)
+
+        log.info("Replacing transfer groupId={} userId={}", groupId, authenticatedUser.id)
+        return createTransfer(sourceAccountId, form, authenticatedUser)
+    }
+
+    override fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO {
+        val transaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+        val groupId = transaction.transferGroupId
+            ?: throw IllegalArgumentException("Transaction is not part of a transfer.")
+        val legs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
+        val sourceLeg = legs.firstOrNull { it.type == CategoryType.EXPENSE }
+            ?: throw IllegalArgumentException("Transfer source leg not found.")
+        val destinationLeg = legs.firstOrNull { it.type == CategoryType.INCOME }
+            ?: throw IllegalArgumentException("Transfer destination leg not found.")
+        val sourceTx = transactionRepository.fetchTransactionById(sourceLeg.id, authenticatedUser)
+        return TransferDetailsDTO(
+            transferGroupId = groupId,
+            sourceAccountId = sourceLeg.accountId,
+            destinationAccountId = destinationLeg.accountId,
+            amount = sourceLeg.amount,
+            description = sourceTx.description,
+            transactionDate = sourceTx.transactionDate ?: LocalDate.now(),
+        )
     }
 
     @Transactional
     override fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int {
         if (ids.isEmpty()) return 0
-        val transactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
-        val deleted = transactionRepository.deleteTransactions(accountId, transactions.map { it.id!! }, authenticatedUser)
+        val selected = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
+        if (selected.isEmpty()) return 0
+
+        val normalTxns = selected.filter { it.transferGroupId == null }
+        val transferGroupIds = selected.mapNotNull { it.transferGroupId }.distinct()
+        val transferLegs = transferGroupIds.flatMap { transactionRepository.fetchTransferLegs(it, authenticatedUser) }
+
+        val allIds = (normalTxns.mapNotNull { it.id } + transferLegs.map { it.id }).distinct()
+        val deleted = transactionRepository.deleteTransactionsByIds(allIds, authenticatedUser)
         if (deleted == 0) return 0
 
-        val net = transactions.fold(BigDecimal.ZERO) { acc, tx ->
-            acc + calculateAdjustment(tx.type, tx.amount)
+        val perAccount = mutableMapOf<UUID, BigDecimal>()
+        normalTxns.forEach { tx ->
+            perAccount.merge(accountId, calculateAdjustment(tx.type, tx.amount)) { a, b -> a + b }
         }
-        if (net.signum() != 0) accountRepository.updateBalance(accountId, net.negate(), authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, transactions.mapNotNull { it.category.id }.distinct())
+        transferLegs.forEach { leg ->
+            perAccount.merge(leg.accountId, calculateAdjustment(leg.type, leg.amount)) { a, b -> a + b }
+        }
+        perAccount.forEach { (acc, net) ->
+            if (net.signum() != 0) accountRepository.updateBalance(acc, net.negate(), authenticatedUser)
+        }
+
+        checkBudgetAlerts(authenticatedUser, normalTxns.mapNotNull { it.category.id }.distinct())
         log.info(
             "Bulk-deleted transactions count={} accountId={} userId={}",
             deleted, accountId, authenticatedUser.id,

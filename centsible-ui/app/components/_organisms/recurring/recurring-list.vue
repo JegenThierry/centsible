@@ -58,6 +58,10 @@ async function toggle(rule: RecurringTransaction) {
 }
 
 watch(() => accountsStore.activeAccount?.id, () => refresh(), {immediate: true});
+
+onMounted(() => {
+  if (accountsStore.availableAccounts.length === 0) accountsStore.updateAvailableAccounts();
+});
 </script>
 
 <template>

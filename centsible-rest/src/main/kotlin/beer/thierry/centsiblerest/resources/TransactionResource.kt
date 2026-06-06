@@ -12,6 +12,8 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.transaction.TransactionSort
+import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import jakarta.validation.Valid
@@ -83,6 +85,36 @@ class TransactionResource(private val transactionService: ITransactionService) {
         log.info("Updated transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
         return ResponseEntity.ok(updated)
     }
+
+    @PostMapping("/{accountId}/transfer")
+    fun createTransfer(
+        @PathVariable accountId: UUID,
+        @Valid @RequestBody form: TransferForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<TransactionDTO>> {
+        val legs = transactionService.createTransfer(accountId, form, authenticatedUser)
+        log.info("Created transfer sourceAccountId={} userId={} legs={}", accountId, authenticatedUser.id, legs.size)
+        return ResponseEntity.ok(legs)
+    }
+
+    @PutMapping("/{accountId}/transfer/{transactionId}")
+    fun updateTransfer(
+        @PathVariable accountId: UUID,
+        @PathVariable transactionId: UUID,
+        @Valid @RequestBody form: TransferForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<TransactionDTO>> {
+        val legs = transactionService.updateTransfer(transactionId, accountId, form, authenticatedUser)
+        log.info("Updated transfer txId={} sourceAccountId={} userId={}", transactionId, accountId, authenticatedUser.id)
+        return ResponseEntity.ok(legs)
+    }
+
+    @GetMapping("/transfer/{transactionId}")
+    fun fetchTransfer(
+        @PathVariable transactionId: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<TransferDetailsDTO> =
+        ResponseEntity.ok(transactionService.fetchTransfer(transactionId, authenticatedUser))
 
     @GetMapping("/{accountId}/aggregates/by-category")
     fun aggregateByCategory(

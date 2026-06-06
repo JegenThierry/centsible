@@ -99,6 +99,7 @@
       "title": "Créer une transaction",
       "description": "Créer une nouvelle transaction pour votre compte actif.",
       "modeStandard": "Standard",
+      "modeTransfer": "Virement",
       "modeLending": "Prêt",
       "modeSetBalance": "Définir le solde",
       "modeLegend": "Type",
@@ -119,6 +120,26 @@
     },
     "delete": {
       "entity": "transaction"
+    },
+    "transfer": {
+      "fromAccount": "Compte source",
+      "fromAccountHelp": "Le compte d'où part l'argent.",
+      "toAccount": "Compte destinataire",
+      "toAccountHelp": "Le compte où arrive l'argent.",
+      "amount": "Montant",
+      "badge": "Virement",
+      "entity": "virement",
+      "sameAccountTitle": "Choisissez deux comptes différents.",
+      "sameAccountBody": "Un virement doit relier deux comptes différents.",
+      "toastSuccessTitle": "Virement créé.",
+      "toastSuccessBody": "L'argent a été transféré entre vos comptes.",
+      "toastErrorTitle": "Échec du virement.",
+      "toastErrorBody": "Votre virement n'a pas pu être enregistré, veuillez réessayer.",
+      "loadErrorBody": "Ce virement n'a pas pu être chargé, veuillez réessayer.",
+      "editTitle": "Modifier le virement",
+      "editDescription": "La modification met à jour les deux côtés du virement.",
+      "editToastSuccessTitle": "Virement mis à jour.",
+      "editToastSuccessBody": "Les deux côtés du virement ont été mis à jour."
     },
     "confirm": {
       "title": "Confirmer la suppression",
@@ -212,6 +233,9 @@
       "toastToggleErrorTitle": "Action échouée.",
       "toastToggleErrorBody": "Impossible de modifier le statut de la règle.",
       "form": {
+        "modeLegend": "Type",
+        "modeStandard": "Standard",
+        "modeTransfer": "Virement",
         "category": "Catégorie",
         "transactionType": "Type de transaction :",
         "amount": "Montant",

@@ -31,6 +31,7 @@ they are load-bearing, non-obvious, or easy to get wrong. Lower-level convention
 | [0012](0012-dependency-version-catalog.md) | Dependency versions via the Gradle version catalog | build |
 | [0013](0013-sql-migrations-and-jooq-codegen.md) | Plain-SQL migrations + committed jOOQ codegen | backend · db |
 | [0014](0014-secrets-handling-precommit-hook.md) | Secrets handling — gitignored properties + pre-commit hook | cross-cutting · security |
+| [0015](0015-account-to-account-transfers.md) | Account-to-account transfers as linked transaction legs | backend · frontend · db |
 
 ## How to read an entry
 

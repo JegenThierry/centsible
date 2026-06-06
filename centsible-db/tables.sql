@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
 (
     id          UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     account_id  UUID           NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
-    category_id BIGINT         NOT NULL REFERENCES categories (id),
+    category_id BIGINT         REFERENCES categories (id),
     amount      DECIMAL(15, 2) NOT NULL CHECK (amount > 0),
     description TEXT           NOT NULL,
     frequency   VARCHAR(10)    NOT NULL CHECK (frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')),
@@ -149,13 +149,22 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
     active      BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at TIMESTAMPTZ    NOT NULL DEFAULT now(),
-    original_amount   DECIMAL(15, 2),
-    original_currency VARCHAR(3),
-    CONSTRAINT chk_recurring_end_after_start CHECK (end_date IS NULL OR end_date >= start_date)
+    original_amount        DECIMAL(15, 2),
+    original_currency      VARCHAR(3),
+    is_transfer            BOOLEAN        NOT NULL DEFAULT FALSE,
+    destination_account_id UUID           REFERENCES accounts (id) ON DELETE CASCADE,
+    type                   VARCHAR(10)    CHECK (type IN ('INCOME', 'EXPENSE')),
+    CONSTRAINT chk_recurring_end_after_start CHECK (end_date IS NULL OR end_date >= start_date),
+    CONSTRAINT chk_recurring_transfer CHECK (
+        (is_transfer = FALSE AND category_id IS NOT NULL AND destination_account_id IS NULL)
+            OR (is_transfer = TRUE AND destination_account_id IS NOT NULL AND destination_account_id <> account_id)
+        )
 );
 
 CREATE INDEX IF NOT EXISTS idx_recurring_account_id ON recurring_transactions (account_id);
 CREATE INDEX IF NOT EXISTS idx_recurring_due ON recurring_transactions (next_run_at) WHERE active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_recurring_destination_account
+    ON recurring_transactions (destination_account_id) WHERE destination_account_id IS NOT NULL;
 
 
 CREATE TABLE IF NOT EXISTS transactions
@@ -176,6 +185,7 @@ CREATE TABLE IF NOT EXISTS transactions
     original_currency        VARCHAR(3),
     exchange_rate            NUMERIC(20, 10),
     rate_date                DATE,
+    transfer_group_id        UUID,
     CONSTRAINT transactions_type_check CHECK (type IN ('INCOME', 'EXPENSE'))
 );
 
@@ -192,6 +202,9 @@ CREATE INDEX IF NOT EXISTS idx_transactions_provider_connection_id
     WHERE provider_connection_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_transactions_account_date
     ON transactions (account_id, transaction_date, id);
+CREATE INDEX IF NOT EXISTS idx_transactions_transfer_group
+    ON transactions (transfer_group_id)
+    WHERE transfer_group_id IS NOT NULL;
 
 
 CREATE TABLE IF NOT EXISTS exchange_rates
@@ -511,6 +524,8 @@ VALUES ('Food', 'i-lucide-utensils', '#ef4444', 'EXPENSE', FALSE, NULL),
        ('Savings Deposit', 'i-lucide-piggy-bank', '#22d3ee', 'EXPENSE', FALSE, NULL),
        ('Lending', 'i-lucide-hand-coins', '#f97316', 'EXPENSE', TRUE, NULL),
        ('Repayment', 'i-lucide-hand-helping', '#10b981', 'INCOME', TRUE, NULL),
+       ('Transfer out', 'i-lucide-arrow-up-right', '#06b6d4', 'EXPENSE', TRUE, 'TRANSFER_OUT'),
+       ('Transfer in', 'i-lucide-arrow-down-left', '#06b6d4', 'INCOME', TRUE, 'TRANSFER_IN'),
        ('Uncategorized', 'i-lucide-circle-help', '#9ca3af', 'EXPENSE', FALSE, 'UNCATEGORIZED')
 ON CONFLICT (name)
 WHERE user_id IS NULL DO NOTHING;
@@ -528,3 +543,5 @@ INSERT INTO schema_migrations (version) VALUES ('0.4.0/01_uncategorized_category
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/02_categorization_rules.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/03_multi_currency.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/04_SetVersion_0_4_0.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.5.0/01_transfer_support.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.5.0/02_transfer_categories.sql') ON CONFLICT (version) DO NOTHING;

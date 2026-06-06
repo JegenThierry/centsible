@@ -2,6 +2,7 @@ package beer.thierry.centsible.api.model.recurring
 
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
+import beer.thierry.centsible.api.model.category.CategoryType
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -22,4 +23,7 @@ data class RecurringTransactionDTO(
     var updatedAt: OffsetDateTime? = null,
     var originalAmount: BigDecimal? = null,
     var originalCurrency: Currency? = null,
+    var type: CategoryType? = null,
+    var isTransfer: Boolean = false,
+    var destinationAccountId: UUID? = null,
 )

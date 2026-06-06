@@ -1,0 +1,14 @@
+package beer.thierry.centsible.api.model.transaction
+
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.*
+
+data class TransferDetailsDTO(
+    var transferGroupId: UUID,
+    var sourceAccountId: UUID,
+    var destinationAccountId: UUID,
+    var amount: BigDecimal,
+    var description: String?,
+    var transactionDate: LocalDate,
+)

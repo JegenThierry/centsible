@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import type {
-  CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest
+  CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest, TransferDetails, TransferRequest
 } from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
 import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
@@ -31,6 +31,21 @@ export function useTransactionService(api: AxiosInstance) {
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
     assertStatus(await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`,));
+  }
+
+  async function createTransfer(sourceAccountId: string, payload: TransferRequest): Promise<Transaction[]> {
+    const response = await api.post<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer`, payload);
+    return validateRequest<Transaction[]>(response);
+  }
+
+  async function updateTransfer(sourceAccountId: string, transactionId: string, payload: TransferRequest): Promise<Transaction[]> {
+    const response = await api.put<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer/${encodeURIComponent(transactionId)}`, payload);
+    return validateRequest<Transaction[]>(response);
+  }
+
+  async function fetchTransfer(transactionId: string): Promise<TransferDetails> {
+    const response = await api.get<TransferDetails>(`/transactions/transfer/${encodeURIComponent(transactionId)}`);
+    return validateRequest<TransferDetails>(response);
   }
 
   async function aggregateByCategory(accountId: string, options?: {
@@ -92,6 +107,9 @@ export function useTransactionService(api: AxiosInstance) {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    createTransfer,
+    updateTransfer,
+    fetchTransfer,
     bulkDelete,
     bulkCategorize,
     aggregateByCategory,

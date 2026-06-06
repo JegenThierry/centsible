@@ -29,7 +29,10 @@ data class RecurringTransactions(
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null,
     val originalAmount: BigDecimal? = null,
-    val originalCurrency: String? = null
+    val originalCurrency: String? = null,
+    val isTransfer: Boolean? = null,
+    val destinationAccountId: UUID? = null,
+    val type: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -124,6 +127,24 @@ data class RecurringTransactions(
         }
         else if (this.originalCurrency != o.originalCurrency)
             return false
+        if (this.isTransfer == null) {
+            if (o.isTransfer != null)
+                return false
+        }
+        else if (this.isTransfer != o.isTransfer)
+            return false
+        if (this.destinationAccountId == null) {
+            if (o.destinationAccountId != null)
+                return false
+        }
+        else if (this.destinationAccountId != o.destinationAccountId)
+            return false
+        if (this.type == null) {
+            if (o.type != null)
+                return false
+        }
+        else if (this.type != o.type)
+            return false
         return true
     }
 
@@ -144,6 +165,9 @@ data class RecurringTransactions(
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
         result = prime * result + (if (this.originalAmount == null) 0 else this.originalAmount.hashCode())
         result = prime * result + (if (this.originalCurrency == null) 0 else this.originalCurrency.hashCode())
+        result = prime * result + (if (this.isTransfer == null) 0 else this.isTransfer.hashCode())
+        result = prime * result + (if (this.destinationAccountId == null) 0 else this.destinationAccountId.hashCode())
+        result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         return result
     }
 
@@ -164,6 +188,9 @@ data class RecurringTransactions(
         sb.append(", ").append(modifiedAt)
         sb.append(", ").append(originalAmount)
         sb.append(", ").append(originalCurrency)
+        sb.append(", ").append(isTransfer)
+        sb.append(", ").append(destinationAccountId)
+        sb.append(", ").append(type)
 
         sb.append(")")
         return sb.toString()

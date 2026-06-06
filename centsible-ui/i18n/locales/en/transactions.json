@@ -99,6 +99,7 @@
       "title": "Create Transaction",
       "description": "Create a new transaction for your active account.",
       "modeStandard": "Standard",
+      "modeTransfer": "Transfer",
       "modeLending": "Lending",
       "modeSetBalance": "Set balance",
       "modeLegend": "Type",
@@ -119,6 +120,26 @@
     },
     "delete": {
       "entity": "transaction"
+    },
+    "transfer": {
+      "fromAccount": "From account",
+      "fromAccountHelp": "The account the money leaves.",
+      "toAccount": "To account",
+      "toAccountHelp": "The account the money arrives in.",
+      "amount": "Amount",
+      "badge": "Transfer",
+      "entity": "transfer",
+      "sameAccountTitle": "Pick two different accounts.",
+      "sameAccountBody": "A transfer must be between two different accounts.",
+      "toastSuccessTitle": "Transfer created.",
+      "toastSuccessBody": "The money has been moved between your accounts.",
+      "toastErrorTitle": "Transfer failed.",
+      "toastErrorBody": "Your transfer could not be saved, please try again.",
+      "loadErrorBody": "This transfer could not be loaded, please try again.",
+      "editTitle": "Edit Transfer",
+      "editDescription": "Editing updates both sides of the transfer.",
+      "editToastSuccessTitle": "Transfer updated.",
+      "editToastSuccessBody": "Both sides of the transfer have been updated."
     },
     "confirm": {
       "title": "Confirm Delete",
@@ -212,6 +233,9 @@
       "toastToggleErrorTitle": "Action failed.",
       "toastToggleErrorBody": "Could not change the rule status.",
       "form": {
+        "modeLegend": "Type",
+        "modeStandard": "Standard",
+        "modeTransfer": "Transfer",
         "category": "Category",
         "transactionType": "Transaction Type:",
         "amount": "Amount",

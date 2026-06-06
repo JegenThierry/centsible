@@ -31,7 +31,8 @@ data class Transactions(
     val originalAmount: BigDecimal? = null,
     val originalCurrency: String? = null,
     val exchangeRate: BigDecimal? = null,
-    val rateDate: LocalDate? = null
+    val rateDate: LocalDate? = null,
+    val transferGroupId: UUID? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -138,6 +139,12 @@ data class Transactions(
         }
         else if (this.rateDate != o.rateDate)
             return false
+        if (this.transferGroupId == null) {
+            if (o.transferGroupId != null)
+                return false
+        }
+        else if (this.transferGroupId != o.transferGroupId)
+            return false
         return true
     }
 
@@ -160,6 +167,7 @@ data class Transactions(
         result = prime * result + (if (this.originalCurrency == null) 0 else this.originalCurrency.hashCode())
         result = prime * result + (if (this.exchangeRate == null) 0 else this.exchangeRate.hashCode())
         result = prime * result + (if (this.rateDate == null) 0 else this.rateDate.hashCode())
+        result = prime * result + (if (this.transferGroupId == null) 0 else this.transferGroupId.hashCode())
         return result
     }
 
@@ -182,6 +190,7 @@ data class Transactions(
         sb.append(", ").append(originalCurrency)
         sb.append(", ").append(exchangeRate)
         sb.append(", ").append(rateDate)
+        sb.append(", ").append(transferGroupId)
 
         sb.append(")")
         return sb.toString()

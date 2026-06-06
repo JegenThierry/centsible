@@ -16,6 +16,7 @@ import TransactionFilterBar from "~/components/_molecules/transactions/transacti
 import TransactionBulkActionBar from "~/components/_molecules/transactions/transaction-bulk-action-bar.vue";
 
 const EditTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transaction-modal.vue"));
+const EditTransferModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transfer-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
@@ -42,6 +43,7 @@ const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
+const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
@@ -59,12 +61,21 @@ function openCreateRule(transaction: Transaction) {
 
 function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
-  isEditModalOpen.value = true;
+  if (transaction.transferGroupId) {
+    isEditTransferModalOpen.value = true;
+  } else {
+    isEditModalOpen.value = true;
+  }
 }
 
 function openDeleteModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
   isDeleteModalOpen.value = true;
+}
+
+async function onMutated() {
+  await budgetAccountsStore.updateActiveAccount();
+  await loadTransactions(true);
 }
 
 const allOnPageSelected = computed(() =>
@@ -175,17 +186,22 @@ watch(
 
   <CreateTransactionModal v-if="isCreateModalOpen"
                           v-model:open="isCreateModalOpen"
-                          @created="loadTransactions(true)"/>
+                          @created="onMutated"/>
 
   <EditTransactionModal v-if="isEditModalOpen && selectedTransaction !== null"
                         v-model:open="isEditModalOpen"
                         :transaction="selectedTransaction"
-                        @updated="loadTransactions(true)"/>
+                        @updated="onMutated"/>
+
+  <EditTransferModal v-if="isEditTransferModalOpen && selectedTransaction !== null"
+                     v-model:open="isEditTransferModalOpen"
+                     :transaction="selectedTransaction"
+                     @updated="onMutated"/>
 
   <DeleteTransactionModal v-if="isDeleteModalOpen"
                           v-model:open="isDeleteModalOpen"
                           :transaction="selectedTransaction"
-                          @deleted="loadTransactions(true)"/>
+                          @deleted="onMutated"/>
 
   <BulkCategorizeModal v-if="isBulkCategorizeOpen"
                        v-model:open="isBulkCategorizeOpen"

@@ -11,9 +11,11 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.transaction.TransactionSort
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.BatchImportOutcome
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.repository.TransferLeg
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
@@ -170,6 +172,96 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return transaction
     }
 
+    override fun insertTransfer(
+        sourceAccountId: UUID,
+        destinationAccountId: UUID,
+        form: TransferForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO> {
+        dsl.ensureAccountOwnedByUser(sourceAccountId, authenticatedUser.id)
+        dsl.ensureAccountOwnedByUser(destinationAccountId, authenticatedUser.id)
+
+        val outCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.TRANSFER_OUT)
+            ?: throw IllegalStateException("System 'Transfer out' category not found. Migration may not have run.")
+        val inCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.TRANSFER_IN)
+            ?: throw IllegalStateException("System 'Transfer in' category not found. Migration may not have run.")
+
+        val groupId = UUID.randomUUID()
+        val now = OffsetDateTime.now()
+        val destFx = FxColumns.from(conversion)
+
+        val outId = dsl.insertInto(TRANSACTIONS)
+            .set(TRANSACTIONS.ACCOUNT_ID, sourceAccountId)
+            .set(TRANSACTIONS.CATEGORY_ID, outCategoryId)
+            .set(TRANSACTIONS.AMOUNT, form.amount)
+            .set(TRANSACTIONS.DESCRIPTION, form.description)
+            .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
+            .set(TRANSACTIONS.TYPE, CategoryType.EXPENSE.value)
+            .set(TRANSACTIONS.TRANSFER_GROUP_ID, groupId)
+            .set(TRANSACTIONS.CREATED_AT, now)
+            .set(TRANSACTIONS.MODIFIED_AT, now)
+            .returning(TRANSACTIONS.ID)
+            .fetchOne()
+            ?.get(TRANSACTIONS.ID)
+            ?: throw IllegalStateException("Failed to create transfer source leg")
+
+        val inId = dsl.insertInto(TRANSACTIONS)
+            .set(TRANSACTIONS.ACCOUNT_ID, destinationAccountId)
+            .set(TRANSACTIONS.CATEGORY_ID, inCategoryId)
+            .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
+            .set(TRANSACTIONS.DESCRIPTION, form.description)
+            .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
+            .set(TRANSACTIONS.TYPE, CategoryType.INCOME.value)
+            .set(TRANSACTIONS.ORIGINAL_AMOUNT, destFx.originalAmount)
+            .set(TRANSACTIONS.ORIGINAL_CURRENCY, destFx.originalCurrency)
+            .set(TRANSACTIONS.EXCHANGE_RATE, destFx.rate)
+            .set(TRANSACTIONS.RATE_DATE, destFx.rateDate)
+            .set(TRANSACTIONS.TRANSFER_GROUP_ID, groupId)
+            .set(TRANSACTIONS.CREATED_AT, now)
+            .set(TRANSACTIONS.MODIFIED_AT, now)
+            .returning(TRANSACTIONS.ID)
+            .fetchOne()
+            ?.get(TRANSACTIONS.ID)
+            ?: throw IllegalStateException("Failed to create transfer destination leg")
+
+        return listOf(
+            fetchTransactionById(outId, authenticatedUser),
+            fetchTransactionById(inId, authenticatedUser),
+        )
+    }
+
+    override fun fetchTransferLegs(transferGroupId: UUID, authenticatedUser: UserDTO): List<TransferLeg> =
+        dsl.select(TRANSACTIONS.ID, TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.TYPE, TRANSACTIONS.AMOUNT)
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                TRANSACTIONS.TRANSFER_GROUP_ID.eq(transferGroupId)
+                    .and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+            )
+            .fetch { record ->
+                TransferLeg(
+                    id = record[TRANSACTIONS.ID]!!,
+                    accountId = record[TRANSACTIONS.ACCOUNT_ID]!!,
+                    type = CategoryType.fromValue(record[TRANSACTIONS.TYPE]!!),
+                    amount = record[TRANSACTIONS.AMOUNT]!!,
+                )
+            }
+
+    override fun deleteTransactionsByIds(ids: List<UUID>, authenticatedUser: UserDTO): Int {
+        if (ids.isEmpty()) return 0
+        return dsl.deleteFrom(TRANSACTIONS)
+            .where(
+                TRANSACTIONS.ID.`in`(ids)
+                    .and(
+                        TRANSACTIONS.ACCOUNT_ID.`in`(
+                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                        )
+                    )
+            )
+            .execute()
+    }
+
     override fun fetchTransactionsByIds(
         accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO
     ): List<TransactionDTO> {
@@ -223,6 +315,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                 baseCondition(accountId, authenticatedUser)
                     .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON)
             .orderBy(total.desc())
@@ -261,6 +354,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .where(
                 baseCondition(accountId, authenticatedUser)
                     .and(TRANSACTIONS.TRANSACTION_DATE.ge(start))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(monthExpr)
             .fetch { record ->
@@ -299,6 +393,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .where(
                 baseCondition(accountId, authenticatedUser)
                     .and(TRANSACTIONS.TRANSACTION_DATE.ge(start))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(dayExpr)
             .orderBy(dayExpr.asc())

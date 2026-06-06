@@ -22,4 +22,5 @@ data class TransactionDTO(
     var originalCurrency: Currency? = null,
     var exchangeRate: BigDecimal? = null,
     var rateDate: LocalDate? = null,
+    var transferGroupId: UUID? = null,
 )

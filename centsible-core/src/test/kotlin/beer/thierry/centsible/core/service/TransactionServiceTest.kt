@@ -8,8 +8,10 @@ import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
+import beer.thierry.centsible.api.repository.TransferLeg
 import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
@@ -26,7 +28,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.lenient
 import org.mockito.Mockito.never
@@ -448,6 +449,73 @@ class TransactionServiceTest {
 
         assertEquals(createdTx, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-40.00"), user)
+    }
+
+    @Test
+    fun `createTransfer moves money out of source and into destination`() {
+        val destAccountId = UUID.randomUUID()
+        val destAccount = BudgetAccountDTO(destAccountId, "Savings", BigDecimal("0.00"), BigDecimal("0.00"), Currency.EUR)
+        lenient().`when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(destAccount)
+        val form = TransferForm(BigDecimal("100.00"), destAccountId, "Move", LocalDate.now())
+        val legs = listOf(
+            TransactionDTO(id = UUID.randomUUID(), type = CategoryType.EXPENSE, amount = BigDecimal("100.00")),
+            TransactionDTO(id = UUID.randomUUID(), type = CategoryType.INCOME, amount = BigDecimal("100.00")),
+        )
+        `when`(transactionRepository.insertTransfer(eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(legs)
+
+        val result = service.createTransfer(accountId, form, user)
+
+        assertEquals(2, result.size)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("100.00"), user)
+    }
+
+    @Test
+    fun `createTransfer converts the destination leg across currencies`() {
+        val destAccountId = UUID.randomUUID()
+        val usdAccount = BudgetAccountDTO(destAccountId, "USD", BigDecimal("0.00"), BigDecimal("0.00"), Currency.USD)
+        `when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(usdAccount)
+        doReturn(
+            ConversionResult(BigDecimal("110.00"), BigDecimal("100.00"), Currency.EUR, Currency.USD, BigDecimal("1.10"), LocalDate.now(), false)
+        ).`when`(currencyConversionService).convert(eqArg(BigDecimal("100.00")), eqArg(Currency.EUR), eqArg(Currency.USD), anyArg())
+        val form = TransferForm(BigDecimal("100.00"), destAccountId, "FX move", LocalDate.now())
+        `when`(transactionRepository.insertTransfer(eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(listOf(TransactionDTO(id = UUID.randomUUID()), TransactionDTO(id = UUID.randomUUID())))
+
+        service.createTransfer(accountId, form, user)
+
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("110.00"), user)
+    }
+
+    @Test
+    fun `createTransfer rejects identical source and destination`() {
+        val form = TransferForm(BigDecimal("10.00"), accountId, "Self", LocalDate.now())
+
+        assertThrows(IllegalArgumentException::class.java) {
+            service.createTransfer(accountId, form, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `deleteTransaction removes both transfer legs and reverses both balances`() {
+        val groupId = UUID.randomUUID()
+        val legTxId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        val deletedLeg = TransactionDTO(id = legTxId, type = CategoryType.EXPENSE, amount = BigDecimal("100.00"), transferGroupId = groupId)
+        `when`(transactionRepository.deleteTransaction(legTxId, accountId, user)).thenReturn(deletedLeg)
+        `when`(transactionRepository.fetchTransferLegs(groupId, user)).thenReturn(
+            listOf(TransferLeg(UUID.randomUUID(), destAccountId, CategoryType.INCOME, BigDecimal("110.00")))
+        )
+        `when`(transactionRepository.deleteTransactionsByIds(anyArg(), eqArg(user))).thenReturn(1)
+
+        service.deleteTransaction(legTxId, accountId, user)
+
+        verify(accountRepository).updateBalance(accountId, BigDecimal("100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("-110.00"), user)
     }
 
     @Test
