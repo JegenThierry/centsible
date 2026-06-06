@@ -140,5 +140,7 @@ tasks
 CLAUDE.md
 .claude/
 
-# Spring
+# Spring — runtime config holds secrets; commit only the *.example files
 application.properties
+application.rest.properties
+application.export.properties
