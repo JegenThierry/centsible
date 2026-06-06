@@ -102,17 +102,12 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrity(ex: DataIntegrityViolationException, request: WebRequest): ResponseEntity<ErrorResponse> {
-        // A DB constraint rejected the write -- most commonly a unique violation (e.g. an email or
-        // username already in use). Map to 409 instead of a 500, and never echo ex.message: like the
-        // serverError path, it carries SQL/constraint names.
         log.warn("Data integrity violation: {}", ex.mostSpecificCause.message)
         return error(HttpStatus.CONFLICT, t("error.conflict"), request)
     }
 
     @ExceptionHandler(JacksonException::class)
     fun handleJacksonParse(ex: JacksonException, request: WebRequest): ResponseEntity<ErrorResponse> {
-        // Raw Jackson failure from parsing a JSON-valued request parameter. (@RequestBody parse
-        // errors are wrapped by Spring into HttpMessageNotReadableException, handled above.) 400.
         log.warn("Malformed JSON parameter: {}", ex.message)
         return error(HttpStatus.BAD_REQUEST, t("error.request.malformed"), request)
     }

@@ -295,9 +295,6 @@ class TransactionService(
         accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO
     ): Int {
         if (ids.isEmpty()) return 0
-        // The target category id is attacker-controllable, so validate it the same way create/import
-        // do: it must belong to the user (or be a system category) and must not be a managed
-        // (Lending / Repayment) category, whose type invariants are owned by the loan domain.
         val classification = categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))[categoryId]
             ?: throw categoryNotFound(categoryId)
         require(!classification.isManaged) { "Cannot assign transactions to a managed category" }
@@ -460,9 +457,6 @@ class TransactionService(
 
     private fun rowHash(accountId: UUID, row: ImportTransactionRow): String {
         val currencyPart = row.currency?.let { "|${it.name}" } ?: ""
-        // Include the resolved type so an equal-and-opposite same-day pair (a +X credit and a -X
-        // debit with the same description/category) hash differently instead of colliding and being
-        // dropped as a duplicate. rowHash runs after resolveType, so type is populated here.
         val typePart = row.type?.let { "|${it.name}" } ?: ""
         val payload =
             "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}$typePart$currencyPart"
