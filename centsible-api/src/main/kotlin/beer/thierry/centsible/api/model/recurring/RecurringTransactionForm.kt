@@ -32,14 +32,9 @@ data class RecurringTransactionForm(
     var startDate: LocalDate = LocalDate.now(),
 
     var endDate: LocalDate? = null,
-
     var active: Boolean = true,
-
     var currency: Currency? = null,
-
     var type: CategoryType? = null,
-
     var isTransfer: Boolean = false,
-
     var destinationAccountId: UUID? = null,
 )

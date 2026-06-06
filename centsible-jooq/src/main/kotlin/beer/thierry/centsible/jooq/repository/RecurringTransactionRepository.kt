@@ -26,6 +26,33 @@ import java.util.*
 @Repository
 class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTransactionRepository {
 
+    private data class TransferAwareFields(
+        val isTransfer: Boolean,
+        val originalAmount: BigDecimal?,
+        val originalCurrency: String?,
+        val categoryId: Long?,
+        val type: String?,
+        val destinationAccountId: UUID?,
+    )
+
+    private fun resolveTransferAwareFields(form: RecurringTransactionForm): TransferAwareFields {
+        val isTransfer = form.isTransfer || form.destinationAccountId != null
+        val transferCategoryId = if (isTransfer) {
+            dsl.findSystemCategoryId(ManagedCategoryNames.TRANSFER)
+                ?: throw IllegalStateException("System 'Transfer' category not found. Migration may not have run.")
+        } else {
+            null
+        }
+        return TransferAwareFields(
+            isTransfer = isTransfer,
+            originalAmount = if (isTransfer) null else form.currency?.let { form.amount },
+            originalCurrency = if (isTransfer) null else form.currency?.name,
+            categoryId = if (isTransfer) transferCategoryId else form.categoryId,
+            type = if (isTransfer) null else form.type?.value,
+            destinationAccountId = if (isTransfer) form.destinationAccountId else null,
+        )
+    }
+
     override fun fetchAll(authenticatedUser: UserDTO, accountId: UUID?): List<RecurringTransactionDTO> {
         val ownership = ACCOUNTS.USER_ID.eq(authenticatedUser.id)
         val filter: Condition = if (accountId != null) ownership.and(ACCOUNTS.ID.eq(accountId)) else ownership
@@ -52,12 +79,7 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
     override fun create(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
-        val isTransfer = form.isTransfer
-        val originalAmount: BigDecimal? = if (isTransfer) null else form.currency?.let { form.amount }
-        val originalCurrency: String? = if (isTransfer) null else form.currency?.name
-        val categoryId: Long? = if (isTransfer) null else form.categoryId
-        val type: String? = if (isTransfer) null else form.type?.value
-        val destinationAccountId: UUID? = if (isTransfer) form.destinationAccountId else null
+        val fields = resolveTransferAwareFields(form)
         val now = OffsetDateTime.now()
         val record = dsl.insertInto(
             RECURRING_TRANSACTIONS,
@@ -81,7 +103,7 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             .select(
                 dsl.select(
                     DSL.value(accountId),
-                    DSL.value(categoryId, RECURRING_TRANSACTIONS.CATEGORY_ID),
+                    DSL.value(fields.categoryId, RECURRING_TRANSACTIONS.CATEGORY_ID),
                     DSL.value(form.amount),
                     DSL.value(form.description),
                     DSL.value(form.frequency.name),
@@ -89,11 +111,11 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
                     DSL.value(form.endDate),
                     DSL.value(form.startDate),
                     DSL.value(form.active),
-                    DSL.value(originalAmount, RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT),
-                    DSL.value(originalCurrency, RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY),
-                    DSL.value(isTransfer),
-                    DSL.value(destinationAccountId, RECURRING_TRANSACTIONS.DESTINATION_ACCOUNT_ID),
-                    DSL.value(type, RECURRING_TRANSACTIONS.TYPE),
+                    DSL.value(fields.originalAmount, RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT),
+                    DSL.value(fields.originalCurrency, RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY),
+                    DSL.value(fields.isTransfer),
+                    DSL.value(fields.destinationAccountId, RECURRING_TRANSACTIONS.DESTINATION_ACCOUNT_ID),
+                    DSL.value(fields.type, RECURRING_TRANSACTIONS.TYPE),
                     DSL.value(now),
                     DSL.value(now),
                 ).whereExists(
@@ -111,25 +133,20 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
     override fun update(
         id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
-        val isTransfer = form.isTransfer
-        val originalAmount: BigDecimal? = if (isTransfer) null else form.currency?.let { form.amount }
-        val originalCurrency: String? = if (isTransfer) null else form.currency?.name
-        val categoryId: Long? = if (isTransfer) null else form.categoryId
-        val type: String? = if (isTransfer) null else form.type?.value
-        val destinationAccountId: UUID? = if (isTransfer) form.destinationAccountId else null
+        val fields = resolveTransferAwareFields(form)
         val updated = dsl.update(RECURRING_TRANSACTIONS)
-            .set(RECURRING_TRANSACTIONS.CATEGORY_ID, categoryId)
+            .set(RECURRING_TRANSACTIONS.CATEGORY_ID, fields.categoryId)
             .set(RECURRING_TRANSACTIONS.AMOUNT, form.amount)
             .set(RECURRING_TRANSACTIONS.DESCRIPTION, form.description)
             .set(RECURRING_TRANSACTIONS.FREQUENCY, form.frequency.name)
             .set(RECURRING_TRANSACTIONS.START_DATE, form.startDate)
             .set(RECURRING_TRANSACTIONS.END_DATE, form.endDate)
             .set(RECURRING_TRANSACTIONS.ACTIVE, form.active)
-            .set(RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT, originalAmount)
-            .set(RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY, originalCurrency)
-            .set(RECURRING_TRANSACTIONS.IS_TRANSFER, isTransfer)
-            .set(RECURRING_TRANSACTIONS.DESTINATION_ACCOUNT_ID, destinationAccountId)
-            .set(RECURRING_TRANSACTIONS.TYPE, type)
+            .set(RECURRING_TRANSACTIONS.ORIGINAL_AMOUNT, fields.originalAmount)
+            .set(RECURRING_TRANSACTIONS.ORIGINAL_CURRENCY, fields.originalCurrency)
+            .set(RECURRING_TRANSACTIONS.IS_TRANSFER, fields.isTransfer)
+            .set(RECURRING_TRANSACTIONS.DESTINATION_ACCOUNT_ID, fields.destinationAccountId)
+            .set(RECURRING_TRANSACTIONS.TYPE, fields.type)
             .set(RECURRING_TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 RECURRING_TRANSACTIONS.ID.eq(id).and(

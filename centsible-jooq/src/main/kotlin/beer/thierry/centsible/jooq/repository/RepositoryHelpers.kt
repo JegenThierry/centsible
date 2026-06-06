@@ -8,6 +8,7 @@ import java.util.UUID
 internal object ManagedCategoryNames {
     const val LENDING = "Lending"
     const val REPAYMENT = "Repayment"
+    const val TRANSFER = "Transfer"
     const val TRANSFER_OUT = "Transfer out"
     const val TRANSFER_IN = "Transfer in"
 }
@@ -23,5 +24,12 @@ internal fun DSLContext.findManagedCategoryId(name: String): Long? =
     select(CATEGORIES.ID)
         .from(CATEGORIES)
         .where(CATEGORIES.NAME.eq(name).and(CATEGORIES.IS_MANAGED.isTrue))
+        .fetchOne()
+        ?.get(CATEGORIES.ID)
+
+internal fun DSLContext.findSystemCategoryId(name: String): Long? =
+    select(CATEGORIES.ID)
+        .from(CATEGORIES)
+        .where(CATEGORIES.NAME.eq(name).and(CATEGORIES.USER_ID.isNull))
         .fetchOne()
         ?.get(CATEGORIES.ID)

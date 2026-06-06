@@ -175,6 +175,23 @@ class RecurringTransactionServiceTest {
     }
 
     @Test
+    fun `create infers transfer when destination is provided even if isTransfer is false`() {
+        val destAccountId = UUID.randomUUID()
+        val f = transferForm(destAccountId).copy(isTransfer = false)
+        val created = RecurringTransactionDTO(id = UUID.randomUUID(), isTransfer = true)
+        `when`(accountRepository.fetchAccountById(destAccountId, user))
+            .thenReturn(BudgetAccountDTO(destAccountId, "Savings", BigDecimal.ZERO, BigDecimal.ZERO, Currency.EUR))
+        `when`(repository.create(accountId, f, user)).thenReturn(created)
+
+        val result = service.create(accountId, f, user)
+
+        assertEquals(created, result)
+        verify(accountRepository).fetchAccountById(destAccountId, user)
+        verify(repository).create(accountId, f, user)
+        verify(categoriesRepository, never()).fetchCategoryClassifications(anyArg(), anyArg())
+    }
+
+    @Test
     fun `create transfer rule with destination equal to source is rejected`() {
         val f = transferForm(accountId)
 
@@ -227,5 +244,39 @@ class RecurringTransactionServiceTest {
         assertEquals(1, count)
         verify(currencyConversionService).convert(BigDecimal("100.00"), Currency.EUR, Currency.USD, today)
         verify(repository).materializeOnce(rule, conversion)
+    }
+
+    @Test
+    fun `runMaterializationPass infers transfer when destination account exists and isTransfer is false`() {
+        val today = LocalDate.now()
+        val destAccountId = UUID.randomUUID()
+        val rule = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = accountId,
+            amount = BigDecimal("100.00"),
+            description = "Savings",
+            frequency = Frequency.MONTHLY,
+            startDate = today,
+            nextRunAt = today,
+            active = true,
+            isTransfer = false,
+            destinationAccountId = destAccountId,
+        )
+        val normalizedRule = rule.copy(isTransfer = true)
+        val conversion = ConversionResult(
+            BigDecimal("110.00"), BigDecimal("100.00"), Currency.EUR, Currency.USD, BigDecimal("1.10"), today, false
+        )
+        `when`(repository.fetchDueRules(today)).thenReturn(listOf(rule))
+        `when`(accountRepository.fetchAccountCurrency(accountId)).thenReturn(Currency.EUR)
+        `when`(accountRepository.fetchAccountCurrency(destAccountId)).thenReturn(Currency.USD)
+        `when`(currencyConversionService.convert(BigDecimal("100.00"), Currency.EUR, Currency.USD, today))
+            .thenReturn(conversion)
+        `when`(repository.materializeOnce(normalizedRule, conversion)).thenReturn(null)
+
+        val count = service.runMaterializationPass()
+
+        assertEquals(1, count)
+        verify(currencyConversionService).convert(BigDecimal("100.00"), Currency.EUR, Currency.USD, today)
+        verify(repository).materializeOnce(normalizedRule, conversion)
     }
 }

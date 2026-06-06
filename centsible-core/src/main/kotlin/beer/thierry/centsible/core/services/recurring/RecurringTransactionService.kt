@@ -29,12 +29,13 @@ class RecurringTransactionService(
     override fun create(
         accountId: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
-        validate(form)
-        assertOwnership(authenticatedUser, sourceAccountId = accountId, form = form)
+        val isTransfer = form.isTransfer || form.destinationAccountId != null
+        validate(form, isTransfer)
+        assertOwnership(authenticatedUser, sourceAccountId = accountId, form = form, isTransfer = isTransfer)
         val created = repository.create(accountId, form, authenticatedUser)
         log.info(
             "Created recurring transaction id={} accountId={} userId={} frequency={} transfer={}",
-            created.id, accountId, authenticatedUser.id, form.frequency, form.isTransfer,
+            created.id, accountId, authenticatedUser.id, form.frequency, isTransfer,
         )
         return created
     }
@@ -42,17 +43,18 @@ class RecurringTransactionService(
     override fun update(
         id: UUID, form: RecurringTransactionForm, authenticatedUser: UserDTO
     ): RecurringTransactionDTO {
-        validate(form)
-        if (form.isTransfer) {
+        val isTransfer = form.isTransfer || form.destinationAccountId != null
+        validate(form, isTransfer)
+        if (isTransfer) {
             val existing = repository.fetchById(id, authenticatedUser)
-            assertOwnership(authenticatedUser, sourceAccountId = existing.accountId, form = form)
+            assertOwnership(authenticatedUser, sourceAccountId = existing.accountId, form = form, isTransfer = isTransfer)
         } else {
             assertCategoryOwned(authenticatedUser, form.categoryId!!)
         }
         val updated = repository.update(id, form, authenticatedUser)
         log.info(
             "Updated recurring transaction id={} userId={} frequency={} active={} transfer={}",
-            id, authenticatedUser.id, form.frequency, form.active, form.isTransfer,
+            id, authenticatedUser.id, form.frequency, form.active, isTransfer,
         )
         return updated
     }
@@ -89,16 +91,17 @@ class RecurringTransactionService(
         val today = LocalDate.now()
         var count = 0
         for (rule in repository.fetchDueRules(today)) {
+            val isTransfer = rule.isTransfer || rule.destinationAccountId != null
             val accountId = rule.accountId ?: continue
             val accountCurrency = accountRepository.fetchAccountCurrency(accountId)
-            val destinationCurrency = if (rule.isTransfer) {
+            val destinationCurrency = if (isTransfer) {
                 val destId = rule.destinationAccountId ?: continue
                 accountRepository.fetchAccountCurrency(destId)
             } else null
-            var working = rule
+            var working = if (isTransfer && !rule.isTransfer) rule.copy(isTransfer = true) else rule
             while (working.active && (working.nextRunAt?.let { it <= today } == true)) {
                 val occurrenceDate = working.nextRunAt!!
-                val conversion = if (rule.isTransfer) {
+                val conversion = if (isTransfer) {
                     currencyConversionService.convert(
                         working.amount!!, accountCurrency, destinationCurrency!!, occurrenceDate,
                     )
@@ -120,11 +123,11 @@ class RecurringTransactionService(
         return count
     }
 
-    private fun validate(form: RecurringTransactionForm) {
+    private fun validate(form: RecurringTransactionForm, isTransfer: Boolean) {
         form.endDate?.let { end ->
             require(!end.isBefore(form.startDate)) { "End date must be on or after start date." }
         }
-        if (form.isTransfer) {
+        if (isTransfer) {
             require(form.destinationAccountId != null) { "Destination account is required for a transfer." }
         } else {
             val categoryId = form.categoryId
@@ -132,8 +135,13 @@ class RecurringTransactionService(
         }
     }
 
-    private fun assertOwnership(authenticatedUser: UserDTO, sourceAccountId: UUID?, form: RecurringTransactionForm) {
-        if (form.isTransfer) {
+    private fun assertOwnership(
+        authenticatedUser: UserDTO,
+        sourceAccountId: UUID?,
+        form: RecurringTransactionForm,
+        isTransfer: Boolean,
+    ) {
+        if (isTransfer) {
             val destinationAccountId = form.destinationAccountId
                 ?: throw IllegalArgumentException("Destination account is required for a transfer.")
             require(sourceAccountId != destinationAccountId) { "Source and destination accounts must be different." }

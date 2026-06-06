@@ -524,6 +524,7 @@ VALUES ('Food', 'i-lucide-utensils', '#ef4444', 'EXPENSE', FALSE, NULL),
        ('Savings Deposit', 'i-lucide-piggy-bank', '#22d3ee', 'EXPENSE', FALSE, NULL),
        ('Lending', 'i-lucide-hand-coins', '#f97316', 'EXPENSE', TRUE, NULL),
        ('Repayment', 'i-lucide-hand-helping', '#10b981', 'INCOME', TRUE, NULL),
+       ('Transfer', 'i-lucide-arrow-right-left', '#06b6d4', 'EXPENSE', FALSE, NULL),
        ('Transfer out', 'i-lucide-arrow-up-right', '#06b6d4', 'EXPENSE', TRUE, 'TRANSFER_OUT'),
        ('Transfer in', 'i-lucide-arrow-down-left', '#06b6d4', 'INCOME', TRUE, 'TRANSFER_IN'),
        ('Uncategorized', 'i-lucide-circle-help', '#9ca3af', 'EXPENSE', FALSE, 'UNCATEGORIZED')
@@ -545,3 +546,4 @@ INSERT INTO schema_migrations (version) VALUES ('0.4.0/03_multi_currency.sql') O
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/04_SetVersion_0_4_0.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.5.0/01_transfer_support.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.5.0/02_transfer_categories.sql') ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version) VALUES ('0.5.0/04_transfer_evaluation_category.sql') ON CONFLICT (version) DO NOTHING;
