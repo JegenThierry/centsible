@@ -142,7 +142,6 @@ class OfxFileParser : FileFormatParser {
             categoryId = defaultCategoryId,
             description = description,
             transactionDate = date,
-            // OFX TRNAMT is signed: negative = debit (expense), positive = credit (income).
             type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
         )
     }
