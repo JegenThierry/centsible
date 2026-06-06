@@ -92,6 +92,9 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
                     .and(ACCOUNTS.USER_ID.eq(user.id))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
                     .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
+                    // Budgets track spending: count only expenses, mirroring aggregateByCategory and
+                    // the reports query. Without this, income/refunds in the category inflate "spent".
+                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
             )
             .groupBy(TRANSACTIONS.CATEGORY_ID)
             .fetch()
