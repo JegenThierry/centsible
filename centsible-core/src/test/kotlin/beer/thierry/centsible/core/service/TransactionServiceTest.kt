@@ -380,6 +380,7 @@ class TransactionServiceTest {
             ),
         )
 
+        stubCategoryType(newCategoryId, CategoryType.EXPENSE)
         `when`(transactionRepository.fetchTransactionsByIds(accountId, ids, user)).thenReturn(oldTransactions)
         `when`(
             transactionRepository.updateCategoryForTransactions(accountId, ids, newCategoryId, user)
@@ -389,6 +390,19 @@ class TransactionServiceTest {
 
         assertEquals(2, updated)
         verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `bulkUpdateCategory rejects a managed target category`() {
+        val ids = listOf(UUID.randomUUID())
+        val managedCategoryId = 9L
+        stubCategoryType(managedCategoryId, CategoryType.EXPENSE, isManaged = true)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            service.bulkUpdateCategory(accountId, ids, managedCategoryId, user)
+        }
+        verify(transactionRepository, never())
+            .updateCategoryForTransactions(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyLong(), anyArg())
     }
 
     @Test
