@@ -1,5 +1,6 @@
 package beer.thierry.centsible.imports.ofx
 
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.imports.core.FileFormatParser
 import beer.thierry.centsible.imports.core.ParseHints
@@ -141,7 +142,8 @@ class OfxFileParser : FileFormatParser {
             categoryId = defaultCategoryId,
             description = description,
             transactionDate = date,
-            type = null,
+            // OFX TRNAMT is signed: negative = debit (expense), positive = credit (income).
+            type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
         )
     }
 

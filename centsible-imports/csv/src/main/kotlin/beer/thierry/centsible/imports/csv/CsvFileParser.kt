@@ -1,5 +1,6 @@
 package beer.thierry.centsible.imports.csv
 
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.CsvDialect
@@ -18,6 +19,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
+
+/** Currency symbols safe to strip from an amount cell; the value's currency comes from the mapping/account, not the cell. */
+private val CURRENCY_NOISE = setOf('€', '$', '£', '¥', '₣', '¤', '₽', '₹')
 
 /**
  * CSV file parser. Stateless; one Spring bean serves every import. The CSV format itself can't
@@ -158,7 +162,9 @@ class CsvFileParser : FileFormatParser {
             categoryId = defaultCategoryId,
             description = description,
             transactionDate = date,
-            type = null,
+            // The sign carries the direction (debit = expense, credit = income); resolveAmount
+            // already produced a signed value, so derive the type from it instead of discarding it.
+            type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
         )
     }
 
@@ -184,9 +190,18 @@ class CsvFileParser : FileFormatParser {
         if (raw.isBlank()) return null
         val cleaned = buildString {
             for (ch in raw) {
-                if (ch.isDigit() || ch == '-' || ch == '+') append(ch)
-                else if (ch == mapping.decimalSeparator) append('.')
-                // Drop currency symbols, thousands separators, whitespace.
+                when {
+                    ch.isDigit() || ch == '-' || ch == '+' -> append(ch)
+                    ch == mapping.decimalSeparator -> append('.')
+                    // Only known "noise" is dropped: the configured grouping separator, whitespace
+                    // (including the non-breaking spaces common in EU exports) and currency symbols.
+                    mapping.thousandsSeparator != null && ch == mapping.thousandsSeparator -> Unit
+                    ch.isWhitespace() || ch in CURRENCY_NOISE -> Unit
+                    // Any other character means the mapping doesn't fit this cell (e.g. a stray ','
+                    // while '.' is the decimal separator). Fail loudly instead of silently mis-scaling
+                    // the amount — dropping the ',' in "12,50" would yield 1250.
+                    else -> return null
+                }
             }
         }
         return runCatching { BigDecimal(cleaned) }.getOrNull()
