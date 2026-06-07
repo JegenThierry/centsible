@@ -12,6 +12,7 @@ import LoanTable from "~/components/_organisms/loans/loan-table.vue";
 const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
 const EditLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/edit-loan-modal.vue"));
 const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
+const RepaymentsModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/repayments-modal.vue"));
 const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
 const EditContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/edit-contact-modal.vue"));
 const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
@@ -32,6 +33,7 @@ const {t} = useI18n();
 const isCreateLoanOpen = ref(false);
 const isEditLoanOpen = ref(false);
 const isRecordRepaymentOpen = ref(false);
+const isRepaymentsOpen = ref(false);
 const isDeleteLoanOpen = ref(false);
 const isEditContactOpen = ref(false);
 const isDeleteContactOpen = ref(false);
@@ -44,6 +46,11 @@ const currency = useActiveCurrency();
 function openRepayment(loan: Loan) {
   selectedLoan.value = loan;
   isRecordRepaymentOpen.value = true;
+}
+
+function openRepayments(loan: Loan) {
+  selectedLoan.value = loan;
+  isRepaymentsOpen.value = true;
 }
 
 function openEditLoan(loan: Loan) {
@@ -115,6 +122,7 @@ onMounted(async () => {
       <LoanTable :loans="loans"
                  :loading="loansStore.pending"
                  @repay="openRepayment"
+                 @repayments="openRepayments"
                  @edit="openEditLoan"
                  @delete="openDeleteLoan"/>
 
@@ -132,6 +140,9 @@ onMounted(async () => {
                             v-model:open="isRecordRepaymentOpen"
                             :loan="selectedLoan"
                             @recorded="reloadAll"/>
+      <RepaymentsModal v-if="isRepaymentsOpen"
+                       v-model:open="isRepaymentsOpen"
+                       :loan="selectedLoan"/>
       <DeleteLoanModal v-if="isDeleteLoanOpen"
                        v-model:open="isDeleteLoanOpen"
                        :loan="selectedLoan"

@@ -10,6 +10,7 @@ export const useLoansStore = defineStore('loansStore', () => {
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const loanService = useLoanService(api);
   const contactsStore = useContactsStore();
 
@@ -31,7 +32,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       allLoans.value = await loanService.fetchLoans();
       allLoansLoaded.value = true;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.fetchFailedTitle'), t('contacts.loans.toasts.fetchFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -44,7 +45,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       const loans = await loanService.fetchLoans(contactId);
       loansByContact.value = {...loansByContact.value, [contactId]: loans};
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.fetchFailedTitle'), t('contacts.loans.toasts.fetchFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -56,7 +57,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       const repayments = await loanService.fetchRepayments(loanId);
       repaymentsByLoan.value = {...repaymentsByLoan.value, [loanId]: repayments};
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch repayments", "Repayments could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentsFailedTitle'), t('contacts.loans.toasts.repaymentsFailedBody'));
       throw error;
     }
   }
@@ -74,7 +75,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       const loan = await loanService.createLoan(form);
-      toasts.success("Loan recorded", "Your loan has been recorded");
+      toasts.success(t('contacts.loans.toasts.recordedTitle'), t('contacts.loans.toasts.recordedBody'));
       await Promise.all([
         refreshOutstanding(),
         contactsStore.fetchContact(loan.contact.id),
@@ -82,7 +83,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       ]);
       return loan;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to record loan", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.recordFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -93,7 +94,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       const loan = await loanService.updateLoan(id, form);
-      toasts.success("Loan updated", "Your changes have been saved");
+      toasts.success(t('contacts.loans.toasts.updatedTitle'), t('contacts.loans.toasts.updatedBody'));
       await Promise.all([
         refreshAllLoans(),
         refreshOutstanding(),
@@ -102,7 +103,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       ]);
       return loan;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to update loan", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.updateFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -113,7 +114,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       await loanService.recordRepayment(loanId, form);
-      toasts.success("Repayment recorded", "The repayment has been recorded");
+      toasts.success(t('contacts.loans.toasts.repaymentRecordedTitle'), t('contacts.loans.toasts.repaymentRecordedBody'));
       await Promise.all([
         refreshLoansForContact(contactId),
         refreshRepayments(loanId),
@@ -121,10 +122,27 @@ export const useLoansStore = defineStore('loansStore', () => {
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      apiErrors.toastError(error, "Failed to record repayment", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
+    }
+  }
+
+  async function deleteRepayment(loanId: string, repaymentId: string, contactId: string) {
+    try {
+      await loanService.deleteRepayment(loanId, repaymentId);
+      toasts.success(t('contacts.loans.toasts.repaymentDeletedTitle'), t('contacts.loans.toasts.repaymentDeletedBody'));
+      await Promise.all([
+        refreshRepayments(loanId),
+        refreshLoansForContact(contactId),
+        refreshAllLoans(),
+        refreshOutstanding(),
+        contactsStore.fetchContact(contactId),
+      ]);
+    } catch (error) {
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentDeleteFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
+      throw error;
     }
   }
 
@@ -132,14 +150,14 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       await loanService.deleteLoan(id);
-      toasts.success("Loan deleted", "The loan has been removed");
+      toasts.success(t('contacts.loans.toasts.deletedTitle'), t('contacts.loans.toasts.deletedBody'));
       await Promise.all([
         refreshLoansForContact(contactId),
         refreshOutstanding(),
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      apiErrors.toastError(error, "Failed to delete loan", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.deleteFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -161,6 +179,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     createLoan,
     updateLoan,
     recordRepayment,
+    deleteRepayment,
     deleteLoan,
   }
 });

@@ -15,8 +15,10 @@ export function useLoanColumns() {
   const UBadge = resolveComponent('UBadge');
 
   // Loans can each be in a different currency, so cells render in the loan's own currency.
+  // Number grouping follows the active locale (BalanceNumberFormat's default) rather than a
+  // hardcoded one, matching every other money display in the app.
   function balanceCell(value: number, currency: Currency) {
-    return h(BalanceNumberFormat, {balance: value, currency, format: 'de-De'});
+    return h(BalanceNumberFormat, {balance: value, currency});
   }
 
   function moneyColumn(key: keyof Loan, headerKey: string, tdClass: string): TableColumn<Loan> {
@@ -43,11 +45,16 @@ export function useLoanColumns() {
     header: t('contacts.loans.table.description'),
     cell: ({row}) => {
       const text = row.original.description || '—';
-      if (row.original.affectsBalance) return text;
-      return h('div', {class: 'flex items-center gap-2'}, [
-        h('span', text),
-        h(UBadge, {color: 'neutral', variant: 'subtle', size: 'xs'}, () => t('contacts.loans.table.trackingOnly')),
-      ]);
+      const badges = [];
+      if (!row.original.affectsBalance) {
+        badges.push(h(UBadge, {color: 'neutral', variant: 'subtle', size: 'xs'}, () => t('contacts.loans.table.trackingOnly')));
+      }
+      if (row.original.interestRate != null) {
+        badges.push(h(UBadge, {color: 'info', variant: 'subtle', size: 'xs'},
+          () => t('contacts.loans.table.interestBadge', {rate: row.original.interestRate})));
+      }
+      if (badges.length === 0) return text;
+      return h('div', {class: 'flex items-center gap-2'}, [h('span', text), ...badges]);
     },
   };
 

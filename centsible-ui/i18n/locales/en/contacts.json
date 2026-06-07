@@ -68,6 +68,35 @@
       "removedBody": "Returning to contacts list."
     },
     "loans": {
+      "toasts": {
+        "recordedTitle": "Loan recorded",
+        "recordedBody": "Your loan has been recorded.",
+        "updatedTitle": "Loan updated",
+        "updatedBody": "Your changes have been saved.",
+        "repaymentRecordedTitle": "Repayment recorded",
+        "repaymentRecordedBody": "The repayment has been recorded.",
+        "repaymentDeletedTitle": "Repayment removed",
+        "repaymentDeletedBody": "The repayment has been removed.",
+        "deletedTitle": "Loan deleted",
+        "deletedBody": "The loan has been removed.",
+        "fetchFailedTitle": "Failed to fetch loans",
+        "fetchFailedBody": "Loans could not be loaded.",
+        "repaymentsFailedTitle": "Failed to fetch repayments",
+        "repaymentsFailedBody": "Repayments could not be loaded.",
+        "recordFailedTitle": "Failed to record loan",
+        "updateFailedTitle": "Failed to update loan",
+        "repaymentFailedTitle": "Failed to record repayment",
+        "repaymentDeleteFailedTitle": "Failed to remove repayment",
+        "deleteFailedTitle": "Failed to delete loan",
+        "genericErrorBody": "An error occurred."
+      },
+      "repayments": {
+        "title": "Repayments",
+        "viewAction": "View repayments",
+        "empty": "No repayments recorded yet.",
+        "deleteConfirm": "Remove this repayment? This cannot be undone.",
+        "deleteAria": "Delete repayment"
+      },
       "table": {
         "date": "Date",
         "description": "Description",
@@ -78,6 +107,7 @@
         "status": "Status",
         "actionsAria": "Loan actions",
         "trackingOnly": "Tracking only",
+        "interestBadge": "{rate}% interest",
         "statusSettled": "Settled",
         "statusPartial": "Partially paid",
         "statusOpen": "Open",
