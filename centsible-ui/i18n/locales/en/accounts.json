@@ -68,6 +68,7 @@
       "recentTransactions": "Recent Transactions",
       "viewAll": "View All",
       "noRecentTransactions": "No recent transactions",
+      "recentLoadError": "Couldn't load recent transactions.",
       "monthlyIncome": "Monthly Income",
       "monthlyExpenses": "Monthly Expenses",
       "netSavings": "Net Savings",

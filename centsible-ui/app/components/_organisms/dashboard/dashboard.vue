@@ -18,10 +18,10 @@ import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skelet
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {useTransactionStore} from "~/stores/transactionStore";
 import {useBudgetsStore} from "~/stores/budgetsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
+import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
 import {invalidateMonthlyAggregates, prefetchMonthlyAggregates} from "~/composables/use-monthly-aggregates";
 import {invalidateCategoryAggregates, prefetchCategoryAggregates} from "~/composables/use-category-aggregates";
 import {invalidateDailyAggregates, prefetchDailyAggregates} from "~/composables/use-daily-aggregates";
@@ -33,10 +33,18 @@ const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_
 
 const route = useRoute();
 const accountStore = useBudgetAccountsStore();
-const transactionStore = useTransactionStore();
 const budgetsStore = useBudgetsStore();
 const loansStore = useLoansStore();
 const transactionService = useTransactionService(useApi());
+
+// Recent-transactions widget shares the one transaction data path (pagination + error state) instead
+// of a stunted dedicated store; we only ever load the first page here.
+const {
+  transactions: recentTransactions,
+  loading: recentLoading,
+  error: recentError,
+  loadTransactions: loadRecentTransactions,
+} = useTransactionList(transactionService, accountStore, 25);
 const {window} = useDashboardPeriod();
 const {t} = useI18n();
 
@@ -61,7 +69,7 @@ const isAccountReady = computed(
   () => !!accountStore.activeAccount && accountStore.activeAccount.id === routeAccountId.value,
 );
 const isLoading = computed(
-  () => !isAccountReady.value || accountStore.pending || transactionStore.pending
+  () => !isAccountReady.value || accountStore.pending || recentLoading.value
     || (snapshotsLoading.value && snapshots.value.length === 0),
 );
 const headerDescription = computed(() => {
@@ -75,7 +83,7 @@ async function fetchData() {
   const periodWindow = window.value;
 
   const tasks: Promise<unknown>[] = [
-    transactionStore.fetchTransactions(id),
+    loadRecentTransactions(true),
     prefetchMonthlyAggregates(transactionService, id, periodWindow.months),
     prefetchCategoryAggregates(transactionService, id, periodWindow.fromIso, periodWindow.toIso),
     prefetchDailyAggregates(transactionService, id, 371),
@@ -174,7 +182,9 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <RecentTransactions :currency="accountStore.activeAccount.currency"
-                            :transactions="transactionStore.transactions"/>
+                            :transactions="recentTransactions"
+                            :error="recentError"
+                            @retry="loadRecentTransactions(true)"/>
 
         <SpendingByCategoryChart :account-id="accountStore.activeAccount.id"
                                  :currency="accountStore.activeAccount.currency"
