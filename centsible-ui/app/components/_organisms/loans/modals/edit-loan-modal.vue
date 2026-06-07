@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import adze from 'adze'
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import {type Loan, type LoanUpdateForm, cleanOptionalNumber, computeOwedFromLent, hasInterestRate} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useValidator} from "~/composables/use-validator";
 
 const props = defineProps<{
   loan?: Loan;
@@ -22,10 +23,30 @@ const {t} = useI18n();
 
 const form = ref<LoanUpdateForm>(makeForm());
 const loading = ref(false);
+const formId = useId();
 
-const owedInput = ref<InstanceType<typeof BaseInput>>();
-const interestInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
+const owedLabel = t('contacts.loans.form.owedLabel');
+const interestLabel = t('contacts.loans.form.interestRateLabel');
+const descriptionLabel = t('contacts.loans.form.descriptionLabel');
+const notesLabel = t('contacts.loans.form.notesLabel');
+
+const schema = z.object({
+  description: z.string().trim()
+    .min(1, t('common.validation.required', {field: descriptionLabel}))
+    .max(255, t('common.validation.maxLength', {field: descriptionLabel, max: 255})),
+  interestRate: z.coerce.number({message: t('common.validation.number', {field: interestLabel})})
+    .min(0, t('common.validation.min', {field: interestLabel, min: 0}))
+    .max(999.99, t('common.validation.max', {field: interestLabel, max: 999.99}))
+    .optional(),
+  owedAmount: z.coerce.number({message: t('common.validation.number', {field: owedLabel})})
+    .min(0, t('common.validation.min', {field: owedLabel, min: 0}))
+    .max(9999999.99, t('common.validation.max', {field: owedLabel, max: 9999999.99})),
+  dueDate: z.string().optional(),
+  notes: z.string().trim()
+    .max(500, t('common.validation.maxLength', {field: notesLabel, max: 500}))
+    .optional(),
+})
+type Schema = z.output<typeof schema>
 
 function makeForm(): LoanUpdateForm {
   const l = props.loan;
@@ -51,9 +72,8 @@ watch(() => form.value.interestRate, () => {
   if (Number(form.value.owedAmount) !== owed) form.value = {...form.value, owedAmount: owed};
 });
 
-async function handleSave() {
+async function handleSave(_event: FormSubmitEvent<Schema>) {
   if (!props.loan) return;
-  if (!useValidator().validateInputs([owedInput, interestInput, descriptionInput])) return;
 
   loading.value = true;
   try {
@@ -77,16 +97,16 @@ async function handleSave() {
           :description="t('contacts.loans.edit.description')"
           :title="t('contacts.loans.edit.title')">
     <template #body>
-      <div class="space-y-4">
-        <BaseInput v-model="form.description"
-                   ref="descriptionInput"
+      <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
+        <BaseInput name="description"
+                   v-model="form.description"
                    :max-length="255"
                    :label="t('contacts.loans.form.descriptionLabel')"
                    :placeholder="t('contacts.loans.form.descriptionPlaceholder')"
                    required
                    type="text"/>
 
-        <BaseInput ref="interestInput"
+        <BaseInput name="interestRate"
                    v-model="form.interestRate"
                    :max="999.99"
                    :min="0"
@@ -96,7 +116,7 @@ async function handleSave() {
                    trailing-text="%"
                    type="number"/>
 
-        <BaseInput ref="owedInput"
+        <BaseInput name="owedAmount"
                    v-model="form.owedAmount"
                    :max="9999999.99"
                    :min="0"
@@ -108,22 +128,24 @@ async function handleSave() {
                    required
                    type="number"/>
 
-        <DateInput v-model="form.dueDate"
+        <DateInput name="dueDate"
+                   v-model="form.dueDate"
                    :label="t('contacts.loans.form.dueDateLabel')"/>
 
-        <BaseInput v-model="form.notes"
+        <BaseInput name="notes"
+                   v-model="form.notes"
                    :max-length="500"
                    :label="t('contacts.loans.form.notesLabel')"
                    :placeholder="t('contacts.loans.form.notesPlaceholder')"
                    type="text"/>
-      </div>
+      </UForm>
     </template>
 
     <template #footer>
-      <ModalFooterActions :loading="loading"
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
                           :submit-label="t('contacts.loans.edit.submit')"
-                          @cancel="isOpen = false"
-                          @submit="handleSave"/>
+                          @cancel="isOpen = false"/>
     </template>
   </UModal>
 </template>

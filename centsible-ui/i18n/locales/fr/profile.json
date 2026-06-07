@@ -27,7 +27,7 @@
       "currentPlaceholder": "Saisissez votre mot de passe actuel",
       "newLabel": "Nouveau mot de passe",
       "newPlaceholder": "Saisissez un nouveau mot de passe",
-      "newHint": "Au moins 8 caractères avec majuscules et minuscules, un chiffre et un caractère parmi @$!%*?&.",
+      "newHint": "Au moins 8 caractères avec majuscules et minuscules, un chiffre et un caractère parmi {'@'}$!%*?&.",
       "confirmLabel": "Confirmer le nouveau mot de passe",
       "confirmPlaceholder": "Saisissez à nouveau votre nouveau mot de passe",
       "submit": "Mettre à jour le mot de passe",

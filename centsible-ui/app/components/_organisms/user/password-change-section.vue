@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useAuthStore} from "~/stores/authStore";
 import {useToasts} from "~/services/toasts/toast-service";
-import {useValidator} from "~/composables/use-validator";
 
 const {t} = useI18n();
 const authStore = useAuthStore();
 const {success, error} = useToasts();
-const {validateInputs} = useValidator();
 
 // Mirrors the server-side strength rule so we can fail fast before the round-trip.
 const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
@@ -16,13 +16,24 @@ const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 const state = reactive({currentPassword: '', newPassword: '', confirmPassword: ''});
 const loading = ref(false);
 
-const currentInput = ref<InstanceType<typeof PasswordInput>>();
-const newInput = ref<InstanceType<typeof PasswordInput>>();
-const confirmInput = ref<InstanceType<typeof PasswordInput>>();
-
-const isStrong = () => PASSWORD_PATTERN.test(state.newPassword);
-const differsFromCurrent = () => state.newPassword !== state.currentPassword;
-const matchesConfirm = () => state.newPassword === state.confirmPassword;
+const schema = z.object({
+  currentPassword: z.string()
+    .min(1, t('common.validation.required', {field: t('profile.password.currentLabel')})),
+  newPassword: z.string()
+    .min(1, t('common.validation.required', {field: t('profile.password.newLabel')}))
+    .refine((v) => PASSWORD_PATTERN.test(v), t('profile.password.validation.tooWeak')),
+  confirmPassword: z.string()
+    .min(1, t('common.validation.required', {field: t('profile.password.confirmLabel')})),
+})
+  .refine((d) => d.newPassword !== d.currentPassword, {
+    message: t('profile.password.validation.mustDiffer'),
+    path: ['newPassword'],
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: t('profile.password.validation.mustMatch'),
+    path: ['confirmPassword'],
+  })
+type Schema = z.output<typeof schema>
 
 // Same live checklist as registration/reset, so all three password surfaces share one UX.
 const passwordRules = computed(() => [
@@ -32,20 +43,13 @@ const passwordRules = computed(() => [
   {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(state.newPassword)},
 ]);
 
-const newPasswordMessage = computed(() =>
-  !isStrong()
-    ? t('profile.password.validation.tooWeak')
-    : t('profile.password.validation.mustDiffer'),
-);
-
 function reset() {
   state.currentPassword = '';
   state.newPassword = '';
   state.confirmPassword = '';
 }
 
-async function onSubmit() {
-  if (!validateInputs([currentInput, newInput, confirmInput])) return;
+async function onSubmit(_event: FormSubmitEvent<Schema>) {
   loading.value = true;
   try {
     await authStore.changePassword(state.currentPassword, state.newPassword);
@@ -69,20 +73,18 @@ async function onSubmit() {
     <h3 class="text-lg font-semibold">{{ t('profile.password.title') }}</h3>
     <p class="text-sm text-muted mt-1">{{ t('profile.password.description') }}</p>
 
-    <UForm :state="state" class="mt-4 space-y-4" @submit="onSubmit">
-      <PasswordInput ref="currentInput"
+    <UForm :schema="schema" :state="state" class="mt-4 space-y-4" @submit="onSubmit">
+      <PasswordInput name="currentPassword"
                      v-model="state.currentPassword"
                      required
                      :label="t('profile.password.currentLabel')"
                      :placeholder="t('profile.password.currentPlaceholder')"/>
-      <PasswordInput ref="newInput"
+      <PasswordInput name="newPassword"
                      v-model="state.newPassword"
                      required
                      :label="t('profile.password.newLabel')"
                      :placeholder="t('profile.password.newPlaceholder')"
-                     :description="t('profile.password.newHint')"
-                     :additional-validation="() => isStrong() && differsFromCurrent()"
-                     :additional-validation-message="newPasswordMessage"/>
+                     :description="t('profile.password.newHint')"/>
       <div v-if="state.newPassword.length > 0" class="grid grid-cols-2 gap-2 -mt-2">
         <div v-for="rule in passwordRules"
              :key="rule.label"
@@ -92,13 +94,11 @@ async function onSubmit() {
           {{ rule.label }}
         </div>
       </div>
-      <PasswordInput ref="confirmInput"
+      <PasswordInput name="confirmPassword"
                      v-model="state.confirmPassword"
                      required
                      :label="t('profile.password.confirmLabel')"
-                     :placeholder="t('profile.password.confirmPlaceholder')"
-                     :additional-validation="matchesConfirm"
-                     :additional-validation-message="t('profile.password.validation.mustMatch')"/>
+                     :placeholder="t('profile.password.confirmPlaceholder')"/>
       <div class="flex">
         <AppButton class="ml-auto" type="submit" :loading="loading">
           {{ t('profile.password.submit') }}

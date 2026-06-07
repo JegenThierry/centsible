@@ -19,11 +19,6 @@ const {t} = useI18n();
 const localeTag = useLocaleTag();
 const categoriesStore = useCategoriesStore();
 
-const balanceInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref<InstanceType<typeof CategorySelect>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
-
 const delta = computed(() => {
   const next = Number(form.value.newBalance);
   if (!Number.isFinite(next)) return 0;
@@ -57,15 +52,11 @@ const previewText = computed(() => {
 onMounted(() => {
   if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
 });
-
-defineExpose({
-  validate: () => useValidator().validateInputs([balanceInput, descriptionInput, categoryInput, dateInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <BaseInput ref="balanceInput"
+    <BaseInput name="newBalance"
                v-model="form.newBalance"
                :max="BALANCE_INPUT.max"
                :min="BALANCE_INPUT.min"
@@ -78,14 +69,14 @@ defineExpose({
 
     <p class="text-sm text-neutral-500">{{ previewText }}</p>
 
-    <CategorySelect ref="categoryInput"
+    <CategorySelect name="category"
                     v-model="form.category"
                     :disabled="disabled"
                     :options="categoriesStore.categories"
                     :label="t('transactions.form.category')"
                     required/>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -94,7 +85,7 @@ defineExpose({
                required
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="transactionDate"
                v-model="form.transactionDate"
                :disabled="disabled"
                :label="t('transactions.form.date')"

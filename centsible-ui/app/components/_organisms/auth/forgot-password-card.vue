@@ -2,9 +2,10 @@
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {useValidator} from "~/composables/use-validator";
 import {useApiErrors} from "~/composables/use-api-errors";
 
 const {t} = useI18n();
@@ -18,16 +19,12 @@ const state = reactive({
 const loading = ref<boolean>(false);
 const submitted = ref<boolean>(false);
 
-const usernameInput = ref<InstanceType<typeof BaseInput>>();
+const schema = z.object({
+  username: z.string().trim().min(1, t('common.validation.required', {field: t('auth.fields.username')})),
+})
+type Schema = z.output<typeof schema>
 
-function validate(): boolean {
-  return useValidator().validateInputs([usernameInput]);
-}
-
-function onSubmit() {
-  if (!validate()) {
-    return;
-  }
+function onSubmit(_event: FormSubmitEvent<Schema>) {
   loading.value = true;
   useAuthService(api)
     .forgotPassword(state.username)
@@ -52,8 +49,8 @@ function onSubmit() {
       class="max-w-xl mx-auto"
       spotlight
       spotlight-color="primary">
-      <UForm v-if="!submitted" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-        <BaseInput ref="usernameInput"
+      <UForm v-if="!submitted" :schema="schema" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
+        <BaseInput name="username"
                    v-model="state.username"
                    autofocus
                    :label="t('auth.fields.username')"

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import type {BudgetForm, BudgetPeriodType} from "~/models/budget/budget";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
@@ -22,8 +24,18 @@ const toasts = useToasts();
 const {t} = useI18n();
 
 const form = ref<BudgetForm>(makeBlank());
-const formRef = ref<InstanceType<typeof BudgetFormFields>>();
 const loading = ref(false);
+
+const categoryLabel = t('budgets.form.categoryLabel');
+const limitLabel = t('budgets.form.limitLabel');
+
+const schema = z.object({
+  category: z.any().refine((v) => !!v, t('common.validation.required', {field: categoryLabel})),
+  amountLimit: z.coerce.number({message: t('common.validation.number', {field: limitLabel})})
+    .min(0.01, t('common.validation.min', {field: limitLabel, min: 0.01}))
+    .max(9999999.99, t('common.validation.max', {field: limitLabel, max: 9999999.99})),
+})
+type Schema = z.output<typeof schema>
 
 function makeBlank(): BudgetForm {
   return {category: undefined, amountLimit: 0, periodType: 'MONTHLY', rolloverEnabled: false};
@@ -33,8 +45,7 @@ watch(isOpen, (open) => {
   if (open) form.value = makeBlank();
 });
 
-async function handleSave() {
-  if (!formRef.value?.validate()) return;
+async function handleSave(_event: FormSubmitEvent<Schema>) {
   if (!form.value.category?.id) return;
 
   loading.value = true;
@@ -61,14 +72,16 @@ async function handleSave() {
           :description="t('budgets.create.description')"
           :title="t('budgets.create.title')">
     <template #body>
-      <BudgetFormFields ref="formRef" v-model="form" :existing-combos="existingCombos"/>
+      <UForm id="create-budget-form" :schema="schema" :state="form" @submit="handleSave">
+        <BudgetFormFields v-model="form" :existing-combos="existingCombos"/>
+      </UForm>
     </template>
 
     <template #footer>
-      <ModalFooterActions :loading="loading"
+      <ModalFooterActions form="create-budget-form"
+                          :loading="loading"
                           :submit-label="t('budgets.create.submit')"
-                          @cancel="isOpen = false"
-                          @submit="handleSave"/>
+                          @cancel="isOpen = false"/>
     </template>
   </UModal>
 </template>

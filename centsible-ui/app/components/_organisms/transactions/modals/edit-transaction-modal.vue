@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {z} from 'zod';
+import type {FormSubmitEvent} from '@nuxt/ui';
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
 import {transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
@@ -11,6 +13,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
+import {AMOUNT_INPUT} from "~/utils/money";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -36,10 +39,20 @@ const form = ref<TransactionForm>({
   currency: Currency.EUR,
 });
 
-const formRef = ref<InstanceType<typeof TransactionFormFields>>();
 const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
+
+const schema = z.object({
+  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
+  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
+    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.form.amount'), min: AMOUNT_INPUT.min}))
+    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.form.amount'), max: AMOUNT_INPUT.max})),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+type Schema = z.output<typeof schema>;
 
 function loadTransaction(transaction: Transaction) {
   form.value = {
@@ -59,9 +72,8 @@ const {requestClose} = useModalDirtyGuard({
   onResetOnOpen: () => loadTransaction(props.transaction),
 });
 
-async function handleEdit() {
+async function handleEdit(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
-  if (!formRef.value?.validate()) return;
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (props.transaction.id === undefined) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
@@ -98,9 +110,8 @@ async function handleEdit() {
           :title="t('transactions.edit.title')"
           @update:open="requestClose">
     <template #body>
-      <UForm :id="formId" :state="form" @submit="handleEdit">
-        <TransactionFormFields ref="formRef"
-                               v-model="form"
+      <UForm :id="formId" :schema="schema" :state="form" @submit="handleEdit">
+        <TransactionFormFields v-model="form"
                                :account-id="budgetAccountsStore.activeAccount?.id"
                                :account-currency="activeCurrency"
                                :disabled="loading"/>

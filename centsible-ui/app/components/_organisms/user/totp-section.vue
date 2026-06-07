@@ -7,7 +7,10 @@ import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
-import {useValidator} from "~/composables/use-validator";
+import {z} from "zod";
+import type {FormSubmitEvent} from "@nuxt/ui";
+import {useClipboard} from "@vueuse/core";
+import {triggerBrowserDownload} from "~/utils/blob-download";
 import type {TotpEnrollment} from "~/models/auth/totp";
 
 type Step = 'loading' | 'disabled' | 'enrolling' | 'recovery' | 'regenerating' | 'enabled';
@@ -15,6 +18,13 @@ type Step = 'loading' | 'disabled' | 'enrolling' | 'recovery' | 'regenerating' |
 const {t} = useI18n();
 const totpService = useTotpService(useApi());
 const {success, error} = useToasts();
+// legacy:true adds an execCommand fallback for non-HTTPS contexts — common when self-hosting over a LAN.
+const {copy: copyToClipboard, isSupported: clipboardSupported} = useClipboard({legacy: true});
+
+const codeSchema = z.object({
+  code: z.string().trim().min(1, t('common.validation.required', {field: t('profile.twoFactor.enroll.codeLabel')})),
+});
+type CodeSchema = z.output<typeof codeSchema>;
 
 const step = ref<Step>('loading');
 const busy = ref<boolean>(false);
@@ -27,9 +37,6 @@ const recoverySaved = ref(false);
 const confirmState = reactive({code: ''});
 const disableState = reactive({code: ''});
 const regenState = reactive({code: ''});
-const confirmInput = ref<InstanceType<typeof BaseInput>>();
-const disableInput = ref<InstanceType<typeof BaseInput>>();
-const regenInput = ref<InstanceType<typeof BaseInput>>();
 
 onMounted(refreshStatus);
 
@@ -59,9 +66,8 @@ async function onStartEnroll() {
   }
 }
 
-async function onConfirm() {
+async function onConfirm(_e: FormSubmitEvent<CodeSchema>) {
   if (busy.value) return;
-  if (!useValidator().validateInputs([confirmInput])) return;
   busy.value = true;
   try {
     const result = await totpService.confirm(confirmState.code.trim());
@@ -90,9 +96,8 @@ async function onDone() {
   await refreshStatus();
 }
 
-async function onDisable() {
+async function onDisable(_e: FormSubmitEvent<CodeSchema>) {
   if (busy.value) return;
-  if (!useValidator().validateInputs([disableInput])) return;
   busy.value = true;
   try {
     await totpService.disable(disableState.code.trim());
@@ -116,9 +121,8 @@ function onCancelRegenerate() {
   step.value = 'enabled';
 }
 
-async function onRegenerate() {
+async function onRegenerate(_e: FormSubmitEvent<CodeSchema>) {
   if (busy.value) return;
-  if (!useValidator().validateInputs([regenInput])) return;
   busy.value = true;
   try {
     const result = await totpService.regenerateRecoveryCodes(regenState.code.trim());
@@ -133,26 +137,22 @@ async function onRegenerate() {
   }
 }
 
-function copyRecoveryCodes() {
-  const text = recoveryCodes.value.join('\n');
-  if (!navigator.clipboard) {
+async function copyRecoveryCodes() {
+  if (!clipboardSupported.value) {
     error(t('profile.twoFactor.recovery.copyFailedTitle'), t('profile.twoFactor.recovery.copyFailedBody'));
     return;
   }
-  navigator.clipboard.writeText(text).then(
-    () => success(t('profile.twoFactor.recovery.copiedTitle'), t('profile.twoFactor.recovery.copiedBody')),
-    () => error(t('profile.twoFactor.recovery.copyFailedTitle'), t('profile.twoFactor.recovery.copyFailedBody')),
-  );
+  try {
+    await copyToClipboard(recoveryCodes.value.join('\n'));
+    success(t('profile.twoFactor.recovery.copiedTitle'), t('profile.twoFactor.recovery.copiedBody'));
+  } catch {
+    error(t('profile.twoFactor.recovery.copyFailedTitle'), t('profile.twoFactor.recovery.copyFailedBody'));
+  }
 }
 
 function downloadRecoveryCodes() {
   const blob = new Blob([recoveryCodes.value.join('\n') + '\n'], {type: 'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'centsible-recovery-codes.txt';
-  link.click();
-  URL.revokeObjectURL(url);
+  triggerBrowserDownload(blob, 'centsible-recovery-codes.txt');
 }
 </script>
 
@@ -190,8 +190,8 @@ function downloadRecoveryCodes() {
           {{ enrollment.secret }}
         </code>
       </div>
-      <UForm :state="confirmState" class="space-y-4" @submit="onConfirm">
-        <BaseInput ref="confirmInput"
+      <UForm :schema="codeSchema" :state="confirmState" class="space-y-4" @submit="onConfirm">
+        <BaseInput name="code"
                    v-model="confirmState.code"
                    :disabled="busy"
                    :label="t('profile.twoFactor.enroll.codeLabel')"
@@ -246,8 +246,8 @@ function downloadRecoveryCodes() {
         icon="i-lucide-refresh-cw"
         color="warning"
         variant="subtle"/>
-      <UForm :state="regenState" class="space-y-4" @submit="onRegenerate">
-        <BaseInput ref="regenInput"
+      <UForm :schema="codeSchema" :state="regenState" class="space-y-4" @submit="onRegenerate">
+        <BaseInput name="code"
                    v-model="regenState.code"
                    :disabled="busy"
                    :label="t('profile.twoFactor.disable.codeLabel')"
@@ -287,8 +287,8 @@ function downloadRecoveryCodes() {
         </AppButton>
       </div>
 
-      <UForm :state="disableState" class="space-y-4" @submit="onDisable">
-        <BaseInput ref="disableInput"
+      <UForm :schema="codeSchema" :state="disableState" class="space-y-4" @submit="onDisable">
+        <BaseInput name="code"
                    v-model="disableState.code"
                    :disabled="busy"
                    :label="t('profile.twoFactor.disable.codeLabel')"

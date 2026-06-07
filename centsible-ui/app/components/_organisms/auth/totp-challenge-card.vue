@@ -3,9 +3,10 @@ import adze from 'adze'
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {useValidator} from "~/composables/use-validator";
 
 const {t} = useI18n();
 const api = useApi();
@@ -17,15 +18,13 @@ const state = reactive({
   code: '',
 });
 const loading = ref<boolean>(false);
-const codeInput = ref<InstanceType<typeof BaseInput>>();
+const schema = z.object({
+  code: z.string().trim().min(1, t('common.validation.required', {field: t('auth.twoFactor.challenge.codeLabel')})),
+})
+type Schema = z.output<typeof schema>
 
-function validate(): boolean {
-  return useValidator().validateInputs([codeInput]);
-}
-
-function onSubmit() {
+function onSubmit(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
-  if (!validate()) return;
   loading.value = true;
   useAuthService(api)
     .twoFactorChallenge(state.code.trim())
@@ -55,8 +54,8 @@ function onSubmit() {
       class="max-w-xl mx-auto"
       spotlight
       spotlight-color="primary">
-      <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-        <BaseInput ref="codeInput"
+      <UForm :schema="schema" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
+        <BaseInput name="code"
                    v-model="state.code"
                    autofocus
                    autocomplete="one-time-code"

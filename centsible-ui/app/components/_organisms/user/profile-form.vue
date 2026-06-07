@@ -1,7 +1,7 @@
 <template>
-  <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
+  <UForm :schema="schema" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit" @error="emit('validation-failed')">
     <BaseInput
-      ref="firstNameInput"
+      name="firstName"
       v-model="state.firstName"
       :max-length="100"
       :disabled="loading"
@@ -12,7 +12,7 @@
     />
 
     <BaseInput
-      ref="lastNameInput"
+      name="lastName"
       v-model="state.lastName"
       :max-length="100"
       :disabled="loading"
@@ -23,7 +23,7 @@
     />
 
     <BaseInput
-      ref="emailInput"
+      name="email"
       v-model="state.email"
       :max-length="255"
       :disabled="loading"
@@ -40,10 +40,11 @@
 </template>
 
 <script lang="ts" setup>
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
-import {useValidator} from "~/composables/use-validator";
 import {useUnsavedChangesGuard} from "~/composables/use-unsaved-changes-guard";
 
 interface Props {
@@ -59,15 +60,29 @@ const emit = defineEmits<{
 
 const {t} = useI18n();
 
-const firstNameInput = ref<InstanceType<typeof BaseInput>>();
-const lastNameInput = ref<InstanceType<typeof BaseInput>>();
-const emailInput = ref<InstanceType<typeof BaseInput>>();
+const firstNameLabel = t('profile.form.firstNameLabel');
+const lastNameLabel = t('profile.form.lastNameLabel');
+const emailLabel = t('profile.form.emailLabel');
 
 const state = reactive<UserProfileForm>({
   firstName: props.initialValues?.firstName ?? '',
   lastName: props.initialValues?.lastName ?? '',
   email: props.initialValues?.email ?? '',
 });
+
+const schema = z.object({
+  firstName: z.string().trim()
+    .min(1, t('common.validation.required', {field: firstNameLabel}))
+    .max(100, t('common.validation.maxLength', {field: firstNameLabel, max: 100})),
+  lastName: z.string().trim()
+    .min(1, t('common.validation.required', {field: lastNameLabel}))
+    .max(100, t('common.validation.maxLength', {field: lastNameLabel, max: 100})),
+  email: z.string().trim()
+    .min(1, t('common.validation.required', {field: emailLabel}))
+    .max(255, t('common.validation.maxLength', {field: emailLabel, max: 255}))
+    .regex(EMAIL_REGEX, t('common.validation.email', {field: emailLabel})),
+})
+type Schema = z.output<typeof schema>
 
 watch(
   () => props.initialValues,
@@ -87,16 +102,8 @@ const isDirty = computed(() => {
 
 useUnsavedChangesGuard(isDirty);
 
-function validate(): boolean {
-  return useValidator().validateInputs([firstNameInput, lastNameInput, emailInput]);
-}
-
-async function onSubmit() {
+function onSubmit(_event: FormSubmitEvent<Schema>) {
   if (props.loading) return;
-  if (!validate()) {
-    emit('validation-failed');
-    return;
-  }
   emit('save', state);
 }
 </script>

@@ -2,7 +2,6 @@
 import {computeOwedFromLent, hasInterestRate, type LoanForm} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
-import {useValidator} from "~/composables/use-validator";
 
 defineProps<{
   currency?: string;
@@ -21,21 +20,11 @@ watch([() => form.value.interestRate, () => form.value.lentAmount], () => {
   const owed = computeOwedFromLent(form.value.lentAmount, form.value.interestRate);
   if (Number(form.value.owedAmount) !== owed) form.value = {...form.value, owedAmount: owed};
 });
-
-const lentInput = ref<InstanceType<typeof BaseInput>>();
-const owedInput = ref<InstanceType<typeof BaseInput>>();
-const interestInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
-
-defineExpose({
-  validate: () => useValidator().validateInputs([lentInput, owedInput, interestInput, descriptionInput, dateInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <BaseInput ref="lentInput"
+    <BaseInput name="lentAmount"
                v-model="form.lentAmount"
                :max="9999999.99"
                :min="0.01"
@@ -46,7 +35,7 @@ defineExpose({
                required
                type="number"/>
 
-    <BaseInput ref="interestInput"
+    <BaseInput name="interestRate"
                v-model="form.interestRate"
                :max="999.99"
                :min="0"
@@ -57,7 +46,7 @@ defineExpose({
                trailing-text="%"
                type="number"/>
 
-    <BaseInput ref="owedInput"
+    <BaseInput name="owedAmount"
                v-model="form.owedAmount"
                :max="9999999.99"
                :min="0"
@@ -69,7 +58,7 @@ defineExpose({
                required
                type="number"/>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -78,17 +67,19 @@ defineExpose({
                required
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="transactionDate"
                v-model="form.transactionDate"
                :disabled="disabled"
                :label="t('contacts.loans.form.dateLabel')"
                required/>
 
-    <DateInput v-model="form.dueDate"
+    <DateInput name="dueDate"
+               v-model="form.dueDate"
                :disabled="disabled"
                :label="t('contacts.loans.form.dueDateLabel')"/>
 
-    <BaseInput v-model="form.notes"
+    <BaseInput name="notes"
+               v-model="form.notes"
                :max-length="500"
                :disabled="disabled"
                :label="t('contacts.loans.form.notesLabel')"

@@ -27,7 +27,7 @@
       "currentPlaceholder": "Gib dein aktuelles Passwort ein",
       "newLabel": "Neues Passwort",
       "newPlaceholder": "Gib ein neues Passwort ein",
-      "newHint": "Mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Zeichen aus @$!%*?&.",
+      "newHint": "Mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Zeichen aus {'@'}$!%*?&.",
       "confirmLabel": "Neues Passwort bestätigen",
       "confirmPlaceholder": "Gib dein neues Passwort erneut ein",
       "submit": "Passwort aktualisieren",

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import RegisterPasswordInput from "~/components/_molecules/inputs/register-password-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {useValidator} from "~/composables/use-validator";
 import {useApiErrors} from "~/composables/use-api-errors";
 
 import {useUserStore} from "~/stores/userStore";
@@ -13,7 +14,7 @@ import {useUserStore} from "~/stores/userStore";
 const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const {success, error} = useToasts();
+const {success} = useToasts();
 const {t, locale} = useI18n();
 
 const state = reactive({
@@ -24,17 +25,47 @@ const state = reactive({
   password: '',
   confirmPassword: '',
 })
-const usernameInput = ref<InstanceType<typeof BaseInput>>();
-const emailInput = ref<InstanceType<typeof BaseInput>>();
-const firstnameInput = ref<InstanceType<typeof BaseInput>>();
-const lastnameInput = ref<InstanceType<typeof BaseInput>>();
-const passwordsInput = ref<InstanceType<typeof RegisterPasswordInput>>();
-
 const loading = ref<boolean>(false);
 
-function onSubmit() {
+const usernameLabel = t('auth.fields.username');
+const emailLabel = t('auth.fields.email');
+const firstNameLabel = t('auth.fields.firstName');
+const lastNameLabel = t('auth.fields.lastName');
+const passwordLabel = t('auth.fields.password');
+const confirmPasswordLabel = t('auth.fields.confirmPassword');
+
+const schema = z.object({
+  username: z.string().trim()
+    .min(1, t('common.validation.required', {field: usernameLabel}))
+    .min(3, t('common.validation.minLength', {field: usernameLabel, min: 3}))
+    .max(50, t('common.validation.maxLength', {field: usernameLabel, max: 50}))
+    .regex(USERNAME_PATTERN, t('auth.register.usernamePattern')),
+  email: z.string().trim()
+    .min(1, t('common.validation.required', {field: emailLabel}))
+    .max(255, t('common.validation.maxLength', {field: emailLabel, max: 255}))
+    .regex(EMAIL_REGEX, t('common.validation.email', {field: emailLabel})),
+  firstName: z.string().trim()
+    .min(1, t('common.validation.required', {field: firstNameLabel}))
+    .max(100, t('common.validation.maxLength', {field: firstNameLabel, max: 100})),
+  lastName: z.string().trim()
+    .min(1, t('common.validation.required', {field: lastNameLabel}))
+    .max(100, t('common.validation.maxLength', {field: lastNameLabel, max: 100})),
+  password: z.string()
+    .min(1, t('common.validation.required', {field: passwordLabel}))
+    .refine(
+      (v) => v.length >= 8 && /[A-Z]/.test(v) && /[a-z]/.test(v) && /\d/.test(v) && /[@$!%*?&]/.test(v),
+      t('auth.password.doesNotMeetRequirements'),
+    ),
+  confirmPassword: z.string()
+    .min(1, t('common.validation.required', {field: confirmPasswordLabel})),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: t('auth.password.doNotMatch'),
+  path: ['confirmPassword'],
+})
+type Schema = z.output<typeof schema>
+
+function onSubmit(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
-  if (!validate()) return;
   loading.value = true;
 
   useAuthService(api)
@@ -62,64 +93,44 @@ function onSubmit() {
     })
     .finally(() => loading.value = false);
 }
-
-function validate(): boolean {
-  const valid = useValidator().validateInputs([
-    usernameInput,
-    emailInput,
-    firstnameInput,
-    lastnameInput,
-    passwordsInput,
-  ]);
-  if (!valid) error(t('auth.register.toastValidationTitle'), t('auth.register.toastValidationBody'));
-  return valid;
-}
 </script>
 
 <template>
-  <UForm :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-    <BaseInput ref="usernameInput"
+  <UForm :schema="schema" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
+    <BaseInput name="username"
                v-model="state.username"
-               :max-length="50"
-               :min-length="3"
-               :pattern="USERNAME_PATTERN"
                autofocus
                :disabled="loading"
-               :label="t('auth.fields.username')"
-               :pattern-message="t('auth.register.usernamePattern')"
+               :label="usernameLabel"
                :placeholder="t('auth.placeholders.username')"
                required
                type="text"/>
 
-    <BaseInput ref="emailInput"
+    <BaseInput name="email"
                v-model="state.email"
-               :max-length="255"
                :disabled="loading"
-               :label="t('auth.fields.email')"
+               :label="emailLabel"
                :placeholder="t('auth.placeholders.email')"
                required
                type="email"/>
 
-    <BaseInput ref="firstnameInput"
+    <BaseInput name="firstName"
                v-model="state.firstName"
-               :max-length="100"
                :disabled="loading"
-               :label="t('auth.fields.firstName')"
+               :label="firstNameLabel"
                :placeholder="t('auth.placeholders.firstName')"
                required
                type="text"/>
 
-    <BaseInput ref="lastnameInput"
+    <BaseInput name="lastName"
                v-model="state.lastName"
-               :max-length="100"
                :disabled="loading"
-               :label="t('auth.fields.lastName')"
+               :label="lastNameLabel"
                :placeholder="t('auth.placeholders.lastName')"
                required
                type="text"/>
 
-    <RegisterPasswordInput ref="passwordsInput"
-                           v-model:confirm-password="state.confirmPassword"
+    <RegisterPasswordInput v-model:confirm-password="state.confirmPassword"
                            v-model:password="state.password"
                            :disabled="loading"/>
 

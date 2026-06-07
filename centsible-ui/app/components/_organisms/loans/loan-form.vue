@@ -13,7 +13,6 @@ import {useConversionPreview} from "~/composables/use-conversion-preview";
 import {useContactsStore} from "~/stores/contactsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useUserStore} from "~/stores/userStore";
-import {useValidator} from "~/composables/use-validator";
 
 const props = defineProps<{
   modelValue: LoanForm;
@@ -69,10 +68,6 @@ const {converted: previewAmount, failed: previewFailed, isForeign: previewIsFore
   date: computed(() => form.value.transactionDate),
 });
 
-const contactModeFields = ref<InstanceType<typeof LoanContactModeFields>>();
-const accountSelect = ref<InstanceType<typeof AccountSelect>>();
-const amountFields = ref<InstanceType<typeof LoanAmountFields>>();
-
 watch(mode, (m) => {
   if (m === 'existing') {
     form.value = {...form.value, newContactFirstName: undefined, newContactLastName: undefined};
@@ -100,20 +95,11 @@ onMounted(async () => {
     form.value = {...form.value, accountId: budgetAccountsStore.activeAccount.id};
   }
 });
-
-function validate(): boolean {
-  const inputs = [amountFields, contactModeFields];
-  if (form.value.affectBalance) inputs.push(accountSelect);
-  return useValidator().validateInputs(inputs);
-}
-
-defineExpose({validate});
 </script>
 
 <template>
   <div class="space-y-4">
-    <LoanContactModeFields ref="contactModeFields"
-                           v-model="form"
+    <LoanContactModeFields v-model="form"
                            v-model:mode="mode"
                            v-model:selected-contact="selectedContact"
                            :contacts="contactsStore.contacts"
@@ -126,7 +112,7 @@ defineExpose({validate});
                  :description="t('contacts.loans.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
-                   ref="accountSelect"
+                   name="accountId"
                    v-model="selectedAccount"
                    :disabled="disabled"
                    :options="budgetAccountsStore.availableAccounts"
@@ -139,8 +125,7 @@ defineExpose({validate});
       <CurrencySelect v-model="currency" :disabled="disabled"/>
     </UFormField>
 
-    <LoanAmountFields ref="amountFields"
-                      v-model="form"
+    <LoanAmountFields v-model="form"
                       :currency="amountCurrency"
                       :disabled="disabled"/>
 

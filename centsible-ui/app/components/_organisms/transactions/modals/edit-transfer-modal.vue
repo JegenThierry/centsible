@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {z} from 'zod';
+import type {FormSubmitEvent} from '@nuxt/ui';
 import type {Transaction, TransferForm} from "~/models/transactions/transaction";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransferFormFields from "~/components/_molecules/transactions/transfer-form.vue";
@@ -7,6 +9,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
+import {AMOUNT_INPUT} from "~/utils/money";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -24,9 +27,22 @@ const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
 const form = ref<TransferForm>(makeBlankForm());
-const transferFormRef = ref<InstanceType<typeof TransferFormFields>>();
 const loading = ref(false);
 const formId = useId();
+
+const schema = z.object({
+  sourceAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})})
+    .min(1, t('common.validation.required', {field: t('transactions.transfer.fromAccount')})),
+  destinationAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})})
+    .min(1, t('common.validation.required', {field: t('transactions.transfer.toAccount')})),
+  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.transfer.amount')})})
+    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.transfer.amount'), min: AMOUNT_INPUT.min}))
+    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.transfer.amount'), max: AMOUNT_INPUT.max})),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+type Schema = z.output<typeof schema>;
 
 function makeBlankForm(): TransferForm {
   return {
@@ -66,9 +82,8 @@ const {requestClose, captureSnapshot} = useModalDirtyGuard({
   },
 });
 
-async function handleSave() {
+async function handleSave(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
-  if (!transferFormRef.value?.validate()) return;
   const sourceId = form.value.sourceAccountId;
   const destinationId = form.value.destinationAccountId;
   if (!sourceId || !destinationId || !form.value.transactionDate) return;
@@ -102,9 +117,8 @@ async function handleSave() {
           :title="t('transactions.transfer.editTitle')"
           @update:open="requestClose">
     <template #body>
-      <UForm :id="formId" :state="form" @submit="handleSave">
-        <TransferFormFields ref="transferFormRef"
-                            v-model="form"
+      <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
+        <TransferFormFields v-model="form"
                             :accounts="budgetAccountsStore.availableAccounts"
                             :disabled="loading"/>
       </UForm>

@@ -18,12 +18,6 @@ const props = defineProps<{
 const form = defineModel<TransferForm>({required: true});
 const {t} = useI18n();
 
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
-const sourceInput = ref<InstanceType<typeof AccountSelect>>();
-const destinationInput = ref<InstanceType<typeof AccountSelect>>();
-
 const sourceAccount = computed<BudgetAccount | undefined>({
   get: () => props.accounts.find(a => a.id === form.value.sourceAccountId),
   set: (account) => { form.value.sourceAccountId = account?.id; },
@@ -48,15 +42,11 @@ const {converted: previewAmount, failed: previewFailed, isForeign: previewIsFore
   currency: sourceCurrency,
   date: computed(() => form.value.transactionDate),
 });
-
-defineExpose({
-  validate: () => useValidator().validateInputs([sourceInput, destinationInput, amountInput, descriptionInput, dateInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <AccountSelect ref="sourceInput"
+    <AccountSelect name="sourceAccountId"
                    v-model="sourceAccount"
                    :options="sourceOptions"
                    :label="t('transactions.transfer.fromAccount')"
@@ -64,7 +54,7 @@ defineExpose({
                    :disabled="disabled || sourceLocked"
                    required/>
 
-    <AccountSelect ref="destinationInput"
+    <AccountSelect name="destinationAccountId"
                    v-model="destinationAccount"
                    :options="destinationOptions"
                    :label="t('transactions.transfer.toAccount')"
@@ -72,7 +62,7 @@ defineExpose({
                    :disabled="disabled"
                    required/>
 
-    <BaseInput ref="amountInput"
+    <BaseInput name="amount"
                v-model="form.amount"
                :max="AMOUNT_INPUT.max"
                :min="AMOUNT_INPUT.min"
@@ -91,7 +81,7 @@ defineExpose({
       <span v-else>≈ …</span>
     </p>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -100,7 +90,7 @@ defineExpose({
                required
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="transactionDate"
                v-model="form.transactionDate"
                :disabled="disabled"
                :label="t('transactions.form.date')"
