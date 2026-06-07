@@ -33,7 +33,12 @@ data class Users(
     val locale: String? = null,
     val passwordResetTokenHash: ByteArray? = null,
     val passwordResetTokenExpiresAt: OffsetDateTime? = null,
-    val notificationSettings: JSONB? = null
+    val notificationSettings: JSONB? = null,
+    val totpSecretEncrypted: ByteArray? = null,
+    val totpPendingSecretEncrypted: ByteArray? = null,
+    val totpEnabled: Boolean? = null,
+    val totpLastUsedStep: Long? = null,
+    val totpEnabledAt: OffsetDateTime? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -146,6 +151,36 @@ data class Users(
         }
         else if (this.notificationSettings != o.notificationSettings)
             return false
+        if (this.totpSecretEncrypted == null) {
+            if (o.totpSecretEncrypted != null)
+                return false
+        }
+        else if (!Arrays.equals(this.totpSecretEncrypted, o.totpSecretEncrypted))
+            return false
+        if (this.totpPendingSecretEncrypted == null) {
+            if (o.totpPendingSecretEncrypted != null)
+                return false
+        }
+        else if (!Arrays.equals(this.totpPendingSecretEncrypted, o.totpPendingSecretEncrypted))
+            return false
+        if (this.totpEnabled == null) {
+            if (o.totpEnabled != null)
+                return false
+        }
+        else if (this.totpEnabled != o.totpEnabled)
+            return false
+        if (this.totpLastUsedStep == null) {
+            if (o.totpLastUsedStep != null)
+                return false
+        }
+        else if (this.totpLastUsedStep != o.totpLastUsedStep)
+            return false
+        if (this.totpEnabledAt == null) {
+            if (o.totpEnabledAt != null)
+                return false
+        }
+        else if (this.totpEnabledAt != o.totpEnabledAt)
+            return false
         return true
     }
 
@@ -169,6 +204,11 @@ data class Users(
         result = prime * result + (if (this.passwordResetTokenHash == null) 0 else Arrays.hashCode(this.passwordResetTokenHash))
         result = prime * result + (if (this.passwordResetTokenExpiresAt == null) 0 else this.passwordResetTokenExpiresAt.hashCode())
         result = prime * result + (if (this.notificationSettings == null) 0 else this.notificationSettings.hashCode())
+        result = prime * result + (if (this.totpSecretEncrypted == null) 0 else Arrays.hashCode(this.totpSecretEncrypted))
+        result = prime * result + (if (this.totpPendingSecretEncrypted == null) 0 else Arrays.hashCode(this.totpPendingSecretEncrypted))
+        result = prime * result + (if (this.totpEnabled == null) 0 else this.totpEnabled.hashCode())
+        result = prime * result + (if (this.totpLastUsedStep == null) 0 else this.totpLastUsedStep.hashCode())
+        result = prime * result + (if (this.totpEnabledAt == null) 0 else this.totpEnabledAt.hashCode())
         return result
     }
 
@@ -192,6 +232,11 @@ data class Users(
         sb.append(", ").append("[binary...]")
         sb.append(", ").append(passwordResetTokenExpiresAt)
         sb.append(", ").append(notificationSettings)
+        sb.append(", ").append("[binary...]")
+        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(totpEnabled)
+        sb.append(", ").append(totpLastUsedStep)
+        sb.append(", ").append(totpEnabledAt)
 
         sb.append(")")
         return sb.toString()

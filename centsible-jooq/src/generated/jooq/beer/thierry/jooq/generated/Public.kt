@@ -17,6 +17,7 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.MfaPendingAuth
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
@@ -25,6 +26,7 @@ import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.UserRecoveryCodes
 import beer.thierry.jooq.generated.tables.Users
 
 import kotlin.collections.List
@@ -113,6 +115,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val LOANS: Loans get() = Loans.LOANS
 
     /**
+     * The table <code>public.mfa_pending_auth</code>.
+     */
+    val MFA_PENDING_AUTH: MfaPendingAuth get() = MfaPendingAuth.MFA_PENDING_AUTH
+
+    /**
      * The table <code>public.notifications</code>.
      */
     val NOTIFICATIONS: Notifications get() = Notifications.NOTIFICATIONS
@@ -153,6 +160,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val TRANSACTIONS: Transactions get() = Transactions.TRANSACTIONS
 
     /**
+     * The table <code>public.user_recovery_codes</code>.
+     */
+    val USER_RECOVERY_CODES: UserRecoveryCodes get() = UserRecoveryCodes.USER_RECOVERY_CODES
+
+    /**
      * The table <code>public.users</code>.
      */
     val USERS: Users get() = Users.USERS
@@ -173,6 +185,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES,
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
+        MfaPendingAuth.MFA_PENDING_AUTH,
         Notifications.NOTIFICATIONS,
         ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS,
         ProviderConnections.PROVIDER_CONNECTIONS,
@@ -181,6 +194,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         SystemInformation.SYSTEM_INFORMATION,
         TransactionAttachments.TRANSACTION_ATTACHMENTS,
         Transactions.TRANSACTIONS,
+        UserRecoveryCodes.USER_RECOVERY_CODES,
         Users.USERS
     )
 }

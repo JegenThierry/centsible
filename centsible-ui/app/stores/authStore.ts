@@ -8,13 +8,20 @@ export const useAuthStore = defineStore('authStore', () => {
   const authService = useAuthService(api);
 
   const isAuthenticated = ref(false)
+  // True between a correct password and a completed TOTP challenge — gates the /auth/2fa page.
+  const twoFactorPending = ref(false)
 
   const setAuthenticated = (value: boolean) => {
     isAuthenticated.value = value
   }
 
+  const setTwoFactorPending = (value: boolean) => {
+    twoFactorPending.value = value
+  }
+
   const logout = () => {
     isAuthenticated.value = false
+    twoFactorPending.value = false
     useUserStore().clear();
     authService.logout().catch((error) => {
       adze.ns('auth').warn('Server logout failed; cookie may still be valid until it expires.', error)
@@ -23,6 +30,6 @@ export const useAuthStore = defineStore('authStore', () => {
   }
 
   return {
-    isAuthenticated, setAuthenticated, logout,
+    isAuthenticated, twoFactorPending, setAuthenticated, setTwoFactorPending, logout,
   }
 });

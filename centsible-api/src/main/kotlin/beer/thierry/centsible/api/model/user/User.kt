@@ -13,6 +13,7 @@ data class User(
     val profilePicture: String? = null,
     val registered: Boolean = false,
     val locale: String = "en",
+    val totpEnabled: Boolean = false,
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
     val modifiedAt: OffsetDateTime = OffsetDateTime.now(),
 )

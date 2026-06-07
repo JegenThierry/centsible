@@ -5,6 +5,7 @@ import ProfileForm from '~/components/_organisms/user/profile-form.vue';
 import ProfileAvatarSection from '~/components/_organisms/user/profile-avatar-section.vue';
 import ProfileLanguageSection from '~/components/_organisms/user/profile-language-section.vue';
 import ProfileThemeSection from '~/components/_organisms/user/profile-theme-section.vue';
+import TotpSection from '~/components/_organisms/user/totp-section.vue';
 import {useUserNotifications} from "~/components/_organisms/user/notifications";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import NotificationSettingsCard from "~/components/_organisms/user/notification-settings-card.vue";
@@ -76,6 +77,10 @@ async function onLanguageChange(code: string) {
 
         <div class="max-w-2xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-6">
           <ProfileLanguageSection @change="onLanguageChange"/>
+        </div>
+
+        <div class="max-w-2xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-6">
+          <TotpSection/>
         </div>
 
         <div class="max-w-2xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-6">

@@ -14,6 +14,8 @@ class ProductionGuard(
     @Value("\${jwt.secret:}") private val jwtSecret: String = "",
     @Value("\${integrations.encryption-key:}") private val encryptionKey: String = "",
     @Value("\${integrations.encryption-salt:}") private val encryptionSalt: String = "",
+    @Value("\${mfa.encryption-key:}") private val mfaEncryptionKey: String = "",
+    @Value("\${mfa.encryption-salt:}") private val mfaEncryptionSalt: String = "",
     @Value("\${spring.datasource.password:}") private val datasourcePassword: String = "",
 ) {
     private val log = LoggerFactory.getLogger(ProductionGuard::class.java)
@@ -35,6 +37,10 @@ class ProductionGuard(
             rejectPlaceholder("JWT_SECRET", "jwt.secret", jwtSecret, PLACEHOLDER_JWT_SECRET)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_KEY", "integrations.encryption-key", encryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_SALT", "integrations.encryption-salt", encryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)
+            // Same placeholders as the integrations cipher (shared .env.example values); a 2FA secret
+            // encrypted under the committed key is effectively plaintext, so reject it in prod.
+            rejectPlaceholder("MFA_ENCRYPTION_KEY", "mfa.encryption-key", mfaEncryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
+            rejectPlaceholder("MFA_ENCRYPTION_SALT", "mfa.encryption-salt", mfaEncryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)
             rejectPlaceholder("POSTGRES_PASSWORD", "spring.datasource.password", datasourcePassword, PLACEHOLDER_DB_PASSWORD)
         }
         if (skipEmailVerification) {

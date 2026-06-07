@@ -65,6 +65,47 @@
         "errorBody": "Please try again."
       }
     },
+    "twoFactor": {
+      "title": "Two-factor authentication",
+      "description": "Add a second step at sign-in using an authenticator app (TOTP).",
+      "enable": "Enable two-factor authentication",
+      "status": {
+        "offTitle": "Two-factor authentication is off",
+        "offDescription": "Protect your account by requiring a one-time code at sign-in.",
+        "onTitle": "Two-factor authentication is on",
+        "onDescription": "A code from your authenticator app is required each time you sign in."
+      },
+      "enroll": {
+        "scanInstruction": "Scan this QR code with your authenticator app (e.g. Google Authenticator, Aegis, 1Password).",
+        "manualInstruction": "Can't scan? Enter this secret manually:",
+        "codeLabel": "Verification code",
+        "codeHint": "Enter the 6-digit code shown in your app",
+        "verify": "Verify & enable"
+      },
+      "disable": {
+        "codeLabel": "Verification code",
+        "codeHint": "Enter a current code or a recovery code to turn 2FA off",
+        "submit": "Disable two-factor authentication"
+      },
+      "recovery": {
+        "title": "Save your recovery codes",
+        "description": "Store these somewhere safe. Each code works once and lets you sign in if you lose your authenticator. They won't be shown again.",
+        "copy": "Copy codes",
+        "done": "I've saved them",
+        "copiedTitle": "Recovery codes copied",
+        "copiedBody": "They're on your clipboard — store them somewhere safe."
+      },
+      "toasts": {
+        "enrollErrorTitle": "Couldn't start enrollment",
+        "enrollErrorBody": "Please try again in a moment.",
+        "enabledTitle": "Two-factor authentication enabled",
+        "enabledBody": "You'll be asked for a code the next time you sign in.",
+        "invalidCodeTitle": "Invalid code",
+        "invalidCodeBody": "That code is incorrect or has expired. Please try again.",
+        "disabledTitle": "Two-factor authentication disabled",
+        "disabledBody": "Your account no longer requires a one-time code."
+      }
+    },
     "theme": {
       "buttonAria": "Change theme",
       "appearance": "Appearance",

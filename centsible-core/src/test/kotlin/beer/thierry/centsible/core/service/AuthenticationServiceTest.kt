@@ -2,12 +2,16 @@ package beer.thierry.centsible.core.service
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRequest
+import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
+import beer.thierry.centsible.api.repository.IMfaRepository
 import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.authentication.ITotpService
 import beer.thierry.centsible.api.services.email.IPasswordResetEmailService
 import beer.thierry.centsible.api.services.email.IRegisterEmailService
 import beer.thierry.centsible.core.services.authentication.AuthenticationService
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -30,6 +34,8 @@ import java.util.UUID
 class AuthenticationServiceTest {
 
     @Mock private lateinit var userRepository: IUserRepository
+    @Mock private lateinit var mfaRepository: IMfaRepository
+    @Mock private lateinit var totpService: ITotpService
     @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var registerEmailService: IRegisterEmailService
     @Mock private lateinit var passwordResetEmailService: IPasswordResetEmailService
@@ -39,6 +45,8 @@ class AuthenticationServiceTest {
 
     private fun service() = AuthenticationService(
         userRepository = userRepository,
+        mfaRepository = mfaRepository,
+        totpService = totpService,
         passwordEncoder = passwordEncoder,
         registerEmailService = registerEmailService,
         passwordResetEmailService = passwordResetEmailService,
@@ -48,11 +56,12 @@ class AuthenticationServiceTest {
         registrationEnabled = false,
     )
 
-    private fun user(registered: Boolean) = User(
+    private fun user(registered: Boolean, totpEnabled: Boolean = false) = User(
         username = "alice",
         email = "alice@example.com",
         passwordHash = "\$2a\$12\$storedhashstoredhashstoredhashstoredhashstor",
         registered = registered,
+        totpEnabled = totpEnabled,
     )
 
     @Test
@@ -94,12 +103,33 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    fun `valid credentials for a confirmed account return a token`() {
+    fun `valid credentials for a confirmed account without 2FA return a token`() {
         `when`(userRepository.findUserByUsername("alice")).thenReturn(user(registered = true))
         `when`(passwordEncoder.matches(eq("correct"), anyString())).thenReturn(true)
 
-        val response = service().authenticate(AuthRequest("alice", "correct"))
-        assertTrue(response.token.isNotBlank())
+        val result = service().authenticate(AuthRequest("alice", "correct"))
+        val authenticated = assertInstanceOf(LoginResult.Authenticated::class.java, result)
+        assertTrue(authenticated.token.isNotBlank())
+        // No second factor was required, so no pre-auth token is created.
+        verifyNoInteractions(mfaRepository)
+    }
+
+    @Test
+    fun `valid credentials for a 2FA account issue a pre-auth token instead of a JWT`() {
+        val twoFa = user(registered = true, totpEnabled = true)
+        `when`(userRepository.findUserByUsername("alice")).thenReturn(twoFa)
+        `when`(passwordEncoder.matches(eq("correct"), anyString())).thenReturn(true)
+
+        val result = service().authenticate(AuthRequest("alice", "correct"))
+        val pending = assertInstanceOf(LoginResult.TwoFactorRequired::class.java, result)
+        assertTrue(pending.pendingToken.isNotBlank())
+        // A hashed, time-boxed pre-auth row is persisted for the challenge step; no JWT yet.
+        verify(mfaRepository).deletePendingAuthForUser(twoFa.id)
+        verify(mfaRepository).createPendingAuth(
+            anyArg(UUID::class.java, twoFa.id),
+            anyArg(ByteArray::class.java, ByteArray(0)),
+            anyArg(OffsetDateTime::class.java, OffsetDateTime.now()),
+        )
     }
 
     // requestPasswordReset is @Async in production so the controller's 204 latency is branch-independent;

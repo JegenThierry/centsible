@@ -65,6 +65,47 @@
         "errorBody": "Veuillez réessayer."
       }
     },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs",
+      "description": "Ajoutez une seconde étape à la connexion avec une application d'authentification (TOTP).",
+      "enable": "Activer l'authentification à deux facteurs",
+      "status": {
+        "offTitle": "L'authentification à deux facteurs est désactivée",
+        "offDescription": "Protégez votre compte en exigeant un code à usage unique lors de la connexion.",
+        "onTitle": "L'authentification à deux facteurs est activée",
+        "onDescription": "Un code de votre application d'authentification est requis à chaque connexion."
+      },
+      "enroll": {
+        "scanInstruction": "Scannez ce QR code avec votre application d'authentification (par ex. Google Authenticator, Aegis, 1Password).",
+        "manualInstruction": "Impossible de scanner ? Saisissez ce secret manuellement :",
+        "codeLabel": "Code de vérification",
+        "codeHint": "Saisissez le code à 6 chiffres affiché dans votre application",
+        "verify": "Vérifier et activer"
+      },
+      "disable": {
+        "codeLabel": "Code de vérification",
+        "codeHint": "Saisissez un code actuel ou un code de récupération pour désactiver la 2FA",
+        "submit": "Désactiver l'authentification à deux facteurs"
+      },
+      "recovery": {
+        "title": "Enregistrez vos codes de récupération",
+        "description": "Conservez-les en lieu sûr. Chaque code fonctionne une seule fois et vous permet de vous connecter si vous perdez votre application. Ils ne seront plus affichés.",
+        "copy": "Copier les codes",
+        "done": "Je les ai enregistrés",
+        "copiedTitle": "Codes de récupération copiés",
+        "copiedBody": "Ils sont dans votre presse-papiers — conservez-les en lieu sûr."
+      },
+      "toasts": {
+        "enrollErrorTitle": "Impossible de démarrer l'enrôlement",
+        "enrollErrorBody": "Veuillez réessayer dans un instant.",
+        "enabledTitle": "Authentification à deux facteurs activée",
+        "enabledBody": "Un code vous sera demandé lors de votre prochaine connexion.",
+        "invalidCodeTitle": "Code invalide",
+        "invalidCodeBody": "Ce code est incorrect ou a expiré. Veuillez réessayer.",
+        "disabledTitle": "Authentification à deux facteurs désactivée",
+        "disabledBody": "Votre compte ne nécessite plus de code à usage unique."
+      }
+    },
     "theme": {
       "buttonAria": "Changer de thème",
       "appearance": "Apparence",

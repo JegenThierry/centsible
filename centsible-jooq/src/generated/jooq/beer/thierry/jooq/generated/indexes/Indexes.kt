@@ -15,12 +15,14 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.MfaPendingAuth
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.UserRecoveryCodes
 import beer.thierry.jooq.generated.tables.Users
 
 import org.jooq.Index
@@ -48,6 +50,8 @@ val IDX_LOAN_REPAYMENTS_LOAN_ID: Index = Internal.createIndex(DSL.name("idx_loan
 val IDX_LOAN_REPAYMENTS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_transaction_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), false)
 val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_transaction_id"), Loans.LOANS, arrayOf(Loans.LOANS.TRANSACTION_ID), false)
 val IDX_LOANS_USER_CONTACT: Index = Internal.createIndex(DSL.name("idx_loans_user_contact"), Loans.LOANS, arrayOf(Loans.LOANS.USER_ID, Loans.LOANS.CONTACT_ID), false)
+val IDX_MFA_PENDING_AUTH_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_mfa_pending_auth_token_hash"), MfaPendingAuth.MFA_PENDING_AUTH, arrayOf(MfaPendingAuth.MFA_PENDING_AUTH.TOKEN_HASH), false)
+val IDX_MFA_PENDING_AUTH_USER: Index = Internal.createIndex(DSL.name("idx_mfa_pending_auth_user"), MfaPendingAuth.MFA_PENDING_AUTH, arrayOf(MfaPendingAuth.MFA_PENDING_AUTH.USER_ID), false)
 val IDX_NOTIFICATIONS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_notifications_user_created"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.USER_ID, Notifications.NOTIFICATIONS.CREATED_AT.desc()), false)
 val IDX_NOTIFICATIONS_USER_UNREAD: Index = Internal.createIndex(DSL.name("idx_notifications_user_unread"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.USER_ID, Notifications.NOTIFICATIONS.READ_AT), false)
 val IDX_PCA_ACCOUNT_ID: Index = Internal.createIndex(DSL.name("idx_pca_account_id"), ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS, arrayOf(ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS.ACCOUNT_ID), false)
@@ -66,6 +70,7 @@ val IDX_TRANSACTIONS_DATE: Index = Internal.createIndex(DSL.name("idx_transactio
 val IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID: Index = Internal.createIndex(DSL.name("idx_transactions_provider_connection_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.PROVIDER_CONNECTION_ID), false)
 val IDX_TRANSACTIONS_RECURRING_ID: Index = Internal.createIndex(DSL.name("idx_transactions_recurring_id"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.RECURRING_TRANSACTION_ID), false)
 val IDX_TRANSACTIONS_TRANSFER_GROUP: Index = Internal.createIndex(DSL.name("idx_transactions_transfer_group"), Transactions.TRANSACTIONS, arrayOf(Transactions.TRANSACTIONS.TRANSFER_GROUP_ID), false)
+val IDX_USER_RECOVERY_CODES_USER: Index = Internal.createIndex(DSL.name("idx_user_recovery_codes_user"), UserRecoveryCodes.USER_RECOVERY_CODES, arrayOf(UserRecoveryCodes.USER_RECOVERY_CODES.USER_ID), false)
 val IDX_USERS_PASSWORD_RESET_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_password_reset_token_hash"), Users.USERS, arrayOf(Users.USERS.PASSWORD_RESET_TOKEN_HASH), false)
 val IDX_USERS_REGISTRATION_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_users_registration_token_hash"), Users.USERS, arrayOf(Users.USERS.REGISTRATION_TOKEN_HASH), false)
 val UQ_CATEGORIES_NAME_PER_USER: Index = Internal.createIndex(DSL.name("uq_categories_name_per_user"), Categories.CATEGORIES, arrayOf(Categories.CATEGORIES.USER_ID, Categories.CATEGORIES.NAME), true)

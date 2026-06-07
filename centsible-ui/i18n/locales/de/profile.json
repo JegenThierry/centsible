@@ -65,6 +65,47 @@
         "errorBody": "Bitte erneut versuchen."
       }
     },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "description": "Fügen Sie der Anmeldung einen zweiten Schritt mit einer Authenticator-App (TOTP) hinzu.",
+      "enable": "Zwei-Faktor-Authentifizierung aktivieren",
+      "status": {
+        "offTitle": "Zwei-Faktor-Authentifizierung ist deaktiviert",
+        "offDescription": "Schützen Sie Ihr Konto, indem Sie bei der Anmeldung einen Einmalcode verlangen.",
+        "onTitle": "Zwei-Faktor-Authentifizierung ist aktiviert",
+        "onDescription": "Bei jeder Anmeldung ist ein Code aus Ihrer Authenticator-App erforderlich."
+      },
+      "enroll": {
+        "scanInstruction": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App (z. B. Google Authenticator, Aegis, 1Password).",
+        "manualInstruction": "Kein Scannen möglich? Geben Sie dieses Geheimnis manuell ein:",
+        "codeLabel": "Bestätigungscode",
+        "codeHint": "Geben Sie den 6-stelligen Code aus Ihrer App ein",
+        "verify": "Überprüfen & aktivieren"
+      },
+      "disable": {
+        "codeLabel": "Bestätigungscode",
+        "codeHint": "Geben Sie einen aktuellen Code oder einen Wiederherstellungscode ein, um 2FA zu deaktivieren",
+        "submit": "Zwei-Faktor-Authentifizierung deaktivieren"
+      },
+      "recovery": {
+        "title": "Speichern Sie Ihre Wiederherstellungscodes",
+        "description": "Bewahren Sie diese sicher auf. Jeder Code funktioniert einmal und ermöglicht die Anmeldung, falls Sie Ihre App verlieren. Sie werden nicht erneut angezeigt.",
+        "copy": "Codes kopieren",
+        "done": "Ich habe sie gespeichert",
+        "copiedTitle": "Wiederherstellungscodes kopiert",
+        "copiedBody": "Sie befinden sich in Ihrer Zwischenablage — bewahren Sie sie sicher auf."
+      },
+      "toasts": {
+        "enrollErrorTitle": "Einrichtung konnte nicht gestartet werden",
+        "enrollErrorBody": "Bitte versuchen Sie es in einem Moment erneut.",
+        "enabledTitle": "Zwei-Faktor-Authentifizierung aktiviert",
+        "enabledBody": "Bei der nächsten Anmeldung werden Sie nach einem Code gefragt.",
+        "invalidCodeTitle": "Ungültiger Code",
+        "invalidCodeBody": "Dieser Code ist falsch oder abgelaufen. Bitte versuchen Sie es erneut.",
+        "disabledTitle": "Zwei-Faktor-Authentifizierung deaktiviert",
+        "disabledBody": "Ihr Konto erfordert keinen Einmalcode mehr."
+      }
+    },
     "theme": {
       "buttonAria": "Design ändern",
       "appearance": "Erscheinungsbild",

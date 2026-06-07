@@ -73,6 +73,11 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
             "/api/auth/confirm",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
+            // TOTP code-submission endpoints: cap brute-force of the 6-digit code / recovery codes.
+            "/api/auth/2fa/challenge",
+            "/api/auth/2fa/confirm",
+            "/api/auth/2fa/disable",
+            "/api/auth/2fa/enroll",
         )
     }
 }

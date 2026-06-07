@@ -3,12 +3,17 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
+import beer.thierry.centsible.api.model.auth.LoginResponse
+import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.auth.PasswordResetConfirmRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetRequest
+import beer.thierry.centsible.api.model.auth.TotpChallengeRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.users.IUserService
 import beer.thierry.centsiblerest.security.AuthCookieIssuer
+import beer.thierry.centsiblerest.security.MFA_PENDING_COOKIE_NAME
+import beer.thierry.centsiblerest.security.MfaPendingCookieIssuer
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -23,19 +28,54 @@ class AuthenticationResource(
     private val authService: IAuthService,
     private val userService: IUserService,
     private val authCookieIssuer: AuthCookieIssuer,
+    private val mfaPendingCookieIssuer: MfaPendingCookieIssuer,
 ) {
     private val log = LoggerFactory.getLogger(AuthenticationResource::class.java)
 
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: AuthRequest, response: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val authResult = try {
+    fun login(@Valid @RequestBody request: AuthRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
+        val result = try {
             authService.authenticate(request)
         } catch (ex: RuntimeException) {
             log.warn("Login failed for username={}", request.username)
             throw ex
         }
+        return when (result) {
+            is LoginResult.Authenticated -> {
+                authCookieIssuer.issue(response, result.token)
+                log.info("Login succeeded for username={}", request.username)
+                ResponseEntity.ok(LoginResponse(twoFactorRequired = false, token = result.token))
+            }
+            is LoginResult.TwoFactorRequired -> {
+                // Set the scoped, short-lived pre-auth cookie; the real session is withheld until
+                // the TOTP challenge succeeds.
+                mfaPendingCookieIssuer.issue(response, result.pendingToken)
+                log.info("Login step 1 ok for username={}; 2FA challenge required", request.username)
+                ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginResponse(twoFactorRequired = true))
+            }
+        }
+    }
+
+    @PostMapping("/2fa/challenge")
+    fun twoFactorChallenge(
+        @Valid @RequestBody request: TotpChallengeRequest,
+        @CookieValue(name = MFA_PENDING_COOKIE_NAME, required = false) pendingToken: String?,
+        response: HttpServletResponse,
+    ): ResponseEntity<AuthResponse> {
+        if (pendingToken.isNullOrBlank()) {
+            log.warn("2FA challenge rejected: missing pre-auth cookie")
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+        val authResult = try {
+            authService.completeTwoFactorChallenge(pendingToken, request.code)
+        } catch (ex: RuntimeException) {
+            // Clear the (now consumed or invalid) pre-auth cookie so a fresh login is required.
+            mfaPendingCookieIssuer.clear(response)
+            throw ex
+        }
+        mfaPendingCookieIssuer.clear(response)
         authCookieIssuer.issue(response, authResult.token)
-        log.info("Login succeeded for username={}", request.username)
+        log.info("2FA challenge succeeded; session issued")
         return ResponseEntity.ok(authResult)
     }
 

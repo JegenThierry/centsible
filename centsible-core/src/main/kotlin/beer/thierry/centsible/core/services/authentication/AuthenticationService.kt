@@ -4,9 +4,12 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
+import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
+import beer.thierry.centsible.api.repository.IMfaRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.authentication.IAuthService
+import beer.thierry.centsible.api.services.authentication.ITotpService
 import beer.thierry.centsible.api.services.email.IPasswordResetEmailService
 import beer.thierry.centsible.api.services.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
@@ -32,6 +35,8 @@ private fun resolveEmailLocale(stored: String?): Locale {
 @Service
 class AuthenticationService(
     private val userRepository: IUserRepository,
+    private val mfaRepository: IMfaRepository,
+    private val totpService: ITotpService,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
     private val passwordResetEmailService: IPasswordResetEmailService,
@@ -50,7 +55,7 @@ class AuthenticationService(
         passwordEncoder.encode(DUMMY_PASSWORD) ?: error("password encoder returned a null hash")
     }
 
-    override fun authenticate(authRequest: AuthRequest): AuthResponse {
+    override fun authenticate(authRequest: AuthRequest): LoginResult {
         val user = userRepository.findUserByUsername(authRequest.username)
         if (user == null) {
             passwordEncoder.matches(authRequest.password, dummyPasswordHash)
@@ -68,7 +73,37 @@ class AuthenticationService(
             throw LocalizedException.Unauthorized("error.auth.emailNotConfirmed")
         }
 
+        if (user.totpEnabled) {
+            // Password is correct but a second factor is required: issue a short-lived, single-use
+            // pre-auth token instead of the real JWT. The challenge step redeems it.
+            val rawToken = generateRegistrationToken()
+            val expiresAt = OffsetDateTime.now().plusMinutes(PRE_AUTH_TOKEN_TTL_MINUTES)
+            // Drop any stale pending tokens for this user so only the freshest attempt is live.
+            mfaRepository.deletePendingAuthForUser(user.id)
+            mfaRepository.createPendingAuth(user.id, sha256(rawToken), expiresAt)
+            log.info("Authentication step 1 ok; awaiting 2FA challenge userId={}", user.id)
+            return LoginResult.TwoFactorRequired(rawToken)
+        }
+
         log.info("Authentication successful: userId={}", user.id)
+        return LoginResult.Authenticated(generateJwt(user))
+    }
+
+    override fun completeTwoFactorChallenge(pendingToken: String, code: String): AuthResponse {
+        if (pendingToken.isBlank() || pendingToken.length > REGISTRATION_TOKEN_MAX_LENGTH) {
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+        val userId = mfaRepository.consumePendingAuth(sha256(pendingToken))
+            ?: throw LocalizedException.Unauthorized("error.totp.challengeExpired")
+
+        if (!totpService.verifyChallengeCode(userId, code)) {
+            log.warn("2FA challenge failed: bad code userId={}", userId)
+            throw LocalizedException.Unauthorized("error.totp.invalidCode")
+        }
+
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        log.info("2FA challenge passed; authentication successful userId={}", userId)
         return AuthResponse(generateJwt(user))
     }
 
@@ -187,6 +222,7 @@ class AuthenticationService(
         private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
         private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
         private const val PASSWORD_RESET_TOKEN_TTL_MINUTES = 15L
+        private const val PRE_AUTH_TOKEN_TTL_MINUTES = 5L
         private val PASSWORD_REQUIREMENTS = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
     }
 

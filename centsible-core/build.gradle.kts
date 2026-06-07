@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.spring.security.crypto)
     implementation(libs.jackson.databind)
     implementation(libs.caffeine)
+    implementation(libs.totp)
     implementation(libs.konvert.api)
     ksp(libs.konvert.ksp)
 

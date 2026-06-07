@@ -19,9 +19,7 @@ private val REGISTRATION_TOKEN_HASH = field("registration_token_hash", ByteArray
 private val REGISTRATION_TOKEN_EXPIRES_AT = field("registration_token_expires_at", OffsetDateTime::class.java)
 private val PASSWORD_RESET_TOKEN_HASH = field("password_reset_token_hash", ByteArray::class.java)
 private val PASSWORD_RESET_TOKEN_EXPIRES_AT = field("password_reset_token_expires_at", OffsetDateTime::class.java)
-// LOCALE isn't in the generated USERS metadata yet; declared manually until the next jOOQ regen.
-private val LOCALE = field("locale", String::class.java)
-private val USER_FIELDS: Array<Field<*>> = arrayOf(*USERS.fields(), LOCALE)
+private val USER_FIELDS: Array<Field<*>> = USERS.fields()
 private const val DEFAULT_LOCALE = "en"
 private val SUPPORTED_LOCALES = setOf("en", "fr", "de")
 
@@ -80,7 +78,7 @@ class UserRepository(
             .set(USERS.FIRST_NAME, user.firstName)
             .set(USERS.LAST_NAME, user.lastName)
             .set(USERS.PASSWORD_HASH, passwordHash)
-            .set(LOCALE, normaliseLocale(user.locale))
+            .set(USERS.LOCALE, normaliseLocale(user.locale))
             .set(field("registered", Boolean::class.java), false)
             .set(REGISTRATION_TOKEN_HASH, registrationTokenHash)
             .set(REGISTRATION_TOKEN_EXPIRES_AT, registrationTokenExpiresAt)
@@ -120,7 +118,7 @@ class UserRepository(
 
     override fun updateUserLocale(id: UUID, locale: String): User? {
         return dsl.update(USERS)
-            .set(LOCALE, normaliseLocale(locale))
+            .set(USERS.LOCALE, normaliseLocale(locale))
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .returningResult(*USER_FIELDS)
@@ -182,4 +180,54 @@ class UserRepository(
             .execute()
         return settings
     }
+
+    override fun savePendingTotpSecret(id: UUID, encryptedSecret: ByteArray): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, encryptedSecret)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun getPendingTotpSecret(id: UUID): ByteArray? =
+        dsl.select(USERS.TOTP_PENDING_SECRET_ENCRYPTED).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOTP_PENDING_SECRET_ENCRYPTED)
+
+    override fun getActiveTotpSecret(id: UUID): ByteArray? =
+        dsl.select(USERS.TOTP_SECRET_ENCRYPTED).from(USERS)
+            .where(USERS.ID.eq(id).and(USERS.TOTP_ENABLED.isTrue))
+            .fetchOne(USERS.TOTP_SECRET_ENCRYPTED)
+
+    override fun activateTotp(id: UUID, encryptedSecret: ByteArray): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_SECRET_ENCRYPTED, encryptedSecret)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_ENABLED, true)
+            .set(USERS.TOTP_LAST_USED_STEP, null as Long?)
+            .set(USERS.TOTP_ENABLED_AT, OffsetDateTime.now())
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun disableTotp(id: UUID): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_ENABLED, false)
+            .set(USERS.TOTP_LAST_USED_STEP, null as Long?)
+            .set(USERS.TOTP_ENABLED_AT, null as OffsetDateTime?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun getTotpLastUsedStep(id: UUID): Long? =
+        dsl.select(USERS.TOTP_LAST_USED_STEP).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOTP_LAST_USED_STEP)
+
+    override fun updateTotpLastUsedStep(id: UUID, step: Long): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_LAST_USED_STEP, step)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
 }

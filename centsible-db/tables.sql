@@ -61,11 +61,42 @@ CREATE TABLE IF NOT EXISTS users
     password_reset_token_hash       BYTEA,
     password_reset_token_expires_at TIMESTAMPTZ,
     notification_settings           JSONB        NOT NULL DEFAULT '{}'::jsonb,
+    totp_secret_encrypted           BYTEA,
+    totp_pending_secret_encrypted   BYTEA,
+    totp_enabled                    BOOLEAN      NOT NULL DEFAULT FALSE,
+    totp_last_used_step             BIGINT,
+    totp_enabled_at                 TIMESTAMPTZ,
     CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_registration_token_hash ON users (registration_token_hash);
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token_hash ON users (password_reset_token_hash);
+
+-- Short-lived, single-use credential bridging password-verify and TOTP code-submit.
+CREATE TABLE IF NOT EXISTS mfa_pending_auth
+(
+    id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
+    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    token_hash BYTEA       NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at    TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_mfa_pending_auth_token_hash ON mfa_pending_auth (token_hash);
+CREATE INDEX IF NOT EXISTS idx_mfa_pending_auth_user ON mfa_pending_auth (user_id);
+
+-- Single-use TOTP recovery codes; stored as a salted slow-KDF hash, never plaintext.
+CREATE TABLE IF NOT EXISTS user_recovery_codes
+(
+    id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
+    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    code_hash  TEXT        NOT NULL,
+    used_at    TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_recovery_codes_user ON user_recovery_codes (user_id);
 
 
 CREATE TABLE IF NOT EXISTS accounts
