@@ -169,7 +169,19 @@
         "copy": "Codes kopieren",
         "done": "Ich habe sie gespeichert",
         "copiedTitle": "Wiederherstellungscodes kopiert",
-        "copiedBody": "Sie befinden sich in Ihrer Zwischenablage — bewahren Sie sie sicher auf."
+        "copiedBody": "Sie befinden sich in Ihrer Zwischenablage — bewahren Sie sie sicher auf.",
+        "download": "Als .txt herunterladen",
+        "savedConfirm": "Ich habe diese Wiederherstellungscodes sicher gespeichert",
+        "regenerate": "Neu erzeugen",
+        "regenerateTitle": "Wiederherstellungscodes neu erzeugen",
+        "regenerateDescription": "Dies ersetzt alle vorhandenen Wiederherstellungscodes. Gib einen aktuellen Code aus deiner App (oder einen ungenutzten Wiederherstellungscode) ein, um fortzufahren.",
+        "regenerateSubmit": "Codes neu erzeugen",
+        "regeneratedTitle": "Wiederherstellungscodes neu erzeugt",
+        "regeneratedBody": "Deine alten Codes funktionieren nicht mehr. Speichere die neuen.",
+        "remainingTitle": "Wiederherstellungscodes",
+        "remainingCount": "{count} ungenutzter Code übrig | {count} ungenutzte Codes übrig",
+        "copyFailedTitle": "Kopieren fehlgeschlagen",
+        "copyFailedBody": "Kopiere die Codes manuell — sie werden oben angezeigt."
       },
       "toasts": {
         "enrollErrorTitle": "Einrichtung konnte nicht gestartet werden",

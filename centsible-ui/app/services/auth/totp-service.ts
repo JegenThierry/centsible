@@ -31,5 +31,11 @@ export function useTotpService(api: AxiosInstance) {
     assertStatus(response, [204]);
   }
 
-  return {status, enroll, confirm, disable, cancelEnroll};
+  // Verifies a current code, replaces every recovery code, and returns the new set (shown once).
+  async function regenerateRecoveryCodes(code: string): Promise<RecoveryCodes> {
+    const response = await api.post<RecoveryCodes>('/auth/2fa/recovery-codes/regenerate', {code});
+    return validateRequest<RecoveryCodes>(response);
+  }
+
+  return {status, enroll, confirm, disable, cancelEnroll, regenerateRecoveryCodes};
 }

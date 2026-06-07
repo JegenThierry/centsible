@@ -42,7 +42,8 @@ class TotpService(
     override fun status(userId: UUID): TotpStatusDTO {
         val user = userRepository.findUserById(userId)
             ?: throw LocalizedException.NotFound("error.user.notFound")
-        return TotpStatusDTO(enabled = user.totpEnabled)
+        val remaining = if (user.totpEnabled) mfaRepository.fetchUnusedRecoveryCodeHashes(userId).size else 0
+        return TotpStatusDTO(enabled = user.totpEnabled, recoveryCodesRemaining = remaining)
     }
 
     override fun beginEnrollment(userId: UUID, accountName: String): TotpEnrollmentDTO {
@@ -84,11 +85,7 @@ class TotpService(
         // Burn the confirming code's window so it can't immediately be replayed at first login.
         userRepository.updateTotpLastUsedStep(userId, currentStep())
 
-        val plainCodes: List<String> = recoveryCodeGenerator.generateCodes(RECOVERY_CODE_COUNT).toList()
-        val hashes = plainCodes.map {
-            passwordEncoder.encode(it) ?: throw LocalizedException.InternalError("error.totp.enrollFailed")
-        }
-        mfaRepository.replaceRecoveryCodes(userId, hashes)
+        val plainCodes = generateAndStoreRecoveryCodes(userId)
 
         log.info("Enabled TOTP 2FA userId={}", userId)
         return RecoveryCodesDTO(recoveryCodes = plainCodes)
@@ -113,6 +110,29 @@ class TotpService(
         if (userRepository.clearPendingTotpSecret(userId)) {
             log.info("Cancelled TOTP enrollment userId={}", userId)
         }
+    }
+
+    override fun regenerateRecoveryCodes(userId: UUID, code: String): RecoveryCodesDTO {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        if (!user.totpEnabled) throw LocalizedException.BadRequest("error.totp.notEnabled")
+        if (!verifyCodeForUser(userId, code)) {
+            log.warn("Recovery-code regeneration rejected: bad code userId={}", userId)
+            throw LocalizedException.BadRequest("error.totp.invalidCode")
+        }
+        val codes = generateAndStoreRecoveryCodes(userId)
+        log.info("Regenerated recovery codes userId={}", userId)
+        return RecoveryCodesDTO(recoveryCodes = codes)
+    }
+
+    /** Generates a fresh set of recovery codes, replacing any existing ones, and returns the plaintext. */
+    private fun generateAndStoreRecoveryCodes(userId: UUID): List<String> {
+        val plainCodes: List<String> = recoveryCodeGenerator.generateCodes(RECOVERY_CODE_COUNT).toList()
+        val hashes = plainCodes.map {
+            passwordEncoder.encode(it) ?: throw LocalizedException.InternalError("error.totp.enrollFailed")
+        }
+        mfaRepository.replaceRecoveryCodes(userId, hashes)
+        return plainCodes
     }
 
     override fun verifyChallengeCode(userId: UUID, code: String): Boolean = verifyCodeForUser(userId, code)

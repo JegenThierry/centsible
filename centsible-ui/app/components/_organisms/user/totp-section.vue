@@ -6,10 +6,11 @@ import {useTotpService} from "~/services/auth/totp-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 import {useValidator} from "~/composables/use-validator";
 import type {TotpEnrollment} from "~/models/auth/totp";
 
-type Step = 'loading' | 'disabled' | 'enrolling' | 'recovery' | 'enabled';
+type Step = 'loading' | 'disabled' | 'enrolling' | 'recovery' | 'regenerating' | 'enabled';
 
 const {t} = useI18n();
 const totpService = useTotpService(useApi());
@@ -19,11 +20,16 @@ const step = ref<Step>('loading');
 const busy = ref<boolean>(false);
 const enrollment = ref<TotpEnrollment | null>(null);
 const recoveryCodes = ref<string[]>([]);
+const recoveryRemaining = ref(0);
+// Gates the "I've saved them" button so codes can't be dismissed without an explicit acknowledgement.
+const recoverySaved = ref(false);
 
 const confirmState = reactive({code: ''});
 const disableState = reactive({code: ''});
+const regenState = reactive({code: ''});
 const confirmInput = ref<InstanceType<typeof BaseInput>>();
 const disableInput = ref<InstanceType<typeof BaseInput>>();
+const regenInput = ref<InstanceType<typeof BaseInput>>();
 
 onMounted(refreshStatus);
 
@@ -31,6 +37,7 @@ async function refreshStatus() {
   step.value = 'loading';
   try {
     const status = await totpService.status();
+    recoveryRemaining.value = status.recoveryCodesRemaining ?? 0;
     step.value = status.enabled ? 'enabled' : 'disabled';
   } catch (err: any) {
     adze.ns('totp').error('Failed to load 2FA status', err);
@@ -59,6 +66,7 @@ async function onConfirm() {
   try {
     const result = await totpService.confirm(confirmState.code.trim());
     recoveryCodes.value = result.recoveryCodes;
+    recoverySaved.value = false;
     step.value = 'recovery';
     success(t('profile.twoFactor.toasts.enabledTitle'), t('profile.twoFactor.toasts.enabledBody'));
   } catch (err: any) {
@@ -98,12 +106,53 @@ async function onDisable() {
   }
 }
 
+function onStartRegenerate() {
+  regenState.code = '';
+  step.value = 'regenerating';
+}
+
+function onCancelRegenerate() {
+  regenState.code = '';
+  step.value = 'enabled';
+}
+
+async function onRegenerate() {
+  if (busy.value) return;
+  if (!useValidator().validateInputs([regenInput])) return;
+  busy.value = true;
+  try {
+    const result = await totpService.regenerateRecoveryCodes(regenState.code.trim());
+    recoveryCodes.value = result.recoveryCodes;
+    recoverySaved.value = false;
+    step.value = 'recovery';
+    success(t('profile.twoFactor.recovery.regeneratedTitle'), t('profile.twoFactor.recovery.regeneratedBody'));
+  } catch (err: any) {
+    error(t('profile.twoFactor.toasts.invalidCodeTitle'), t('profile.twoFactor.toasts.invalidCodeBody'));
+  } finally {
+    busy.value = false;
+  }
+}
+
 function copyRecoveryCodes() {
   const text = recoveryCodes.value.join('\n');
-  navigator.clipboard?.writeText(text).then(
+  if (!navigator.clipboard) {
+    error(t('profile.twoFactor.recovery.copyFailedTitle'), t('profile.twoFactor.recovery.copyFailedBody'));
+    return;
+  }
+  navigator.clipboard.writeText(text).then(
     () => success(t('profile.twoFactor.recovery.copiedTitle'), t('profile.twoFactor.recovery.copiedBody')),
-    () => {/* clipboard unavailable — codes are still visible on screen */},
+    () => error(t('profile.twoFactor.recovery.copyFailedTitle'), t('profile.twoFactor.recovery.copyFailedBody')),
   );
+}
+
+function downloadRecoveryCodes() {
+  const blob = new Blob([recoveryCodes.value.join('\n') + '\n'], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'centsible-recovery-codes.txt';
+  link.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 
@@ -173,17 +222,50 @@ function copyRecoveryCodes() {
           {{ code }}
         </li>
       </ul>
-      <div class="flex gap-3 justify-end">
+      <div class="flex gap-3">
         <AppButton color="neutral" variant="outline" icon="i-lucide-copy" @click="copyRecoveryCodes">
           {{ t('profile.twoFactor.recovery.copy') }}
         </AppButton>
-        <AppButton icon="i-lucide-check" @click="onDone">
+        <AppButton color="neutral" variant="outline" icon="i-lucide-download" @click="downloadRecoveryCodes">
+          {{ t('profile.twoFactor.recovery.download') }}
+        </AppButton>
+      </div>
+      <AppCheckbox v-model="recoverySaved" :label="t('profile.twoFactor.recovery.savedConfirm')"/>
+      <div class="flex justify-end">
+        <AppButton icon="i-lucide-check" :disabled="!recoverySaved" @click="onDone">
           {{ t('profile.twoFactor.recovery.done') }}
         </AppButton>
       </div>
     </div>
 
-    <!-- On: offer to disable (requires a code) -->
+    <!-- Regenerating recovery codes: requires a current code -->
+    <div v-else-if="step === 'regenerating'" class="mt-4 space-y-4">
+      <UAlert
+        :title="t('profile.twoFactor.recovery.regenerateTitle')"
+        :description="t('profile.twoFactor.recovery.regenerateDescription')"
+        icon="i-lucide-refresh-cw"
+        color="warning"
+        variant="subtle"/>
+      <UForm :state="regenState" class="space-y-4" @submit="onRegenerate">
+        <BaseInput ref="regenInput"
+                   v-model="regenState.code"
+                   :disabled="busy"
+                   :label="t('profile.twoFactor.disable.codeLabel')"
+                   :hint="t('profile.twoFactor.disable.codeHint')"
+                   required
+                   type="text"/>
+        <div class="flex gap-3 justify-end">
+          <AppButton color="neutral" variant="outline" :disabled="busy" @click="onCancelRegenerate">
+            {{ t('common.actions.cancel') }}
+          </AppButton>
+          <AppButton :loading="busy" type="submit">
+            {{ t('profile.twoFactor.recovery.regenerateSubmit') }}
+          </AppButton>
+        </div>
+      </UForm>
+    </div>
+
+    <!-- On: show recovery-code status + offer regenerate, then disable (requires a code) -->
     <div v-else-if="step === 'enabled'" class="mt-4 space-y-4">
       <UAlert
         :title="t('profile.twoFactor.status.onTitle')"
@@ -191,6 +273,20 @@ function copyRecoveryCodes() {
         icon="i-lucide-shield-check"
         color="success"
         variant="subtle"/>
+
+      <div class="flex items-center justify-between gap-3 rounded-md border border-default p-3">
+        <div>
+          <p class="text-sm font-medium">{{ t('profile.twoFactor.recovery.remainingTitle') }}</p>
+          <p class="text-xs"
+             :class="recoveryRemaining <= 3 ? 'text-warning' : 'text-muted'">
+            {{ t('profile.twoFactor.recovery.remainingCount', {count: recoveryRemaining}, recoveryRemaining) }}
+          </p>
+        </div>
+        <AppButton color="neutral" variant="outline" size="sm" icon="i-lucide-refresh-cw" @click="onStartRegenerate">
+          {{ t('profile.twoFactor.recovery.regenerate') }}
+        </AppButton>
+      </div>
+
       <UForm :state="disableState" class="space-y-4" @submit="onDisable">
         <BaseInput ref="disableInput"
                    v-model="disableState.code"

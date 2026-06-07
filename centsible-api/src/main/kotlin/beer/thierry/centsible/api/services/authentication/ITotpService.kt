@@ -38,6 +38,13 @@ interface ITotpService {
     fun cancelEnrollment(userId: UUID)
 
     /**
+     * Regenerates the recovery codes after verifying [code] (a current TOTP or unused recovery code),
+     * replacing every existing code and returning the new set (shown once). Throws if 2FA isn't
+     * enabled or the code is invalid.
+     */
+    fun regenerateRecoveryCodes(userId: UUID, code: String): RecoveryCodesDTO
+
+    /**
      * Verifies a login-challenge [code] (TOTP or recovery) against [userId]'s active secret,
      * enforcing replay rejection. Returns true on success. Used by the auth service's challenge step.
      */

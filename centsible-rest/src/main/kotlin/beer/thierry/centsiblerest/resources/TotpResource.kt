@@ -51,6 +51,15 @@ class TotpResource(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/recovery-codes/regenerate")
+    fun regenerateRecoveryCodes(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: TotpCodeRequest,
+    ): ResponseEntity<RecoveryCodesDTO> {
+        log.info("Recovery-code regeneration requested userId={}", user.id)
+        return ResponseEntity.ok(totpService.regenerateRecoveryCodes(user.id, request.code))
+    }
+
     @PostMapping("/disable")
     fun disable(
         @AuthenticationPrincipal user: UserDTO,
