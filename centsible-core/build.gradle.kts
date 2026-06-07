@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.caffeine)
     implementation(libs.totp)
+    implementation(libs.pebble)
     implementation(libs.konvert.api)
     ksp(libs.konvert.ksp)
 
