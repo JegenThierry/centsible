@@ -1,3 +1,5 @@
+import type {Currency} from "~/models/budget-account/currency";
+
 export interface UserDto {
   id: string;
   username: string;
@@ -7,4 +9,5 @@ export interface UserDto {
   name: string;
   profilePicture?: string;
   locale: string;
+  defaultCurrency: Currency;
 }

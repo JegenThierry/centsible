@@ -1,5 +1,6 @@
 import type {Contact} from "~/models/contact/contact";
 import type {Transaction} from "~/models/transactions/transaction";
+import type {Currency} from "~/models/budget-account/currency";
 
 export interface Loan {
   id: string;
@@ -11,6 +12,8 @@ export interface Loan {
   owedAmount: number;
   totalRepaid: number;
   outstanding: number;
+  currency: Currency;
+  interestRate?: number;
   loanDate?: string;
   description?: string;
   dueDate?: string;
@@ -27,8 +30,19 @@ export interface LoanForm {
   affectBalance: boolean;
   lentAmount: number;
   owedAmount: number;
+  currency?: Currency;
+  interestRate?: number;
   description: string;
   transactionDate: string;
+  dueDate?: string;
+  notes?: string;
+}
+
+/** Balance-neutral edits only (see backend LoanUpdateForm). */
+export interface LoanUpdateForm {
+  description: string;
+  owedAmount: number;
+  interestRate?: number;
   dueDate?: string;
   notes?: string;
 }
@@ -39,6 +53,7 @@ export interface Repayment {
   transaction?: Transaction;
   affectsBalance: boolean;
   amount: number;
+  currency?: Currency;
   repaidAt?: string;
   createdAt?: string;
 }
@@ -49,6 +64,16 @@ export interface RepaymentForm {
   amount: number;
   description?: string;
   repaidAt: string;
+}
+
+/**
+ * Coerce an optional numeric form field to a number, or undefined when blank/invalid. Number inputs
+ * emit '' when cleared, which would otherwise be sent to the backend and fail BigDecimal parsing.
+ */
+export function cleanOptionalNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null || String(value).trim() === '') return undefined;
+  const n = Number(value);
+  return Number.isNaN(n) ? undefined : n;
 }
 
 export type LoanStatus = 'settled' | 'partial' | 'open';

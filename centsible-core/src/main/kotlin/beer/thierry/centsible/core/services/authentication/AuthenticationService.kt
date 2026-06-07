@@ -208,6 +208,54 @@ class AuthenticationService(
         return reset
     }
 
+    override fun changePassword(userId: UUID, currentPassword: String, newPassword: String) {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+
+        if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
+            log.warn("Password change rejected: bad current password userId={}", userId)
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+
+        assertPasswordMatchesSecuritySettings(newPassword)
+
+        if (passwordEncoder.matches(newPassword, user.passwordHash)) {
+            throw LocalizedException.BadRequest("error.auth.passwordReused")
+        }
+
+        val passwordHash = passwordEncoder.encode(newPassword)
+            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        if (!userRepository.updatePassword(userId, passwordHash)) {
+            throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        }
+        log.info("Password changed successfully userId={}", userId)
+    }
+
+    override fun deleteAccount(userId: UUID, password: String, totpCode: String?) {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+
+        if (!passwordEncoder.matches(password, user.passwordHash)) {
+            log.warn("Account deletion rejected: bad password userId={}", userId)
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+
+        if (user.totpEnabled) {
+            // 2FA users must additionally prove a current factor for this irreversible action.
+            val code = totpCode?.takeIf { it.isNotBlank() }
+                ?: throw LocalizedException.Unauthorized("error.totp.invalidCode")
+            if (!totpService.verifyChallengeCode(userId, code)) {
+                log.warn("Account deletion rejected: bad TOTP code userId={}", userId)
+                throw LocalizedException.Unauthorized("error.totp.invalidCode")
+            }
+        }
+
+        if (!userRepository.deleteUser(userId)) {
+            throw LocalizedException.InternalError("error.user.deleteFailed")
+        }
+        log.info("Account deleted userId={}", userId)
+    }
+
     private fun generateRegistrationToken(): String {
         val bytes = ByteArray(REGISTRATION_TOKEN_BYTES).also { SecureRandom().nextBytes(it) }
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)

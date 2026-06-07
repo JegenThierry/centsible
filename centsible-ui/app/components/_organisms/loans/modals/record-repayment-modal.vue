@@ -64,7 +64,7 @@ async function handleSave() {
           :description="description"
           :title="t('contacts.loans.repayment.title')">
     <template #body>
-      <RepaymentForm v-if="loan" ref="formRef" v-model="form" :max-amount="Number(loan.outstanding)"/>
+      <RepaymentForm v-if="loan" ref="formRef" v-model="form" :max-amount="Number(loan.outstanding)" :currency="loan.currency"/>
     </template>
 
     <template #footer>

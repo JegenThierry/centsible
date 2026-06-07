@@ -2,6 +2,7 @@
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AllLoansTable from "~/components/_organisms/loans/all-loans-table.vue";
 const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
+const EditLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/edit-loan-modal.vue"));
 const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
 const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
@@ -9,11 +10,14 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useUserStore} from "~/stores/userStore";
+import {Currency} from "~/models/budget-account/currency";
 import {type Loan, type LoanStatus, loanStatus} from "~/models/loan/loan";
 
 const loansStore = useLoansStore();
-const currency = useActiveCurrency();
+const userStore = useUserStore();
+// The outstanding total is converted server-side into the user's default currency.
+const defaultCurrency = computed<Currency>(() => userStore.user?.defaultCurrency ?? Currency.EUR);
 const {t} = useI18n();
 
 type Filter = 'all' | LoanStatus;
@@ -34,13 +38,13 @@ const filteredLoans = computed<Loan[]>(() => {
 
 const stats = computed(() => {
   const all = loansStore.allLoans ?? [];
-  const outstanding = all.reduce((sum, l) => sum + Number(l.outstanding ?? 0), 0);
   const open = all.filter(l => Number(l.outstanding) > 0).length;
   const contacts = new Set(all.filter(l => Number(l.outstanding) > 0).map(l => l.contact?.id)).size;
-  return {outstanding, open, contacts};
+  return {open, contacts};
 });
 
 const isCreateOpen = ref(false);
+const isEditOpen = ref(false);
 const isRepayOpen = ref(false);
 const isDeleteOpen = ref(false);
 const selected = ref<Loan>();
@@ -48,6 +52,11 @@ const selected = ref<Loan>();
 function openRepay(loan: Loan) {
   selected.value = loan;
   isRepayOpen.value = true;
+}
+
+function openEdit(loan: Loan) {
+  selected.value = loan;
+  isEditOpen.value = true;
 }
 
 function openDelete(loan: Loan) {
@@ -95,7 +104,7 @@ onMounted(() => refresh());
         <UCard>
           <p class="text-xs text-muted">{{ t('contacts.loansPage.stats.totalOutstanding') }}</p>
           <p class="text-lg font-bold text-warning">
-            <BalanceNumberFormat :balance="stats.outstanding" :currency="currency"/>
+            <BalanceNumberFormat :balance="loansStore.totalOutstanding" :currency="defaultCurrency"/>
           </p>
         </UCard>
         <UCard>
@@ -111,6 +120,7 @@ onMounted(() => refresh());
       <AllLoansTable :loans="filteredLoans"
                      :loading="loansStore.pending"
                      @delete="openDelete"
+                     @edit="openEdit"
                      @open-contact="openContact"
                      @repay="openRepay"/>
     </template>
@@ -118,6 +128,11 @@ onMounted(() => refresh());
     <CreateLoanModal v-if="isCreateOpen"
                      v-model:open="isCreateOpen"
                      @created="refresh"/>
+
+    <EditLoanModal v-if="isEditOpen"
+                   v-model:open="isEditOpen"
+                   :loan="selected"
+                   @updated="refresh"/>
     <RecordRepaymentModal v-if="isRepayOpen"
                           v-model:open="isRepayOpen"
                           :loan="selected"

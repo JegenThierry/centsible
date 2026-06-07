@@ -120,6 +120,16 @@ open class Loans(
     val OWED_AMOUNT: TableField<LoansRecord, BigDecimal?> = createField(DSL.name("owed_amount"), SQLDataType.NUMERIC(15, 2).nullable(false), this, "")
 
     /**
+     * The column <code>public.loans.currency</code>.
+     */
+    val CURRENCY: TableField<LoansRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+
+    /**
+     * The column <code>public.loans.interest_rate</code>.
+     */
+    val INTEREST_RATE: TableField<LoansRecord, BigDecimal?> = createField(DSL.name("interest_rate"), SQLDataType.NUMERIC(5, 2), this, "")
+
+    /**
      * The column <code>public.loans.loan_date</code>.
      */
     val LOAN_DATE: TableField<LoansRecord, LocalDate?> = createField(DSL.name("loan_date"), SQLDataType.LOCALDATE.nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_DATE"), SQLDataType.LOCALDATE)), this, "")
@@ -247,6 +257,8 @@ open class Loans(
     val loanRepayments: LoanRepaymentsPath
         get(): LoanRepaymentsPath = loanRepayments()
     override fun getChecks(): List<Check<LoansRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("loans_currency_supported"), "(((currency)::text = ANY ((ARRAY['EUR'::character varying, 'USD'::character varying, 'JPY'::character varying, 'GBP'::character varying, 'AUD'::character varying, 'CAD'::character varying, 'CHF'::character varying, 'CNY'::character varying, 'HKD'::character varying, 'NZD'::character varying, 'SEK'::character varying, 'NOK'::character varying, 'DKK'::character varying, 'SGD'::character varying, 'KRW'::character varying, 'INR'::character varying, 'MXN'::character varying, 'BRL'::character varying, 'ZAR'::character varying, 'TRY'::character varying, 'PLN'::character varying, 'PHP'::character varying, 'IDR'::character varying])::text[])))", true),
+        Internal.createCheck(this, DSL.name("loans_interest_rate_check"), "(((interest_rate IS NULL) OR (interest_rate >= (0)::numeric)))", true),
         Internal.createCheck(this, DSL.name("loans_lent_amount_check"), "((lent_amount > (0)::numeric))", true),
         Internal.createCheck(this, DSL.name("loans_owed_amount_check"), "((owed_amount >= (0)::numeric))", true)
     )

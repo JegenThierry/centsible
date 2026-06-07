@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
 import beer.thierry.centsible.api.model.auth.LoginResult
+import java.util.UUID
 
 interface IAuthService {
     /**
@@ -36,4 +37,19 @@ interface IAuthService {
      * Returns true on success, false when the token is invalid or expired.
      */
     fun resetPassword(token: String, newPassword: String): Boolean
+
+    /**
+     * Authenticated password change for [userId]. Verifies [currentPassword], enforces the new
+     * password's strength rules, rejects reusing the current password, then re-encodes and stores
+     * [newPassword]. Throws [LocalizedException.Unauthorized] when the current password is wrong.
+     * Existing JWTs are not revoked (stateless cookie model): the caller's session stays valid.
+     */
+    fun changePassword(userId: UUID, currentPassword: String, newPassword: String)
+
+    /**
+     * Irreversibly deletes [userId]'s account after verifying [password] (and, when 2FA is enabled,
+     * a current [totpCode] — TOTP or recovery code). The delete cascades to all of the user's data
+     * via database foreign keys. Throws [LocalizedException.Unauthorized] on a failed check.
+     */
+    fun deleteAccount(userId: UUID, password: String, totpCode: String?)
 }

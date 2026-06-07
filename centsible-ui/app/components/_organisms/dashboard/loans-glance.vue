@@ -3,10 +3,13 @@ import adze from 'adze'
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useUserStore} from "~/stores/userStore";
+import {Currency} from "~/models/budget-account/currency";
 
 const loansStore = useLoansStore();
-const currency = useActiveCurrency();
+const userStore = useUserStore();
+// The outstanding total is converted server-side into the user's default currency.
+const defaultCurrency = computed<Currency>(() => userStore.user?.defaultCurrency ?? Currency.EUR);
 const {t} = useI18n();
 
 const openLoans = computed(() => (loansStore.allLoans ?? []).filter(l => Number(l.outstanding) > 0));
@@ -48,7 +51,7 @@ onMounted(async () => {
         <div>
           <p class="text-xs text-muted">{{ t('contacts.loansGlance.outstanding') }}</p>
           <p class="text-xl font-bold text-warning">
-            <BalanceNumberFormat :balance="loansStore.totalOutstanding" :currency="currency"/>
+            <BalanceNumberFormat :balance="loansStore.totalOutstanding" :currency="defaultCurrency"/>
           </p>
         </div>
         <p class="text-sm text-muted">
@@ -69,7 +72,7 @@ onMounted(async () => {
             {{ loan.contact?.name }}
           </NuxtLink>
           <span class="font-medium text-warning">
-            <BalanceNumberFormat :balance="Number(loan.outstanding)" :currency="currency"/>
+            <BalanceNumberFormat :balance="Number(loan.outstanding)" :currency="loan.currency ?? defaultCurrency"/>
           </span>
         </li>
       </ul>

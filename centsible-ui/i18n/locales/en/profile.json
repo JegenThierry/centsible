@@ -1,8 +1,82 @@
 {
   "profile": {
     "page": {
-      "title": "Profile",
-      "description": "Manage your account settings and profile information"
+      "title": "Settings",
+      "description": "Manage your account, security, notifications, and appearance."
+    },
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "notifications": "Notifications",
+      "appearance": "Appearance"
+    },
+    "currency": {
+      "title": "Default currency",
+      "description": "Used as the default when creating new accounts and for summary totals.",
+      "toasts": {
+        "savedTitle": "Default currency updated",
+        "savedBody": "New accounts and totals will use this currency.",
+        "errorTitle": "Could not update currency",
+        "errorBody": "Please try again."
+      }
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change the password you use to sign in.",
+      "currentLabel": "Current password",
+      "currentPlaceholder": "Enter your current password",
+      "newLabel": "New password",
+      "newPlaceholder": "Enter a new password",
+      "newHint": "At least 8 characters with upper and lower case letters, a digit, and one of @$!%*?&.",
+      "confirmLabel": "Confirm new password",
+      "confirmPlaceholder": "Re-enter your new password",
+      "submit": "Update password",
+      "validation": {
+        "tooWeak": "This password is too weak. Use at least 8 characters with upper and lower case letters, a digit, and a symbol.",
+        "mustDiffer": "Your new password must be different from your current one.",
+        "mustMatch": "The two passwords don't match."
+      },
+      "toasts": {
+        "successTitle": "Password updated",
+        "successBody": "Use your new password the next time you sign in.",
+        "currentIncorrectTitle": "Current password incorrect",
+        "currentIncorrectBody": "The current password you entered is wrong. Please try again.",
+        "errorTitle": "Could not update password",
+        "errorBody": "Something went wrong. Please try again later."
+      }
+    },
+    "dangerZone": {
+      "title": "Danger zone",
+      "description": "Irreversible actions that affect your entire account.",
+      "delete": {
+        "title": "Delete account",
+        "description": "Permanently delete your account and all associated data, including accounts, transactions, loans, and exports.",
+        "warning": "This action is permanent and cannot be undone. All of your data will be erased immediately.",
+        "button": "Delete my account",
+        "confirmTitle": "Delete your account?",
+        "confirmBody": "This will permanently erase your account and all of its data. This cannot be undone.",
+        "passwordLabel": "Confirm your password",
+        "passwordPlaceholder": "Enter your password to confirm",
+        "passwordHint": "Re-enter your password to confirm you want to delete your account.",
+        "totpLabel": "Two-factor code",
+        "totpHint": "Enter a current code from your authenticator app or a recovery code.",
+        "confirmButton": "Permanently delete",
+        "toasts": {
+          "successTitle": "Account deleted",
+          "successBody": "Your account and all of its data have been removed.",
+          "passwordIncorrectTitle": "Verification failed",
+          "passwordIncorrectBody": "We couldn't verify your password or code. Your account was not deleted.",
+          "errorTitle": "Could not delete account",
+          "errorBody": "Something went wrong. Your account was not deleted. Please try again."
+        }
+      }
+    },
+    "dataExport": {
+      "title": "Export your data",
+      "description": "Download your transactions and account data. Large exports are prepared in the background.",
+      "defaultTitle": "Data export {date}",
+      "trigger": "Export data",
+      "viewAll": "View my documents"
     },
     "avatar": {
       "alt": "Profile picture",

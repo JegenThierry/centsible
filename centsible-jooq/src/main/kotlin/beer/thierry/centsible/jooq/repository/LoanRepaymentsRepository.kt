@@ -1,6 +1,7 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
@@ -43,6 +44,7 @@ class LoanRepaymentsRepository(
         LOAN_REPAYMENTS.REPAID_AT,
         LOAN_REPAYMENTS.CREATED_AT,
         LOAN_REPAYMENTS.TRANSACTION_ID,
+        LOANS.CURRENCY,
         TRANSACTIONS.ACCOUNT_ID,
         *TransactionRecordMapper.columns,
     )
@@ -51,7 +53,12 @@ class LoanRepaymentsRepository(
         .leftJoin(TRANSACTIONS).on(TRANSACTIONS.ID.eq(LOAN_REPAYMENTS.TRANSACTION_ID))
         .leftJoin(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
 
-    override fun createRepayment(authenticatedUser: UserDTO, loanId: UUID, form: RepaymentForm): RepaymentDTO {
+    override fun createRepayment(
+        authenticatedUser: UserDTO,
+        loanId: UUID,
+        form: RepaymentForm,
+        conversion: ConversionResult?,
+    ): RepaymentDTO {
         val now = OffsetDateTime.now()
         val description = form.description?.takeIf { it.isNotBlank() } ?: "Repayment"
 
@@ -59,17 +66,25 @@ class LoanRepaymentsRepository(
             val accountId = form.accountId
                 ?: throw IllegalArgumentException("Account is required when the repayment affects an account balance.")
             dsl.ensureAccountOwnedByUser(accountId, authenticatedUser.id)
+            requireNotNull(conversion) { "Conversion is required for a balance-affecting repayment." }
 
             val repaymentCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.REPAYMENT)
                 ?: throw IllegalStateException("System Repayment category not found. Migration may not have run.")
 
+            // Stored repayment amount stays in the loan currency; the transaction lands in the account
+            // currency (convertedAmount) with the loan-currency original amount/rate on the FX columns.
+            val fx = FxColumns.from(conversion)
             val newTransactionId = dsl.insertInto(TRANSACTIONS)
                 .set(TRANSACTIONS.ACCOUNT_ID, accountId)
                 .set(TRANSACTIONS.CATEGORY_ID, repaymentCategoryId)
-                .set(TRANSACTIONS.AMOUNT, form.amount)
+                .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
                 .set(TRANSACTIONS.DESCRIPTION, description)
                 .set(TRANSACTIONS.TRANSACTION_DATE, form.repaidAt)
                 .set(TRANSACTIONS.TYPE, CategoryType.INCOME.value)
+                .set(TRANSACTIONS.ORIGINAL_AMOUNT, fx.originalAmount)
+                .set(TRANSACTIONS.ORIGINAL_CURRENCY, fx.originalCurrency)
+                .set(TRANSACTIONS.EXCHANGE_RATE, fx.rate)
+                .set(TRANSACTIONS.RATE_DATE, fx.rateDate)
                 .set(TRANSACTIONS.CREATED_AT, now)
                 .set(TRANSACTIONS.MODIFIED_AT, now)
                 .returning(TRANSACTIONS.ID)
@@ -78,7 +93,7 @@ class LoanRepaymentsRepository(
                 ?: throw IllegalStateException("Failed to create repayment transaction")
 
             // Repayment is an INCOME-typed managed category, so the cash returns to the account.
-            budgetAccountsRepository.updateBalance(accountId, form.amount, authenticatedUser)
+            budgetAccountsRepository.updateBalance(accountId, conversion.convertedAmount, authenticatedUser)
 
             newTransactionId
         } else null
@@ -155,6 +170,7 @@ class LoanRepaymentsRepository(
             transaction = transaction,
             affectsBalance = transaction != null,
             amount = record[LOAN_REPAYMENTS.AMOUNT] ?: BigDecimal.ZERO,
+            currency = record[LOANS.CURRENCY],
             repaidAt = record[LOAN_REPAYMENTS.REPAID_AT],
             createdAt = record[LOAN_REPAYMENTS.CREATED_AT],
         )

@@ -26,6 +26,16 @@ private val SUPPORTED_LOCALES = setOf("en", "fr", "de")
 private fun normaliseLocale(locale: String?): String =
     locale?.takeIf { it in SUPPORTED_LOCALES } ?: DEFAULT_LOCALE
 
+private const val DEFAULT_CURRENCY = "EUR"
+private val SUPPORTED_CURRENCIES = setOf(
+    "EUR", "USD", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD",
+    "SEK", "NOK", "DKK", "SGD", "KRW", "INR", "MXN", "BRL", "ZAR", "TRY",
+    "PLN", "PHP", "IDR",
+)
+
+private fun normaliseCurrency(currency: String?): String =
+    currency?.takeIf { it in SUPPORTED_CURRENCIES } ?: DEFAULT_CURRENCY
+
 private val NOTIFICATION_SETTINGS = field("notification_settings", JSONB::class.java)
 
 private val log = LoggerFactory.getLogger(UserRepository::class.java)
@@ -123,6 +133,29 @@ class UserRepository(
             .where(USERS.ID.eq(id))
             .returningResult(*USER_FIELDS)
             .fetchOneInto(User::class.java)
+    }
+
+    override fun updateDefaultCurrency(id: UUID, currency: String): User? {
+        return dsl.update(USERS)
+            .set(USERS.DEFAULT_CURRENCY, normaliseCurrency(currency))
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .returningResult(*USER_FIELDS)
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun updatePassword(id: UUID, newPasswordHash: String): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.PASSWORD_HASH, newPasswordHash)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun deleteUser(id: UUID): Boolean {
+        return dsl.deleteFrom(USERS)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
     }
 
     override fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean {

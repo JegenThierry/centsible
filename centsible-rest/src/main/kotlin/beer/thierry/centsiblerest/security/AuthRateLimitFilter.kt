@@ -78,6 +78,9 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
             "/api/auth/2fa/confirm",
             "/api/auth/2fa/disable",
             "/api/auth/2fa/enroll",
+            // Re-verify current password / 2FA code: cap brute-force on these sensitive actions.
+            "/api/auth/change-password",
+            "/api/auth/account/delete",
         )
     }
 }

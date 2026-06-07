@@ -108,6 +108,10 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         set(value): Unit = set(21, value)
         get(): OffsetDateTime? = get(21) as OffsetDateTime?
 
+    open var defaultCurrency: String?
+        set(value): Unit = set(22, value)
+        get(): String? = get(22) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -117,7 +121,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
     /**
      * Create a detached, initialised UsersRecord
      */
-    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null, registrationTokenHash: ByteArray? = null, registrationTokenExpiresAt: OffsetDateTime? = null, locale: String? = null, passwordResetTokenHash: ByteArray? = null, passwordResetTokenExpiresAt: OffsetDateTime? = null, notificationSettings: JSONB? = null, totpSecretEncrypted: ByteArray? = null, totpPendingSecretEncrypted: ByteArray? = null, totpEnabled: Boolean? = null, totpLastUsedStep: Long? = null, totpEnabledAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, username: String? = null, email: String? = null, firstName: String? = null, lastName: String? = null, passwordHash: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, registered: Boolean? = null, registrationToken: UUID? = null, profilePicture: String? = null, registrationTokenHash: ByteArray? = null, registrationTokenExpiresAt: OffsetDateTime? = null, locale: String? = null, passwordResetTokenHash: ByteArray? = null, passwordResetTokenExpiresAt: OffsetDateTime? = null, notificationSettings: JSONB? = null, totpSecretEncrypted: ByteArray? = null, totpPendingSecretEncrypted: ByteArray? = null, totpEnabled: Boolean? = null, totpLastUsedStep: Long? = null, totpEnabledAt: OffsetDateTime? = null, defaultCurrency: String? = null): this() {
         this.id = id
         this.username = username
         this.email = email
@@ -140,6 +144,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         this.totpEnabled = totpEnabled
         this.totpLastUsedStep = totpLastUsedStep
         this.totpEnabledAt = totpEnabledAt
+        this.defaultCurrency = defaultCurrency
         resetChangedOnNotNull()
     }
 
@@ -170,6 +175,7 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
             this.totpEnabled = value.totpEnabled
             this.totpLastUsedStep = value.totpLastUsedStep
             this.totpEnabledAt = value.totpEnabledAt
+            this.defaultCurrency = value.defaultCurrency
             resetChangedOnNotNull()
         }
     }

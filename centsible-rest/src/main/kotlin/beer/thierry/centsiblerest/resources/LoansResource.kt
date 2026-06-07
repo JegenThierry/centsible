@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.loan.LoanForm
+import beer.thierry.centsible.api.model.loan.LoanUpdateForm
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -50,6 +51,17 @@ class LoansResource(private val loanService: ILoanService) {
         val created = loanService.createLoan(authenticatedUser, form)
         log.info("Created loan id={} userId={}", created.id, authenticatedUser.id)
         return ResponseEntity.ok(created)
+    }
+
+    @PutMapping("/{id}")
+    fun update(
+        @PathVariable id: UUID,
+        @Valid @RequestBody form: LoanUpdateForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<LoanDTO> {
+        val updated = loanService.updateLoan(authenticatedUser, id, form) ?: return ResponseEntity.notFound().build()
+        log.info("Updated loan id={} userId={}", id, authenticatedUser.id)
+        return ResponseEntity.ok(updated)
     }
 
     @DeleteMapping("/{id}")

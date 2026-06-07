@@ -1,10 +1,10 @@
 import {h, resolveComponent} from 'vue';
 import type {TableColumn} from '@nuxt/ui';
 import type {Loan} from "~/models/loan/loan";
+import {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoanStatusBadge from "~/components/_atoms/loans/loan-status-badge.vue";
-import {useActiveCurrency} from "~/composables/use-active-currency";
 
 /**
  * Shared column builders for loan tables. Each table composes a different subset; this composable
@@ -12,11 +12,11 @@ import {useActiveCurrency} from "~/composables/use-active-currency";
  */
 export function useLoanColumns() {
   const {t} = useI18n();
-  const currency = useActiveCurrency();
   const UBadge = resolveComponent('UBadge');
 
-  function balanceCell(value: number) {
-    return h(BalanceNumberFormat, {balance: value, currency: currency.value, format: 'de-De'});
+  // Loans can each be in a different currency, so cells render in the loan's own currency.
+  function balanceCell(value: number, currency: Currency) {
+    return h(BalanceNumberFormat, {balance: value, currency, format: 'de-De'});
   }
 
   function moneyColumn(key: keyof Loan, headerKey: string, tdClass: string): TableColumn<Loan> {
@@ -24,7 +24,7 @@ export function useLoanColumns() {
       accessorKey: key,
       header: t(headerKey),
       meta: {class: {th: 'text-right', td: `text-right ${tdClass}`}},
-      cell: ({row}) => balanceCell(Number(row.original[key])),
+      cell: ({row}) => balanceCell(Number(row.original[key]), row.original.currency ?? Currency.EUR),
     };
   }
 
@@ -57,7 +57,8 @@ export function useLoanColumns() {
     meta: {class: {th: 'text-right', td: 'text-right font-semibold'}},
     cell: ({row}) => {
       const value = Number(row.original.outstanding);
-      return h('span', {class: value > 0 ? 'text-warning' : 'text-muted'}, [balanceCell(value)]);
+      const cls = value > 0 ? 'text-warning' : 'text-muted';
+      return h('span', {class: cls}, [balanceCell(value, row.original.currency ?? Currency.EUR)]);
     },
   };
 
@@ -69,7 +70,6 @@ export function useLoanColumns() {
 
   return {
     t,
-    currency,
     balanceCell,
     moneyColumn,
     dateColumn,

@@ -13,13 +13,26 @@ const form = defineModel<LoanForm>({required: true});
 
 const {t} = useI18n();
 
+// When an interest rate is set, owed is derived (owed = lent * (1 + rate/100)) and read-only.
+const hasInterest = computed(() => {
+  const r = form.value.interestRate;
+  return r !== undefined && r !== null && String(r) !== '' && Number(r) > 0;
+});
+
+watch([() => form.value.interestRate, () => form.value.lentAmount], () => {
+  if (!hasInterest.value) return;
+  const owed = Math.round(Number(form.value.lentAmount) * (1 + Number(form.value.interestRate) / 100) * 100) / 100;
+  if (Number(form.value.owedAmount) !== owed) form.value = {...form.value, owedAmount: owed};
+});
+
 const lentInput = ref<InstanceType<typeof BaseInput>>();
 const owedInput = ref<InstanceType<typeof BaseInput>>();
+const interestInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
 const dateInput = ref<InstanceType<typeof DateInput>>();
 
 defineExpose({
-  validate: () => useValidator().validateInputs([lentInput, owedInput, descriptionInput, dateInput]),
+  validate: () => useValidator().validateInputs([lentInput, owedInput, interestInput, descriptionInput, dateInput]),
 });
 </script>
 
@@ -36,12 +49,23 @@ defineExpose({
                required
                type="number"/>
 
+    <BaseInput ref="interestInput"
+               v-model="form.interestRate"
+               :max="999.99"
+               :min="0"
+               :disabled="disabled"
+               :label="t('contacts.loans.form.interestRateLabel')"
+               :description="t('contacts.loans.form.interestRateDescription')"
+               :placeholder="t('contacts.loans.form.interestRatePlaceholder')"
+               trailing-text="%"
+               type="number"/>
+
     <BaseInput ref="owedInput"
                v-model="form.owedAmount"
                :max="9999999.99"
                :min="0"
-               :description="t('contacts.loans.form.owedDescription')"
-               :disabled="disabled"
+               :description="hasInterest ? t('contacts.loans.form.owedComputedDescription') : t('contacts.loans.form.owedDescription')"
+               :disabled="disabled || hasInterest"
                :label="t('contacts.loans.form.owedLabel')"
                :placeholder="t('contacts.loans.form.owedPlaceholder')"
                :trailing-text="currency"
@@ -62,5 +86,16 @@ defineExpose({
                :disabled="disabled"
                :label="t('contacts.loans.form.dateLabel')"
                required/>
+
+    <DateInput v-model="form.dueDate"
+               :disabled="disabled"
+               :label="t('contacts.loans.form.dueDateLabel')"/>
+
+    <BaseInput v-model="form.notes"
+               :max-length="500"
+               :disabled="disabled"
+               :label="t('contacts.loans.form.notesLabel')"
+               :placeholder="t('contacts.loans.form.notesPlaceholder')"
+               type="text"/>
   </div>
 </template>
