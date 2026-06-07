@@ -17,6 +17,8 @@ export const useLoansStore = defineStore('loansStore', () => {
   const loansByContact = ref<Record<string, Loan[]>>({});
   const repaymentsByLoan = ref<Record<string, Repayment[]>>({});
   const totalOutstanding = ref<number>(0);
+  // Loans whose currency couldn't be converted into the default currency (counted as 0 in the total).
+  const outstandingExcludedCount = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
   /**
@@ -64,7 +66,9 @@ export const useLoansStore = defineStore('loansStore', () => {
 
   async function refreshOutstanding() {
     try {
-      totalOutstanding.value = await loanService.fetchOutstanding();
+      const result = await loanService.fetchOutstanding();
+      totalOutstanding.value = result.outstanding;
+      outstandingExcludedCount.value = result.excludedCount;
       outstandingLoaded.value = true;
     } catch (error) {
       adze.ns('loans').error('Failed to fetch outstanding total', error);
@@ -168,6 +172,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     loansByContact,
     repaymentsByLoan,
     totalOutstanding,
+    outstandingExcludedCount,
     allLoans,
     pending,
     allLoansLoaded,

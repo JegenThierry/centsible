@@ -113,6 +113,9 @@ onMounted(() => refresh());
           <p class="text-lg font-bold text-warning">
             <BalanceNumberFormat :balance="loansStore.totalOutstanding" :currency="defaultCurrency"/>
           </p>
+          <p v-if="loansStore.outstandingExcludedCount > 0" class="text-xs text-muted mt-0.5">
+            {{ t('contacts.loansPage.stats.excludedHint', {count: loansStore.outstandingExcludedCount}, loansStore.outstandingExcludedCount) }}
+          </p>
         </UCard>
         <UCard>
           <p class="text-xs text-muted">{{ t('contacts.loansPage.stats.openLoans') }}</p>

@@ -53,6 +53,9 @@ onMounted(async () => {
           <p class="text-xl font-bold text-warning">
             <BalanceNumberFormat :balance="loansStore.totalOutstanding" :currency="defaultCurrency"/>
           </p>
+          <p v-if="loansStore.outstandingExcludedCount > 0" class="text-xs text-muted mt-0.5">
+            {{ t('contacts.loansGlance.excludedHint', {count: loansStore.outstandingExcludedCount}, loansStore.outstandingExcludedCount) }}
+          </p>
         </div>
         <p class="text-sm text-muted">
           {{ t('contacts.loansGlance.openCount', {count: openCount}, openCount) }}

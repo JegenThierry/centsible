@@ -215,7 +215,8 @@
       "stats": {
         "totalOutstanding": "Total en attente",
         "openLoans": "Prêts ouverts",
-        "contactsWithLoans": "Contacts avec prêts"
+        "contactsWithLoans": "Contacts avec prêts",
+        "excludedHint": "Approximatif — {count} prêt exclu (pas de taux de change) | Approximatif — {count} prêts exclus (pas de taux de change)"
       },
       "table": {
         "contact": "Contact"
@@ -226,7 +227,8 @@
       "outstanding": "En attente",
       "openCount": "{count} prêt ouvert | {count} prêts ouverts",
       "viewAll": "Voir tous les prêts",
-      "empty": "Aucun prêt en cours."
+      "empty": "Aucun prêt en cours.",
+      "excludedHint": "Approximatif — {count} prêt exclu (pas de taux de change) | Approximatif — {count} prêts exclus (pas de taux de change)"
     }
   }
 }
