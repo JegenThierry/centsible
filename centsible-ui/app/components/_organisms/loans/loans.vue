@@ -4,6 +4,7 @@ import AllLoansTable from "~/components/_organisms/loans/all-loans-table.vue";
 const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
 const EditLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/edit-loan-modal.vue"));
 const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
+const RepaymentsModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/repayments-modal.vue"));
 const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
@@ -46,12 +47,18 @@ const stats = computed(() => {
 const isCreateOpen = ref(false);
 const isEditOpen = ref(false);
 const isRepayOpen = ref(false);
+const isRepaymentsOpen = ref(false);
 const isDeleteOpen = ref(false);
 const selected = ref<Loan>();
 
 function openRepay(loan: Loan) {
   selected.value = loan;
   isRepayOpen.value = true;
+}
+
+function openRepayments(loan: Loan) {
+  selected.value = loan;
+  isRepaymentsOpen.value = true;
 }
 
 function openEdit(loan: Loan) {
@@ -122,7 +129,8 @@ onMounted(() => refresh());
                      @delete="openDelete"
                      @edit="openEdit"
                      @open-contact="openContact"
-                     @repay="openRepay"/>
+                     @repay="openRepay"
+                     @repayments="openRepayments"/>
     </template>
 
     <CreateLoanModal v-if="isCreateOpen"
@@ -137,6 +145,9 @@ onMounted(() => refresh());
                           v-model:open="isRepayOpen"
                           :loan="selected"
                           @recorded="refresh"/>
+    <RepaymentsModal v-if="isRepaymentsOpen"
+                     v-model:open="isRepaymentsOpen"
+                     :loan="selected"/>
     <DeleteLoanModal v-if="isDeleteOpen"
                      v-model:open="isDeleteOpen"
                      :loan="selected"

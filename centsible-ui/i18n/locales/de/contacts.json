@@ -68,6 +68,35 @@
       "removedBody": "Zurück zur Kontaktliste."
     },
     "loans": {
+      "toasts": {
+        "recordedTitle": "Verleih erfasst",
+        "recordedBody": "Dein Verleih wurde erfasst.",
+        "updatedTitle": "Verleih aktualisiert",
+        "updatedBody": "Deine Änderungen wurden gespeichert.",
+        "repaymentRecordedTitle": "Rückzahlung erfasst",
+        "repaymentRecordedBody": "Die Rückzahlung wurde erfasst.",
+        "repaymentDeletedTitle": "Rückzahlung entfernt",
+        "repaymentDeletedBody": "Die Rückzahlung wurde entfernt.",
+        "deletedTitle": "Verleih gelöscht",
+        "deletedBody": "Der Verleih wurde entfernt.",
+        "fetchFailedTitle": "Verleihungen konnten nicht abgerufen werden",
+        "fetchFailedBody": "Die Verleihungen konnten nicht geladen werden.",
+        "repaymentsFailedTitle": "Rückzahlungen konnten nicht abgerufen werden",
+        "repaymentsFailedBody": "Die Rückzahlungen konnten nicht geladen werden.",
+        "recordFailedTitle": "Verleih konnte nicht erfasst werden",
+        "updateFailedTitle": "Verleih konnte nicht aktualisiert werden",
+        "repaymentFailedTitle": "Rückzahlung konnte nicht erfasst werden",
+        "repaymentDeleteFailedTitle": "Rückzahlung konnte nicht entfernt werden",
+        "deleteFailedTitle": "Verleih konnte nicht gelöscht werden",
+        "genericErrorBody": "Ein Fehler ist aufgetreten."
+      },
+      "repayments": {
+        "title": "Rückzahlungen",
+        "viewAction": "Rückzahlungen ansehen",
+        "empty": "Noch keine Rückzahlungen erfasst.",
+        "deleteConfirm": "Diese Rückzahlung entfernen? Das kann nicht rückgängig gemacht werden.",
+        "deleteAria": "Rückzahlung löschen"
+      },
       "table": {
         "date": "Datum",
         "description": "Beschreibung",
@@ -78,6 +107,7 @@
         "status": "Status",
         "actionsAria": "Aktionen für Verleih",
         "trackingOnly": "Nur zur Übersicht",
+        "interestBadge": "{rate}% Zinsen",
         "statusSettled": "Beglichen",
         "statusPartial": "Teilweise zurückgezahlt",
         "statusOpen": "Offen",

@@ -12,7 +12,7 @@
     },
     "currency": {
       "title": "Default currency",
-      "description": "Used as the default when creating new accounts and for summary totals.",
+      "description": "Used as the default when creating new accounts and for summary totals across accounts. Existing accounts keep their own currency.",
       "toasts": {
         "savedTitle": "Default currency updated",
         "savedBody": "New accounts and totals will use this currency.",
@@ -60,6 +60,8 @@
         "passwordHint": "Re-enter your password to confirm you want to delete your account.",
         "totpLabel": "Two-factor code",
         "totpHint": "Enter a current code from your authenticator app or a recovery code.",
+        "confirmTextLabel": "Type your username to confirm",
+        "confirmTextHint": "Enter {username} below to enable deletion.",
         "confirmButton": "Permanently delete",
         "toasts": {
           "successTitle": "Account deleted",

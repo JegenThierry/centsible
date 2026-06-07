@@ -4,8 +4,21 @@ import {useExports} from "~/composables/use-exports";
 import ExportsTable from "~/components/_organisms/exports/exports-table.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import RefreshButton from "~/components/_molecules/buttons/refresh-button.vue";
+const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const {t} = useI18n();
+
+const pendingDeleteId = ref<string | null>(null);
+const isDeleteOpen = ref(false);
+
+function askDelete(jobId: string) {
+  pendingDeleteId.value = jobId;
+  isDeleteOpen.value = true;
+}
+
+async function confirmDelete() {
+  if (pendingDeleteId.value) await remove(pendingDeleteId.value);
+}
 
 const {
   exports,
@@ -40,9 +53,17 @@ onMounted(async () => {
     <ExportsTable
       :exports="exports"
       :loading="loading"
-      @delete="remove"
+      @delete="askDelete"
       @download="download"
       @retrigger="retrigger"
     />
+
+    <ConfirmationModal v-if="isDeleteOpen"
+                       v-model:open="isDeleteOpen"
+                       :title="t('common.confirmDelete.title')"
+                       :body="t('exports.delete.confirmBody')"
+                       :confirm-label="t('common.actions.delete')"
+                       :delete-callback="confirmDelete"
+                       :manage-toasts="false"/>
   </UContainer>
 </template>

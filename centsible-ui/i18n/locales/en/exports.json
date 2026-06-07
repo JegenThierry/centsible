@@ -49,13 +49,25 @@
       "recipientLabel": "Recipient",
       "recipientHelp": "Leave blank to use your account email.",
       "cancel": "Cancel",
-      "start": "Start export"
+      "start": "Start export",
+      "rangeInvalid": "Choose a start and end date (start must be on or before end)."
     },
     "toasts": {
       "startedTitle": "Export started",
       "startedBody": "{title} is being prepared. Check My documents when it's ready.",
       "failedTitle": "Export failed",
-      "failedBody": "Could not start the export. Please try again."
+      "failedBody": "Could not start the export. Please try again.",
+      "deletedTitle": "Export deleted",
+      "deletedBody": "The export has been removed.",
+      "deleteFailedTitle": "Could not delete export",
+      "deleteFailedBody": "Something went wrong. Please try again.",
+      "retriggeredTitle": "Export retriggered",
+      "retriggeredBody": "The export is being regenerated with current data.",
+      "retriggerFailedTitle": "Could not retrigger export",
+      "retriggerFailedBody": "Something went wrong. Please try again."
+    },
+    "delete": {
+      "confirmBody": "Delete this export? This cannot be undone."
     }
   }
 }

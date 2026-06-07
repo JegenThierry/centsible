@@ -68,6 +68,35 @@
       "removedBody": "Retour à la liste des contacts."
     },
     "loans": {
+      "toasts": {
+        "recordedTitle": "Prêt enregistré",
+        "recordedBody": "Votre prêt a été enregistré.",
+        "updatedTitle": "Prêt mis à jour",
+        "updatedBody": "Vos modifications ont été enregistrées.",
+        "repaymentRecordedTitle": "Remboursement enregistré",
+        "repaymentRecordedBody": "Le remboursement a été enregistré.",
+        "repaymentDeletedTitle": "Remboursement supprimé",
+        "repaymentDeletedBody": "Le remboursement a été supprimé.",
+        "deletedTitle": "Prêt supprimé",
+        "deletedBody": "Le prêt a été supprimé.",
+        "fetchFailedTitle": "Échec du chargement des prêts",
+        "fetchFailedBody": "Impossible de charger les prêts.",
+        "repaymentsFailedTitle": "Échec du chargement des remboursements",
+        "repaymentsFailedBody": "Impossible de charger les remboursements.",
+        "recordFailedTitle": "Échec de l'enregistrement du prêt",
+        "updateFailedTitle": "Échec de la mise à jour du prêt",
+        "repaymentFailedTitle": "Échec de l'enregistrement du remboursement",
+        "repaymentDeleteFailedTitle": "Échec de la suppression du remboursement",
+        "deleteFailedTitle": "Échec de la suppression du prêt",
+        "genericErrorBody": "Une erreur est survenue."
+      },
+      "repayments": {
+        "title": "Remboursements",
+        "viewAction": "Voir les remboursements",
+        "empty": "Aucun remboursement enregistré.",
+        "deleteConfirm": "Supprimer ce remboursement ? Cette action est irréversible.",
+        "deleteAria": "Supprimer le remboursement"
+      },
       "table": {
         "date": "Date",
         "description": "Description",
@@ -78,6 +107,7 @@
         "status": "Statut",
         "actionsAria": "Actions du prêt",
         "trackingOnly": "Suivi uniquement",
+        "interestBadge": "{rate}% d'intérêt",
         "statusSettled": "Soldé",
         "statusPartial": "Partiellement remboursé",
         "statusOpen": "Ouvert",

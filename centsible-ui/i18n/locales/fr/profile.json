@@ -12,7 +12,7 @@
     },
     "currency": {
       "title": "Devise par défaut",
-      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs.",
+      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs entre comptes. Les comptes existants conservent leur propre devise.",
       "toasts": {
         "savedTitle": "Devise par défaut mise à jour",
         "savedBody": "Les nouveaux comptes et les totaux utiliseront cette devise.",
@@ -60,6 +60,8 @@
         "passwordHint": "Saisissez à nouveau votre mot de passe pour confirmer la suppression de votre compte.",
         "totpLabel": "Code à deux facteurs",
         "totpHint": "Saisissez un code actuel de votre application d'authentification ou un code de récupération.",
+        "confirmTextLabel": "Saisissez votre nom d'utilisateur pour confirmer",
+        "confirmTextHint": "Saisissez {username} ci-dessous pour activer la suppression.",
         "confirmButton": "Supprimer définitivement",
         "toasts": {
           "successTitle": "Compte supprimé",

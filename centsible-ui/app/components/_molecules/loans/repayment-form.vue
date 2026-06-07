@@ -5,7 +5,10 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import AccountSelect from "~/components/_atoms/inputs/account-select.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import type {Currency} from "~/models/budget-account/currency";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useConversionPreview} from "~/composables/use-conversion-preview";
 import {useValidator} from "~/composables/use-validator";
 
 const props = defineProps<{
@@ -18,6 +21,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
+const localeTag = useLocaleTag();
 
 const form = computed({
   get: () => props.modelValue,
@@ -34,9 +38,23 @@ const amountInput = ref<InstanceType<typeof BaseInput>>();
 const descriptionInput = ref<InstanceType<typeof BaseInput>>();
 const dateInput = ref<InstanceType<typeof DateInput>>();
 
+const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
+
+// The repayment amount is in the loan's currency; show what hits the account when they differ.
+const {converted: previewAmount, failed: previewFailed, isForeign: previewIsForeign} = useConversionPreview({
+  accountId: computed(() => form.value.affectBalance ? form.value.accountId : undefined),
+  accountCurrency: computed(() => form.value.affectBalance ? accountCurrency.value : undefined),
+  amount: computed(() => Number(form.value.amount)),
+  currency: computed(() => props.currency as Currency | undefined),
+  date: computed(() => form.value.repaidAt),
+});
+
 const amountDescription = computed(() => {
   if (props.maxAmount === undefined) return undefined;
-  return t('contacts.loans.repayment.form.outstandingHelp', {amount: props.maxAmount.toFixed(2)});
+  const formatted = props.currency
+    ? new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency}).format(props.maxAmount)
+    : props.maxAmount.toFixed(2);
+  return t('contacts.loans.repayment.form.outstandingHelp', {amount: formatted});
 });
 
 onMounted(async () => {
@@ -81,6 +99,14 @@ defineExpose({
                :trailing-text="currency"
                required
                type="number"/>
+
+    <p v-if="previewIsForeign && Number(form.amount) > 0" class="-mt-2 px-1 text-xs text-muted">
+      <span v-if="previewAmount != null && accountCurrency">
+        ≈ <BalanceNumberFormat :balance="previewAmount" :currency="accountCurrency"/>
+      </span>
+      <span v-else-if="previewFailed">{{ t('transactions.form.conversionUnavailable') }}</span>
+      <span v-else>≈ …</span>
+    </p>
 
     <BaseInput ref="descriptionInput"
                v-model="form.description"
