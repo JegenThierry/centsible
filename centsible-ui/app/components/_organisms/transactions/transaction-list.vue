@@ -21,6 +21,7 @@ const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
+const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -45,6 +46,7 @@ const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
+const isBulkDeleteOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const selectedIds = ref<Set<string>>(new Set());
@@ -116,7 +118,6 @@ const columns = createTransactionColumns({
 async function bulkDelete() {
   const ids = Array.from(selectedIds.value);
   if (ids.length === 0 || !budgetAccountsStore.activeAccount) return;
-  if (!confirm(t('transactions.bulk.deleteConfirm', {count: ids.length}))) return;
   try {
     await transactionService.bulkDelete(budgetAccountsStore.activeAccount.id, ids);
     toasts.success(t('transactions.bulk.deleteToastTitle'), t('transactions.bulk.deleteToastBody', {count: ids.length}));
@@ -168,7 +169,7 @@ watch(
   <TransactionBulkActionBar v-if="selectedIds.size > 0"
                             :count="selectedIds.size"
                             @recategorize="isBulkCategorizeOpen = true"
-                            @delete="bulkDelete"
+                            @delete="isBulkDeleteOpen = true"
                             @clear="clearSelection"/>
 
   <BaseTable :columns="columns"
@@ -207,6 +208,14 @@ watch(
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <ConfirmationModal v-if="isBulkDeleteOpen"
+                     v-model:open="isBulkDeleteOpen"
+                     :title="t('common.confirmDelete.title')"
+                     :body="t('transactions.bulk.deleteConfirm', {count: selectedIds.size})"
+                     :confirm-label="t('transactions.bulk.delete')"
+                     :delete-callback="bulkDelete"
+                     :manage-toasts="false"/>
 
   <RuleModal v-if="isRuleModalOpen"
              v-model:open="isRuleModalOpen"

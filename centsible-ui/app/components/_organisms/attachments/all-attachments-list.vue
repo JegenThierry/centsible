@@ -8,6 +8,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import type {EnrichedAttachment} from "~/models/transactions/attachment";
 import BaseTable from "~/components/_molecules/tables/base-table.vue";
 import TableRowActionsMenu from "~/components/_molecules/tables/table-row-actions-menu.vue";
+import ConfirmationModal from "~/components/_organisms/modals/confirmation-modal.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import {formatBytes} from "~/utils/format";
@@ -28,6 +29,8 @@ const items = ref<EnrichedAttachment[]>([]);
 const loading = ref(false);
 const hasMore = ref(true);
 const page = ref(1);
+const fileToDelete = ref<EnrichedAttachment | null>(null);
+const isDeleteOpen = ref(false);
 
 const showInitialLoading = computed(() => loading.value && items.value.length === 0);
 const showLoadMoreSpinner = computed(() => loading.value && items.value.length > 0);
@@ -63,8 +66,14 @@ async function download(file: EnrichedAttachment) {
   }
 }
 
-async function remove(file: EnrichedAttachment) {
-  if (!confirm(t('attachments.confirmDelete', {filename: file.filename}))) return;
+function askRemove(file: EnrichedAttachment) {
+  fileToDelete.value = file;
+  isDeleteOpen.value = true;
+}
+
+async function confirmRemove() {
+  const file = fileToDelete.value;
+  if (!file) return;
   try {
     await service.remove(file.transactionId, file.id);
     items.value = items.value.filter(x => x.id !== file.id);
@@ -131,7 +140,7 @@ const columns = computed<TableColumn<EnrichedAttachment>[]>(() => [
           label: t('attachments.actions.delete'),
           icon: 'i-lucide-trash',
           color: 'error' as any,
-          onSelect: () => remove(row.original),
+          onSelect: () => askRemove(row.original),
         },
       ],
     }),
@@ -162,5 +171,13 @@ onMounted(() => load(true));
     <div v-if="hasMore && items.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
       <LoadingAnimation v-if="showLoadMoreSpinner"/>
     </div>
+
+    <ConfirmationModal v-if="isDeleteOpen"
+                       v-model:open="isDeleteOpen"
+                       :title="t('common.confirmDelete.title')"
+                       :body="fileToDelete ? t('attachments.confirmDelete', {filename: fileToDelete.filename}) : ''"
+                       :confirm-label="t('attachments.actions.delete')"
+                       :delete-callback="confirmRemove"
+                       :manage-toasts="false"/>
   </div>
 </template>
