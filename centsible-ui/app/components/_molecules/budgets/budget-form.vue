@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
-import {BUDGET_PERIOD_TYPES, type BudgetForm} from "~/models/budget/budget";
+import {BUDGET_PERIOD_TYPES, type BudgetForm, type BudgetPeriodType} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
@@ -10,6 +10,8 @@ import {useCategoryService} from "~/services/category/category-service";
 
 const props = defineProps<{
   modelValue: BudgetForm;
+  /** (category, period) pairs already budgeted — excluded from the picker to avoid a duplicate. */
+  existingCombos?: Array<{categoryId: number; periodType: BudgetPeriodType}>;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -40,6 +42,29 @@ const periodOptions = computed(() =>
   BUDGET_PERIOD_TYPES.map((value) => ({value, label: t(`budgets.periods.${value}`)})),
 );
 
+// Categories already budgeted for the selected period — hidden so the user can't pick a duplicate.
+// The currently-selected category stays visible (edit keeps its own value); empty combos = no filter.
+const excludedCategoryIds = computed(() => {
+  const selectedId = form.value.category?.id;
+  return new Set(
+    (props.existingCombos ?? [])
+      .filter(c => c.periodType === form.value.periodType && c.categoryId !== selectedId)
+      .map(c => c.categoryId),
+  );
+});
+
+const availableCategories = computed(() =>
+  categories.value.filter(c => !excludedCategoryIds.value.has(c.id)),
+);
+
+// If switching the period makes the chosen category a duplicate, clear it so the user re-picks.
+watch(() => form.value.periodType, (period) => {
+  const id = form.value.category?.id;
+  if (id === undefined) return;
+  const collides = (props.existingCombos ?? []).some(c => c.periodType === period && c.categoryId === id);
+  if (collides) form.value.category = undefined;
+});
+
 onMounted(() => loadCategories());
 
 defineExpose({
@@ -51,7 +76,7 @@ defineExpose({
   <div class="space-y-4">
     <CategorySelect ref="categoryInput"
                     v-model="form.category"
-                    :options="categories"
+                    :options="availableCategories"
                     :label="t('budgets.form.categoryLabel')"
                     required/>
 

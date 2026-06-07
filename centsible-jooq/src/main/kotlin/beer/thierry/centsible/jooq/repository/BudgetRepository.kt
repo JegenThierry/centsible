@@ -125,6 +125,19 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             }
     }
 
+    override fun existsForCategoryAndPeriod(
+        authenticatedUser: UserDTO,
+        categoryId: Long,
+        periodType: BudgetPeriodType,
+        excludeBudgetId: UUID?,
+    ): Boolean {
+        var condition = BUDGETS.USER_ID.eq(authenticatedUser.id)
+            .and(BUDGETS.CATEGORY_ID.eq(categoryId))
+            .and(BUDGETS.PERIOD_TYPE.eq(periodType.name))
+        if (excludeBudgetId != null) condition = condition.and(BUDGETS.ID.ne(excludeBudgetId))
+        return dsl.fetchExists(dsl.selectOne().from(BUDGETS).where(condition))
+    }
+
     override fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO {
         val now = OffsetDateTime.now()
         val record = dsl.insertInto(BUDGETS)

@@ -32,6 +32,12 @@ const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selected = ref<Budget | null>(null);
 
+// (category, period) pairs already budgeted — passed to the create modal so the picker hides combos
+// that would collide with the (user, category, period_type) unique constraint.
+const existingCombos = computed(() =>
+  store.items.map((b) => ({categoryId: b.category.id, periodType: b.periodType})),
+);
+
 const currency = useActiveCurrency();
 
 function monthsBack(from: string, count: number): string {
@@ -168,6 +174,7 @@ onMounted(() => refresh());
 
     <CreateBudgetModal v-if="isCreateModalOpen"
                        v-model:open="isCreateModalOpen"
+                       :existing-combos="existingCombos"
                        @created="refresh"/>
 
     <EditBudgetModal v-if="isEditModalOpen && selected"

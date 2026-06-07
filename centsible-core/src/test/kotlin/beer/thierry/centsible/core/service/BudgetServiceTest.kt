@@ -65,6 +65,20 @@ class BudgetServiceTest {
     }
 
     @Test
+    fun `create rejects a duplicate category-and-period with a specific conflict`() {
+        val form = BudgetForm(categoryId = ownedCategoryId, amountLimit = BigDecimal("100.00"))
+        stubOwned(ownedCategoryId)
+        `when`(repository.existsForCategoryAndPeriod(user, ownedCategoryId, form.periodType, null)).thenReturn(true)
+
+        val ex = assertThrows(LocalizedException::class.java) {
+            service.create(form, user)
+        }
+
+        assertEquals("error.budget.duplicate", ex.messageKey)
+        verify(repository, never()).create(anyArg(), anyArg())
+    }
+
+    @Test
     fun `create with another user's category is rejected and never hits the repository`() {
         val form = BudgetForm(categoryId = foreignCategoryId, amountLimit = BigDecimal("100.00"))
         stubNotOwned(foreignCategoryId)
