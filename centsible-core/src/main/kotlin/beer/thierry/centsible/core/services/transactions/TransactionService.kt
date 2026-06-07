@@ -222,20 +222,50 @@ class TransactionService(
         form: TransferForm,
         authenticatedUser: UserDTO,
     ): List<TransactionDTO> {
+        val destinationAccountId = form.destinationAccountId
+            ?: throw LocalizedException.BadRequest("error.transfer.destinationRequired")
+        if (sourceAccountId == destinationAccountId) throw LocalizedException.BadRequest("error.transfer.sameAccount")
+
         val existing = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         val groupId = existing.transferGroupId
             ?: throw LocalizedException.BadRequest("error.transfer.notATransfer")
 
         val oldLegs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
+        val sourceLeg = oldLegs.firstOrNull { it.type == CategoryType.EXPENSE }
+            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
+        val destinationLeg = oldLegs.firstOrNull { it.type == CategoryType.INCOME }
+            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
+
+        val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
+        val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
+        val conversion = currencyConversionService.convert(
+            form.amount, source.currency, destination.currency, form.transactionDate
+        )
+
+        // Reverse the old legs' effect on their (possibly different) accounts...
         oldLegs.forEach { leg ->
             accountRepository.updateBalance(
                 leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
             )
         }
-        transactionRepository.deleteTransactionsByIds(oldLegs.map { it.id }, authenticatedUser)
 
-        log.info("Replacing transfer groupId={} userId={}", groupId, authenticatedUser.id)
-        return createTransfer(sourceAccountId, form, authenticatedUser)
+        // ...mutate both legs in place — ids, transferGroupId, attachments and createdAt survive...
+        val legs = transactionRepository.updateTransfer(
+            sourceLegId = sourceLeg.id,
+            destinationLegId = destinationLeg.id,
+            sourceAccountId = sourceAccountId,
+            destinationAccountId = destinationAccountId,
+            form = form,
+            conversion = conversion,
+            authenticatedUser = authenticatedUser,
+        )
+
+        // ...then apply the new amounts to the (new) source and destination accounts.
+        accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
+        accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
+
+        log.info("Updated transfer in place groupId={} userId={}", groupId, authenticatedUser.id)
+        return legs
     }
 
     override fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO {
