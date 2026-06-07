@@ -2,6 +2,7 @@
 import type {Contact} from "~/models/contact/contact";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -27,7 +28,8 @@ defineExpose({validate})
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
+              :error="error"
               :help="description"
               :hint="hint"
               :label="label"

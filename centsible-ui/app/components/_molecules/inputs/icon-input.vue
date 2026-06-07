@@ -4,6 +4,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 const model = defineModel<string>({required: true});
 
 defineProps<{
+  name?: string;
   label?: string;
   required?: boolean;
   placeholder?: string;
@@ -28,6 +29,7 @@ defineExpose({
       <div class="flex-1">
         <BaseInput
           ref="iconInputRef"
+          :name="name"
           v-model="model"
           :label="label || t('categories.form.iconLabel')"
           :max-length="50"

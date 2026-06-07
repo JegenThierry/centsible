@@ -3,6 +3,7 @@ import {Frequency} from "~/models/recurring/recurring-transaction";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -32,7 +33,8 @@ defineExpose({validate});
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
+              :error="error"
               :help="description"
               :hint="hint"
               :label="label"

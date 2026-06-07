@@ -3,6 +3,7 @@ import type {Category} from "~/models/category/category";
 import type {SelectMenuItem} from "@nuxt/ui";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -38,7 +39,8 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
+              :error="error"
               :help="description"
               :hint="hint"
               :label="label"

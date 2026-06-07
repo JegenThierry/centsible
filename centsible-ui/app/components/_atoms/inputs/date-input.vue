@@ -2,6 +2,7 @@
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -28,7 +29,8 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
+              :error="error"
               :help="description"
               :hint="hint"
               :label="label"
