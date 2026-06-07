@@ -11,6 +11,7 @@ export const useProvidersStore = defineStore('providersStore', () => {
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const integrationsService = useIntegrationsService(api);
 
   const descriptors = ref<ProviderDescriptor[]>([]);
@@ -36,7 +37,7 @@ export const useProvidersStore = defineStore('providersStore', () => {
       descriptors.value = d;
       connections.value = c;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to load integrations", "Could not load integrations");
+      apiErrors.toastError(error, t('integrations.toasts.loadFailedTitle'), t('integrations.toasts.loadFailedBody'));
     } finally {
       pending.value = false;
     }
@@ -47,10 +48,10 @@ export const useProvidersStore = defineStore('providersStore', () => {
     try {
       const created = await integrationsService.createConnection(form);
       upsert(created);
-      toasts.success("Connection created", `${created.displayName} is now connected`);
+      toasts.success(t('integrations.toasts.createdTitle'), t('integrations.toasts.createdBody', {name: created.displayName}));
       return created;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to create connection", "Could not connect provider");
+      apiErrors.toastError(error, t('integrations.toasts.createFailedTitle'), t('integrations.toasts.createFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -61,9 +62,9 @@ export const useProvidersStore = defineStore('providersStore', () => {
     pending.value = true;
     try {
       upsert(await integrationsService.updateConnection(id, form));
-      toasts.success("Connection updated", "Settings saved");
+      toasts.success(t('integrations.toasts.updatedTitle'), t('integrations.toasts.updatedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to update connection", "Could not save changes");
+      apiErrors.toastError(error, t('integrations.toasts.updateFailedTitle'), t('integrations.toasts.updateFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -75,9 +76,9 @@ export const useProvidersStore = defineStore('providersStore', () => {
     try {
       await integrationsService.deleteConnection(id);
       connections.value = connections.value.filter(c => c.id !== id);
-      toasts.success("Connection removed", "Provider has been disconnected");
+      toasts.success(t('integrations.toasts.removedTitle'), t('integrations.toasts.removedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to remove connection", "Could not disconnect");
+      apiErrors.toastError(error, t('integrations.toasts.removeFailedTitle'), t('integrations.toasts.removeFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -87,9 +88,9 @@ export const useProvidersStore = defineStore('providersStore', () => {
   async function triggerSync(id: string) {
     try {
       await integrationsService.triggerSync(id);
-      toasts.success("Sync requested", "We'll fetch fresh data shortly");
+      toasts.success(t('integrations.toasts.syncRequestedTitle'), t('integrations.toasts.syncRequestedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to trigger sync", "Could not request sync");
+      apiErrors.toastError(error, t('integrations.toasts.syncFailedTitle'), t('integrations.toasts.syncFailedBody'));
     }
   }
 
@@ -98,7 +99,7 @@ export const useProvidersStore = defineStore('providersStore', () => {
       const result = await integrationsService.startOAuth(id);
       return result.authorizationUrl;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to start authorization", "Could not begin OAuth flow");
+      apiErrors.toastError(error, t('integrations.toasts.oauthStartFailedTitle'), t('integrations.toasts.oauthStartFailedBody'));
       return undefined;
     }
   }
@@ -112,7 +113,7 @@ export const useProvidersStore = defineStore('providersStore', () => {
     try {
       return await integrationsService.searchProviderOptions(providerKey, fieldName, query, values);
     } catch (error) {
-      apiErrors.toastError(error, "Search failed", "Could not load options");
+      apiErrors.toastError(error, t('integrations.toasts.searchFailedTitle'), t('integrations.toasts.searchFailedBody'));
       return [];
     }
   }

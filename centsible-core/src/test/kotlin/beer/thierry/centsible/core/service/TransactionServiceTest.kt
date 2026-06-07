@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
@@ -314,9 +315,9 @@ class TransactionServiceTest {
         // The guarded repository delete finds 0 rows for this (transaction, account) pair and throws,
         // so the service must abort before adjusting any balance — the core of the fixed bug.
         `when`(transactionRepository.deleteTransaction(transactionId, accountId, user))
-            .thenThrow(IllegalArgumentException("Transaction not found or not owned by user"))
+            .thenThrow(LocalizedException.NotFound("error.transaction.notFound"))
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.deleteTransaction(transactionId, accountId, user)
         }
 
@@ -398,7 +399,7 @@ class TransactionServiceTest {
         val managedCategoryId = 9L
         stubCategoryType(managedCategoryId, CategoryType.EXPENSE, isManaged = true)
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.bulkUpdateCategory(accountId, ids, managedCategoryId, user)
         }
         verify(transactionRepository, never())
@@ -507,7 +508,7 @@ class TransactionServiceTest {
     fun `createTransfer rejects identical source and destination`() {
         val form = TransferForm(BigDecimal("10.00"), accountId, "Self", LocalDate.now())
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.createTransfer(accountId, form, user)
         }
 
@@ -544,7 +545,7 @@ class TransactionServiceTest {
 
         `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.createBalanceAdjustment(accountId, form, user)
         }
     }

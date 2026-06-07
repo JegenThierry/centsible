@@ -1,6 +1,12 @@
 {
   "accounts": {
     "pageTitle": "Konten",
+    "toasts": {
+      "updateFailedTitle": "Konten konnten nicht aktualisiert werden",
+      "updateFailedBody": "Die Konten konnten nicht aktualisiert werden.",
+      "loadFailedTitle": "Konto konnte nicht geladen werden",
+      "loadFailedBody": "Das Konto konnte nicht geladen werden."
+    },
     "list": {
       "title": "Konten",
       "description": "Wählen Sie ein Konto, um Ihr Budget zu verwalten",

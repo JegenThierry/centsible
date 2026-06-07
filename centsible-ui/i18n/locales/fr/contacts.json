@@ -64,8 +64,27 @@
       "loadFailedTitle": "Échec du chargement des contacts",
       "loadFailedBody": "Veuillez actualiser la page pour réessayer.",
       "loadDetailFailedTitle": "Échec du chargement du contact",
+      "loadDetailFailedBody": "Impossible de charger le contact.",
       "removedTitle": "Contact supprimé",
-      "removedBody": "Retour à la liste des contacts."
+      "removedBody": "Retour à la liste des contacts.",
+      "createdTitle": "Contact créé",
+      "createdBody": "Le nouveau contact a été ajouté.",
+      "updatedTitle": "Contact mis à jour",
+      "updatedBody": "Le contact a été mis à jour.",
+      "pictureUpdatedTitle": "Photo mise à jour",
+      "pictureUpdatedBody": "La photo du contact a été mise à jour.",
+      "pictureRemovedTitle": "Photo supprimée",
+      "pictureRemovedBody": "La photo du contact a été supprimée.",
+      "deletedTitle": "Contact supprimé",
+      "deletedBody": "Le contact a été supprimé.",
+      "fetchFailedTitle": "Échec du chargement des contacts",
+      "fetchFailedBody": "Impossible de charger les contacts.",
+      "createFailedTitle": "Échec de la création du contact",
+      "updateFailedTitle": "Échec de la mise à jour du contact",
+      "pictureUpdateFailedTitle": "Échec de la mise à jour de la photo",
+      "pictureRemoveFailedTitle": "Échec de la suppression de la photo",
+      "deleteFailedTitle": "Échec de la suppression du contact",
+      "genericErrorBody": "Une erreur est survenue."
     },
     "loans": {
       "table": {

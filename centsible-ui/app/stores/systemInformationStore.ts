@@ -5,6 +5,8 @@ import {useApiErrors} from "~/composables/use-api-errors";
 
 export const useSystemInformationStore = defineStore('systemInformationStore', () => {
   const api = useApi();
+  const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const systemInformationService = useSystemInformationService(api);
 
   const systemInformation = ref<SystemInformation>();
@@ -15,7 +17,7 @@ export const useSystemInformationStore = defineStore('systemInformationStore', (
     try {
       systemInformation.value = await systemInformationService.fetchSystemInformation();
     } catch (error) {
-      useApiErrors().toastError(error, "Failed to load system information", "Could not load system information");
+      apiErrors.toastError(error, t('common.system.loadFailedTitle'), t('common.system.loadFailedBody'));
     } finally {
       pending.value = false;
     }

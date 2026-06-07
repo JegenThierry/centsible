@@ -51,6 +51,20 @@
       "title": "Supprimer la catégorie",
       "description": "Voulez-vous vraiment supprimer la catégorie « {name} » ? Cette action est irréversible."
     },
+    "toasts": {
+      "createdTitle": "Catégorie créée",
+      "createdBody": "La nouvelle catégorie a été ajoutée.",
+      "updatedTitle": "Catégorie mise à jour",
+      "updatedBody": "La catégorie a été mise à jour.",
+      "deletedTitle": "Catégorie supprimée",
+      "deletedBody": "La catégorie a été supprimée.",
+      "fetchFailedTitle": "Échec du chargement des catégories",
+      "fetchFailedBody": "Impossible de charger les catégories.",
+      "createFailedTitle": "Échec de la création de la catégorie",
+      "updateFailedTitle": "Échec de la mise à jour de la catégorie",
+      "deleteFailedTitle": "Échec de la suppression de la catégorie",
+      "genericErrorBody": "Une erreur est survenue."
+    },
     "rules": {
       "newRule": "Nouvelle règle",
       "emptyTitle": "Aucune règle de catégorisation",
@@ -72,6 +86,18 @@
       "deleteAria": "Supprimer la règle",
       "appliedTitle": "Règle appliquée",
       "appliedBody": "{count} transaction(s) existante(s) recatégorisée(s).",
+      "toasts": {
+        "createdTitle": "Règle créée",
+        "createdBody": "La règle de catégorisation a été ajoutée.",
+        "updatedTitle": "Règle mise à jour",
+        "updatedBody": "La règle de catégorisation a été enregistrée.",
+        "fetchFailedTitle": "Échec du chargement des règles",
+        "fetchFailedBody": "Impossible de charger les règles de catégorisation.",
+        "createFailedTitle": "Échec de la création de la règle",
+        "updateFailedTitle": "Échec de la mise à jour de la règle",
+        "applyFailedTitle": "Échec de l'application de la règle",
+        "genericErrorBody": "Une erreur est survenue."
+      },
       "match": {
         "CONTAINS": "contient",
         "EQUALS": "est égal à",

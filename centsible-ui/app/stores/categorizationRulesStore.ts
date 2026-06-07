@@ -9,6 +9,7 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const service = useCategorizationService(api);
 
   const rules = ref<CategorizationRule[]>([]);
@@ -19,7 +20,7 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
     try {
       rules.value = await service.fetchRules();
     } catch (error) {
-      toasts.error("Failed to fetch rules", "Categorization rules could not be loaded");
+      toasts.error(t('categories.rules.toasts.fetchFailedTitle'), t('categories.rules.toasts.fetchFailedBody'));
       adze.ns('categorization').error('Failed to fetch rules', error);
     } finally {
       pending.value = false;
@@ -33,7 +34,7 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
       await updateRules();
       toasts.success(successTitle, successBody);
     } catch (error) {
-      apiErrors.toastError(error, errorTitle, "An error occurred");
+      apiErrors.toastError(error, errorTitle, t('categories.rules.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -43,14 +44,14 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
   async function createRule(form: CategorizationRuleForm) {
     await runMutation(
       () => service.createRule(form).then(() => undefined),
-      "Rule created", "The categorization rule has been added", "Failed to create rule",
+      t('categories.rules.toasts.createdTitle'), t('categories.rules.toasts.createdBody'), t('categories.rules.toasts.createFailedTitle'),
     );
   }
 
   async function updateRule(id: string, form: CategorizationRuleForm) {
     await runMutation(
       () => service.updateRule(id, form).then(() => undefined),
-      "Rule updated", "The categorization rule has been saved", "Failed to update rule",
+      t('categories.rules.toasts.updatedTitle'), t('categories.rules.toasts.updatedBody'), t('categories.rules.toasts.updateFailedTitle'),
     );
   }
 
@@ -66,7 +67,7 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
       await updateRules();
       return result.updated;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to apply rule", "An error occurred");
+      apiErrors.toastError(error, t('categories.rules.toasts.applyFailedTitle'), t('categories.rules.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
