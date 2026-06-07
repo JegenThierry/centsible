@@ -34,6 +34,9 @@ interface ITotpService {
      */
     fun disable(userId: UUID, code: String)
 
+    /** Cancels an in-progress enrollment by discarding the pending secret. No-op if none is pending. */
+    fun cancelEnrollment(userId: UUID)
+
     /**
      * Verifies a login-challenge [code] (TOTP or recovery) against [userId]'s active secret,
      * enforcing replay rejection. Returns true on success. Used by the auth service's challenge step.

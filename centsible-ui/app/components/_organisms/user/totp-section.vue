@@ -69,6 +69,8 @@ async function onConfirm() {
 }
 
 function onCancelEnroll() {
+  // Best-effort server cleanup of the orphaned pending secret; the UI resets regardless.
+  totpService.cancelEnroll().catch((err) => adze.ns('totp').warn('Failed to cancel enrollment', err));
   enrollment.value = null;
   confirmState.code = '';
   step.value = 'disabled';

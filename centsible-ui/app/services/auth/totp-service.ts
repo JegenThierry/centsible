@@ -25,5 +25,11 @@ export function useTotpService(api: AxiosInstance) {
     assertStatus(response, [204]);
   }
 
-  return {status, enroll, confirm, disable};
+  // Discards the pending secret left server-side when the user backs out of enrollment.
+  async function cancelEnroll(): Promise<void> {
+    const response = await api.post('/auth/2fa/enroll/cancel', {}, {validateStatus: (s) => s === 204});
+    assertStatus(response, [204]);
+  }
+
+  return {status, enroll, confirm, disable, cancelEnroll};
 }

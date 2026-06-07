@@ -108,6 +108,13 @@ class TotpService(
         log.info("Disabled TOTP 2FA userId={}", userId)
     }
 
+    override fun cancelEnrollment(userId: UUID) {
+        // Discards the at-rest pending secret left by beginEnrollment when the user backs out.
+        if (userRepository.clearPendingTotpSecret(userId)) {
+            log.info("Cancelled TOTP enrollment userId={}", userId)
+        }
+    }
+
     override fun verifyChallengeCode(userId: UUID, code: String): Boolean = verifyCodeForUser(userId, code)
 
     /**
