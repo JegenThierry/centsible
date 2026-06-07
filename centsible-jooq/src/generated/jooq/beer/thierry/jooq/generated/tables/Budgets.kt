@@ -9,7 +9,7 @@ import beer.thierry.jooq.generated.indexes.IDX_BUDGETS_USER_ID
 import beer.thierry.jooq.generated.keys.BUDGETS_PKEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
-import beer.thierry.jooq.generated.keys.UQ_BUDGETS_USER_CATEGORY
+import beer.thierry.jooq.generated.keys.UQ_BUDGETS_USER_CATEGORY_PERIOD
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.BudgetsRecord
@@ -157,7 +157,7 @@ open class Budgets(
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getIndexes(): List<Index> = listOf(IDX_BUDGETS_USER_ID)
     override fun getPrimaryKey(): UniqueKey<BudgetsRecord> = BUDGETS_PKEY
-    override fun getUniqueKeys(): List<UniqueKey<BudgetsRecord>> = listOf(UQ_BUDGETS_USER_CATEGORY)
+    override fun getUniqueKeys(): List<UniqueKey<BudgetsRecord>> = listOf(UQ_BUDGETS_USER_CATEGORY_PERIOD)
     override fun getReferences(): List<ForeignKey<BudgetsRecord, *>> = listOf(BUDGETS__BUDGETS_CATEGORY_ID_FKEY, BUDGETS__BUDGETS_USER_ID_FKEY)
 
     private lateinit var _categories: CategoriesPath

@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS users
     totp_last_used_step             BIGINT,
     totp_enabled_at                 TIMESTAMPTZ,
     default_currency                VARCHAR(3)   NOT NULL DEFAULT 'EUR',
+    token_version                   INTEGER      NOT NULL DEFAULT 0,
     CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de')),
     CONSTRAINT users_default_currency_supported CHECK (default_currency IN (
         'EUR', 'USD', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
@@ -330,7 +331,7 @@ CREATE TABLE IF NOT EXISTS budgets
     modified_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
     period_type      VARCHAR(16)    NOT NULL DEFAULT 'MONTHLY',
     rollover_enabled BOOLEAN        NOT NULL DEFAULT FALSE,
-    CONSTRAINT uq_budgets_user_category UNIQUE (user_id, category_id),
+    CONSTRAINT uq_budgets_user_category_period UNIQUE (user_id, category_id, period_type),
     CONSTRAINT chk_budgets_period_type CHECK (period_type IN ('MONTHLY', 'QUARTERLY', 'ANNUAL'))
 );
 
