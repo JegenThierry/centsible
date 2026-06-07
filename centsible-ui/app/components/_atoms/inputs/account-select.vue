@@ -12,24 +12,11 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<BudgetAccount | undefined>();
-const error = ref<string | undefined>(undefined);
 const {t} = useI18n();
-
-function validate(): boolean {
-  error.value = undefined;
-  if (props.required && !model.value) {
-    error.value = t('common.validation.required', {field: props.label});
-    return false;
-  }
-  return true;
-}
-
-defineExpose({validate})
 </script>
 
 <template>
   <UFormField :name="name"
-              :error="error"
               :help="description"
               :hint="hint"
               :label="label"

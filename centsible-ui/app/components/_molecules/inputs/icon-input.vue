@@ -12,15 +12,6 @@ defineProps<{
 
 const {t} = useI18n();
 
-const iconInputRef = ref<InstanceType<typeof BaseInput>>();
-
-function validate() {
-  return iconInputRef.value?.validate() ?? true;
-}
-
-defineExpose({
-  validate,
-});
 </script>
 
 <template>
@@ -28,7 +19,6 @@ defineExpose({
     <div class="flex items-end gap-2">
       <div class="flex-1">
         <BaseInput
-          ref="iconInputRef"
           :name="name"
           v-model="model"
           :label="label || t('categories.form.iconLabel')"
