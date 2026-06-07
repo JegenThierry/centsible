@@ -52,6 +52,11 @@
       "toLabel": "Au",
       "sortLabel": "Tri",
       "clear": "Effacer",
+      "type": {
+        "all": "Tous les types",
+        "income": "Revenus",
+        "expense": "Dépenses"
+      },
       "sort": {
         "DATE_DESC": "Date (plus récent)",
         "DATE_ASC": "Date (plus ancien)",

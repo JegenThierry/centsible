@@ -48,6 +48,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         }
         filters.from?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.ge(it)) }
         filters.to?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.le(it)) }
+        filters.type?.let { condition = condition.and(TRANSACTIONS.TYPE.eq(it.value)) }
 
         val orderBy = when (filters.sort) {
             TransactionSort.DATE_DESC -> arrayOf(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())

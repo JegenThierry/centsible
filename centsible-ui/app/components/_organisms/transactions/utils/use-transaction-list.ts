@@ -65,7 +65,7 @@ export function useTransactionList(
     watch(
       () => {
         const f = filters.value
-        return [f.search, f.sort, f.fromDate, f.toDate, (f.categoryIds ?? []).join(',')] as const
+        return [f.search, f.sort, f.fromDate, f.toDate, f.type, (f.categoryIds ?? []).join(',')] as const
       },
       () => {
         if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)

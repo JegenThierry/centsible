@@ -52,6 +52,11 @@
       "toLabel": "Bis",
       "sortLabel": "Sortierung",
       "clear": "Zurücksetzen",
+      "type": {
+        "all": "Alle Typen",
+        "income": "Einnahmen",
+        "expense": "Ausgaben"
+      },
       "sort": {
         "DATE_DESC": "Datum (neueste zuerst)",
         "DATE_ASC": "Datum (älteste zuerst)",
