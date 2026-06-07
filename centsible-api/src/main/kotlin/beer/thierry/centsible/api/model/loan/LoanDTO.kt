@@ -17,6 +17,8 @@ data class LoanDTO(
     var owedAmount: BigDecimal = BigDecimal.ZERO,
     var totalRepaid: BigDecimal = BigDecimal.ZERO,
     var outstanding: BigDecimal = BigDecimal.ZERO,
+    var currency: String = "EUR",
+    var interestRate: BigDecimal? = null,
     var loanDate: LocalDate? = null,
     var description: String? = null,
     var dueDate: LocalDate? = null,

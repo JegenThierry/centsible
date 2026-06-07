@@ -12,6 +12,7 @@ data class RepaymentDTO(
     var transaction: TransactionDTO? = null,
     var affectsBalance: Boolean = true,
     var amount: BigDecimal = BigDecimal.ZERO,
+    var currency: String? = null,
     var repaidAt: LocalDate? = null,
     var createdAt: OffsetDateTime? = null,
 )

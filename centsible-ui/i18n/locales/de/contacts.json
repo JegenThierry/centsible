@@ -83,7 +83,8 @@
         "statusOpen": "Offen",
         "recordRepayment": "Rückzahlung erfassen",
         "deleteLoan": "Verleih löschen",
-        "empty": "Noch keine Verleihungen."
+        "empty": "Noch keine Verleihungen.",
+        "editLoan": "Verleih bearbeiten"
       },
       "form": {
         "modeLegend": "Kontakt",
@@ -106,12 +107,26 @@
         "owedPlaceholder": "0,00",
         "descriptionLabel": "Beschreibung",
         "descriptionPlaceholder": "Wofür war der Verleih?",
-        "dateLabel": "Datum"
+        "dateLabel": "Datum",
+        "currencyLabel": "Währung",
+        "currencyDescription": "Die Währung dieses Verleihs. Standardmäßig die Kontowährung oder deine Standardwährung.",
+        "interestRateLabel": "Zinssatz",
+        "interestRateDescription": "Optional. Wenn gesetzt, wird der geschuldete Betrag als verliehen × (1 + Satz/100) berechnet.",
+        "interestRatePlaceholder": "0,00",
+        "owedComputedDescription": "Berechnet aus verliehenem Betrag und Zinssatz.",
+        "dueDateLabel": "Fälligkeitsdatum (optional)",
+        "notesLabel": "Notizen (optional)",
+        "notesPlaceholder": "Alles Wissenswerte zu diesem Verleih"
       },
       "create": {
         "title": "Verleih erfassen",
         "description": "Erfasse Geld, das du jemandem geliehen hast.",
         "submit": "Erfassen"
+      },
+      "edit": {
+        "title": "Verleih bearbeiten",
+        "description": "Aktualisiere die Details dieses Verleihs.",
+        "submit": "Speichern"
       },
       "delete": {
         "title": "Verleih löschen",

@@ -83,7 +83,8 @@
         "statusOpen": "Ouvert",
         "recordRepayment": "Enregistrer un remboursement",
         "deleteLoan": "Supprimer le prêt",
-        "empty": "Aucun prêt pour le moment."
+        "empty": "Aucun prêt pour le moment.",
+        "editLoan": "Modifier le prêt"
       },
       "form": {
         "modeLegend": "Contact",
@@ -106,11 +107,25 @@
         "owedPlaceholder": "0,00",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "À quoi servait ce prêt ?",
-        "dateLabel": "Date"
+        "dateLabel": "Date",
+        "currencyLabel": "Devise",
+        "currencyDescription": "La devise de ce prêt. Par défaut, celle du compte ou votre devise par défaut.",
+        "interestRateLabel": "Taux d'intérêt",
+        "interestRateDescription": "Facultatif. Si défini, le montant dû est calculé comme prêté × (1 + taux/100).",
+        "interestRatePlaceholder": "0,00",
+        "owedComputedDescription": "Calculé à partir du montant prêté et du taux d'intérêt.",
+        "dueDateLabel": "Date d'échéance (facultatif)",
+        "notesLabel": "Notes (facultatif)",
+        "notesPlaceholder": "Tout ce qui mérite d’être noté sur ce prêt"
       },
       "create": {
         "title": "Enregistrer un prêt",
         "description": "Enregistrez de l'argent que vous avez prêté à quelqu'un.",
+        "submit": "Enregistrer"
+      },
+      "edit": {
+        "title": "Modifier le prêt",
+        "description": "Mettez à jour les détails de ce prêt.",
         "submit": "Enregistrer"
       },
       "delete": {

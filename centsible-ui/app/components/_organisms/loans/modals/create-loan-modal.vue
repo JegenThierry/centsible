@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import adze from 'adze'
-import type {LoanForm as LoanFormModel} from "~/models/loan/loan";
+import {type LoanForm as LoanFormModel, cleanOptionalNumber} from "~/models/loan/loan";
 import LoanForm from "~/components/_organisms/loans/loan-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
@@ -32,6 +32,8 @@ function makeBlankForm(): LoanFormModel {
     affectBalance: true,
     lentAmount: 0,
     owedAmount: 0,
+    currency: undefined,
+    interestRate: undefined,
     description: '',
     transactionDate: todayIsoDate(),
     dueDate: undefined,
@@ -48,7 +50,7 @@ async function handleSave() {
 
   loading.value = true;
   try {
-    await loansStore.createLoan(form.value);
+    await loansStore.createLoan({...form.value, interestRate: cleanOptionalNumber(form.value.interestRate)});
     emit('created');
     isOpen.value = false;
   } catch (error) {

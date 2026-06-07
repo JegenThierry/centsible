@@ -284,6 +284,8 @@ CREATE TABLE IF NOT EXISTS loans
     transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE SET NULL,
     lent_amount    DECIMAL(15, 2) NOT NULL CHECK (lent_amount > 0),
     owed_amount    DECIMAL(15, 2) NOT NULL CHECK (owed_amount >= 0),
+    currency       VARCHAR(3)     NOT NULL DEFAULT 'EUR',
+    interest_rate  NUMERIC(5, 2)  CHECK (interest_rate IS NULL OR interest_rate >= 0),
     loan_date      DATE           NOT NULL DEFAULT CURRENT_DATE,
     description    TEXT,
     due_date       DATE,
@@ -291,7 +293,12 @@ CREATE TABLE IF NOT EXISTS loans
     created_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at    TIMESTAMPTZ    NOT NULL DEFAULT now(),
     CONSTRAINT fk_loans_contact_user FOREIGN KEY (contact_id, user_id)
-        REFERENCES contacts (id, user_id) ON DELETE RESTRICT
+        REFERENCES contacts (id, user_id) ON DELETE RESTRICT,
+    CONSTRAINT loans_currency_supported CHECK (currency IN (
+        'EUR', 'USD', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
+        'SEK', 'NOK', 'DKK', 'SGD', 'KRW', 'INR', 'MXN', 'BRL', 'ZAR', 'TRY',
+        'PLN', 'PHP', 'IDR'
+        ))
 );
 
 CREATE INDEX IF NOT EXISTS idx_loans_user_contact ON loans (user_id, contact_id);

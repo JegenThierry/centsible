@@ -83,7 +83,8 @@
         "statusOpen": "Open",
         "recordRepayment": "Record repayment",
         "deleteLoan": "Delete loan",
-        "empty": "No loans yet."
+        "empty": "No loans yet.",
+        "editLoan": "Edit loan"
       },
       "form": {
         "modeLegend": "Contact",
@@ -106,12 +107,26 @@
         "owedPlaceholder": "0.00",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "What was the loan for?",
-        "dateLabel": "Date"
+        "dateLabel": "Date",
+        "currencyLabel": "Currency",
+        "currencyDescription": "The currency this loan is in. Defaults to the account or your default currency.",
+        "interestRateLabel": "Interest rate",
+        "interestRateDescription": "Optional. When set, the amount owed is calculated as lent × (1 + rate/100).",
+        "interestRatePlaceholder": "0.00",
+        "owedComputedDescription": "Calculated from the lent amount and interest rate.",
+        "dueDateLabel": "Due date (optional)",
+        "notesLabel": "Notes (optional)",
+        "notesPlaceholder": "Anything worth remembering about this loan"
       },
       "create": {
         "title": "Record lending",
         "description": "Record money you've lent to someone.",
         "submit": "Record"
+      },
+      "edit": {
+        "title": "Edit loan",
+        "description": "Update this loan's details.",
+        "submit": "Save"
       },
       "delete": {
         "title": "Delete loan",

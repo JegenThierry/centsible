@@ -11,6 +11,7 @@ import {useValidator} from "~/composables/use-validator";
 const props = defineProps<{
   modelValue: RepaymentForm;
   maxAmount?: number;
+  currency?: string;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -77,6 +78,7 @@ defineExpose({
                :min="0.01"
                :label="t('contacts.loans.repayment.form.amountLabel')"
                :placeholder="t('contacts.loans.repayment.form.amountPlaceholder')"
+               :trailing-text="currency"
                required
                type="number"/>
 
