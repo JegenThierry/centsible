@@ -60,6 +60,7 @@ function onSubmit() {
     <BaseInput ref="usernameInput"
                v-model="state.username"
                autofocus
+               autocomplete="username"
                :disabled="loading"
                :label="t('auth.fields.username')"
                required
@@ -67,6 +68,7 @@ function onSubmit() {
 
     <PasswordInput ref="passwordInput"
                    v-model="state.password"
+                   autocomplete="current-password"
                    :disabled="loading"
                    :label="t('auth.fields.password')"
                    required/>

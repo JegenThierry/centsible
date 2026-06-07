@@ -59,6 +59,8 @@ function onSubmit() {
         <BaseInput ref="codeInput"
                    v-model="state.code"
                    autofocus
+                   autocomplete="one-time-code"
+                   inputmode="numeric"
                    :disabled="loading"
                    :label="t('auth.twoFactor.challenge.codeLabel')"
                    :hint="t('auth.twoFactor.challenge.codeHint')"

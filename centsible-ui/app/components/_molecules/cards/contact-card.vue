@@ -41,7 +41,8 @@ const currency = useActiveCurrency();
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </div>
-        <EditDeleteActions hide-on-hover
+        <EditDeleteActions :edit-aria-label="t('contacts.card.editAria')"
+                           :delete-aria-label="t('contacts.card.deleteAria')"
                            @edit="emit('edit', contact)"
                            @delete="emit('delete', contact)"/>
       </div>

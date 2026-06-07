@@ -9,6 +9,7 @@ const props = defineProps<{
   description?: string;
   additionalValidation?: () => boolean;
   additionalValidationMessage?: string;
+  autocomplete?: string;
 }>();
 
 const error = ref<string | undefined>(undefined);
@@ -44,6 +45,7 @@ defineExpose({validate});
       :disabled="disabled"
       :placeholder="placeholder"
       :type="'password'"
+      :autocomplete="autocomplete"
       :ui="{ trailing: 'pe-1' }"
       class="w-full"/>
   </UFormField>

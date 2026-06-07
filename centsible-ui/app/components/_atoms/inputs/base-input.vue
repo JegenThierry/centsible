@@ -18,10 +18,13 @@ const props = defineProps<{
   pattern?: RegExp;
   patternMessage?: string;
   trailingText?: string;
+  autocomplete?: string;
+  inputmode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
 }>();
 
 const model = defineModel<string | number>();
 const error = ref<string | undefined>(undefined);
+const touched = ref(false);
 const {t} = useI18n();
 
 function isEmpty(value: string | number | undefined): boolean {
@@ -91,6 +94,17 @@ function validate(): boolean {
   return true;
 }
 
+// Validate once the field has been left, then keep re-validating on input so the error clears
+// as soon as the value becomes valid — without nagging before the user has interacted.
+function onBlur() {
+  touched.value = true;
+  validate();
+}
+
+watch(model, () => {
+  if (touched.value && error.value) validate();
+});
+
 defineExpose({
   validate,
 })
@@ -107,8 +121,11 @@ defineExpose({
             :disabled="disabled"
             :placeholder="placeholder"
             :type="type"
+            :autocomplete="autocomplete"
+            :inputmode="inputmode"
             :ui="trailingText ? { trailing: 'pe-2' } : undefined"
-            class="w-full">
+            class="w-full"
+            @blur="onBlur">
       <template v-if="trailingText" #trailing>
         <span class="text-xs font-medium text-muted">
           {{ trailingText }}
