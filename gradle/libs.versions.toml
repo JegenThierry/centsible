@@ -18,6 +18,7 @@ commonsCsv = "1.12.0"
 resilience4j = "2.3.0"
 ofx4j = "1.39"
 guava = "33.6.0-jre"
+tika = "3.3.1"
 dependencyCheck = "12.1.0"
 
 [libraries]
@@ -53,6 +54,7 @@ commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "common
 resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
 ofx4j = { module = "com.webcohesion.ofx4j:ofx4j", version.ref = "ofx4j" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika" }
 konvert-api = { module = "io.mcarle:konvert-api", version.ref = "konvert" }
 konvert-ksp = { module = "io.mcarle:konvert", version.ref = "konvert" }
 

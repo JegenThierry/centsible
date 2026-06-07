@@ -40,6 +40,7 @@ dependencies {
 
     implementation(libs.bucket4j.core)
     implementation(libs.caffeine)
+    implementation(libs.tika.core)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
