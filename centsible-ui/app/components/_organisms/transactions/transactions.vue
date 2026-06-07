@@ -4,8 +4,7 @@ import TransactionList from "~/components/_organisms/transactions/transaction-li
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-const ImportCsvModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/import-csv-modal.vue"));
-const AdvancedImportModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/advanced-import-modal.vue"));
+const ImportModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/advanced-import-modal.vue"));
 import {todayIsoDate} from "~/utils/date";
 import type {TransactionsParams} from "~/models/export/export-job";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
@@ -17,7 +16,6 @@ const accountId = computed(() => String(route.params.accountId ?? ''));
 const accountsStore = useBudgetAccountsStore();
 
 const isImportModalOpen = ref(false);
-const isAdvancedImportOpen = ref(false);
 const reloadKey = ref(0);
 
 function buildParams(): TransactionsParams & { kind: 'TRANSACTIONS' } {
@@ -45,13 +43,7 @@ async function onImported() {
                      icon="i-lucide-upload"
                      variant="outline"
                      @click="isImportModalOpen = true">
-            {{ t('transactions.importCsvButton') }}
-          </AppButton>
-          <AppButton color="neutral"
-                     icon="i-lucide-file-input"
-                     variant="outline"
-                     @click="isAdvancedImportOpen = true">
-            {{ t('transactions.advancedImportButton') }}
+            {{ t('transactions.importButton') }}
           </AppButton>
           <ExportButton
             :default-title="t('transactions.exportDefaultTitle', {date: todayIsoDate()})"
@@ -64,12 +56,8 @@ async function onImported() {
     </PageHeader>
     <TransactionList :key="reloadKey"/>
 
-    <ImportCsvModal v-if="isImportModalOpen"
-                    v-model:open="isImportModalOpen"
-                    @imported="onImported"/>
-
-    <AdvancedImportModal v-if="isAdvancedImportOpen"
-                         v-model:open="isAdvancedImportOpen"
-                         @imported="onImported"/>
+    <ImportModal v-if="isImportModalOpen"
+                 v-model:open="isImportModalOpen"
+                 @imported="onImported"/>
   </UContainer>
 </template>

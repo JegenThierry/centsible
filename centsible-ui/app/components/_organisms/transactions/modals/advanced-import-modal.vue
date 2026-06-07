@@ -8,6 +8,7 @@ import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import type {
+  CsvColumnMapping,
   CsvProbeResponse,
   ImportDetection,
   ImportPreview,
@@ -15,6 +16,7 @@ import type {
 } from "~/models/imports/imports";
 import CancelButton from "~/components/_molecules/buttons/cancel-button.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import CsvMappingEditor from "~/components/_organisms/transactions/modals/csv-mapping-editor.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 
@@ -24,7 +26,9 @@ const emit = defineEmits<{
   (e: 'imported'): void;
 }>();
 
-type Step = 'upload' | 'review';
+// CSV gets an extra mapping step (so a wrong auto-detection can be corrected); other formats (OFX)
+// skip straight to review.
+type Step = 'upload' | 'map' | 'review';
 
 const api = useApi();
 const importService = useImportService(api);
@@ -37,11 +41,42 @@ const step = ref<Step>('upload');
 const file = ref<File | null>(null);
 const detection = ref<ImportDetection | null>(null);
 const probe = ref<CsvProbeResponse | null>(null);
+const mapping = ref<CsvColumnMapping>(blankMapping());
 const preview = ref<ImportPreview | null>(null);
 const defaultCategory = ref<Category | undefined>(undefined);
 const categories = ref<Category[]>([]);
 const loading = ref(false);
 const committing = ref(false);
+
+function blankMapping(): CsvColumnMapping {
+  return {
+    dateColumn: -1, descriptionColumn: -1, amountColumn: null,
+    debitColumn: null, creditColumn: null, currencyColumn: null,
+    counterpartyColumn: null, categoryColumn: null,
+    dateFormat: 'dd/MM/yyyy', decimalSeparator: '.', thousandsSeparator: null,
+    debitsArePositive: false,
+  };
+}
+
+// Best-effort guess used only when the server matched no bank profile, so the editor opens with
+// sensible defaults the user can correct.
+function guessMapping(header: string[]): CsvColumnMapping {
+  const lower = header.map(h => h.toLowerCase());
+  const findIdx = (re: RegExp) => lower.findIndex(h => re.test(h));
+  const amountIdx = findIdx(/(amount|value|montant|betrag|total)/);
+  return {
+    ...blankMapping(),
+    dateColumn: findIdx(/(date|datum|when)/),
+    descriptionColumn: findIdx(/(desc|memo|note|reference|libell|payee|narrative)/),
+    amountColumn: amountIdx === -1 ? null : amountIdx,
+  };
+}
+
+const mappingValid = computed(() => {
+  const m = mapping.value;
+  const hasAmount = m.amountColumn != null || m.debitColumn != null || m.creditColumn != null;
+  return m.dateColumn >= 0 && m.descriptionColumn >= 0 && hasAmount;
+});
 
 watch(isOpen, async (open) => {
   if (!open) return;
@@ -49,6 +84,7 @@ watch(isOpen, async (open) => {
   file.value = null;
   detection.value = null;
   probe.value = null;
+  mapping.value = blankMapping();
   preview.value = null;
   defaultCategory.value = undefined;
   if (categories.value.length === 0) {
@@ -73,23 +109,45 @@ async function onFileChange(event: Event) {
 function buildHints(): ParseHints {
   return {
     defaultCategoryId: defaultCategory.value?.id,
-    csvMapping: probe.value?.suggestedMapping ?? undefined,
+    csvMapping: detection.value?.parserId === 'csv' ? mapping.value : undefined,
     csvDialect: probe.value?.dialect,
   };
 }
 
-async function detectAndPreview() {
+// Step 1 -> detect the format. CSV branches to the mapping step; everything else previews directly.
+async function detectAndProceed() {
   if (!file.value || !defaultCategory.value) return;
   loading.value = true;
   try {
     const det = await importService.detect(file.value);
     detection.value = det;
     if (det.parserId === 'csv') {
-      probe.value = await importService.csvProbe(file.value);
+      const probed = await importService.csvProbe(file.value);
+      probe.value = probed;
+      mapping.value = probed.suggestedMapping ?? guessMapping(probed.header);
+      step.value = 'map';
     } else {
       probe.value = null;
+      preview.value = await importService.preview(file.value, det.parserId, buildHints(), 50);
+      step.value = 'review';
     }
-    preview.value = await importService.preview(file.value, det.parserId, buildHints(), 50);
+  } catch (error) {
+    useApiErrors().toastError(
+      error,
+      t('transactions.advancedImport.errorTitle'),
+      t('transactions.advancedImport.detectFailedBody'),
+    );
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Step 2 (CSV) -> preview with the (possibly edited) mapping.
+async function previewWithMapping() {
+  if (!file.value || !detection.value || !mappingValid.value) return;
+  loading.value = true;
+  try {
+    preview.value = await importService.preview(file.value, detection.value.parserId, buildHints(), 50);
     step.value = 'review';
   } catch (error) {
     useApiErrors().toastError(
@@ -100,6 +158,10 @@ async function detectAndPreview() {
   } finally {
     loading.value = false;
   }
+}
+
+function backFromReview() {
+  step.value = detection.value?.parserId === 'csv' ? 'map' : 'upload';
 }
 
 async function commit() {
@@ -135,12 +197,12 @@ async function commit() {
 
 <template>
   <UModal v-model:open="isOpen"
-          :title="step === 'upload' ? t('transactions.advancedImport.titleUpload') : t('transactions.advancedImport.titleReview')"
-          :description="step === 'upload' ? t('transactions.advancedImport.descUpload') : t('transactions.advancedImport.descReview')"
+          :title="t(step === 'upload' ? 'transactions.advancedImport.titleUpload' : step === 'map' ? 'transactions.advancedImport.titleMap' : 'transactions.advancedImport.titleReview')"
+          :description="t(step === 'upload' ? 'transactions.advancedImport.descUpload' : step === 'map' ? 'transactions.advancedImport.descMap' : 'transactions.advancedImport.descReview')"
           :ui="{content: 'max-w-2xl'}">
     <template #body>
       <div v-if="step === 'upload'" class="space-y-4">
-        <p class="text-sm text-neutral-500">
+        <p class="text-sm text-muted">
           {{ t('transactions.advancedImport.uploadHint') }}
         </p>
         <AppInput accept=".csv,.tsv,.ofx,.qfx,.qbo,text/csv,application/x-ofx"
@@ -152,6 +214,23 @@ async function commit() {
                         :description="t('transactions.advancedImport.defaultCategoryHelp')"
                         :label="t('transactions.advancedImport.defaultCategoryLabel')"
                         required/>
+      </div>
+
+      <div v-else-if="step === 'map'" class="space-y-4">
+        <div class="flex items-center gap-2 flex-wrap text-sm">
+          <UBadge color="primary" variant="subtle">{{ detection?.displayName ?? 'CSV' }}</UBadge>
+          <UBadge v-if="probe?.suggestedProfileId" color="success" variant="subtle">
+            {{ probe.suggestedProfileId }} v{{ probe.suggestedProfileVersion }}
+          </UBadge>
+        </div>
+        <CsvMappingEditor v-model="mapping"
+                          :headers="probe?.header ?? []"
+                          :sample-row="probe?.sample?.[0] ?? []"/>
+        <UAlert v-if="!mappingValid"
+                color="warning"
+                variant="subtle"
+                :title="t('transactions.advancedImport.mappingInvalidTitle')"
+                :description="t('transactions.advancedImport.mappingInvalidBody')"/>
       </div>
 
       <div v-else-if="step === 'review'" class="space-y-4">
@@ -202,10 +281,16 @@ async function commit() {
 
     <template #footer>
       <div class="flex justify-between gap-2 w-full">
-        <AppButton v-if="step === 'review'"
+        <AppButton v-if="step === 'map'"
                  color="neutral"
                  variant="ghost"
                  @click="step = 'upload'">
+          {{ t('common.actions.back') }}
+        </AppButton>
+        <AppButton v-else-if="step === 'review'"
+                 color="neutral"
+                 variant="ghost"
+                 @click="backFromReview">
           {{ t('common.actions.back') }}
         </AppButton>
         <div v-else></div>
@@ -214,7 +299,13 @@ async function commit() {
           <AppButton v-if="step === 'upload'"
                    :disabled="!file || !defaultCategory"
                    :loading="loading"
-                   @click="detectAndPreview">
+                   @click="detectAndProceed">
+            {{ t('common.actions.next') }}
+          </AppButton>
+          <AppButton v-if="step === 'map'"
+                   :disabled="!mappingValid"
+                   :loading="loading"
+                   @click="previewWithMapping">
             {{ t('common.actions.next') }}
           </AppButton>
           <AppButton v-if="step === 'review'"

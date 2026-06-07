@@ -3,7 +3,6 @@ import type {
   CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest, TransferDetails, TransferRequest
 } from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
-import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {assertStatus, validateRequest} from "~/composables/use-api";
 
@@ -86,11 +85,6 @@ export function useTransactionService(api: AxiosInstance) {
     return validateRequest<{ affected: number }>(response).affected;
   }
 
-  async function importBatch(accountId: string, rows: ImportPayloadRow[]): Promise<ImportResult> {
-    const response = await api.post<ImportResult>(`/transactions/${encodeURIComponent(accountId)}/import`, {rows});
-    return validateRequest<ImportResult>(response);
-  }
-
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
     return validateRequest<Transaction>(response);
@@ -116,7 +110,6 @@ export function useTransactionService(api: AxiosInstance) {
     aggregateByCategory,
     aggregateByMonth,
     aggregateByDay,
-    importBatch,
     setAccountBalance,
     previewConversion,
   }

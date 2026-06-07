@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.imports.CsvColumnMappingDTO
@@ -43,9 +44,18 @@ class ImportsResource(
     fun detect(@RequestParam("file") file: MultipartFile): ResponseEntity<ImportDetection> {
         val bytes = readBoundedBytes(file)
         val detection = importService.detect(bytes, file.originalFilename ?: "upload", file.contentType)
-            ?: return ResponseEntity.unprocessableContent().build()
+            ?: throw LocalizedException.BadRequest("error.import.unsupportedFormat", supportedExtensionList())
         return ResponseEntity.ok(detection)
     }
+
+    /** Comma-separated, de-duplicated list of every extension a registered parser accepts (e.g. ".csv, .ofx"). */
+    private fun supportedExtensionList(): String =
+        registry.listParsers()
+            .flatMap { it.supportedExtensions }
+            .map { if (it.startsWith(".")) it else ".$it" }
+            .distinct()
+            .sorted()
+            .joinToString(", ")
 
     @PostMapping("/csv/probe", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun csvProbe(
