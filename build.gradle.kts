@@ -62,8 +62,10 @@ subprojects {
         imports {
             mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) {
                 // Override BOM versions to pull CVE fixes ahead of the next Spring Boot release.
-                bomProperty("tomcat.version", "11.0.22")          // CVE-2026-43512, CVE-2026-41293, et al.
-                bomProperty("postgresql.version", "42.7.11")      // CVE-2026-42198 (SCRAM PBKDF2 DoS)
+                // tomcat 11.0.22: CVE-2026-43512, CVE-2026-41293, et al.
+                bomProperty("tomcat.version", "11.0.22")
+                // postgresql 42.7.11: CVE-2026-42198 (SCRAM PBKDF2 DoS)
+                bomProperty("postgresql.version", "42.7.11")
             }
         }
     }

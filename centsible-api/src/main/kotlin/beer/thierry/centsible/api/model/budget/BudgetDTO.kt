@@ -13,7 +13,7 @@ data class BudgetDTO(
     var category: CategoryDTO = CategoryDTO(),
     var amountLimit: BigDecimal = BigDecimal.ZERO,
     var amountSpent: BigDecimal = BigDecimal.ZERO,
-    var period: String? = null, // YYYY-MM (or window key)
+    var period: String? = null,
     var periodType: BudgetPeriodType = BudgetPeriodType.MONTHLY,
     var rolloverEnabled: Boolean = false,
     var rolloverAmount: BigDecimal = BigDecimal.ZERO,
