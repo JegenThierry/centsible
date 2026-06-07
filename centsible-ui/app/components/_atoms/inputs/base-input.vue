@@ -2,6 +2,8 @@
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
+  /** When set, the field is schema-driven: UForm owns validation and shows the error for this path. */
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -97,6 +99,7 @@ function validate(): boolean {
 // Validate once the field has been left, then keep re-validating on input so the error clears
 // as soon as the value becomes valid — without nagging before the user has interacted.
 function onBlur() {
+  if (props.name) return; // schema-driven: UForm owns validation
   touched.value = true;
   validate();
 }
@@ -111,7 +114,8 @@ defineExpose({
 </script>
 
 <template>
-  <UFormField :autofocus="autofocus"
+  <UFormField :name="name"
+              :autofocus="autofocus"
               :error="error"
               :help="description"
               :hint="hint"

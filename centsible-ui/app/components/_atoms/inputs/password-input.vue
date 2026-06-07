@@ -2,6 +2,8 @@
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
+  /** When set, the field is schema-driven: UForm owns validation and shows the error for this path. */
+  name?: string;
   required?: boolean;
   disabled?: boolean;
   label?: string;
@@ -36,7 +38,8 @@ defineExpose({validate});
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
+              :error="error"
               :help="description"
               :label="label"
               :required="required">
