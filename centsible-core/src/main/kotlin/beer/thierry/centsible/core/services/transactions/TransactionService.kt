@@ -342,9 +342,20 @@ class TransactionService(
         val classifications = categoriesRepository.fetchCategoryClassifications(
             authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
         )
+        // Apply the user's categorization rules to file imports too — but only to rows left on the
+        // uncategorized fallback, so an explicit category choice is never overridden. Mirrors the
+        // provider-sync path (importProviderTransactions) for consistent behaviour across channels.
+        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
+        val rules = if (fallbackCategoryId != null) categorizationService.list(authenticatedUser) else emptyList()
         val resolvedRows = rows.map { row ->
             val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
-            row.copy(type = resolveType(classification, row.type))
+            val type = resolveType(classification, row.type)
+            val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
+                rules.firstMatch(row.description, type)?.category?.id ?: row.categoryId
+            } else {
+                row.categoryId
+            }
+            row.copy(categoryId = categoryId, type = type)
         }
 
         val conversions = convertRows(resolvedRows, account.currency)
