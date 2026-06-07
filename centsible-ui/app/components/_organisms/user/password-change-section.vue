@@ -24,6 +24,14 @@ const isStrong = () => PASSWORD_PATTERN.test(state.newPassword);
 const differsFromCurrent = () => state.newPassword !== state.currentPassword;
 const matchesConfirm = () => state.newPassword === state.confirmPassword;
 
+// Same live checklist as registration/reset, so all three password surfaces share one UX.
+const passwordRules = computed(() => [
+  {label: t('auth.password.rules.length'), met: state.newPassword.length >= 8},
+  {label: t('auth.password.rules.case'), met: /[A-Z]/.test(state.newPassword) && /[a-z]/.test(state.newPassword)},
+  {label: t('auth.password.rules.digit'), met: /\d/.test(state.newPassword)},
+  {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(state.newPassword)},
+]);
+
 const newPasswordMessage = computed(() =>
   !isStrong()
     ? t('profile.password.validation.tooWeak')
@@ -75,6 +83,15 @@ async function onSubmit() {
                      :description="t('profile.password.newHint')"
                      :additional-validation="() => isStrong() && differsFromCurrent()"
                      :additional-validation-message="newPasswordMessage"/>
+      <div v-if="state.newPassword.length > 0" class="grid grid-cols-2 gap-2 -mt-2">
+        <div v-for="rule in passwordRules"
+             :key="rule.label"
+             :class="rule.met ? 'text-primary-500' : 'text-muted'"
+             class="flex items-center gap-2 text-xs transition-colors duration-200">
+          <UIcon :name="rule.met ? 'i-lucide-circle-check' : 'i-lucide-circle-minus'" class="w-4 h-4"/>
+          {{ rule.label }}
+        </div>
+      </div>
       <PasswordInput ref="confirmInput"
                      v-model="state.confirmPassword"
                      required
