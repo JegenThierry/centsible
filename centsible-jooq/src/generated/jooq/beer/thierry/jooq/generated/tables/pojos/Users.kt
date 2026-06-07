@@ -39,7 +39,8 @@ data class Users(
     val totpEnabled: Boolean? = null,
     val totpLastUsedStep: Long? = null,
     val totpEnabledAt: OffsetDateTime? = null,
-    val defaultCurrency: String? = null
+    val defaultCurrency: String? = null,
+    val tokenVersion: Int? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -188,6 +189,12 @@ data class Users(
         }
         else if (this.defaultCurrency != o.defaultCurrency)
             return false
+        if (this.tokenVersion == null) {
+            if (o.tokenVersion != null)
+                return false
+        }
+        else if (this.tokenVersion != o.tokenVersion)
+            return false
         return true
     }
 
@@ -217,6 +224,7 @@ data class Users(
         result = prime * result + (if (this.totpLastUsedStep == null) 0 else this.totpLastUsedStep.hashCode())
         result = prime * result + (if (this.totpEnabledAt == null) 0 else this.totpEnabledAt.hashCode())
         result = prime * result + (if (this.defaultCurrency == null) 0 else this.defaultCurrency.hashCode())
+        result = prime * result + (if (this.tokenVersion == null) 0 else this.tokenVersion.hashCode())
         return result
     }
 
@@ -246,6 +254,7 @@ data class Users(
         sb.append(", ").append(totpLastUsedStep)
         sb.append(", ").append(totpEnabledAt)
         sb.append(", ").append(defaultCurrency)
+        sb.append(", ").append(tokenVersion)
 
         sb.append(")")
         return sb.toString()

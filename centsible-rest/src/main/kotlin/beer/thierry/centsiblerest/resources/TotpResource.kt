@@ -5,7 +5,10 @@ import beer.thierry.centsible.api.model.auth.TotpCodeRequest
 import beer.thierry.centsible.api.model.auth.TotpEnrollmentDTO
 import beer.thierry.centsible.api.model.auth.TotpStatusDTO
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.authentication.ITotpService
+import beer.thierry.centsiblerest.security.AuthCookieIssuer
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -24,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TotpResource(
     private val totpService: ITotpService,
+    private val authService: IAuthService,
+    private val authCookieIssuer: AuthCookieIssuer,
 ) {
     private val log = LoggerFactory.getLogger(TotpResource::class.java)
 
@@ -64,8 +69,14 @@ class TotpResource(
     fun disable(
         @AuthenticationPrincipal user: UserDTO,
         @Valid @RequestBody request: TotpCodeRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<Void> {
         totpService.disable(user.id, request.code)
+        // Disabling 2FA is a security downgrade: revoke every other session and reissue this one's
+        // cookie so the current device stays signed in while other devices are kicked.
+        val token = authService.signOutOtherSessions(user.id)
+        authCookieIssuer.issue(response, token)
+        log.info("2FA disabled and other sessions revoked userId={}", user.id)
         return ResponseEntity.noContent().build()
     }
 }

@@ -38,11 +38,26 @@
       },
       "toasts": {
         "successTitle": "Mot de passe mis à jour",
-        "successBody": "Utilisez votre nouveau mot de passe lors de votre prochaine connexion.",
+        "successBody": "Utilisez votre nouveau mot de passe lors de votre prochaine connexion. Vos autres appareils ont été déconnectés.",
         "currentIncorrectTitle": "Mot de passe actuel incorrect",
         "currentIncorrectBody": "Le mot de passe actuel saisi est erroné. Veuillez réessayer.",
         "errorTitle": "Impossible de mettre à jour le mot de passe",
         "errorBody": "Une erreur s'est produite. Veuillez réessayer plus tard."
+      }
+    },
+    "sessions": {
+      "title": "Sessions actives",
+      "description": "Déconnectez tous les autres appareils où vous êtes actuellement connecté. Celui-ci reste connecté.",
+      "signOutEverywhere": "Déconnecter les autres appareils",
+      "confirm": {
+        "title": "Déconnecter les autres appareils ?",
+        "body": "Tous les autres appareils connectés à votre compte seront déconnectés. Vous resterez connecté ici."
+      },
+      "toasts": {
+        "successTitle": "Autres appareils déconnectés",
+        "successBody": "Toutes vos autres sessions ont été fermées.",
+        "errorTitle": "Impossible de déconnecter les autres appareils",
+        "errorBody": "Une erreur est survenue. Veuillez réessayer plus tard."
       }
     },
     "dangerZone": {

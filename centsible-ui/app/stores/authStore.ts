@@ -29,10 +29,14 @@ export const useAuthStore = defineStore('authStore', () => {
     return navigateTo('/auth')
   }
 
-  // Authenticated password change. The session cookie stays valid (stateless model), so the user
-  // remains signed in. Errors propagate to the caller for toast handling.
+  // Authenticated password change. The server revokes other sessions and reissues this session's
+  // cookie, so the user stays signed in here. Errors propagate to the caller for toast handling.
   const changePassword = (currentPassword: string, newPassword: string) =>
     authService.changePassword({currentPassword, newPassword})
+
+  // Signs out every other device. The server reissues this session's cookie, so the current device
+  // stays signed in. Errors propagate to the caller for toast handling.
+  const signOutEverywhere = () => authService.signOutEverywhere()
 
   // Deletes the account, then tears down local auth state and redirects to /auth — the server has
   // already cleared the session cookie.
@@ -46,6 +50,6 @@ export const useAuthStore = defineStore('authStore', () => {
 
   return {
     isAuthenticated, twoFactorPending, setAuthenticated, setTwoFactorPending, logout,
-    changePassword, deleteAccount,
+    changePassword, signOutEverywhere, deleteAccount,
   }
 });

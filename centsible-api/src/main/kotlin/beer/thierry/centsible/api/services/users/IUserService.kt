@@ -8,6 +8,9 @@ import java.util.*
 interface IUserService {
     fun fetchUserByUsername(username: String): UserDTO
     fun userExists(id: UUID): Boolean
+
+    /** Current token version for [id] (for JWT revocation checks), or null when the user doesn't exist. */
+    fun currentTokenVersion(id: UUID): Int?
     fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO
     fun updateProfilePicture(userId: UUID, profilePicture: String?): UserDTO
     fun updateUserLocale(userId: UUID, locale: String): UserDTO

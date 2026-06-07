@@ -38,10 +38,25 @@
       },
       "toasts": {
         "successTitle": "Passwort aktualisiert",
-        "successBody": "Verwende dein neues Passwort bei der nächsten Anmeldung.",
+        "successBody": "Verwende dein neues Passwort bei der nächsten Anmeldung. Deine anderen Geräte wurden abgemeldet.",
         "currentIncorrectTitle": "Aktuelles Passwort falsch",
         "currentIncorrectBody": "Das eingegebene aktuelle Passwort ist falsch. Bitte versuche es erneut.",
         "errorTitle": "Passwort konnte nicht aktualisiert werden",
+        "errorBody": "Etwas ist schiefgelaufen. Bitte versuche es später erneut."
+      }
+    },
+    "sessions": {
+      "title": "Aktive Sitzungen",
+      "description": "Melde alle anderen Geräte ab, auf denen du gerade angemeldet bist. Dieses Gerät bleibt angemeldet.",
+      "signOutEverywhere": "Andere Geräte abmelden",
+      "confirm": {
+        "title": "Andere Geräte abmelden?",
+        "body": "Alle anderen bei deinem Konto angemeldeten Geräte werden abgemeldet. Hier bleibst du angemeldet."
+      },
+      "toasts": {
+        "successTitle": "Andere Geräte abgemeldet",
+        "successBody": "Alle deine anderen Sitzungen wurden beendet.",
+        "errorTitle": "Andere Geräte konnten nicht abgemeldet werden",
         "errorBody": "Etwas ist schiefgelaufen. Bitte versuche es später erneut."
       }
     },

@@ -6,7 +6,12 @@ import RecentTransactionItem from "~/components/_molecules/dashboard/recent-tran
 
 const props = defineProps<{
   transactions: Transaction[],
-  currency: Currency
+  currency: Currency,
+  error?: boolean,
+}>();
+
+const emit = defineEmits<{
+  (e: 'retry'): void;
 }>();
 
 const route = useRoute();
@@ -33,14 +38,21 @@ const recentTransactions = computed(() =>
       </div>
     </template>
 
-    <div class="space-y-4">
+    <div v-if="error" class="text-center py-4 space-y-3">
+      <p class="text-sm text-muted">{{ t('accounts.dashboard.recentLoadError') }}</p>
+      <AppButton color="neutral" size="xs" variant="subtle" @click="emit('retry')">
+        {{ t('common.actions.retry') }}
+      </AppButton>
+    </div>
+
+    <div v-else class="space-y-4">
       <RecentTransactionItem
         v-for="transaction in recentTransactions"
         :key="transaction.id"
         :currency="currency"
         :transaction="transaction"
       />
-      <div v-if="recentTransactions.length === 0" class="text-center py-4 text-sm text-neutral-500">
+      <div v-if="recentTransactions.length === 0" class="text-center py-4 text-sm text-muted">
         {{ t('accounts.dashboard.noRecentTransactions') }}
       </div>
     </div>

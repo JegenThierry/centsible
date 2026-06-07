@@ -152,6 +152,19 @@ class UserRepository(
             .execute() > 0
     }
 
+    override fun incrementTokenVersion(id: UUID): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.TOKEN_VERSION, USERS.TOKEN_VERSION.plus(1))
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun fetchTokenVersion(id: UUID): Int? =
+        dsl.select(USERS.TOKEN_VERSION).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOKEN_VERSION)
+
     override fun deleteUser(id: UUID): Boolean {
         return dsl.deleteFrom(USERS)
             .where(USERS.ID.eq(id))
@@ -175,10 +188,13 @@ class UserRepository(
     }
 
     override fun resetPassword(id: UUID, newPasswordHash: String): Boolean {
+        // A reset (forgotten password) also revokes every existing session: the prior password may
+        // have been compromised, so any JWT issued before the reset must stop working.
         return dsl.update(USERS)
             .set(USERS.PASSWORD_HASH, newPasswordHash)
             .set(PASSWORD_RESET_TOKEN_HASH, null as ByteArray?)
             .set(PASSWORD_RESET_TOKEN_EXPIRES_AT, null as OffsetDateTime?)
+            .set(USERS.TOKEN_VERSION, USERS.TOKEN_VERSION.plus(1))
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0

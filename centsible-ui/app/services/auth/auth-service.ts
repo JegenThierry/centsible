@@ -54,9 +54,14 @@ export function useAuthService(api: AxiosInstance) {
   }
 
   // Authenticated password change; throws on a non-2xx (e.g. 401 wrong current password) so the
-  // caller can surface the specific error.
+  // caller can surface the specific error. Reissues this session's cookie (other sessions revoked).
   async function changePassword(request: ChangePasswordRequest): Promise<void> {
     await api.post('/auth/change-password', request);
+  }
+
+  // Revokes every other session; the server reissues this session's cookie so the caller stays in.
+  async function signOutEverywhere(): Promise<void> {
+    await api.post('/auth/sign-out-everywhere');
   }
 
   // Irreversible self-delete; requires the password (and a TOTP/recovery code when 2FA is on).
@@ -66,6 +71,6 @@ export function useAuthService(api: AxiosInstance) {
 
   return {
     login, twoFactorChallenge, register, verify, confirm, logout, forgotPassword, resetPassword,
-    changePassword, deleteAccount,
+    changePassword, signOutEverywhere, deleteAccount,
   }
 }

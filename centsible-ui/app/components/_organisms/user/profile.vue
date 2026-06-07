@@ -9,6 +9,7 @@ import TotpSection from '~/components/_organisms/user/totp-section.vue';
 import DefaultCurrencySection from '~/components/_organisms/user/default-currency-section.vue';
 import DataExportSection from '~/components/_organisms/user/data-export-section.vue';
 import PasswordChangeSection from '~/components/_organisms/user/password-change-section.vue';
+import SessionsSection from '~/components/_organisms/user/sessions-section.vue';
 import DangerZoneSection from '~/components/_organisms/user/danger-zone-section.vue';
 import {useUserNotifications} from "~/components/_organisms/user/notifications";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
@@ -127,6 +128,10 @@ async function onLanguageChange(code: string) {
 
               <div class="border-t border-gray-100 dark:border-gray-800 pt-6">
                 <TotpSection/>
+              </div>
+
+              <div class="border-t border-gray-100 dark:border-gray-800 pt-6">
+                <SessionsSection/>
               </div>
 
               <div class="border-t border-gray-100 dark:border-gray-800 pt-6">

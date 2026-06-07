@@ -15,6 +15,8 @@ data class User(
     val locale: String = "en",
     val totpEnabled: Boolean = false,
     val defaultCurrency: String = "EUR",
+    /** Incremented to invalidate every previously issued JWT (sign-out-everywhere). See [IUserRepository.incrementTokenVersion]. */
+    val tokenVersion: Int = 0,
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
     val modifiedAt: OffsetDateTime = OffsetDateTime.now(),
 )

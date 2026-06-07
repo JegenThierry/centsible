@@ -141,15 +141,30 @@ class AuthenticationResource(
         else ResponseEntity.badRequest().build()
     }
 
-    // Authenticated password change. The current JWT cookie stays valid (stateless model: other
-    // sessions live until expiry), so the caller remains signed in without a cookie reissue.
+    // Authenticated password change. Revokes every other session (token-version bump) and reissues
+    // this session's cookie with a fresh token so the caller stays signed in on this device only.
     @PostMapping("/change-password")
     fun changePassword(
         @AuthenticationPrincipal user: UserDTO,
         @Valid @RequestBody request: PasswordChangeRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        authService.changePassword(user.id, request.currentPassword, request.newPassword)
-        log.info("Password changed userId={}", user.id)
+        val token = authService.changePassword(user.id, request.currentPassword, request.newPassword)
+        authCookieIssuer.issue(response, token)
+        log.info("Password changed and other sessions revoked userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
+    // Signs out every other device by bumping the token version, then reissues this session's cookie
+    // so the current device stays signed in. Other devices are rejected on their next request.
+    @PostMapping("/sign-out-everywhere")
+    fun signOutEverywhere(
+        @AuthenticationPrincipal user: UserDTO,
+        response: HttpServletResponse,
+    ): ResponseEntity<Void> {
+        val token = authService.signOutOtherSessions(user.id)
+        authCookieIssuer.issue(response, token)
+        log.info("Signed out all other sessions userId={}", user.id)
         return ResponseEntity.noContent().build()
     }
 

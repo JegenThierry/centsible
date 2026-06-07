@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {BudgetForm} from "~/models/budget/budget";
+import type {BudgetForm, BudgetPeriodType} from "~/models/budget/budget";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
 import {useBudgetService} from "~/services/budget/budget-service";
@@ -7,6 +7,11 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 
 const isOpen = defineModel<boolean>('open', {required: true});
+
+defineProps<{
+  /** (category, period) pairs already budgeted — forwarded to the form to exclude duplicates. */
+  existingCombos?: Array<{categoryId: number; periodType: BudgetPeriodType}>;
+}>();
 
 const emit = defineEmits<{
   (e: 'created'): void;
@@ -56,7 +61,7 @@ async function handleSave() {
           :description="t('budgets.create.description')"
           :title="t('budgets.create.title')">
     <template #body>
-      <BudgetFormFields ref="formRef" v-model="form"/>
+      <BudgetFormFields ref="formRef" v-model="form" :existing-combos="existingCombos"/>
     </template>
 
     <template #footer>

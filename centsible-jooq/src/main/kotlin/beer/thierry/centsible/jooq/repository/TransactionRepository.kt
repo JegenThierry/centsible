@@ -236,6 +236,68 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         )
     }
 
+    override fun updateTransfer(
+        sourceLegId: UUID,
+        destinationLegId: UUID,
+        sourceAccountId: UUID,
+        destinationAccountId: UUID,
+        form: TransferForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO> {
+        dsl.ensureAccountOwnedByUser(sourceAccountId, authenticatedUser.id)
+        dsl.ensureAccountOwnedByUser(destinationAccountId, authenticatedUser.id)
+
+        val now = OffsetDateTime.now()
+        val destFx = FxColumns.from(conversion)
+
+        // Source (EXPENSE) leg: amount stays in the source account's currency, so it carries no FX
+        // columns — clear any left over from a previous edit. Ownership is enforced by scoping the
+        // UPDATE's WHERE to the user's accounts (the row's *current* account is still theirs).
+        val outUpdated = dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.ACCOUNT_ID, sourceAccountId)
+            .set(TRANSACTIONS.AMOUNT, form.amount)
+            .set(TRANSACTIONS.DESCRIPTION, form.description)
+            .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
+            .set(TRANSACTIONS.ORIGINAL_AMOUNT, null as BigDecimal?)
+            .set(TRANSACTIONS.ORIGINAL_CURRENCY, null as String?)
+            .set(TRANSACTIONS.EXCHANGE_RATE, null as BigDecimal?)
+            .set(TRANSACTIONS.RATE_DATE, null as LocalDate?)
+            .set(TRANSACTIONS.MODIFIED_AT, now)
+            .where(transferLegOwnershipCondition(sourceLegId, authenticatedUser))
+            .execute()
+
+        // Destination (INCOME) leg: holds the converted amount plus the FX provenance.
+        val inUpdated = dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.ACCOUNT_ID, destinationAccountId)
+            .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
+            .set(TRANSACTIONS.DESCRIPTION, form.description)
+            .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
+            .set(TRANSACTIONS.ORIGINAL_AMOUNT, destFx.originalAmount)
+            .set(TRANSACTIONS.ORIGINAL_CURRENCY, destFx.originalCurrency)
+            .set(TRANSACTIONS.EXCHANGE_RATE, destFx.rate)
+            .set(TRANSACTIONS.RATE_DATE, destFx.rateDate)
+            .set(TRANSACTIONS.MODIFIED_AT, now)
+            .where(transferLegOwnershipCondition(destinationLegId, authenticatedUser))
+            .execute()
+
+        if (outUpdated == 0 || inUpdated == 0) {
+            throw LocalizedException.NotFound("error.transaction.notFound")
+        }
+
+        return listOf(
+            fetchTransactionById(sourceLegId, authenticatedUser),
+            fetchTransactionById(destinationLegId, authenticatedUser),
+        )
+    }
+
+    private fun transferLegOwnershipCondition(legId: UUID, authenticatedUser: UserDTO) =
+        TRANSACTIONS.ID.eq(legId).and(
+            TRANSACTIONS.ACCOUNT_ID.`in`(
+                dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+            )
+        )
+
     override fun fetchTransferLegs(transferGroupId: UUID, authenticatedUser: UserDTO): List<TransferLeg> =
         dsl.select(TRANSACTIONS.ID, TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.TYPE, TRANSACTIONS.AMOUNT)
             .from(TRANSACTIONS)

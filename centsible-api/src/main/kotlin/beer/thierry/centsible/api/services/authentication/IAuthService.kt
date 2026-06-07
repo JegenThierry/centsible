@@ -42,9 +42,18 @@ interface IAuthService {
      * Authenticated password change for [userId]. Verifies [currentPassword], enforces the new
      * password's strength rules, rejects reusing the current password, then re-encodes and stores
      * [newPassword]. Throws [LocalizedException.Unauthorized] when the current password is wrong.
-     * Existing JWTs are not revoked (stateless cookie model): the caller's session stays valid.
+     *
+     * Bumps the user's token version, revoking every other live session, and returns a fresh JWT for
+     * the caller so the current session stays signed in. The controller reissues the auth cookie with it.
      */
-    fun changePassword(userId: UUID, currentPassword: String, newPassword: String)
+    fun changePassword(userId: UUID, currentPassword: String, newPassword: String): String
+
+    /**
+     * Revokes all of [userId]'s sessions by bumping the token version, then returns a fresh JWT for
+     * the caller so the current device stays signed in. Every other device is signed out on its next
+     * request. The controller reissues the auth cookie with the returned token.
+     */
+    fun signOutOtherSessions(userId: UUID): String
 
     /**
      * Irreversibly deletes [userId]'s account after verifying [password] (and, when 2FA is enabled,

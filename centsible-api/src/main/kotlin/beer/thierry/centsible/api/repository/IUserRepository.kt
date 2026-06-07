@@ -27,6 +27,15 @@ interface IUserRepository {
     /** Replaces the password hash in place (authenticated change — leaves all tokens untouched). */
     fun updatePassword(id: UUID, newPasswordHash: String): Boolean
 
+    /**
+     * Bumps the user's token_version by one, invalidating every JWT issued with the prior value.
+     * Returns true when a row was updated. Used by sign-out-everywhere and security-event handlers.
+     */
+    fun incrementTokenVersion(id: UUID): Boolean
+
+    /** Current token_version for [id], or null when the user does not exist. */
+    fun fetchTokenVersion(id: UUID): Int?
+
     /** Hard-deletes the user; all owned rows are removed via ON DELETE CASCADE foreign keys. */
     fun deleteUser(id: UUID): Boolean
 

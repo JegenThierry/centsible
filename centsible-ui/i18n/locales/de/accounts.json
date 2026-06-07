@@ -68,6 +68,7 @@
       "recentTransactions": "Letzte Transaktionen",
       "viewAll": "Alle anzeigen",
       "noRecentTransactions": "Keine aktuellen Transaktionen",
+      "recentLoadError": "Aktuelle Transaktionen konnten nicht geladen werden.",
       "monthlyIncome": "Monatliche Einnahmen",
       "monthlyExpenses": "Monatliche Ausgaben",
       "netSavings": "Nettoersparnis",

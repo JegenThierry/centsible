@@ -534,6 +534,76 @@ class TransactionServiceTest {
     }
 
     @Test
+    fun `updateTransfer mutates both legs in place and re-applies balance deltas`() {
+        val groupId = UUID.randomUUID()
+        val sourceLegId = UUID.randomUUID()
+        val destLegId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        val destAccount = BudgetAccountDTO(destAccountId, "Savings", BigDecimal("0.00"), BigDecimal("0.00"), Currency.EUR)
+        lenient().`when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(destAccount)
+
+        val existing = TransactionDTO(id = sourceLegId, type = CategoryType.EXPENSE, amount = BigDecimal("100.00"), transferGroupId = groupId)
+        `when`(transactionRepository.fetchTransactionById(sourceLegId, user)).thenReturn(existing)
+        `when`(transactionRepository.fetchTransferLegs(groupId, user)).thenReturn(
+            listOf(
+                TransferLeg(sourceLegId, accountId, CategoryType.EXPENSE, BigDecimal("100.00")),
+                TransferLeg(destLegId, destAccountId, CategoryType.INCOME, BigDecimal("100.00")),
+            )
+        )
+        val newLegs = listOf(
+            TransactionDTO(id = sourceLegId, type = CategoryType.EXPENSE, amount = BigDecimal("80.00"), transferGroupId = groupId),
+            TransactionDTO(id = destLegId, type = CategoryType.INCOME, amount = BigDecimal("80.00"), transferGroupId = groupId),
+        )
+        `when`(
+            transactionRepository.updateTransfer(
+                eqArg(sourceLegId), eqArg(destLegId), eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)
+            )
+        ).thenReturn(newLegs)
+
+        val form = TransferForm(BigDecimal("80.00"), destAccountId, "Adjusted", LocalDate.now())
+        val result = service.updateTransfer(sourceLegId, accountId, form, user)
+
+        assertEquals(2, result.size)
+        // Ids are preserved (in-place edit), not regenerated.
+        assertEquals(sourceLegId, result[0].id)
+        assertEquals(destLegId, result[1].id)
+        // Old effect reversed...
+        verify(accountRepository).updateBalance(accountId, BigDecimal("100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("-100.00"), user)
+        // ...new effect applied.
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-80.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("80.00"), user)
+        // No delete-and-recreate.
+        verify(transactionRepository, never()).deleteTransactionsByIds(anyArg(), eqArg(user))
+        verify(transactionRepository, never()).insertTransfer(anyArg(), anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `updateTransfer rejects identical source and destination`() {
+        val form = TransferForm(BigDecimal("10.00"), accountId, "Self", LocalDate.now())
+
+        assertThrows(LocalizedException::class.java) {
+            service.updateTransfer(UUID.randomUUID(), accountId, form, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `updateTransfer rejects a non-transfer transaction`() {
+        val txId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        `when`(transactionRepository.fetchTransactionById(txId, user)).thenReturn(
+            TransactionDTO(id = txId, type = CategoryType.EXPENSE, amount = BigDecimal("10.00"), transferGroupId = null)
+        )
+        val form = TransferForm(BigDecimal("10.00"), destAccountId, "Not a transfer", LocalDate.now())
+
+        assertThrows(LocalizedException::class.java) {
+            service.updateTransfer(txId, accountId, form, user)
+        }
+    }
+
+    @Test
     fun `createBalanceAdjustment with newBalance equal to current throws`() {
         val form = SetBalanceForm(
             newBalance = BigDecimal("100.00"),

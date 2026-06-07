@@ -62,7 +62,7 @@ import org.jooq.impl.Internal
 
 val ACCOUNTS_PKEY: UniqueKey<AccountsRecord> = Internal.createUniqueKey(Accounts.ACCOUNTS, DSL.name("accounts_pkey"), arrayOf(Accounts.ACCOUNTS.ID), true)
 val BUDGETS_PKEY: UniqueKey<BudgetsRecord> = Internal.createUniqueKey(Budgets.BUDGETS, DSL.name("budgets_pkey"), arrayOf(Budgets.BUDGETS.ID), true)
-val UQ_BUDGETS_USER_CATEGORY: UniqueKey<BudgetsRecord> = Internal.createUniqueKey(Budgets.BUDGETS, DSL.name("uq_budgets_user_category"), arrayOf(Budgets.BUDGETS.USER_ID, Budgets.BUDGETS.CATEGORY_ID), true)
+val UQ_BUDGETS_USER_CATEGORY_PERIOD: UniqueKey<BudgetsRecord> = Internal.createUniqueKey(Budgets.BUDGETS, DSL.name("uq_budgets_user_category_period"), arrayOf(Budgets.BUDGETS.USER_ID, Budgets.BUDGETS.CATEGORY_ID, Budgets.BUDGETS.PERIOD_TYPE), true)
 val CATEGORIES_PKEY: UniqueKey<CategoriesRecord> = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), arrayOf(Categories.CATEGORIES.ID), true)
 val CATEGORIZATION_RULES_PKEY: UniqueKey<CategorizationRulesRecord> = Internal.createUniqueKey(CategorizationRules.CATEGORIZATION_RULES, DSL.name("categorization_rules_pkey"), arrayOf(CategorizationRules.CATEGORIZATION_RULES.ID), true)
 val CONTACTS_PKEY: UniqueKey<ContactsRecord> = Internal.createUniqueKey(Contacts.CONTACTS, DSL.name("contacts_pkey"), arrayOf(Contacts.CONTACTS.ID), true)

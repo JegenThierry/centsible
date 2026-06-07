@@ -38,10 +38,25 @@
       },
       "toasts": {
         "successTitle": "Password updated",
-        "successBody": "Use your new password the next time you sign in.",
+        "successBody": "Use your new password next time you sign in. Your other devices have been signed out.",
         "currentIncorrectTitle": "Current password incorrect",
         "currentIncorrectBody": "The current password you entered is wrong. Please try again.",
         "errorTitle": "Could not update password",
+        "errorBody": "Something went wrong. Please try again later."
+      }
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "description": "Sign out of every other device where you're currently logged in. This one stays signed in.",
+      "signOutEverywhere": "Sign out other devices",
+      "confirm": {
+        "title": "Sign out other devices?",
+        "body": "Every other device signed in to your account will be signed out. You'll stay signed in here."
+      },
+      "toasts": {
+        "successTitle": "Other devices signed out",
+        "successBody": "All your other sessions have been ended.",
+        "errorTitle": "Couldn't sign out other devices",
         "errorBody": "Something went wrong. Please try again later."
       }
     },

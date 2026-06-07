@@ -52,6 +52,22 @@ interface ITransactionRepository {
 
     fun fetchTransferLegs(transferGroupId: UUID, authenticatedUser: UserDTO): List<TransferLeg>
 
+    /**
+     * Updates both legs of an existing transfer in place — preserving their ids, [TransferLeg]'s
+     * group, attachments and createdAt — rather than delete-and-recreate. The source (EXPENSE) leg
+     * is set to [sourceAccountId]/[TransferForm.amount]; the destination (INCOME) leg to
+     * [destinationAccountId]/[ConversionResult.convertedAmount]. Throws if either leg is missing.
+     */
+    fun updateTransfer(
+        sourceLegId: UUID,
+        destinationLegId: UUID,
+        sourceAccountId: UUID,
+        destinationAccountId: UUID,
+        form: TransferForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO>
+
     fun deleteTransactionsByIds(ids: List<UUID>, authenticatedUser: UserDTO): Int
 
     /** Returns the transactions matching [ids] that belong to [accountId] owned by [authenticatedUser]. */
