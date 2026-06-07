@@ -21,9 +21,6 @@ const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
 const {t} = useI18n();
 
-const limitInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref();
-
 async function loadCategories() {
   try {
     const all = await categoryService.fetchCategories();
@@ -66,21 +63,17 @@ watch(() => form.value.periodType, (period) => {
 });
 
 onMounted(() => loadCategories());
-
-defineExpose({
-  validate: () => useValidator().validateInputs([categoryInput, limitInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <CategorySelect ref="categoryInput"
+    <CategorySelect name="category"
                     v-model="form.category"
                     :options="availableCategories"
                     :label="t('budgets.form.categoryLabel')"
                     required/>
 
-    <BaseInput ref="limitInput"
+    <BaseInput name="amountLimit"
                v-model="form.amountLimit"
                :max="9999999.99"
                :min="0.01"

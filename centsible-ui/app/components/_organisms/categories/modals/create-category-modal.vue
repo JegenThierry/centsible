@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import adze from 'adze'
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {type CategoryForm, CategoryType} from "~/models/category/category";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -7,7 +9,6 @@ import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
-import {useValidator} from "~/composables/use-validator";
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -21,10 +22,22 @@ const form = ref<CategoryForm>({
   type: CategoryType.EXPENSE,
 });
 
-const nameInput = ref<InstanceType<typeof BaseInput>>();
-const iconInput = ref<InstanceType<typeof IconInput>>();
-
 const loading = ref(false);
+const formId = useId();
+
+const nameLabel = t('categories.form.nameLabel');
+const iconLabel = t('categories.form.iconLabel');
+
+const schema = z.object({
+  name: z.string().trim()
+    .min(1, t('common.validation.required', {field: nameLabel}))
+    .max(50, t('common.validation.maxLength', {field: nameLabel, max: 50})),
+  icon: z.string().trim()
+    .min(1, t('common.validation.required', {field: iconLabel}))
+    .max(50, t('common.validation.maxLength', {field: iconLabel, max: 50}))
+    .regex(ICON_PATTERN, t('categories.form.iconPatternMessage')),
+});
+type Schema = z.output<typeof schema>;
 
 const typeOptions = computed(() => [
   {label: t('categories.type.expense'), value: CategoryType.EXPENSE},
@@ -46,12 +59,7 @@ watch(isOpen, (newValue) => {
   }
 });
 
-async function handleSave() {
-  const inputs = [nameInput, iconInput];
-  if (!useValidator().validateInputs(inputs)) {
-    return;
-  }
-
+async function handleSave(_event: FormSubmitEvent<Schema>) {
   loading.value = true;
   try {
     await categoriesStore.createCategory(form.value);
@@ -69,13 +77,13 @@ async function handleSave() {
           :description="t('categories.create.description')"
           :title="t('categories.create.title')">
     <template #body>
-      <div class="space-y-4">
+      <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
         <AppRadioGroup v-model="form.type"
                      :items="typeOptions"
                      :legend="t('categories.type.legend')"
                      orientation="horizontal"/>
 
-        <BaseInput ref="nameInput"
+        <BaseInput name="name"
                    v-model="form.name"
                    :max-length="50"
                    :label="t('categories.form.nameLabel')"
@@ -83,21 +91,21 @@ async function handleSave() {
                    required
                    type="text"/>
 
-        <IconInput ref="iconInput"
+        <IconInput name="icon"
                    v-model="form.icon"
                    required/>
 
         <ColorSelect v-model="form.color"
                      :label="t('categories.form.colorLabel')"
                      required/>
-      </div>
+      </UForm>
     </template>
 
     <template #footer>
-      <ModalFooterActions :loading="loading"
+      <ModalFooterActions :form="formId"
+                          :loading="loading"
                           :submit-label="t('categories.create.submit')"
-                          @cancel="isOpen = false"
-                          @submit="handleSave"/>
+                          @cancel="isOpen = false"/>
     </template>
   </UModal>
 </template>

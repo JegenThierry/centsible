@@ -4,7 +4,6 @@ import type {Contact} from "~/models/contact/contact";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import ContactSelect from "~/components/_atoms/inputs/contact-select.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
-import {useValidator} from "~/composables/use-validator";
 
 defineProps<{
   contacts: Contact[];
@@ -18,21 +17,10 @@ const selectedContact = defineModel<Contact | undefined>('selectedContact');
 
 const {t} = useI18n();
 
-const contactSelect = ref<InstanceType<typeof ContactSelect>>();
-const firstNameInput = ref<InstanceType<typeof BaseInput>>();
-const lastNameInput = ref<InstanceType<typeof BaseInput>>();
-
 const modeOptions = computed(() => [
   {label: t('contacts.loans.form.modeExisting'), value: 'existing'},
   {label: t('contacts.loans.form.modeNew'), value: 'new'},
 ]);
-
-defineExpose({
-  validate: () => {
-    const inputs = mode.value === 'existing' ? [contactSelect] : [firstNameInput];
-    return useValidator().validateInputs(inputs);
-  },
-});
 </script>
 
 <template>
@@ -45,7 +33,7 @@ defineExpose({
                    orientation="horizontal"/>
 
     <ContactSelect v-if="mode === 'existing' && !lockContact"
-                   ref="contactSelect"
+                   name="contactId"
                    v-model="selectedContact"
                    :disabled="disabled"
                    :options="contacts"
@@ -53,7 +41,7 @@ defineExpose({
                    required/>
 
     <template v-if="mode === 'new' && !lockContact">
-      <BaseInput ref="firstNameInput"
+      <BaseInput name="newContactFirstName"
                  v-model="form.newContactFirstName"
                  :max-length="100"
                  :description="t('contacts.loans.form.newFirstNameDescription')"
@@ -62,7 +50,7 @@ defineExpose({
                  :placeholder="t('contacts.loans.form.newFirstNamePlaceholder')"
                  required
                  type="text"/>
-      <BaseInput ref="lastNameInput"
+      <BaseInput name="newContactLastName"
                  v-model="form.newContactLastName"
                  :max-length="100"
                  :disabled="disabled"

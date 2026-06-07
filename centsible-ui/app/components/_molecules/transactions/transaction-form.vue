@@ -32,11 +32,6 @@ const {converted: previewAmount, failed: previewFailed, isForeign: previewIsFore
 });
 const categoriesStore = useCategoriesStore();
 
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref<InstanceType<typeof CategorySelect>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
-
 // Once the user picks a type explicitly, picking a new category must not
 // silently overwrite their choice.
 const userTouchedType = ref(false);
@@ -72,15 +67,11 @@ function onTypeChange(value: CategoryType) {
 onMounted(() => {
   if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
 });
-
-defineExpose({
-  validate: () => useValidator().validateInputs([amountInput, descriptionInput, categoryInput, dateInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <CategorySelect ref="categoryInput"
+    <CategorySelect name="category"
                     v-model="form.category"
                     :disabled="disabled"
                     :options="visibleCategories"
@@ -103,7 +94,7 @@ defineExpose({
                       :placeholder="t('transactions.form.currencyPlaceholder')"/>
     </UFormField>
 
-    <BaseInput ref="amountInput"
+    <BaseInput name="amount"
                v-model="form.amount"
                :max="AMOUNT_INPUT.max"
                :min="AMOUNT_INPUT.min"
@@ -122,7 +113,7 @@ defineExpose({
       <span v-else>≈ …</span>
     </p>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -131,7 +122,7 @@ defineExpose({
                required
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="transactionDate"
                v-model="form.transactionDate"
                :disabled="disabled"
                :label="t('transactions.form.date')"

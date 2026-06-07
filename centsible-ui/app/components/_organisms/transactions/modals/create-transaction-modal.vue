@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {z} from 'zod';
+import type {FormSubmitEvent} from '@nuxt/ui';
 import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm, type TransferForm as TransferFormModel} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
 import {Currency} from "~/models/budget-account/currency";
@@ -17,6 +19,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
+import {AMOUNT_INPUT, BALANCE_INPUT} from "~/utils/money";
 
 const {t} = useI18n();
 
@@ -52,15 +55,86 @@ const modeOptions = computed(() => [
   {label: t('transactions.create.modeSetBalance'), value: 'setBalance'},
 ]);
 
-const formRef = ref<InstanceType<typeof TransactionFormFields>>();
-const transferFormRef = ref<InstanceType<typeof TransferFormFields>>();
-const loanFormRef = ref<InstanceType<typeof LoanFormFields>>();
-const setBalanceFormRef = ref<InstanceType<typeof SetBalanceFormFields>>();
 const attachmentsRef = ref<InstanceType<typeof TransactionAttachments>>();
 const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 const activeAccountBalance = computed(() => budgetAccountsStore.activeAccount?.balance ?? 0);
+
+// Optional numeric field: a cleared number input emits '' — treat blank/undefined as absent rather
+// than coercing to 0, then apply the bounds only when a value is actually present.
+const optionalNumber = (min: number, max: number, label: string) =>
+  z.preprocess(
+    (v) => (v === '' || v === undefined || v === null) ? undefined : v,
+    z.coerce.number({message: t('common.validation.number', {field: label})})
+      .min(min, t('common.validation.min', {field: label, min}))
+      .max(max, t('common.validation.max', {field: label, max}))
+      .optional(),
+  );
+
+const schemaStd = z.object({
+  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
+  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
+    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.form.amount'), min: AMOUNT_INPUT.min}))
+    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.form.amount'), max: AMOUNT_INPUT.max})),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+
+const schemaTransfer = z.object({
+  sourceAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})})
+    .min(1, t('common.validation.required', {field: t('transactions.transfer.fromAccount')})),
+  destinationAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})})
+    .min(1, t('common.validation.required', {field: t('transactions.transfer.toAccount')})),
+  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.transfer.amount')})})
+    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.transfer.amount'), min: AMOUNT_INPUT.min}))
+    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.transfer.amount'), max: AMOUNT_INPUT.max})),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+
+const schemaSetBalance = z.object({
+  newBalance: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.modes.setBalance.newBalance')})})
+    .min(BALANCE_INPUT.min, t('common.validation.min', {field: t('transactions.form.modes.setBalance.newBalance'), min: BALANCE_INPUT.min}))
+    .max(BALANCE_INPUT.max, t('common.validation.max', {field: t('transactions.form.modes.setBalance.newBalance'), max: BALANCE_INPUT.max})),
+  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+
+const contactLabel = computed(() => t('contacts.loans.form.pickContact'));
+const accountLabel = computed(() => t('contacts.loans.form.fromAccountLabel'));
+
+const schemaLoan = z.object({
+  contactId: z.string().optional(),
+  newContactFirstName: z.string().max(100, t('common.validation.maxLength', {field: t('contacts.loans.form.newFirstNameLabel'), max: 100})).optional(),
+  newContactLastName: z.string().max(100, t('common.validation.maxLength', {field: t('contacts.loans.form.newLastNameLabel'), max: 100})).optional(),
+  accountId: z.string().optional(),
+  affectBalance: z.boolean(),
+  lentAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.lentLabel')})})
+    .min(0.01, t('common.validation.min', {field: t('contacts.loans.form.lentLabel'), min: 0.01}))
+    .max(9999999.99, t('common.validation.max', {field: t('contacts.loans.form.lentLabel'), max: 9999999.99})),
+  owedAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.owedLabel')})})
+    .min(0, t('common.validation.min', {field: t('contacts.loans.form.owedLabel'), min: 0}))
+    .max(9999999.99, t('common.validation.max', {field: t('contacts.loans.form.owedLabel'), max: 9999999.99})),
+  interestRate: optionalNumber(0, 999.99, t('contacts.loans.form.interestRateLabel')),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('contacts.loans.form.descriptionLabel')}))
+    .max(255, t('common.validation.maxLength', {field: t('contacts.loans.form.descriptionLabel'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('contacts.loans.form.dateLabel')})),
+  dueDate: z.string().optional(),
+  notes: z.string().max(500, t('common.validation.maxLength', {field: t('contacts.loans.form.notesLabel'), max: 500})).optional(),
+})
+  .refine((d) => !!d.contactId || !!d.newContactFirstName?.trim(), {
+    message: t('common.validation.required', {field: contactLabel.value}),
+    path: ['contactId'],
+  })
+  .refine((d) => !d.affectBalance || !!d.accountId, {
+    message: t('common.validation.required', {field: accountLabel.value}),
+    path: ['accountId'],
+  });
 
 const balanceAdjustmentCategory = computed(() =>
   categoriesStore.categories.find(c => c.systemKey === CategorySystemKey.BalanceAdjustment),
@@ -70,6 +144,21 @@ const form = ref<TransactionForm>(makeBlankTransactionForm());
 const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 const setBalanceForm = ref<SetBalanceFormModel>(makeBlankSetBalanceForm());
 const transferForm = ref<TransferFormModel>(makeBlankTransferForm());
+
+// The active mode picks the schema UForm validates against and the form object it reads.
+const schema = computed(() => ({
+  standard: schemaStd,
+  transfer: schemaTransfer,
+  lending: schemaLoan,
+  setBalance: schemaSetBalance,
+}[mode.value]));
+
+const state = computed(() => ({
+  standard: form.value as Record<string, unknown>,
+  transfer: transferForm.value as Record<string, unknown>,
+  lending: loanForm.value as Record<string, unknown>,
+  setBalance: setBalanceForm.value as Record<string, unknown>,
+}[mode.value]));
 
 function makeBlankTransactionForm(): TransactionForm {
   return {
@@ -150,7 +239,8 @@ const {requestClose} = useModalDirtyGuard({
   },
 });
 
-async function handleSave() {
+// One handler for all four modes — UForm only fires @submit when the active mode's schema passes.
+async function handleSave(_event: FormSubmitEvent<unknown>) {
   if (loading.value) return;
   if (mode.value === 'transfer') return saveTransfer();
   if (mode.value === 'lending') return saveLending();
@@ -159,7 +249,6 @@ async function handleSave() {
 }
 
 async function saveTransfer() {
-  if (!transferFormRef.value?.validate()) return;
   const sourceId = transferForm.value.sourceAccountId;
   const destinationId = transferForm.value.destinationAccountId;
   if (!sourceId || !destinationId || !transferForm.value.transactionDate) return;
@@ -187,7 +276,6 @@ async function saveTransfer() {
 }
 
 async function saveStandard() {
-  if (!formRef.value?.validate()) return;
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
 
@@ -224,8 +312,6 @@ async function saveStandard() {
 }
 
 async function saveLending() {
-  if (!loanFormRef.value?.validate()) return;
-
   loading.value = true;
   try {
     await loansStore.createLoan(loanForm.value);
@@ -239,7 +325,6 @@ async function saveLending() {
 }
 
 async function saveSetBalance() {
-  if (!setBalanceFormRef.value?.validate()) return;
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (!setBalanceForm.value.category?.id || !setBalanceForm.value.transactionDate) return;
 
@@ -271,30 +356,26 @@ async function saveSetBalance() {
           :title="computedTitle"
           @update:open="requestClose">
     <template #body>
-      <UForm :id="formId" :state="form" class="space-y-4" @submit="handleSave">
+      <UForm :id="formId" :schema="schema" :state="state" class="space-y-4" @submit="handleSave">
         <AppRadioGroup v-model="mode"
                        :disabled="loading"
                        :items="modeOptions"
                        :legend="t('transactions.create.modeLegend')"
                        orientation="horizontal"/>
         <TransactionFormFields v-if="mode === 'standard'"
-                               ref="formRef"
                                v-model="form"
                                :account-id="budgetAccountsStore.activeAccount?.id"
                                :account-currency="activeCurrency"
                                :disabled="loading"
                                :filter-type="filterType"/>
         <TransferFormFields v-else-if="mode === 'transfer'"
-                            ref="transferFormRef"
                             v-model="transferForm"
                             :accounts="budgetAccountsStore.availableAccounts"
                             :disabled="loading"/>
         <LoanFormFields v-else-if="mode === 'lending'"
-                        ref="loanFormRef"
                         v-model="loanForm"
                         :disabled="loading"/>
         <SetBalanceFormFields v-else
-                              ref="setBalanceFormRef"
                               v-model="setBalanceForm"
                               :current-balance="activeAccountBalance"
                               :currency="activeCurrency"

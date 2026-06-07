@@ -31,14 +31,6 @@ const categories = ref<Category[]>([]);
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref();
-const frequencyInput = ref();
-const startDateInput = ref();
-const sourceInput = ref<InstanceType<typeof AccountSelect>>();
-const destinationInput = ref<InstanceType<typeof AccountSelect>>();
-
 const userTouchedType = ref(false);
 
 async function loadCategories() {
@@ -120,15 +112,6 @@ onMounted(() => {
   loadCategories();
   if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
 });
-
-defineExpose({
-  validate: () => {
-    const inputs = [amountInput, descriptionInput, frequencyInput, startDateInput];
-    if (form.value.isTransfer) inputs.push(sourceInput, destinationInput);
-    else inputs.push(categoryInput);
-    return useValidator().validateInputs(inputs);
-  },
-});
 </script>
 
 <template>
@@ -141,7 +124,7 @@ defineExpose({
 
     <!-- Standard (single-account) fields -->
     <template v-if="!form.isTransfer">
-      <CategorySelect ref="categoryInput"
+      <CategorySelect name="category"
                       v-model="form.category"
                       :disabled="disabled"
                       :options="categories"
@@ -167,7 +150,7 @@ defineExpose({
 
     <!-- Transfer fields -->
     <template v-else>
-      <AccountSelect ref="sourceInput"
+      <AccountSelect name="sourceAccountId"
                      v-model="sourceAccount"
                      :options="accounts"
                      :label="t('transactions.transfer.fromAccount')"
@@ -175,7 +158,7 @@ defineExpose({
                      :disabled="disabled || sourceLocked"
                      required/>
 
-      <AccountSelect ref="destinationInput"
+      <AccountSelect name="destinationAccountId"
                      v-model="destinationAccount"
                      :options="accounts"
                      :label="t('transactions.transfer.toAccount')"
@@ -184,7 +167,7 @@ defineExpose({
                      required/>
     </template>
 
-    <BaseInput ref="amountInput"
+    <BaseInput name="amount"
                v-model="form.amount"
                :max="AMOUNT_INPUT.max"
                :min="AMOUNT_INPUT.min"
@@ -195,7 +178,7 @@ defineExpose({
                required
                type="number"/>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -204,13 +187,13 @@ defineExpose({
                required
                type="text"/>
 
-    <FrequencySelect ref="frequencyInput"
+    <FrequencySelect name="frequency"
                      v-model="form.frequency"
                      :disabled="disabled"
                      :label="t('transactions.recurring.form.frequency')"
                      required/>
 
-    <DateInput ref="startDateInput"
+    <DateInput name="startDate"
                v-model="form.startDate"
                :description="t('transactions.recurring.form.startDateHelp')"
                :disabled="disabled"

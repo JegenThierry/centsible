@@ -9,7 +9,6 @@ import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-forma
 import type {Currency} from "~/models/budget-account/currency";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useConversionPreview} from "~/composables/use-conversion-preview";
-import {useValidator} from "~/composables/use-validator";
 
 const props = defineProps<{
   modelValue: RepaymentForm;
@@ -32,11 +31,6 @@ const selectedAccount = computed<BudgetAccount | undefined>({
   get: () => budgetAccountsStore.availableAccounts.find(a => a.id === form.value.accountId),
   set: (a) => { form.value = {...form.value, accountId: a?.id}; },
 });
-
-const accountSelect = ref<InstanceType<typeof AccountSelect>>();
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
 
 const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
 
@@ -65,14 +59,6 @@ onMounted(async () => {
     form.value = {...form.value, accountId: budgetAccountsStore.activeAccount.id};
   }
 });
-
-defineExpose({
-  validate: () => {
-    const inputs = [amountInput, descriptionInput, dateInput];
-    if (form.value.affectBalance) inputs.push(accountSelect);
-    return useValidator().validateInputs(inputs);
-  },
-});
 </script>
 
 <template>
@@ -82,14 +68,14 @@ defineExpose({
                :description="t('contacts.loans.repayment.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
-                   ref="accountSelect"
+                   name="accountId"
                    v-model="selectedAccount"
                    :options="budgetAccountsStore.availableAccounts"
                    :description="t('contacts.loans.repayment.form.toAccountDescription')"
                    :label="t('contacts.loans.repayment.form.toAccountLabel')"
                    required/>
 
-    <BaseInput ref="amountInput"
+    <BaseInput name="amount"
                v-model="form.amount"
                :description="amountDescription"
                :max="maxAmount ?? 9999999.99"
@@ -108,14 +94,14 @@ defineExpose({
       <span v-else>≈ …</span>
     </p>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :label="t('contacts.loans.repayment.form.descriptionLabel')"
                :placeholder="t('contacts.loans.repayment.form.descriptionPlaceholder')"
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="repaidAt"
                v-model="form.repaidAt"
                :label="t('contacts.loans.repayment.form.dateLabel')"
                required/>
