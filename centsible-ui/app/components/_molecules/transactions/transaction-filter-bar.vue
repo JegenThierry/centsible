@@ -60,12 +60,29 @@ const type = computed({
   set: (v: string) => patch({type: (v || undefined) as TransactionTypeFilter | undefined}),
 });
 
+// Amount bounds are free-typed numbers, so debounce them like search rather than reloading per keystroke.
+const amountMinDraft = ref(model.value.amountMin != null ? String(model.value.amountMin) : '');
+const amountMaxDraft = ref(model.value.amountMax != null ? String(model.value.amountMax) : '');
+watch(() => model.value.amountMin, (v) => { const s = v != null ? String(v) : ''; if (s !== amountMinDraft.value) amountMinDraft.value = s; });
+watch(() => model.value.amountMax, (v) => { const s = v != null ? String(v) : ''; if (s !== amountMaxDraft.value) amountMaxDraft.value = s; });
+const applyAmount = (key: 'amountMin' | 'amountMax') => useDebounceFn((v: string) => {
+  const n = parseFloat(v);
+  patch({[key]: Number.isFinite(n) ? n : undefined});
+}, 300);
+const applyAmountMin = applyAmount('amountMin');
+const applyAmountMax = applyAmount('amountMax');
+watch(amountMinDraft, (v) => applyAmountMin(v));
+watch(amountMaxDraft, (v) => applyAmountMax(v));
+
 const hasFilters = computed(() =>
-  !!searchDraft.value || categoryIds.value.length > 0 || !!fromDate.value || !!toDate.value || !!type.value || sort.value !== 'DATE_DESC',
+  !!searchDraft.value || categoryIds.value.length > 0 || !!fromDate.value || !!toDate.value
+  || !!type.value || !!amountMinDraft.value || !!amountMaxDraft.value || sort.value !== 'DATE_DESC',
 );
 
 function reset() {
   searchDraft.value = '';
+  amountMinDraft.value = '';
+  amountMaxDraft.value = '';
   model.value = {sort: 'DATE_DESC'};
 }
 </script>
@@ -81,6 +98,22 @@ function reset() {
     <TransactionCategoryFilter v-model="categoryIds"/>
 
     <TransactionDateRangeFilter v-model:from-date="fromDate" v-model:to-date="toDate"/>
+
+    <div class="flex items-center gap-1">
+      <AppInput v-model="amountMinDraft"
+              :placeholder="t('transactions.filters.amountMinPlaceholder')"
+              class="w-24"
+              inputmode="decimal"
+              size="sm"
+              type="number"/>
+      <span class="text-muted text-sm">–</span>
+      <AppInput v-model="amountMaxDraft"
+              :placeholder="t('transactions.filters.amountMaxPlaceholder')"
+              class="w-24"
+              inputmode="decimal"
+              size="sm"
+              type="number"/>
+    </div>
 
     <AppSelect v-model="type"
              :items="typeOptions"

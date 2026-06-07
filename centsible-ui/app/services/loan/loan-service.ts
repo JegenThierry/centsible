@@ -48,9 +48,9 @@ export function useLoanService(api: AxiosInstance) {
     ));
   }
 
-  async function fetchOutstanding(): Promise<number> {
-    const response = await api.get<{ outstanding: number }>('/loans/outstanding');
-    return validateRequest<{ outstanding: number }>(response).outstanding;
+  async function fetchOutstanding(): Promise<{ outstanding: number; excludedCount: number }> {
+    const response = await api.get<{ outstanding: number; excludedCount: number }>('/loans/outstanding');
+    return validateRequest<{ outstanding: number; excludedCount: number }>(response);
   }
 
   return {

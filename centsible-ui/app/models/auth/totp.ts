@@ -1,5 +1,6 @@
 export interface TotpStatus {
   enabled: boolean;
+  recoveryCodesRemaining: number;
 }
 
 export interface TotpEnrollment {

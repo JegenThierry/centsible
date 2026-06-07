@@ -215,7 +215,8 @@
       "stats": {
         "totalOutstanding": "Outstanding total",
         "openLoans": "Open loans",
-        "contactsWithLoans": "Contacts with loans"
+        "contactsWithLoans": "Contacts with loans",
+        "excludedHint": "Approximate — {count} loan excluded (no exchange rate) | Approximate — {count} loans excluded (no exchange rate)"
       },
       "table": {
         "contact": "Contact"
@@ -226,7 +227,8 @@
       "outstanding": "Outstanding",
       "openCount": "{count} open loan | {count} open loans",
       "viewAll": "View all loans",
-      "empty": "No outstanding loans."
+      "empty": "No outstanding loans.",
+      "excludedHint": "Approximate — {count} loan excluded (no exchange rate) | Approximate — {count} loans excluded (no exchange rate)"
     }
   }
 }

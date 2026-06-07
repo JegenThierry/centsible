@@ -20,6 +20,8 @@ data class RecoveryCodesDTO(
 /** Current 2FA state for the signed-in user (drives the enroll-vs-disable UI). */
 data class TotpStatusDTO(
     val enabled: Boolean,
+    /** Count of unused recovery codes left (0 when 2FA is off), so the UI can nudge a regenerate. */
+    val recoveryCodesRemaining: Int = 0,
 )
 
 /** A 6-digit TOTP code (or a recovery code) submitted to confirm enrollment or to disable 2FA. */

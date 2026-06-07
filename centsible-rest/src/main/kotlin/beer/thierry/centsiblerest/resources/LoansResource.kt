@@ -3,6 +3,7 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.loan.LoanForm
 import beer.thierry.centsible.api.model.loan.LoanUpdateForm
+import beer.thierry.centsible.api.model.loan.OutstandingTotalDTO
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
-import java.math.BigDecimal
 import java.util.UUID
 
 @RequestMapping("/api/loans")
@@ -31,8 +31,8 @@ class LoansResource(private val loanService: ILoanService) {
     )
 
     @GetMapping("/outstanding")
-    fun outstanding(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<Map<String, BigDecimal>> =
-        ResponseEntity.ok(mapOf("outstanding" to loanService.totalOutstanding(authenticatedUser)))
+    fun outstanding(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<OutstandingTotalDTO> =
+        ResponseEntity.ok(loanService.totalOutstanding(authenticatedUser))
 
     @GetMapping("/{id}")
     fun get(

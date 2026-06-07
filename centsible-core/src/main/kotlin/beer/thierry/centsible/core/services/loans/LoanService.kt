@@ -6,6 +6,7 @@ import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.loan.LoanForm
 import beer.thierry.centsible.api.model.loan.LoanUpdateForm
+import beer.thierry.centsible.api.model.loan.OutstandingTotalDTO
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -145,15 +146,17 @@ class LoanService(
         return deleted
     }
 
-    override fun totalOutstanding(authenticatedUser: UserDTO): BigDecimal {
+    override fun totalOutstanding(authenticatedUser: UserDTO): OutstandingTotalDTO {
         // Loans can be in different currencies, so convert each open balance into the user's default
-        // currency before summing. FX failures skip that loan rather than failing the whole total.
-        // The JWT principal doesn't carry the default currency, so read it from the repository.
+        // currency before summing. FX failures skip that loan rather than failing the whole total, and
+        // are counted so the UI can flag the figure as approximate. The JWT principal doesn't carry
+        // the default currency, so read it from the repository.
         val defaultCurrency = parseCurrency(
             userRepository.findUserById(authenticatedUser.id)?.defaultCurrency ?: authenticatedUser.defaultCurrency
         )
         val today = LocalDate.now()
-        return loansRepository.fetchAllLoans(authenticatedUser)
+        var excluded = 0
+        val total = loansRepository.fetchAllLoans(authenticatedUser)
             .filter { it.outstanding.signum() > 0 }
             .fold(BigDecimal.ZERO) { acc, loan ->
                 val converted = runCatching {
@@ -161,12 +164,14 @@ class LoanService(
                         .convert(loan.outstanding, parseCurrency(loan.currency), defaultCurrency, today)
                         .convertedAmount
                 }.getOrElse {
+                    excluded++
                     log.warn("Excluding loan {} ({}) from outstanding total: FX unavailable", loan.id, loan.currency, it)
                     BigDecimal.ZERO
                 }
                 acc + converted
             }
             .setScale(2, RoundingMode.HALF_UP)
+        return OutstandingTotalDTO(outstanding = total, excludedCount = excluded)
     }
 
     /** owed = lent * (1 + rate/100), rounded to 2dp. */

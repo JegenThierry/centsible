@@ -35,6 +35,9 @@ const isEdit = computed(() => !!props.rule);
 
 const matchOptions = computed(() => MATCH_TYPES.map((value) => ({value, label: t(`categories.rules.match.${value}`)})));
 
+// Short, plain-language explanation of the selected match type so users know how it behaves.
+const matchHelp = computed(() => t(`categories.rules.matchHelp.${matchType.value}`));
+
 function reset() {
   if (props.rule) {
     matchType.value = props.rule.matchType;
@@ -101,6 +104,7 @@ async function handleSave() {
             {{ t('categories.rules.matchLabel') }}
           </label>
           <AppSelect v-model="matchType" :items="matchOptions" class="w-full mt-1"/>
+          <p class="text-xs text-muted mt-1">{{ matchHelp }}</p>
         </div>
 
         <CategorySelect ref="categoryInput"
@@ -113,6 +117,7 @@ async function handleSave() {
                    :label="t('categories.rules.priorityLabel')"
                    :description="t('categories.rules.priorityDescription')"
                    :min="0"
+                   :max="1000"
                    type="number"/>
       </div>
     </template>

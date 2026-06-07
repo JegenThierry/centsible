@@ -52,6 +52,8 @@
       "toLabel": "Bis",
       "sortLabel": "Sortierung",
       "clear": "Zurücksetzen",
+      "amountMinPlaceholder": "Min",
+      "amountMaxPlaceholder": "Max",
       "type": {
         "all": "Alle Typen",
         "income": "Einnahmen",

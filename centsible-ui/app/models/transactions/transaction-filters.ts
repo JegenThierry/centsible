@@ -8,6 +8,8 @@ export interface TransactionFilters {
   fromDate?: string;
   toDate?: string;
   type?: TransactionTypeFilter;
+  amountMin?: number;
+  amountMax?: number;
   sort?: TransactionSort;
 }
 

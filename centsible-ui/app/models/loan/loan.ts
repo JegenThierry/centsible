@@ -76,6 +76,22 @@ export function cleanOptionalNumber(value: unknown): number | undefined {
   return Number.isNaN(n) ? undefined : n;
 }
 
+/** True when an interest rate is present and positive — owed is then derived from the lent amount. */
+export function hasInterestRate(rate: unknown): boolean {
+  const r = cleanOptionalNumber(rate);
+  return r !== undefined && r > 0;
+}
+
+/**
+ * owed = lent * (1 + rate/100), rounded to 2dp. Blank/NaN inputs coerce to 0 so the single source of
+ * the formula also guards the edge cases the call sites used to each handle inline.
+ */
+export function computeOwedFromLent(lent: unknown, rate: unknown): number {
+  const l = cleanOptionalNumber(lent) ?? 0;
+  const r = cleanOptionalNumber(rate) ?? 0;
+  return Math.round(l * (1 + r / 100) * 100) / 100;
+}
+
 export type LoanStatus = 'settled' | 'partial' | 'open';
 
 export function loanStatus(loan: Loan): LoanStatus {

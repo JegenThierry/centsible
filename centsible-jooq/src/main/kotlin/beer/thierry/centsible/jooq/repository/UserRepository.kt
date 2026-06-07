@@ -226,6 +226,13 @@ class UserRepository(
             .where(USERS.ID.eq(id))
             .fetchOne(USERS.TOTP_PENDING_SECRET_ENCRYPTED)
 
+    override fun clearPendingTotpSecret(id: UUID): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
     override fun getActiveTotpSecret(id: UUID): ByteArray? =
         dsl.select(USERS.TOTP_SECRET_ENCRYPTED).from(USERS)
             .where(USERS.ID.eq(id).and(USERS.TOTP_ENABLED.isTrue))

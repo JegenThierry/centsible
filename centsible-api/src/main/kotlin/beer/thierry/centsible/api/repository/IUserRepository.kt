@@ -55,6 +55,9 @@ interface IUserRepository {
     /** Reads the encrypted pending secret captured at enrollment start (null once promoted/cleared). */
     fun getPendingTotpSecret(id: UUID): ByteArray?
 
+    /** Clears the pending secret without touching active 2FA — used when enrollment is cancelled. */
+    fun clearPendingTotpSecret(id: UUID): Boolean
+
     /** Reads the encrypted active secret (null when 2FA is not enabled). */
     fun getActiveTotpSecret(id: UUID): ByteArray?
 

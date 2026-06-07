@@ -44,6 +44,22 @@ class TotpResource(
     ): ResponseEntity<RecoveryCodesDTO> =
         ResponseEntity.ok(totpService.confirmEnrollment(user.id, request.code))
 
+    @PostMapping("/enroll/cancel")
+    fun cancelEnroll(@AuthenticationPrincipal user: UserDTO): ResponseEntity<Void> {
+        totpService.cancelEnrollment(user.id)
+        log.info("TOTP enrollment cancelled userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/recovery-codes/regenerate")
+    fun regenerateRecoveryCodes(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: TotpCodeRequest,
+    ): ResponseEntity<RecoveryCodesDTO> {
+        log.info("Recovery-code regeneration requested userId={}", user.id)
+        return ResponseEntity.ok(totpService.regenerateRecoveryCodes(user.id, request.code))
+    }
+
     @PostMapping("/disable")
     fun disable(
         @AuthenticationPrincipal user: UserDTO,

@@ -102,6 +102,11 @@
         "CONTAINS": "contient",
         "EQUALS": "est égal à",
         "STARTS_WITH": "commence par"
+      },
+      "matchHelp": {
+        "CONTAINS": "Correspond si la description contient ce texte n'importe où.",
+        "EQUALS": "Correspond uniquement si la description est exactement ce texte.",
+        "STARTS_WITH": "Correspond si la description commence par ce texte."
       }
     }
   }

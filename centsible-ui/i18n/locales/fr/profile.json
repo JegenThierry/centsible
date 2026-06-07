@@ -169,7 +169,19 @@
         "copy": "Copier les codes",
         "done": "Je les ai enregistrés",
         "copiedTitle": "Codes de récupération copiés",
-        "copiedBody": "Ils sont dans votre presse-papiers — conservez-les en lieu sûr."
+        "copiedBody": "Ils sont dans votre presse-papiers — conservez-les en lieu sûr.",
+        "download": "Télécharger .txt",
+        "savedConfirm": "J'ai enregistré ces codes de récupération en lieu sûr",
+        "regenerate": "Régénérer",
+        "regenerateTitle": "Régénérer les codes de récupération",
+        "regenerateDescription": "Cela remplace tous vos codes de récupération existants. Saisissez un code actuel de votre application (ou un code de récupération inutilisé) pour continuer.",
+        "regenerateSubmit": "Régénérer les codes",
+        "regeneratedTitle": "Codes de récupération régénérés",
+        "regeneratedBody": "Vos anciens codes ne fonctionnent plus. Enregistrez les nouveaux.",
+        "remainingTitle": "Codes de récupération",
+        "remainingCount": "{count} code inutilisé restant | {count} codes inutilisés restants",
+        "copyFailedTitle": "Copie impossible",
+        "copyFailedBody": "Copiez les codes manuellement — ils sont affichés ci-dessus."
       },
       "toasts": {
         "enrollErrorTitle": "Impossible de démarrer l'enrôlement",

@@ -48,6 +48,8 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
         @RequestParam(required = false) type: CategoryType?,
+        @RequestParam(required = false) amountMin: BigDecimal?,
+        @RequestParam(required = false) amountMax: BigDecimal?,
         @RequestParam(required = false) sort: TransactionSort?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<TransactionDTO>> {
@@ -57,6 +59,8 @@ class TransactionResource(private val transactionService: ITransactionService) {
             from = fromDate,
             to = toDate,
             type = type,
+            amountMin = amountMin,
+            amountMax = amountMax,
             sort = sort ?: TransactionSort.DATE_DESC,
         )
         // Service contract is 1-based; Spring's Pageable is 0-based — translate at the boundary.

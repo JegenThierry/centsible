@@ -215,7 +215,8 @@
       "stats": {
         "totalOutstanding": "Offen gesamt",
         "openLoans": "Offene Verleihungen",
-        "contactsWithLoans": "Kontakte mit Verleihungen"
+        "contactsWithLoans": "Kontakte mit Verleihungen",
+        "excludedHint": "Ungefähr — {count} Darlehen ausgeschlossen (kein Wechselkurs) | Ungefähr — {count} Darlehen ausgeschlossen (kein Wechselkurs)"
       },
       "table": {
         "contact": "Kontakt"
@@ -226,7 +227,8 @@
       "outstanding": "Offen",
       "openCount": "{count} offene Verleih | {count} offene Verleihungen",
       "viewAll": "Alle Verleihungen ansehen",
-      "empty": "Keine offenen Verleihungen."
+      "empty": "Keine offenen Verleihungen.",
+      "excludedHint": "Ungefähr — {count} Darlehen ausgeschlossen (kein Wechselkurs) | Ungefähr — {count} Darlehen ausgeschlossen (kein Wechselkurs)"
     }
   }
 }

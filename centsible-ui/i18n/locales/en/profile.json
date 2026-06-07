@@ -169,7 +169,19 @@
         "copy": "Copy codes",
         "done": "I've saved them",
         "copiedTitle": "Recovery codes copied",
-        "copiedBody": "They're on your clipboard — store them somewhere safe."
+        "copiedBody": "They're on your clipboard — store them somewhere safe.",
+        "download": "Download .txt",
+        "savedConfirm": "I've saved these recovery codes somewhere safe",
+        "regenerate": "Regenerate",
+        "regenerateTitle": "Regenerate recovery codes",
+        "regenerateDescription": "This replaces all your existing recovery codes. Enter a current code from your authenticator (or an unused recovery code) to continue.",
+        "regenerateSubmit": "Regenerate codes",
+        "regeneratedTitle": "Recovery codes regenerated",
+        "regeneratedBody": "Your old codes no longer work. Save the new ones.",
+        "remainingTitle": "Recovery codes",
+        "remainingCount": "{count} unused code remaining | {count} unused codes remaining",
+        "copyFailedTitle": "Couldn't copy",
+        "copyFailedBody": "Copy the codes manually — they're shown above."
       },
       "toasts": {
         "enrollErrorTitle": "Couldn't start enrollment",

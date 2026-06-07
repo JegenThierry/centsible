@@ -52,6 +52,8 @@
       "toLabel": "To",
       "sortLabel": "Sort",
       "clear": "Clear",
+      "amountMinPlaceholder": "Min",
+      "amountMaxPlaceholder": "Max",
       "type": {
         "all": "All types",
         "income": "Income",
