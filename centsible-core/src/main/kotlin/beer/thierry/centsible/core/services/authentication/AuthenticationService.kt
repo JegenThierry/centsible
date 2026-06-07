@@ -208,7 +208,7 @@ class AuthenticationService(
         return reset
     }
 
-    override fun changePassword(userId: UUID, currentPassword: String, newPassword: String) {
+    override fun changePassword(userId: UUID, currentPassword: String, newPassword: String): String {
         val user = userRepository.findUserById(userId)
             ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
 
@@ -228,7 +228,25 @@ class AuthenticationService(
         if (!userRepository.updatePassword(userId, passwordHash)) {
             throw LocalizedException.InternalError("error.auth.passwordHashFailed")
         }
-        log.info("Password changed successfully userId={}", userId)
+        // Revoke every other live session, then mint a fresh token so the caller stays signed in.
+        userRepository.incrementTokenVersion(userId)
+        log.info("Password changed successfully; other sessions revoked userId={}", userId)
+        return issueFreshToken(userId)
+    }
+
+    override fun signOutOtherSessions(userId: UUID): String {
+        if (!userRepository.incrementTokenVersion(userId)) {
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+        log.info("Signed out all other sessions userId={}", userId)
+        return issueFreshToken(userId)
+    }
+
+    /** Mints a JWT reflecting the user's current persisted state (incl. token_version). */
+    private fun issueFreshToken(userId: UUID): String {
+        val refreshed = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        return generateJwt(refreshed)
     }
 
     override fun deleteAccount(userId: UUID, password: String, totpCode: String?) {
@@ -286,6 +304,9 @@ class AuthenticationService(
             .claim("lastName", user.lastName)
             .claim("name", "${user.firstName} ${user.lastName}")
             .claim("locale", user.locale)
+            // Embeds the user's session generation; the JWT filter rejects tokens whose tv no longer
+            // matches the stored value (sign-out-everywhere / password change / 2FA disable).
+            .claim("tv", user.tokenVersion)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(signingKey)

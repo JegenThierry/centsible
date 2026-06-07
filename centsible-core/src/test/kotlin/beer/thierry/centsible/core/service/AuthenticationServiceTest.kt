@@ -169,6 +169,45 @@ class AuthenticationServiceTest {
         )
     }
 
+    @Test
+    fun `changePassword bumps the token version and returns a fresh token for the caller`() {
+        val u = user(registered = true)
+        `when`(userRepository.findUserById(u.id)).thenReturn(u)
+        `when`(passwordEncoder.matches(eq("OldPass1!"), anyString())).thenReturn(true)
+        `when`(passwordEncoder.matches(eq("NewPass1!"), anyString())).thenReturn(false)
+        `when`(passwordEncoder.encode("NewPass1!")).thenReturn("newhash")
+        `when`(userRepository.updatePassword(u.id, "newhash")).thenReturn(true)
+
+        val token = service().changePassword(u.id, "OldPass1!", "NewPass1!")
+
+        assertTrue(token.isNotBlank())
+        verify(userRepository).updatePassword(u.id, "newhash")
+        // Other sessions are revoked by bumping the version.
+        verify(userRepository).incrementTokenVersion(u.id)
+    }
+
+    @Test
+    fun `signOutOtherSessions bumps the version and returns a fresh token`() {
+        val u = user(registered = true)
+        `when`(userRepository.incrementTokenVersion(u.id)).thenReturn(true)
+        `when`(userRepository.findUserById(u.id)).thenReturn(u)
+
+        val token = service().signOutOtherSessions(u.id)
+
+        assertTrue(token.isNotBlank())
+        verify(userRepository).incrementTokenVersion(u.id)
+    }
+
+    @Test
+    fun `signOutOtherSessions throws when the user no longer exists`() {
+        val id = UUID.randomUUID()
+        `when`(userRepository.incrementTokenVersion(id)).thenReturn(false)
+
+        assertThrows(LocalizedException.Unauthorized::class.java) {
+            service().signOutOtherSessions(id)
+        }
+    }
+
     // Plain mockito's any() returns null, which trips Kotlin's non-null parameter types; this registers
     // the "any of this type" matcher and returns a non-null dummy (ignored by Mockito) so the call
     // type-checks at runtime. Mirrors what mockito-kotlin's any() does internally.

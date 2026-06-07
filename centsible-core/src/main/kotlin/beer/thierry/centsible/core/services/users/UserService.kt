@@ -24,6 +24,8 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
 
     override fun userExists(id: UUID): Boolean = userRepository.findUserById(id) != null
 
+    override fun currentTokenVersion(id: UUID): Int? = userRepository.fetchTokenVersion(id)
+
     override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
         val dto = persistProfile(
             userId = userId,
