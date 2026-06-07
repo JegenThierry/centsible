@@ -8,14 +8,17 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const items = ref<Budget[]>([]);
   const history = ref<{month: string; budgets: Budget[]}[]>([]);
   const loading = ref(false);
+  const error = ref(false);
 
   async function fetchCurrentMonth() {
     loading.value = true;
+    error.value = false;
     try {
       items.value = await service.fetchAll();
-    } catch (error) {
-      adze.ns('budgets').error('Failed to fetch budgets', error);
+    } catch (e) {
+      adze.ns('budgets').error('Failed to fetch budgets', e);
       items.value = [];
+      error.value = true;
     } finally {
       loading.value = false;
     }
@@ -23,11 +26,13 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
 
   async function fetchForMonth(month: string) {
     loading.value = true;
+    error.value = false;
     try {
       items.value = await service.fetchAll(month);
-    } catch (error) {
-      adze.ns('budgets').error('Failed to fetch budgets for month', month, error);
+    } catch (e) {
+      adze.ns('budgets').error('Failed to fetch budgets for month', month, e);
       items.value = [];
+      error.value = true;
     } finally {
       loading.value = false;
     }
@@ -39,13 +44,13 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
       history.value = await Promise.all(
         months.map(async (m) => ({month: m, budgets: await service.fetchAll(m)})),
       );
-    } catch (error) {
-      adze.ns('budgets').error('Failed to fetch budget history', error);
+    } catch (e) {
+      adze.ns('budgets').error('Failed to fetch budget history', e);
       history.value = [];
     } finally {
       loading.value = false;
     }
   }
 
-  return {items, history, loading, fetchCurrentMonth, fetchForMonth, fetchHistory};
+  return {items, history, loading, error, fetchCurrentMonth, fetchForMonth, fetchHistory};
 });

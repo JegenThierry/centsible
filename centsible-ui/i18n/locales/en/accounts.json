@@ -1,6 +1,12 @@
 {
   "accounts": {
     "pageTitle": "Accounts",
+    "toasts": {
+      "updateFailedTitle": "Failed to update accounts",
+      "updateFailedBody": "Accounts could not be updated.",
+      "loadFailedTitle": "Failed to load account",
+      "loadFailedBody": "Account could not be loaded."
+    },
     "list": {
       "title": "Accounts",
       "description": "Select an account to manage your budget",

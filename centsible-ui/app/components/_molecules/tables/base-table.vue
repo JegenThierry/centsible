@@ -1,15 +1,21 @@
 <script lang="ts" setup generic="T">
 import type {TableColumn} from '@nuxt/ui';
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 defineProps<{
   columns: TableColumn<T>[];
   data: T[];
   loading?: boolean;
+  error?: boolean;
+  errorTitle?: string;
+  errorMessage?: string;
   emptyIcon?: string;
   emptyTitle?: string;
   loadingMessage?: string;
 }>();
+
+const emit = defineEmits<{ retry: [] }>();
 
 const slots = defineSlots<Record<string, (scope: any) => any>>();
 const {t} = useI18n();
@@ -27,7 +33,15 @@ const {t} = useI18n();
     </template>
 
     <template v-if="!slots.empty" #empty>
-      <div class="flex flex-col items-center justify-center py-10 gap-3">
+      <div v-if="error" class="flex flex-col items-center justify-center py-10 gap-3">
+        <UIcon class="w-8 h-8 text-error" name="i-lucide-triangle-alert"/>
+        <p class="text-sm font-medium">{{ errorTitle ?? t('common.states.error') }}</p>
+        <p v-if="errorMessage" class="text-sm text-muted">{{ errorMessage }}</p>
+        <AppButton color="neutral" variant="soft" icon="i-lucide-refresh-cw" size="sm" @click="emit('retry')">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </div>
+      <div v-else class="flex flex-col items-center justify-center py-10 gap-3">
         <UIcon class="w-8 h-8 text-dimmed" :name="emptyIcon ?? 'i-lucide-inbox'"/>
         <p class="text-sm text-muted">{{ emptyTitle ?? t('transactions.table_meta.emptyDefault') }}</p>
       </div>

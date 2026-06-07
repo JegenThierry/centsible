@@ -14,6 +14,7 @@ export function useTransactionService(api: AxiosInstance) {
     if (filters.categoryIds?.length) params.categoryIds = filters.categoryIds.join(',');
     if (filters.fromDate) params.fromDate = filters.fromDate;
     if (filters.toDate) params.toDate = filters.toDate;
+    if (filters.type) params.type = filters.type;
     if (filters.sort) params.sort = filters.sort;
     const response = await api.get<Transaction[]>(`/transactions/${encodeURIComponent(accountId)}`, {params});
     return validateRequest<Transaction[]>(response);

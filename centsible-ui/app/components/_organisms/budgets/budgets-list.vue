@@ -19,6 +19,13 @@ const MONTH_FMT = 'yyyy-MM';
 
 const store = useBudgetsStore();
 const {t} = useI18n();
+const localeTag = useLocaleTag();
+
+function monthLabel(m: string): string {
+  const [year, month] = m.split('-').map(Number);
+  return new Intl.DateTimeFormat(localeTag.value, {month: 'long', year: 'numeric'})
+    .format(new Date(year!, month! - 1, 1));
+}
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -42,7 +49,7 @@ const historyMonths = computed(() =>
 const monthItems = computed(() =>
   Array.from({length: 24}, (_, i) => {
     const m = monthsBack(currentMonth, i);
-    return {label: m, value: m};
+    return {label: monthLabel(m), value: m};
   }),
 );
 
@@ -94,6 +101,20 @@ onMounted(() => refresh());
       <CardSkeleton v-for="i in 3" :key="i"/>
     </div>
 
+    <AppEmptyState v-else-if="store.error && store.items.length === 0"
+                   icon="i-lucide-triangle-alert"
+                   :title="t('common.states.error')">
+      <template #actions>
+        <AppButton class="w-full sm:w-auto justify-center"
+                   color="neutral"
+                   variant="soft"
+                   icon="i-lucide-refresh-cw"
+                   @click="refresh">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </template>
+    </AppEmptyState>
+
     <AppEmptyState v-else-if="store.items.length === 0 && !showHistory"
                    :description="t('budgets.list.emptyDescription')"
                    icon="i-lucide-target"
@@ -130,7 +151,7 @@ onMounted(() => refresh());
       <h2 class="text-base font-semibold text-highlighted">{{ t('budgets.list.historyHeading') }}</h2>
 
       <div v-for="period in store.history" :key="period.month" class="space-y-2">
-        <h3 class="text-sm font-medium text-muted">{{ period.month }}</h3>
+        <h3 class="text-sm font-medium text-muted capitalize">{{ monthLabel(period.month) }}</h3>
         <div v-if="period.budgets.length === 0" class="text-xs text-muted">
           {{ t('budgets.list.noBudgetsInPeriod') }}
         </div>

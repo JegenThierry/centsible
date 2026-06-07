@@ -131,7 +131,7 @@ onMounted(() => {
           </p>
 
           <template #footer>
-            <AppButton v-if="conn.status === 'REVOKED' || conn.status === 'NEW'"
+            <AppButton v-if="conn.status === 'REVOKED' || conn.status === 'NEW' || conn.status === 'ERROR'"
                      color="primary"
                      icon="i-lucide-link"
                      @click="onReconnect(conn)">

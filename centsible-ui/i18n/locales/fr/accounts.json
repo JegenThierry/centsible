@@ -1,6 +1,12 @@
 {
   "accounts": {
     "pageTitle": "Comptes",
+    "toasts": {
+      "updateFailedTitle": "Échec de la mise à jour des comptes",
+      "updateFailedBody": "Impossible de mettre à jour les comptes.",
+      "loadFailedTitle": "Échec du chargement du compte",
+      "loadFailedBody": "Impossible de charger le compte."
+    },
     "list": {
       "title": "Comptes",
       "description": "Sélectionnez un compte pour gérer votre budget",

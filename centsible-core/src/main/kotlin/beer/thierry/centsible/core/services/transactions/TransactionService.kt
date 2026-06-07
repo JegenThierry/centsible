@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.services.transactions
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.categorization.firstMatch
@@ -191,8 +192,8 @@ class TransactionService(
         authenticatedUser: UserDTO,
     ): List<TransactionDTO> {
         val destinationAccountId = form.destinationAccountId
-            ?: throw IllegalArgumentException("Destination account is required.")
-        require(sourceAccountId != destinationAccountId) { "Source and destination accounts must be different." }
+            ?: throw LocalizedException.BadRequest("error.transfer.destinationRequired")
+        if (sourceAccountId == destinationAccountId) throw LocalizedException.BadRequest("error.transfer.sameAccount")
 
         val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
         val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
@@ -223,7 +224,7 @@ class TransactionService(
     ): List<TransactionDTO> {
         val existing = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         val groupId = existing.transferGroupId
-            ?: throw IllegalArgumentException("Transaction is not part of a transfer.")
+            ?: throw LocalizedException.BadRequest("error.transfer.notATransfer")
 
         val oldLegs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
         oldLegs.forEach { leg ->
@@ -240,12 +241,12 @@ class TransactionService(
     override fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO {
         val transaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         val groupId = transaction.transferGroupId
-            ?: throw IllegalArgumentException("Transaction is not part of a transfer.")
+            ?: throw LocalizedException.BadRequest("error.transfer.notATransfer")
         val legs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
         val sourceLeg = legs.firstOrNull { it.type == CategoryType.EXPENSE }
-            ?: throw IllegalArgumentException("Transfer source leg not found.")
+            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
         val destinationLeg = legs.firstOrNull { it.type == CategoryType.INCOME }
-            ?: throw IllegalArgumentException("Transfer destination leg not found.")
+            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
         val sourceTx = transactionRepository.fetchTransactionById(sourceLeg.id, authenticatedUser)
         return TransferDetailsDTO(
             transferGroupId = groupId,
@@ -297,7 +298,7 @@ class TransactionService(
         if (ids.isEmpty()) return 0
         val classification = categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))[categoryId]
             ?: throw categoryNotFound(categoryId)
-        require(!classification.isManaged) { "Cannot assign transactions to a managed category" }
+        if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
         val oldTransactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
         val updated = transactionRepository.updateCategoryForTransactions(
             accountId, oldTransactions.map { it.id!! }, categoryId, authenticatedUser
@@ -341,9 +342,20 @@ class TransactionService(
         val classifications = categoriesRepository.fetchCategoryClassifications(
             authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
         )
+        // Apply the user's categorization rules to file imports too — but only to rows left on the
+        // uncategorized fallback, so an explicit category choice is never overridden. Mirrors the
+        // provider-sync path (importProviderTransactions) for consistent behaviour across channels.
+        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
+        val rules = if (fallbackCategoryId != null) categorizationService.list(authenticatedUser) else emptyList()
         val resolvedRows = rows.map { row ->
             val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
-            row.copy(type = resolveType(classification, row.type))
+            val type = resolveType(classification, row.type)
+            val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
+                rules.firstMatch(row.description, type)?.category?.id ?: row.categoryId
+            } else {
+                row.categoryId
+            }
+            row.copy(categoryId = categoryId, type = type)
         }
 
         val conversions = convertRows(resolvedRows, account.currency)
@@ -431,7 +443,7 @@ class TransactionService(
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
         val delta = form.newBalance.subtract(account.balance)
         if (delta.signum() == 0) {
-            throw IllegalArgumentException("New balance must differ from the current balance")
+            throw LocalizedException.BadRequest("error.balance.unchanged")
         }
 
         val adjustmentForm = TransactionForm(
@@ -493,15 +505,17 @@ class TransactionService(
     private fun resolveType(classification: CategoryClassification, requestedType: CategoryType?): CategoryType =
         if (classification.isManaged) classification.type else requestedType ?: classification.type
 
-    private fun categoryNotFound(categoryId: Long): IllegalArgumentException =
-        IllegalArgumentException("Category $categoryId not found or not accessible")
+    private fun categoryNotFound(categoryId: Long): LocalizedException {
+        log.warn("Category {} not found or not accessible", categoryId)
+        return LocalizedException.BadRequest("error.category.notAccessible")
+    }
 
     private fun calculateAdjustment(type: CategoryType?, amount: BigDecimal?): BigDecimal {
         val value = amount ?: BigDecimal.ZERO
         return when (type) {
             CategoryType.INCOME -> value
             CategoryType.EXPENSE -> value.negate()
-            else -> throw IllegalArgumentException("Invalid transaction type: $type")
+            else -> throw IllegalStateException("Invalid transaction type: $type")
         }
     }
 }

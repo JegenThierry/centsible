@@ -20,10 +20,12 @@ export function useTransactionList(
   const loading = ref(false)
   const loadingMore = ref(false)
   const hasMore = ref(true)
+  const error = ref(false)
 
   async function loadTransactions(reset = false) {
     if (!budgetAccountsStore.activeAccount?.id) return
 
+    error.value = false
     if (reset) {
       page.value = 1
       hasMore.value = true
@@ -47,8 +49,9 @@ export function useTransactionList(
 
       transactions.value = [...transactions.value, ...data]
       page.value++
-    } catch (error) {
-      adze.ns('transactions').error('Failed to fetch transactions', error)
+    } catch (err) {
+      error.value = true
+      adze.ns('transactions').error('Failed to fetch transactions', err)
     } finally {
       loading.value = false
       loadingMore.value = false
@@ -62,7 +65,7 @@ export function useTransactionList(
     watch(
       () => {
         const f = filters.value
-        return [f.search, f.sort, f.fromDate, f.toDate, (f.categoryIds ?? []).join(',')] as const
+        return [f.search, f.sort, f.fromDate, f.toDate, f.type, (f.categoryIds ?? []).join(',')] as const
       },
       () => {
         if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
@@ -75,6 +78,7 @@ export function useTransactionList(
     loading,
     loadingMore,
     hasMore,
+    error,
     loadTransactions
   }
 }

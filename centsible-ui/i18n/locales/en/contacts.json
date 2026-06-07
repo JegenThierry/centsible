@@ -64,8 +64,27 @@
       "loadFailedTitle": "Failed to load contacts",
       "loadFailedBody": "Please refresh the page to try again.",
       "loadDetailFailedTitle": "Failed to load contact",
+      "loadDetailFailedBody": "Contact could not be loaded.",
       "removedTitle": "Contact removed",
-      "removedBody": "Returning to contacts list."
+      "removedBody": "Returning to contacts list.",
+      "createdTitle": "Contact created",
+      "createdBody": "New contact has been added.",
+      "updatedTitle": "Contact updated",
+      "updatedBody": "Contact has been updated.",
+      "pictureUpdatedTitle": "Picture updated",
+      "pictureUpdatedBody": "Contact picture has been updated.",
+      "pictureRemovedTitle": "Picture removed",
+      "pictureRemovedBody": "Contact picture has been removed.",
+      "deletedTitle": "Contact deleted",
+      "deletedBody": "Contact has been removed.",
+      "fetchFailedTitle": "Failed to fetch contacts",
+      "fetchFailedBody": "Contacts could not be loaded.",
+      "createFailedTitle": "Failed to create contact",
+      "updateFailedTitle": "Failed to update contact",
+      "pictureUpdateFailedTitle": "Failed to update picture",
+      "pictureRemoveFailedTitle": "Failed to remove picture",
+      "deleteFailedTitle": "Failed to delete contact",
+      "genericErrorBody": "An error occurred."
     },
     "loans": {
       "toasts": {

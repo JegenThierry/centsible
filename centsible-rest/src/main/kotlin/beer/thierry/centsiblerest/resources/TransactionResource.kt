@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
@@ -46,6 +47,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(required = false) categoryIds: List<Long>?,
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
+        @RequestParam(required = false) type: CategoryType?,
         @RequestParam(required = false) sort: TransactionSort?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<TransactionDTO>> {
@@ -54,6 +56,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
             categoryIds = categoryIds,
             from = fromDate,
             to = toDate,
+            type = type,
             sort = sort ?: TransactionSort.DATE_DESC,
         )
         // Service contract is 1-based; Spring's Pageable is 0-based — translate at the boundary.

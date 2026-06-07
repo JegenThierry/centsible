@@ -52,6 +52,11 @@
       "toLabel": "To",
       "sortLabel": "Sort",
       "clear": "Clear",
+      "type": {
+        "all": "All types",
+        "income": "Income",
+        "expense": "Expense"
+      },
       "sort": {
         "DATE_DESC": "Date (newest first)",
         "DATE_ASC": "Date (oldest first)",

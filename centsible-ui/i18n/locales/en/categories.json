@@ -51,6 +51,20 @@
       "title": "Delete category",
       "description": "Are you sure you want to delete the category '{name}'? This action cannot be undone."
     },
+    "toasts": {
+      "createdTitle": "Category created",
+      "createdBody": "New category has been added.",
+      "updatedTitle": "Category updated",
+      "updatedBody": "Category has been updated.",
+      "deletedTitle": "Category deleted",
+      "deletedBody": "Category has been removed.",
+      "fetchFailedTitle": "Failed to fetch categories",
+      "fetchFailedBody": "Categories could not be loaded.",
+      "createFailedTitle": "Failed to create category",
+      "updateFailedTitle": "Failed to update category",
+      "deleteFailedTitle": "Failed to delete category",
+      "genericErrorBody": "An error occurred."
+    },
     "rules": {
       "newRule": "New rule",
       "emptyTitle": "No categorization rules yet",
@@ -72,6 +86,18 @@
       "deleteAria": "Delete rule",
       "appliedTitle": "Rule applied",
       "appliedBody": "Re-categorized {count} existing transaction(s).",
+      "toasts": {
+        "createdTitle": "Rule created",
+        "createdBody": "The categorization rule has been added.",
+        "updatedTitle": "Rule updated",
+        "updatedBody": "The categorization rule has been saved.",
+        "fetchFailedTitle": "Failed to fetch rules",
+        "fetchFailedBody": "Categorization rules could not be loaded.",
+        "createFailedTitle": "Failed to create rule",
+        "updateFailedTitle": "Failed to update rule",
+        "applyFailedTitle": "Failed to apply rule",
+        "genericErrorBody": "An error occurred."
+      },
       "match": {
         "CONTAINS": "contains",
         "EQUALS": "equals",

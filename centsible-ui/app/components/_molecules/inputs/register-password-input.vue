@@ -59,6 +59,7 @@ defineExpose({
 <template>
   <password-input ref="passwordInput"
                   v-model="password"
+                  autocomplete="new-password"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
                   :disabled="disabled"
@@ -79,6 +80,7 @@ defineExpose({
 
   <password-input ref="confirmPasswordInput"
                   v-model="confirmPassword"
+                  autocomplete="new-password"
                   :additional-validation="validatePasswordData"
                   :additional-validation-message="validationMessage"
                   :disabled="disabled"

@@ -75,9 +75,11 @@
     },
     "category": {
       "system": "System",
-      "outstanding": "Outstanding",
-      "loanCount": "{count} loan",
-      "loansCount": "{count} loans"
+      "outstanding": "Outstanding"
+    },
+    "system": {
+      "loadFailedTitle": "Failed to load system information",
+      "loadFailedBody": "Could not load system information."
     }
   }
 }

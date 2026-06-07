@@ -32,6 +32,8 @@ const {t} = useI18n();
         </div>
       </div>
       <EditDeleteActions v-if="!category.system"
+                         :edit-aria-label="t('categories.card.editAria')"
+                         :delete-aria-label="t('categories.card.deleteAria')"
                          @delete="emit('delete', category)"
                          @edit="emit('edit', category)"/>
     </div>

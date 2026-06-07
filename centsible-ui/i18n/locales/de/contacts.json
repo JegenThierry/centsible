@@ -64,8 +64,27 @@
       "loadFailedTitle": "Kontakte konnten nicht geladen werden",
       "loadFailedBody": "Bitte aktualisiere die Seite, um es erneut zu versuchen.",
       "loadDetailFailedTitle": "Kontakt konnte nicht geladen werden",
+      "loadDetailFailedBody": "Der Kontakt konnte nicht geladen werden.",
       "removedTitle": "Kontakt entfernt",
-      "removedBody": "Zurück zur Kontaktliste."
+      "removedBody": "Zurück zur Kontaktliste.",
+      "createdTitle": "Kontakt erstellt",
+      "createdBody": "Der neue Kontakt wurde hinzugefügt.",
+      "updatedTitle": "Kontakt aktualisiert",
+      "updatedBody": "Der Kontakt wurde aktualisiert.",
+      "pictureUpdatedTitle": "Bild aktualisiert",
+      "pictureUpdatedBody": "Das Kontaktbild wurde aktualisiert.",
+      "pictureRemovedTitle": "Bild entfernt",
+      "pictureRemovedBody": "Das Kontaktbild wurde entfernt.",
+      "deletedTitle": "Kontakt gelöscht",
+      "deletedBody": "Der Kontakt wurde entfernt.",
+      "fetchFailedTitle": "Kontakte konnten nicht abgerufen werden",
+      "fetchFailedBody": "Die Kontakte konnten nicht geladen werden.",
+      "createFailedTitle": "Kontakt konnte nicht erstellt werden",
+      "updateFailedTitle": "Kontakt konnte nicht aktualisiert werden",
+      "pictureUpdateFailedTitle": "Bild konnte nicht aktualisiert werden",
+      "pictureRemoveFailedTitle": "Bild konnte nicht entfernt werden",
+      "deleteFailedTitle": "Kontakt konnte nicht gelöscht werden",
+      "genericErrorBody": "Ein Fehler ist aufgetreten."
     },
     "loans": {
       "toasts": {

@@ -1,5 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
@@ -125,7 +126,7 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             )
             .returning(RECURRING_TRANSACTIONS.ID)
             .fetchOne()
-            ?: throw IllegalArgumentException("Account not found or not owned by user")
+            ?: throw LocalizedException.NotFound("error.account.notFound")
 
         return fetchById(record[RECURRING_TRANSACTIONS.ID]!!, authenticatedUser)
     }

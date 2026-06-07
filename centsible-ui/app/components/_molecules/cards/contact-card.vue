@@ -30,7 +30,7 @@ const currency = useActiveCurrency();
         <div>
           <p class="font-semibold">{{ contact.name }}</p>
           <p class="text-xs text-muted">
-            {{ contact.openLoanCount === 1 ? t('common.category.loanCount', {count: contact.openLoanCount}) : t('common.category.loansCount', {count: contact.openLoanCount}) }}
+            {{ t('contacts.card.loanCount', {count: contact.openLoanCount}, contact.openLoanCount) }}
           </p>
         </div>
       </div>
@@ -41,7 +41,8 @@ const currency = useActiveCurrency();
             <BalanceNumberFormat :balance="Number(contact.outstanding)" :currency="currency"/>
           </p>
         </div>
-        <EditDeleteActions hide-on-hover
+        <EditDeleteActions :edit-aria-label="t('contacts.card.editAria')"
+                           :delete-aria-label="t('contacts.card.deleteAria')"
                            @edit="emit('edit', contact)"
                            @delete="emit('delete', contact)"/>
       </div>

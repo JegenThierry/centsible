@@ -48,6 +48,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         }
         filters.from?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.ge(it)) }
         filters.to?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.le(it)) }
+        filters.type?.let { condition = condition.and(TRANSACTIONS.TYPE.eq(it.value)) }
 
         val orderBy = when (filters.sort) {
             TransactionSort.DATE_DESC -> arrayOf(TRANSACTIONS.TRANSACTION_DATE.desc(), TRANSACTIONS.ID.desc())
@@ -80,7 +81,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         accountId: UUID, transactionForm: TransactionForm, conversion: ConversionResult, authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
-            ?: throw IllegalArgumentException("Transaction type is required")
+            ?: throw LocalizedException.BadRequest("error.transaction.typeRequired")
         val fx = FxColumns.from(conversion)
 
         // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
@@ -110,7 +111,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             )
             .returning(TRANSACTIONS.ID)
             .fetchOne()
-            ?: throw IllegalArgumentException("Account not found or not owned by user")
+            ?: throw LocalizedException.NotFound("error.account.notFound")
 
         return fetchTransactionById(record[TRANSACTIONS.ID]!!, authenticatedUser)
     }
@@ -120,7 +121,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val type = transactionForm.type
-            ?: throw IllegalArgumentException("Transaction type is required")
+            ?: throw LocalizedException.BadRequest("error.transaction.typeRequired")
         val fx = FxColumns.from(conversion)
 
         // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
@@ -146,7 +147,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             ).execute()
 
         if (updated == 0) {
-            throw IllegalArgumentException("Transaction not found or not owned by user")
+            throw LocalizedException.NotFound("error.transaction.notFound")
         }
 
         return fetchTransactionById(transactionId, authenticatedUser)
@@ -168,7 +169,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             ).execute()
 
         if (deleted == 0) {
-            throw IllegalArgumentException("Transaction not found or not owned by user")
+            throw LocalizedException.NotFound("error.transaction.notFound")
         }
 
         return transaction
@@ -424,7 +425,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         val ownsAccount = dsl.selectOne().from(ACCOUNTS)
             .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .fetchOne() != null
-        if (!ownsAccount) throw IllegalArgumentException("Account not found or not owned by user")
+        if (!ownsAccount) throw LocalizedException.NotFound("error.account.notFound")
 
         val now = OffsetDateTime.now()
         val insertStep = dsl.insertInto(

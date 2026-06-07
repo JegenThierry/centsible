@@ -1,5 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import org.jooq.DSLContext
@@ -17,7 +18,7 @@ internal fun DSLContext.ensureAccountOwnedByUser(accountId: UUID, userId: UUID) 
     val exists = fetchExists(
         selectOne().from(ACCOUNTS).where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(userId)))
     )
-    if (!exists) throw IllegalArgumentException("Account not found.")
+    if (!exists) throw LocalizedException.NotFound("error.account.notFound")
 }
 
 internal fun DSLContext.findManagedCategoryId(name: String): Long? =

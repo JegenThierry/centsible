@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.services.budget
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -51,7 +52,8 @@ class BudgetService(
         if (!categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))
                 .containsKey(categoryId)
         ) {
-            throw IllegalArgumentException("Category $categoryId not found or not accessible")
+            log.warn("Category {} not found or not accessible", categoryId)
+            throw LocalizedException.BadRequest("error.category.notAccessible")
         }
     }
 }
