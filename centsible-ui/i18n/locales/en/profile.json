@@ -27,7 +27,7 @@
       "currentPlaceholder": "Enter your current password",
       "newLabel": "New password",
       "newPlaceholder": "Enter a new password",
-      "newHint": "At least 8 characters with upper and lower case letters, a digit, and one of @$!%*?&.",
+      "newHint": "At least 8 characters with upper and lower case letters, a digit, and one of {'@'}$!%*?&.",
       "confirmLabel": "Confirm new password",
       "confirmPlaceholder": "Re-enter your new password",
       "submit": "Update password",
