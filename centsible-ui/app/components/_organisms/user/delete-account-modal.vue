@@ -3,6 +3,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useAuthStore} from "~/stores/authStore";
+import {useUserStore} from "~/stores/userStore";
 import {useTotpService} from "~/services/auth/totp-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApi} from "~/composables/use-api";
@@ -10,19 +11,24 @@ import {useApi} from "~/composables/use-api";
 const {t} = useI18n();
 const isOpen = defineModel<boolean>('open', {required: true});
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const totpService = useTotpService(useApi());
 const {success, error} = useToasts();
 
 const password = ref('');
 const totpCode = ref('');
+const confirmText = ref('');
 const twoFactorEnabled = ref(false);
 const loading = ref(false);
+
+const username = computed(() => userStore.user?.username ?? '');
 
 // On open, reset fields and learn whether a 2FA code is also required.
 watch(isOpen, async (open) => {
   if (!open) return;
   password.value = '';
   totpCode.value = '';
+  confirmText.value = '';
   try {
     twoFactorEnabled.value = (await totpService.status()).enabled;
   } catch {
@@ -30,8 +36,13 @@ watch(isOpen, async (open) => {
   }
 });
 
+// Require typing the exact username — friction proportional to an irreversible, cascading delete.
+const confirmMatches = computed(() => confirmText.value.trim() === username.value && username.value.length > 0);
+
 const canSubmit = computed(() =>
-  password.value.length > 0 && (!twoFactorEnabled.value || totpCode.value.trim().length > 0),
+  password.value.length > 0
+  && confirmMatches.value
+  && (!twoFactorEnabled.value || totpCode.value.trim().length > 0),
 );
 
 async function onConfirm() {
@@ -67,6 +78,10 @@ async function onConfirm() {
                    type="text"
                    :label="t('profile.dangerZone.delete.totpLabel')"
                    :hint="t('profile.dangerZone.delete.totpHint')"/>
+        <BaseInput v-model="confirmText"
+                   type="text"
+                   :label="t('profile.dangerZone.delete.confirmTextLabel')"
+                   :hint="t('profile.dangerZone.delete.confirmTextHint', {username})"/>
       </div>
     </template>
 

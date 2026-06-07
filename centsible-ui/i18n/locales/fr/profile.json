@@ -60,6 +60,8 @@
         "passwordHint": "Saisissez à nouveau votre mot de passe pour confirmer la suppression de votre compte.",
         "totpLabel": "Code à deux facteurs",
         "totpHint": "Saisissez un code actuel de votre application d'authentification ou un code de récupération.",
+        "confirmTextLabel": "Saisissez votre nom d'utilisateur pour confirmer",
+        "confirmTextHint": "Saisissez {username} ci-dessous pour activer la suppression.",
         "confirmButton": "Supprimer définitivement",
         "toasts": {
           "successTitle": "Compte supprimé",

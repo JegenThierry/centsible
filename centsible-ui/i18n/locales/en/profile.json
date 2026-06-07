@@ -60,6 +60,8 @@
         "passwordHint": "Re-enter your password to confirm you want to delete your account.",
         "totpLabel": "Two-factor code",
         "totpHint": "Enter a current code from your authenticator app or a recovery code.",
+        "confirmTextLabel": "Type your username to confirm",
+        "confirmTextHint": "Enter {username} below to enable deletion.",
         "confirmButton": "Permanently delete",
         "toasts": {
           "successTitle": "Account deleted",

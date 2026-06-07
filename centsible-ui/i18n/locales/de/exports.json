@@ -55,7 +55,18 @@
       "startedTitle": "Export gestartet",
       "startedBody": "{title} wird vorbereitet. Schau unter „Meine Dokumente“ nach, sobald er bereit ist.",
       "failedTitle": "Export fehlgeschlagen",
-      "failedBody": "Der Export konnte nicht gestartet werden. Bitte versuche es erneut."
+      "failedBody": "Der Export konnte nicht gestartet werden. Bitte versuche es erneut.",
+      "deletedTitle": "Export gelöscht",
+      "deletedBody": "Der Export wurde entfernt.",
+      "deleteFailedTitle": "Export konnte nicht gelöscht werden",
+      "deleteFailedBody": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      "retriggeredTitle": "Export neu gestartet",
+      "retriggeredBody": "Der Export wird mit aktuellen Daten neu erstellt.",
+      "retriggerFailedTitle": "Export konnte nicht neu gestartet werden",
+      "retriggerFailedBody": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+    },
+    "delete": {
+      "confirmBody": "Diesen Export löschen? Das kann nicht rückgängig gemacht werden."
     }
   }
 }

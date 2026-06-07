@@ -60,6 +60,8 @@
         "passwordHint": "Gib dein Passwort erneut ein, um die Löschung deines Kontos zu bestätigen.",
         "totpLabel": "Zwei-Faktor-Code",
         "totpHint": "Gib einen aktuellen Code aus deiner Authenticator-App oder einen Wiederherstellungscode ein.",
+        "confirmTextLabel": "Gib deinen Benutzernamen ein, um zu bestätigen",
+        "confirmTextHint": "Gib unten {username} ein, um das Löschen zu aktivieren.",
         "confirmButton": "Endgültig löschen",
         "toasts": {
           "successTitle": "Konto gelöscht",

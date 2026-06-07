@@ -55,7 +55,18 @@
       "startedTitle": "Export lancé",
       "startedBody": "{title} est en cours de préparation. Consultez Mes documents lorsque c'est prêt.",
       "failedTitle": "Échec de l'export",
-      "failedBody": "Impossible de lancer l'export. Veuillez réessayer."
+      "failedBody": "Impossible de lancer l'export. Veuillez réessayer.",
+      "deletedTitle": "Export supprimé",
+      "deletedBody": "L'export a été supprimé.",
+      "deleteFailedTitle": "Impossible de supprimer l'export",
+      "deleteFailedBody": "Une erreur est survenue. Veuillez réessayer.",
+      "retriggeredTitle": "Export relancé",
+      "retriggeredBody": "L'export est régénéré avec les données actuelles.",
+      "retriggerFailedTitle": "Impossible de relancer l'export",
+      "retriggerFailedBody": "Une erreur est survenue. Veuillez réessayer."
+    },
+    "delete": {
+      "confirmBody": "Supprimer cet export ? Cette action est irréversible."
     }
   }
 }
