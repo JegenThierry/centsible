@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import adze from 'adze'
-import {type Loan, type LoanUpdateForm, cleanOptionalNumber} from "~/models/loan/loan";
+import {type Loan, type LoanUpdateForm, cleanOptionalNumber, computeOwedFromLent, hasInterestRate} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
@@ -43,14 +43,11 @@ watch(isOpen, (open) => {
 });
 
 // When interest is set, owed is derived from the (immutable) lent amount and read-only.
-const hasInterest = computed(() => {
-  const r = form.value.interestRate;
-  return r !== undefined && r !== null && String(r) !== '' && Number(r) > 0;
-});
+const hasInterest = computed(() => hasInterestRate(form.value.interestRate));
 
 watch(() => form.value.interestRate, () => {
   if (!hasInterest.value || !props.loan) return;
-  const owed = Math.round(Number(props.loan.lentAmount) * (1 + Number(form.value.interestRate) / 100) * 100) / 100;
+  const owed = computeOwedFromLent(props.loan.lentAmount, form.value.interestRate);
   if (Number(form.value.owedAmount) !== owed) form.value = {...form.value, owedAmount: owed};
 });
 

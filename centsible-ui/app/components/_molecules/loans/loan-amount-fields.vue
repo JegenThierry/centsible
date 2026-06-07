@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {LoanForm} from "~/models/loan/loan";
+import {computeOwedFromLent, hasInterestRate, type LoanForm} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import {useValidator} from "~/composables/use-validator";
@@ -14,14 +14,11 @@ const form = defineModel<LoanForm>({required: true});
 const {t} = useI18n();
 
 // When an interest rate is set, owed is derived (owed = lent * (1 + rate/100)) and read-only.
-const hasInterest = computed(() => {
-  const r = form.value.interestRate;
-  return r !== undefined && r !== null && String(r) !== '' && Number(r) > 0;
-});
+const hasInterest = computed(() => hasInterestRate(form.value.interestRate));
 
 watch([() => form.value.interestRate, () => form.value.lentAmount], () => {
   if (!hasInterest.value) return;
-  const owed = Math.round(Number(form.value.lentAmount) * (1 + Number(form.value.interestRate) / 100) * 100) / 100;
+  const owed = computeOwedFromLent(form.value.lentAmount, form.value.interestRate);
   if (Number(form.value.owedAmount) !== owed) form.value = {...form.value, owedAmount: owed};
 });
 
