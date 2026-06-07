@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.pebble)
     implementation(libs.playwright)
     implementation(libs.commons.csv)
+    implementation(libs.resilience4j.retry)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.kotlin.test.junit5)
