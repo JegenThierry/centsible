@@ -7,7 +7,9 @@ import CurrencySelect from "~/components/_atoms/inputs/currency-select.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 import LoanContactModeFields from "~/components/_molecules/loans/loan-contact-mode-fields.vue";
 import LoanAmountFields from "~/components/_molecules/loans/loan-amount-fields.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {Currency} from "~/models/budget-account/currency";
+import {useConversionPreview} from "~/composables/use-conversion-preview";
 import {useContactsStore} from "~/stores/contactsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useUserStore} from "~/stores/userStore";
@@ -56,6 +58,16 @@ const currency = computed<Currency>({
 });
 
 const amountCurrency = computed(() => currency.value);
+
+// When a balance-affecting loan is in a foreign currency, show what actually leaves the account.
+const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
+const {converted: previewAmount, failed: previewFailed, isForeign: previewIsForeign} = useConversionPreview({
+  accountId: computed(() => form.value.affectBalance ? form.value.accountId : undefined),
+  accountCurrency: computed(() => form.value.affectBalance ? accountCurrency.value : undefined),
+  amount: computed(() => Number(form.value.lentAmount)),
+  currency: computed(() => currency.value),
+  date: computed(() => form.value.transactionDate),
+});
 
 const contactModeFields = ref<InstanceType<typeof LoanContactModeFields>>();
 const accountSelect = ref<InstanceType<typeof AccountSelect>>();
@@ -131,5 +143,13 @@ defineExpose({validate});
                       v-model="form"
                       :currency="amountCurrency"
                       :disabled="disabled"/>
+
+    <p v-if="previewIsForeign && Number(form.lentAmount) > 0" class="-mt-2 px-1 text-xs text-muted">
+      <span v-if="previewAmount != null && accountCurrency">
+        ≈ <BalanceNumberFormat :balance="previewAmount" :currency="accountCurrency"/>
+      </span>
+      <span v-else-if="previewFailed">{{ t('transactions.form.conversionUnavailable') }}</span>
+      <span v-else>≈ …</span>
+    </p>
   </div>
 </template>
