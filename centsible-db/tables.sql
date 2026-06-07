@@ -66,7 +66,13 @@ CREATE TABLE IF NOT EXISTS users
     totp_enabled                    BOOLEAN      NOT NULL DEFAULT FALSE,
     totp_last_used_step             BIGINT,
     totp_enabled_at                 TIMESTAMPTZ,
-    CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de'))
+    default_currency                VARCHAR(3)   NOT NULL DEFAULT 'EUR',
+    CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de')),
+    CONSTRAINT users_default_currency_supported CHECK (default_currency IN (
+        'EUR', 'USD', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
+        'SEK', 'NOK', 'DKK', 'SGD', 'KRW', 'INR', 'MXN', 'BRL', 'ZAR', 'TRY',
+        'PLN', 'PHP', 'IDR'
+    ))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_registration_token_hash ON users (registration_token_hash);

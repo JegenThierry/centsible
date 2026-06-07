@@ -57,6 +57,13 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         return mapToDTO(updated)
     }
 
+    override fun updateDefaultCurrency(userId: UUID, currency: String): UserDTO {
+        val updated = userRepository.updateDefaultCurrency(userId, currency)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        log.info("Updated user default currency userId={} currency={}", userId, currency)
+        return mapToDTO(updated)
+    }
+
     override fun fetchNotificationSettings(userId: UUID): NotificationSettingsDTO =
         userRepository.fetchNotificationSettings(userId)
 
@@ -92,5 +99,6 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         name = "${user.firstName} ${user.lastName}",
         profilePicture = user.profilePicture,
         locale = user.locale,
+        defaultCurrency = user.defaultCurrency,
     )
 }

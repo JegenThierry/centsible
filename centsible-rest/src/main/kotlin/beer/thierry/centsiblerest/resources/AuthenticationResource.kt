@@ -5,9 +5,11 @@ import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
 import beer.thierry.centsible.api.model.auth.LoginResponse
 import beer.thierry.centsible.api.model.auth.LoginResult
+import beer.thierry.centsible.api.model.auth.PasswordChangeRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetConfirmRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetRequest
 import beer.thierry.centsible.api.model.auth.TotpChallengeRequest
+import beer.thierry.centsible.api.model.user.AccountDeletionRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.users.IUserService
@@ -137,6 +139,30 @@ class AuthenticationResource(
         }
         return if (ok) ResponseEntity.noContent().build()
         else ResponseEntity.badRequest().build()
+    }
+
+    // Authenticated password change. The current JWT cookie stays valid (stateless model: other
+    // sessions live until expiry), so the caller remains signed in without a cookie reissue.
+    @PostMapping("/change-password")
+    fun changePassword(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: PasswordChangeRequest,
+    ): ResponseEntity<Void> {
+        authService.changePassword(user.id, request.currentPassword, request.newPassword)
+        log.info("Password changed userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/account/delete")
+    fun deleteAccount(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: AccountDeletionRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<Void> {
+        authService.deleteAccount(user.id, request.password, request.totpCode)
+        authCookieIssuer.clear(response)
+        log.info("Account deleted and session cleared userId={}", user.id)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/verify")

@@ -14,6 +14,7 @@ data class User(
     val registered: Boolean = false,
     val locale: String = "en",
     val totpEnabled: Boolean = false,
+    val defaultCurrency: String = "EUR",
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
     val modifiedAt: OffsetDateTime = OffsetDateTime.now(),
 )

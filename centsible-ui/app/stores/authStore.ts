@@ -29,7 +29,23 @@ export const useAuthStore = defineStore('authStore', () => {
     return navigateTo('/auth')
   }
 
+  // Authenticated password change. The session cookie stays valid (stateless model), so the user
+  // remains signed in. Errors propagate to the caller for toast handling.
+  const changePassword = (currentPassword: string, newPassword: string) =>
+    authService.changePassword({currentPassword, newPassword})
+
+  // Deletes the account, then tears down local auth state and redirects to /auth — the server has
+  // already cleared the session cookie.
+  const deleteAccount = async (password: string, totpCode?: string) => {
+    await authService.deleteAccount({password, totpCode})
+    isAuthenticated.value = false
+    twoFactorPending.value = false
+    useUserStore().clear()
+    await navigateTo('/auth')
+  }
+
   return {
     isAuthenticated, twoFactorPending, setAuthenticated, setTwoFactorPending, logout,
+    changePassword, deleteAccount,
   }
 });

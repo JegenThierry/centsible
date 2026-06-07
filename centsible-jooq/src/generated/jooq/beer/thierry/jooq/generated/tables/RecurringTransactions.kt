@@ -277,9 +277,9 @@ open class RecurringTransactions(
     override fun getChecks(): List<Check<RecurringTransactionsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("chk_recurring_end_after_start"), "(((end_date IS NULL) OR (end_date >= start_date)))", true),
         Internal.createCheck(this, DSL.name("chk_recurring_transfer"), "((((is_transfer = false) AND (category_id IS NOT NULL) AND (destination_account_id IS NULL)) OR ((is_transfer = true) AND (destination_account_id IS NOT NULL) AND (destination_account_id <> account_id))))", true),
-        Internal.createCheck(this, DSL.name("chk_recurring_type"), "(((type IS NULL) OR ((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[]))))", true),
         Internal.createCheck(this, DSL.name("recurring_transactions_amount_check"), "((amount > (0)::numeric))", true),
-        Internal.createCheck(this, DSL.name("recurring_transactions_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true)
+        Internal.createCheck(this, DSL.name("recurring_transactions_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true),
+        Internal.createCheck(this, DSL.name("recurring_transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
     )
     override fun `as`(alias: String): RecurringTransactions = RecurringTransactions(DSL.name(alias), this)
     override fun `as`(alias: Name): RecurringTransactions = RecurringTransactions(alias, this)

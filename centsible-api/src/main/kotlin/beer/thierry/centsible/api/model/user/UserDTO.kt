@@ -15,6 +15,7 @@ data class UserDTO(
     var name: String = "",
     var profilePicture: String? = null,
     var locale: String = "en",
+    var defaultCurrency: String = "EUR",
     var authoritiesList: Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
 ) : UserDetails {

@@ -217,6 +217,11 @@ open class Users(
      */
     val TOTP_ENABLED_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("totp_enabled_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    /**
+     * The column <code>public.users.default_currency</code>.
+     */
+    val DEFAULT_CURRENCY: TableField<UsersRecord, String?> = createField(DSL.name("default_currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -460,6 +465,7 @@ open class Users(
     val userRecoveryCodes: UserRecoveryCodesPath
         get(): UserRecoveryCodesPath = userRecoveryCodes()
     override fun getChecks(): List<Check<UsersRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("users_default_currency_supported"), "(((default_currency)::text = ANY ((ARRAY['EUR'::character varying, 'USD'::character varying, 'JPY'::character varying, 'GBP'::character varying, 'AUD'::character varying, 'CAD'::character varying, 'CHF'::character varying, 'CNY'::character varying, 'HKD'::character varying, 'NZD'::character varying, 'SEK'::character varying, 'NOK'::character varying, 'DKK'::character varying, 'SGD'::character varying, 'KRW'::character varying, 'INR'::character varying, 'MXN'::character varying, 'BRL'::character varying, 'ZAR'::character varying, 'TRY'::character varying, 'PLN'::character varying, 'PHP'::character varying, 'IDR'::character varying])::text[])))", true),
         Internal.createCheck(this, DSL.name("users_locale_supported"), "((locale = ANY (ARRAY['en'::bpchar, 'fr'::bpchar, 'de'::bpchar])))", true)
     )
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)

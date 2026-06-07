@@ -1,0 +1,82 @@
+<script lang="ts" setup>
+import BaseInput from "~/components/_atoms/inputs/base-input.vue";
+import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
+import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import {useAuthStore} from "~/stores/authStore";
+import {useTotpService} from "~/services/auth/totp-service";
+import {useToasts} from "~/services/toasts/toast-service";
+import {useApi} from "~/composables/use-api";
+
+const {t} = useI18n();
+const isOpen = defineModel<boolean>('open', {required: true});
+const authStore = useAuthStore();
+const totpService = useTotpService(useApi());
+const {success, error} = useToasts();
+
+const password = ref('');
+const totpCode = ref('');
+const twoFactorEnabled = ref(false);
+const loading = ref(false);
+
+// On open, reset fields and learn whether a 2FA code is also required.
+watch(isOpen, async (open) => {
+  if (!open) return;
+  password.value = '';
+  totpCode.value = '';
+  try {
+    twoFactorEnabled.value = (await totpService.status()).enabled;
+  } catch {
+    twoFactorEnabled.value = false;
+  }
+});
+
+const canSubmit = computed(() =>
+  password.value.length > 0 && (!twoFactorEnabled.value || totpCode.value.trim().length > 0),
+);
+
+async function onConfirm() {
+  if (!canSubmit.value || loading.value) return;
+  loading.value = true;
+  try {
+    await authStore.deleteAccount(password.value, twoFactorEnabled.value ? totpCode.value.trim() : undefined);
+    success(t('profile.dangerZone.delete.toasts.successTitle'), t('profile.dangerZone.delete.toasts.successBody'));
+    // Navigation to /auth is handled by the store on success.
+  } catch (e: any) {
+    if (e?.response?.status === 401) {
+      error(t('profile.dangerZone.delete.toasts.passwordIncorrectTitle'), t('profile.dangerZone.delete.toasts.passwordIncorrectBody'));
+    } else {
+      error(t('profile.dangerZone.delete.toasts.errorTitle'), t('profile.dangerZone.delete.toasts.errorBody'));
+    }
+    loading.value = false;
+  }
+}
+</script>
+
+<template>
+  <UModal v-model:open="isOpen" :title="t('profile.dangerZone.delete.confirmTitle')">
+    <template #body>
+      <p class="text-sm">{{ t('profile.dangerZone.delete.confirmBody') }}</p>
+      <div class="mt-4 space-y-4">
+        <PasswordInput v-model="password"
+                       required
+                       :label="t('profile.dangerZone.delete.passwordLabel')"
+                       :placeholder="t('profile.dangerZone.delete.passwordPlaceholder')"
+                       :description="t('profile.dangerZone.delete.passwordHint')"/>
+        <BaseInput v-if="twoFactorEnabled"
+                   v-model="totpCode"
+                   type="text"
+                   :label="t('profile.dangerZone.delete.totpLabel')"
+                   :hint="t('profile.dangerZone.delete.totpHint')"/>
+      </div>
+    </template>
+
+    <template #footer>
+      <ModalFooterActions :loading="loading"
+                          :disabled="!canSubmit"
+                          :submit-label="t('profile.dangerZone.delete.confirmButton')"
+                          submit-color="error"
+                          @cancel="isOpen = false"
+                          @submit="onConfirm"/>
+    </template>
+  </UModal>
+</template>

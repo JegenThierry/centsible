@@ -1,8 +1,82 @@
 {
   "profile": {
     "page": {
-      "title": "Profil",
-      "description": "Verwalte deine Kontoeinstellungen und Profilinformationen"
+      "title": "Einstellungen",
+      "description": "Verwalte dein Konto, die Sicherheit, Benachrichtigungen und das Erscheinungsbild."
+    },
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "appearance": "Darstellung"
+    },
+    "currency": {
+      "title": "Standardwährung",
+      "description": "Wird als Standard beim Anlegen neuer Konten und für Zusammenfassungen verwendet.",
+      "toasts": {
+        "savedTitle": "Standardwährung aktualisiert",
+        "savedBody": "Neue Konten und Summen verwenden diese Währung.",
+        "errorTitle": "Währung konnte nicht aktualisiert werden",
+        "errorBody": "Bitte versuche es erneut."
+      }
+    },
+    "password": {
+      "title": "Passwort",
+      "description": "Ändere das Passwort, mit dem du dich anmeldest.",
+      "currentLabel": "Aktuelles Passwort",
+      "currentPlaceholder": "Gib dein aktuelles Passwort ein",
+      "newLabel": "Neues Passwort",
+      "newPlaceholder": "Gib ein neues Passwort ein",
+      "newHint": "Mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Zeichen aus @$!%*?&.",
+      "confirmLabel": "Neues Passwort bestätigen",
+      "confirmPlaceholder": "Gib dein neues Passwort erneut ein",
+      "submit": "Passwort aktualisieren",
+      "validation": {
+        "tooWeak": "Dieses Passwort ist zu schwach. Verwende mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Symbol.",
+        "mustDiffer": "Dein neues Passwort muss sich vom aktuellen unterscheiden.",
+        "mustMatch": "Die beiden Passwörter stimmen nicht überein."
+      },
+      "toasts": {
+        "successTitle": "Passwort aktualisiert",
+        "successBody": "Verwende dein neues Passwort bei der nächsten Anmeldung.",
+        "currentIncorrectTitle": "Aktuelles Passwort falsch",
+        "currentIncorrectBody": "Das eingegebene aktuelle Passwort ist falsch. Bitte versuche es erneut.",
+        "errorTitle": "Passwort konnte nicht aktualisiert werden",
+        "errorBody": "Etwas ist schiefgelaufen. Bitte versuche es später erneut."
+      }
+    },
+    "dangerZone": {
+      "title": "Gefahrenzone",
+      "description": "Unwiderrufliche Aktionen, die dein gesamtes Konto betreffen.",
+      "delete": {
+        "title": "Konto löschen",
+        "description": "Lösche dein Konto und alle zugehörigen Daten dauerhaft, einschließlich Konten, Transaktionen, Darlehen und Exporte.",
+        "warning": "Diese Aktion ist endgültig und kann nicht rückgängig gemacht werden. Alle deine Daten werden sofort gelöscht.",
+        "button": "Mein Konto löschen",
+        "confirmTitle": "Konto wirklich löschen?",
+        "confirmBody": "Dadurch werden dein Konto und alle Daten dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "passwordLabel": "Bestätige dein Passwort",
+        "passwordPlaceholder": "Gib zur Bestätigung dein Passwort ein",
+        "passwordHint": "Gib dein Passwort erneut ein, um die Löschung deines Kontos zu bestätigen.",
+        "totpLabel": "Zwei-Faktor-Code",
+        "totpHint": "Gib einen aktuellen Code aus deiner Authenticator-App oder einen Wiederherstellungscode ein.",
+        "confirmButton": "Endgültig löschen",
+        "toasts": {
+          "successTitle": "Konto gelöscht",
+          "successBody": "Dein Konto und alle Daten wurden entfernt.",
+          "passwordIncorrectTitle": "Überprüfung fehlgeschlagen",
+          "passwordIncorrectBody": "Wir konnten dein Passwort oder deinen Code nicht überprüfen. Dein Konto wurde nicht gelöscht.",
+          "errorTitle": "Konto konnte nicht gelöscht werden",
+          "errorBody": "Etwas ist schiefgelaufen. Dein Konto wurde nicht gelöscht. Bitte versuche es erneut."
+        }
+      }
+    },
+    "dataExport": {
+      "title": "Daten exportieren",
+      "description": "Lade deine Transaktionen und Kontodaten herunter. Große Exporte werden im Hintergrund erstellt.",
+      "defaultTitle": "Datenexport {date}",
+      "trigger": "Daten exportieren",
+      "viewAll": "Meine Dokumente anzeigen"
     },
     "avatar": {
       "alt": "Profilbild",

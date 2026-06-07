@@ -1,8 +1,82 @@
 {
   "profile": {
     "page": {
-      "title": "Profil",
-      "description": "Gérez les paramètres de votre compte et vos informations personnelles"
+      "title": "Paramètres",
+      "description": "Gérez votre compte, la sécurité, les notifications et l'apparence."
+    },
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "notifications": "Notifications",
+      "appearance": "Apparence"
+    },
+    "currency": {
+      "title": "Devise par défaut",
+      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs.",
+      "toasts": {
+        "savedTitle": "Devise par défaut mise à jour",
+        "savedBody": "Les nouveaux comptes et les totaux utiliseront cette devise.",
+        "errorTitle": "Impossible de mettre à jour la devise",
+        "errorBody": "Veuillez réessayer."
+      }
+    },
+    "password": {
+      "title": "Mot de passe",
+      "description": "Modifiez le mot de passe que vous utilisez pour vous connecter.",
+      "currentLabel": "Mot de passe actuel",
+      "currentPlaceholder": "Saisissez votre mot de passe actuel",
+      "newLabel": "Nouveau mot de passe",
+      "newPlaceholder": "Saisissez un nouveau mot de passe",
+      "newHint": "Au moins 8 caractères avec majuscules et minuscules, un chiffre et un caractère parmi @$!%*?&.",
+      "confirmLabel": "Confirmer le nouveau mot de passe",
+      "confirmPlaceholder": "Saisissez à nouveau votre nouveau mot de passe",
+      "submit": "Mettre à jour le mot de passe",
+      "validation": {
+        "tooWeak": "Ce mot de passe est trop faible. Utilisez au moins 8 caractères avec majuscules, minuscules, un chiffre et un symbole.",
+        "mustDiffer": "Votre nouveau mot de passe doit être différent de l'actuel.",
+        "mustMatch": "Les deux mots de passe ne correspondent pas."
+      },
+      "toasts": {
+        "successTitle": "Mot de passe mis à jour",
+        "successBody": "Utilisez votre nouveau mot de passe lors de votre prochaine connexion.",
+        "currentIncorrectTitle": "Mot de passe actuel incorrect",
+        "currentIncorrectBody": "Le mot de passe actuel saisi est erroné. Veuillez réessayer.",
+        "errorTitle": "Impossible de mettre à jour le mot de passe",
+        "errorBody": "Une erreur s'est produite. Veuillez réessayer plus tard."
+      }
+    },
+    "dangerZone": {
+      "title": "Zone de danger",
+      "description": "Actions irréversibles qui affectent l'ensemble de votre compte.",
+      "delete": {
+        "title": "Supprimer le compte",
+        "description": "Supprimez définitivement votre compte et toutes les données associées, y compris les comptes, transactions, prêts et exports.",
+        "warning": "Cette action est définitive et irréversible. Toutes vos données seront supprimées immédiatement.",
+        "button": "Supprimer mon compte",
+        "confirmTitle": "Supprimer votre compte ?",
+        "confirmBody": "Cela supprimera définitivement votre compte et toutes ses données. Cette action est irréversible.",
+        "passwordLabel": "Confirmez votre mot de passe",
+        "passwordPlaceholder": "Saisissez votre mot de passe pour confirmer",
+        "passwordHint": "Saisissez à nouveau votre mot de passe pour confirmer la suppression de votre compte.",
+        "totpLabel": "Code à deux facteurs",
+        "totpHint": "Saisissez un code actuel de votre application d'authentification ou un code de récupération.",
+        "confirmButton": "Supprimer définitivement",
+        "toasts": {
+          "successTitle": "Compte supprimé",
+          "successBody": "Votre compte et toutes ses données ont été supprimés.",
+          "passwordIncorrectTitle": "Échec de la vérification",
+          "passwordIncorrectBody": "Nous n'avons pas pu vérifier votre mot de passe ou votre code. Votre compte n'a pas été supprimé.",
+          "errorTitle": "Impossible de supprimer le compte",
+          "errorBody": "Une erreur s'est produite. Votre compte n'a pas été supprimé. Veuillez réessayer."
+        }
+      }
+    },
+    "dataExport": {
+      "title": "Exporter vos données",
+      "description": "Téléchargez vos transactions et les données de vos comptes. Les exports volumineux sont préparés en arrière-plan.",
+      "defaultTitle": "Export de données {date}",
+      "trigger": "Exporter les données",
+      "viewAll": "Voir mes documents"
     },
     "avatar": {
       "alt": "Photo de profil",

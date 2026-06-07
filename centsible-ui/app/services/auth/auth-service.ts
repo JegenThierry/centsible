@@ -2,6 +2,7 @@ import type {AuthRequest} from "~/models/auth/auth-request";
 import type {AuthResponse} from "~/models/auth/auth-response";
 import type {LoginResponse} from "~/models/auth/login-response";
 import type {RegisterRequest} from "~/models/user/register-request";
+import type {ChangePasswordRequest} from "~/models/user/change-password-request";
 import type {AxiosInstance} from "axios";
 import {validateRequest} from "~/composables/use-api";
 
@@ -52,7 +53,19 @@ export function useAuthService(api: AxiosInstance) {
     return response.status === 204;
   }
 
+  // Authenticated password change; throws on a non-2xx (e.g. 401 wrong current password) so the
+  // caller can surface the specific error.
+  async function changePassword(request: ChangePasswordRequest): Promise<void> {
+    await api.post('/auth/change-password', request);
+  }
+
+  // Irreversible self-delete; requires the password (and a TOTP/recovery code when 2FA is on).
+  async function deleteAccount(payload: { password: string, totpCode?: string }): Promise<void> {
+    await api.post('/auth/account/delete', payload);
+  }
+
   return {
-    login, twoFactorChallenge, register, verify, confirm, logout, forgotPassword, resetPassword
+    login, twoFactorChallenge, register, verify, confirm, logout, forgotPassword, resetPassword,
+    changePassword, deleteAccount,
   }
 }

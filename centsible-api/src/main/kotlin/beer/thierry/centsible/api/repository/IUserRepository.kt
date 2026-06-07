@@ -22,6 +22,13 @@ interface IUserRepository {
     fun confirmUser(id: UUID): Boolean
     fun updateUserProfile(id: UUID, firstName: String, lastName: String, email: String, profilePicture: String?): User?
     fun updateUserLocale(id: UUID, locale: String): User?
+    fun updateDefaultCurrency(id: UUID, currency: String): User?
+
+    /** Replaces the password hash in place (authenticated change — leaves all tokens untouched). */
+    fun updatePassword(id: UUID, newPasswordHash: String): Boolean
+
+    /** Hard-deletes the user; all owned rows are removed via ON DELETE CASCADE foreign keys. */
+    fun deleteUser(id: UUID): Boolean
 
     /** Stores a hashed password reset token + expiry on the user, replacing any existing one. */
     fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean

@@ -2,6 +2,7 @@ import {defineStore} from 'pinia'
 import type {UserDto} from "~/models/user/user-dto";
 import {useUserService} from "~/services/user/user-service";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
+import type {Currency} from "~/models/budget-account/currency";
 
 export const useUserStore = defineStore('userStore', () => {
   const api = useApi();
@@ -41,6 +42,10 @@ export const useUserStore = defineStore('userStore', () => {
     user.value = await userService.updateLocale(locale);
   }
 
+  async function updateDefaultCurrency(currency: Currency) {
+    user.value = await userService.updateDefaultCurrency(currency);
+  }
+
   function clear() {
     user.value = null;
     pending.value = false;
@@ -53,6 +58,7 @@ export const useUserStore = defineStore('userStore', () => {
     updateProfile,
     updateProfilePicture,
     updateLocale,
+    updateDefaultCurrency,
     clear,
   }
 });
