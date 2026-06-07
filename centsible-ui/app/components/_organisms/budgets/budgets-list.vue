@@ -19,6 +19,13 @@ const MONTH_FMT = 'yyyy-MM';
 
 const store = useBudgetsStore();
 const {t} = useI18n();
+const localeTag = useLocaleTag();
+
+function monthLabel(m: string): string {
+  const [year, month] = m.split('-').map(Number);
+  return new Intl.DateTimeFormat(localeTag.value, {month: 'long', year: 'numeric'})
+    .format(new Date(year!, month! - 1, 1));
+}
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -42,7 +49,7 @@ const historyMonths = computed(() =>
 const monthItems = computed(() =>
   Array.from({length: 24}, (_, i) => {
     const m = monthsBack(currentMonth, i);
-    return {label: m, value: m};
+    return {label: monthLabel(m), value: m};
   }),
 );
 
@@ -144,7 +151,7 @@ onMounted(() => refresh());
       <h2 class="text-base font-semibold text-highlighted">{{ t('budgets.list.historyHeading') }}</h2>
 
       <div v-for="period in store.history" :key="period.month" class="space-y-2">
-        <h3 class="text-sm font-medium text-muted">{{ period.month }}</h3>
+        <h3 class="text-sm font-medium text-muted capitalize">{{ monthLabel(period.month) }}</h3>
         <div v-if="period.budgets.length === 0" class="text-xs text-muted">
           {{ t('budgets.list.noBudgetsInPeriod') }}
         </div>

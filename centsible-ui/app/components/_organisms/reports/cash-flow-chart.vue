@@ -10,7 +10,7 @@ const props = defineProps<{
   currency: Currency;
 }>();
 
-const {tickColor, gridColor, currencyFmt} = useChartTheme(() => props.currency);
+const {tickColor, gridColor, currencyFmt, primaryColor, successColor, errorColor} = useChartTheme(() => props.currency);
 const {t} = useI18n();
 
 const chartData = computed<ChartData<'bar'>>(() => ({
@@ -19,17 +19,17 @@ const chartData = computed<ChartData<'bar'>>(() => ({
     {
       label: t('reports.cashFlow.income'),
       data: props.points.map(p => Number(p.income)),
-      backgroundColor: '#16a34a',
+      backgroundColor: successColor.value,
     },
     {
       label: t('reports.cashFlow.expense'),
       data: props.points.map(p => Number(p.expense)),
-      backgroundColor: '#dc2626',
+      backgroundColor: errorColor.value,
     },
     {
       label: t('reports.cashFlow.net'),
       data: props.points.map(p => Number(p.net)),
-      backgroundColor: '#2563eb',
+      backgroundColor: primaryColor.value,
     },
   ],
 }));
