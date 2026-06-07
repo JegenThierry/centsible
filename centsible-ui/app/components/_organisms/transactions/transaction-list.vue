@@ -37,6 +37,7 @@ const {
   loading,
   loadingMore,
   hasMore,
+  error,
   loadTransactions
 } = useTransactionList(transactionService, budgetAccountsStore, 25, filters);
 
@@ -175,9 +176,11 @@ watch(
   <BaseTable :columns="columns"
              :data="transactions"
              :loading="loading"
+             :error="error"
              :empty-title="t('transactions.emptyTitle')"
              :loading-message="t('transactions.loadingMessage')"
-             class="flex-1 overflow-y-auto"/>
+             class="flex-1 overflow-y-auto"
+             @retry="loadTransactions(true)"/>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
     <LoadingAnimation v-if="loadingMore || loading"/>
