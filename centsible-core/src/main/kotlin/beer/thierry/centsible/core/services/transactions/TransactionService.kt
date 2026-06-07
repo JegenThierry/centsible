@@ -461,7 +461,7 @@ class TransactionService(
     private fun providerRowHash(providerConnectionId: UUID, externalId: String): String {
         val payload = "provider:$providerConnectionId:$externalId"
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
-        return digest.joinToString("") { "%02x".format(it) }
+        return HexFormat.of().formatHex(digest)
     }
 
     @Transactional
@@ -503,7 +503,7 @@ class TransactionService(
         val payload =
             "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}$typePart$currencyPart"
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
-        return digest.joinToString("") { "%02x".format(it) }
+        return HexFormat.of().formatHex(digest)
     }
 
     private fun convertRows(rows: List<ImportTransactionRow>, accountCurrency: Currency): List<ConversionResult> =
