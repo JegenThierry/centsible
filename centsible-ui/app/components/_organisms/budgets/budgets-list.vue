@@ -14,6 +14,7 @@ const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organis
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {format, parseISO, subMonths} from 'date-fns';
+import {formatMonthYearLabel} from "~/utils/date";
 
 const MONTH_FMT = 'yyyy-MM';
 
@@ -22,9 +23,7 @@ const {t} = useI18n();
 const localeTag = useLocaleTag();
 
 function monthLabel(m: string): string {
-  const [year, month] = m.split('-').map(Number);
-  return new Intl.DateTimeFormat(localeTag.value, {month: 'long', year: 'numeric'})
-    .format(new Date(year!, month! - 1, 1));
+  return formatMonthYearLabel(m, localeTag.value);
 }
 
 const isCreateModalOpen = ref(false);
