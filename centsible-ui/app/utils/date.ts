@@ -17,3 +17,10 @@ export function daysAgoIsoDate(days: number, reference: Date = new Date()): stri
 export function isoDateRangeForMonthsBack(months: number): {startDate: string; endDate: string} {
   return {startDate: monthsAgoIsoDate(months), endDate: todayIsoDate()};
 }
+
+/** Formats a "yyyy-MM" key as a localized long month + year, e.g. "June 2026" / "juin 2026". */
+export function formatMonthYearLabel(yearMonth: string, localeTag: string): string {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return new Intl.DateTimeFormat(localeTag, {month: 'long', year: 'numeric'})
+    .format(new Date(year!, month! - 1, 1));
+}

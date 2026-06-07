@@ -2,11 +2,12 @@
 import type {Budget} from "~/models/budget/budget";
 import {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import {formatMonthYearLabel} from "~/utils/date";
 
 const props = defineProps<{
   budgets: Budget[];
   currency?: Currency;
-  month: string; // yyyy-MM
+  month: string;
 }>();
 
 const {t} = useI18n();
@@ -34,11 +35,7 @@ const barColor = computed(() => {
   return 'bg-success';
 });
 
-const monthLabel = computed(() => {
-  const [year, month] = props.month.split('-').map(Number);
-  return new Intl.DateTimeFormat(localeTag.value, {month: 'long', year: 'numeric'})
-    .format(new Date(year, month - 1, 1));
-});
+const monthLabel = computed(() => formatMonthYearLabel(props.month, localeTag.value));
 </script>
 
 <template>
