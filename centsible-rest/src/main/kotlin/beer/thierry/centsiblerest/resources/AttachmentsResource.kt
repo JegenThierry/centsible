@@ -15,15 +15,7 @@ import java.util.UUID
 
 private const val MAX_ATTACHMENT_BYTES = 10L * 1024 * 1024
 
-private val ATTACHMENT_SIGNATURES: Map<String, List<MagicBytes>> = mapOf(
-    "application/pdf" to listOf(MagicBytes(0, byteArrayOf(0x25, 0x50, 0x44, 0x46))),
-    "image/jpeg" to listOf(MagicBytes(0, byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte()))),
-    "image/png" to listOf(MagicBytes(0, byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47))),
-    "image/webp" to listOf(
-        MagicBytes(0, byteArrayOf(0x52, 0x49, 0x46, 0x46)),
-        MagicBytes(8, byteArrayOf(0x57, 0x45, 0x42, 0x50)),
-    ),
-)
+private val ALLOWED_ATTACHMENT_TYPES = setOf("application/pdf", "image/jpeg", "image/png", "image/webp")
 
 @RequestMapping("/api/transactions/{transactionId}/attachments")
 @RestController
@@ -44,16 +36,16 @@ class AttachmentsResource(private val service: IAttachmentService) {
         @RequestParam("file") file: MultipartFile,
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<AttachmentDTO> {
-        val (declared, bytes) = file.validateAgainstSignatures(
-            signatures = ATTACHMENT_SIGNATURES,
+        val (detected, bytes) = file.validateContentType(
+            allowedTypes = ALLOWED_ATTACHMENT_TYPES,
             maxBytes = MAX_ATTACHMENT_BYTES,
             tooLargeMessage = "Attachment must be ≤ 10MB",
         )
         val filename = sanitiseFilename(file.originalFilename ?: "attachment")
-        val saved = service.store(user, transactionId, filename, declared, file.size, bytes)
+        val saved = service.store(user, transactionId, filename, detected, file.size, bytes)
         log.info(
             "Uploaded attachment id={} transactionId={} userId={} contentType={} sizeBytes={}",
-            saved.id, transactionId, user.id, declared, file.size,
+            saved.id, transactionId, user.id, detected, file.size,
         )
         return ResponseEntity.ok(saved)
     }
