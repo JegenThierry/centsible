@@ -10,6 +10,6 @@ data class CategorySpendingSeriesDTO(
 )
 
 data class MonthlyCategoryAmountDTO(
-    val yearMonth: String, // YYYY-MM
+    val yearMonth: String,
     val amount: BigDecimal,
 )
