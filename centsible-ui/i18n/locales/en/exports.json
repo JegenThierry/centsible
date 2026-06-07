@@ -49,7 +49,8 @@
       "recipientLabel": "Recipient",
       "recipientHelp": "Leave blank to use your account email.",
       "cancel": "Cancel",
-      "start": "Start export"
+      "start": "Start export",
+      "rangeInvalid": "Choose a start and end date (start must be on or before end)."
     },
     "toasts": {
       "startedTitle": "Export started",

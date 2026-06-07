@@ -12,7 +12,7 @@
     },
     "currency": {
       "title": "Devise par défaut",
-      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs.",
+      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs entre comptes. Les comptes existants conservent leur propre devise.",
       "toasts": {
         "savedTitle": "Devise par défaut mise à jour",
         "savedBody": "Les nouveaux comptes et les totaux utiliseront cette devise.",

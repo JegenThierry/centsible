@@ -12,7 +12,7 @@
     },
     "currency": {
       "title": "Default currency",
-      "description": "Used as the default when creating new accounts and for summary totals.",
+      "description": "Used as the default when creating new accounts and for summary totals across accounts. Existing accounts keep their own currency.",
       "toasts": {
         "savedTitle": "Default currency updated",
         "savedBody": "New accounts and totals will use this currency.",

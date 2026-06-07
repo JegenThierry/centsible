@@ -49,7 +49,8 @@
       "recipientLabel": "Destinataire",
       "recipientHelp": "Laissez vide pour utiliser l'e-mail de votre compte.",
       "cancel": "Annuler",
-      "start": "Lancer l'export"
+      "start": "Lancer l'export",
+      "rangeInvalid": "Choisissez une date de début et de fin (le début doit précéder ou égaler la fin)."
     },
     "toasts": {
       "startedTitle": "Export lancé",

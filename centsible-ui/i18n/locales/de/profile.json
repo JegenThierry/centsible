@@ -12,7 +12,7 @@
     },
     "currency": {
       "title": "Standardwährung",
-      "description": "Wird als Standard beim Anlegen neuer Konten und für Zusammenfassungen verwendet.",
+      "description": "Wird als Standard beim Anlegen neuer Konten und für kontoübergreifende Gesamtsummen verwendet. Bestehende Konten behalten ihre eigene Währung.",
       "toasts": {
         "savedTitle": "Standardwährung aktualisiert",
         "savedBody": "Neue Konten und Summen verwenden diese Währung.",
