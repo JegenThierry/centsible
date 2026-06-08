@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type {Category} from "~/models/category/category";
-import type {SelectMenuItem} from "@nuxt/ui";
 
-const props = defineProps<{
+defineProps<{
   name?: string;
   label: string;
   description?: string;
@@ -14,14 +13,6 @@ const props = defineProps<{
 
 const model = defineModel<Category | undefined>();
 const {t} = useI18n();
-
-const items = computed<SelectMenuItem[]>(() => props.options as unknown as SelectMenuItem[]);
-const selected = computed<SelectMenuItem | undefined>({
-  get: () => model.value as SelectMenuItem | undefined,
-  set: (value) => (model.value = value as Category | undefined),
-});
-
-const asCategory = (item: SelectMenuItem) => item as unknown as Category;
 </script>
 
 <template>
@@ -30,25 +21,23 @@ const asCategory = (item: SelectMenuItem) => item as unknown as Category;
               :hint="hint"
               :label="label"
               :required="required">
-    <USelectMenu
-      v-model="selected"
-      :disabled="disabled"
-      :items="items"
-      class="w-full"
-      label-key="name"
-      :placeholder="t('transactions.selects.selectCategory')"
-      searchable
-    >
+    <USelectMenu v-model="model"
+                 :disabled="disabled"
+                 :items="options"
+                 class="w-full"
+                 label-key="name"
+                 :placeholder="t('transactions.selects.selectCategory')"
+                 searchable>
       <template #default="{ modelValue }">
         <div v-if="modelValue" class="flex items-center gap-2">
-          <UIcon :name="asCategory(modelValue).icon" :style="{ color: asCategory(modelValue).color }" class="w-4 h-4"/>
-          <span>{{ asCategory(modelValue).name }}</span>
+          <UIcon :name="modelValue.icon" :style="{ color: modelValue.color }" class="w-4 h-4"/>
+          <span>{{ modelValue.name }}</span>
         </div>
         <span v-else class="text-neutral-500">{{ t('transactions.selects.selectCategory') }}</span>
       </template>
 
-      <template #item-leading="{ item: category }">
-        <UIcon :name="asCategory(category).icon" :style="{ color: asCategory(category).color }" class="w-4 h-4 flex my-auto"/>
+      <template #item-leading="{ item }">
+        <UIcon :name="item.icon" :style="{ color: item.color }" class="w-4 h-4 flex my-auto"/>
       </template>
     </USelectMenu>
   </UFormField>
