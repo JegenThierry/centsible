@@ -543,10 +543,9 @@ class TransactionService(
         }
 
     private fun parseProviderCurrency(code: String?): Currency? =
-        code?.trim()?.takeIf { it.isNotBlank() }?.let { raw ->
-            runCatching { Currency.valueOf(raw.uppercase()) }.getOrElse {
-                log.warn("Unknown provider currency '{}'; defaulting to account currency", raw)
-                null
+        Currency.parseOrNull(code).also { parsed ->
+            if (parsed == null && !code.isNullOrBlank()) {
+                log.warn("Unknown provider currency '{}'; defaulting to account currency", code.trim())
             }
         }
 

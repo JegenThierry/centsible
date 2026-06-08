@@ -167,8 +167,7 @@ class LoanService(
     private fun applyInterest(lent: BigDecimal, ratePercent: BigDecimal): BigDecimal =
         lent.multiply(BigDecimal.ONE.add(ratePercent.movePointLeft(2))).setScale(2, RoundingMode.HALF_UP)
 
-    private fun parseCurrency(code: String?): Currency =
-        code?.let { runCatching { Currency.valueOf(it) }.getOrNull() } ?: Currency.EUR
+    private fun parseCurrency(code: String?): Currency = Currency.parseOrNull(code) ?: Currency.EUR
 
     private fun resolveContactId(authenticatedUser: UserDTO, form: LoanForm): UUID {
         val existing = form.contactId
