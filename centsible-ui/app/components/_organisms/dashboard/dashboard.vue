@@ -7,6 +7,7 @@ import SpendingByCategoryChart from "~/components/_organisms/dashboard/spending-
 import IncomeVsExpenseChart from "~/components/_organisms/dashboard/income-vs-expense-chart.vue";
 import ActivityHeatmap from "~/components/_organisms/dashboard/activity-heatmap.vue";
 import DashboardStats from "~/components/_organisms/dashboard/dashboard-stats.vue";
+import SafeToSpendCard from "~/components/_organisms/dashboard/safe-to-spend-card.vue";
 import RecentTransactions from "~/components/_organisms/dashboard/recent-transactions.vue";
 import BudgetsOverview from "~/components/_organisms/dashboard/budgets-overview.vue";
 import LoansGlance from "~/components/_organisms/dashboard/loans-glance.vue";
@@ -19,6 +20,7 @@ import PageHeader from "~/components/_molecules/page/page-header.vue";
 import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useBudgetsStore} from "~/stores/budgetsStore";
+import {useReportsStore} from "~/stores/reportsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
@@ -34,6 +36,7 @@ const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_
 const route = useRoute();
 const accountStore = useBudgetAccountsStore();
 const budgetsStore = useBudgetsStore();
+const reportsStore = useReportsStore();
 const loansStore = useLoansStore();
 const transactionService = useTransactionService(useApi());
 
@@ -87,6 +90,7 @@ async function fetchData() {
     prefetchMonthlyAggregates(transactionService, id, periodWindow.months),
     prefetchCategoryAggregates(transactionService, id, periodWindow.fromIso, periodWindow.toIso),
     prefetchDailyAggregates(transactionService, id, 371),
+    reportsStore.fetchSafeToSpend(),
   ];
   if (budgetsStore.items.length === 0) {
     tasks.push(budgetsStore.fetchCurrentMonth());
@@ -164,6 +168,8 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
     <div v-else-if="accountStore.activeAccount" class="space-y-4 sm:space-y-6">
       <DashboardStats :account-id="accountStore.activeAccount.id"
                       :currency="accountStore.activeAccount.currency"/>
+
+      <SafeToSpendCard/>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         <AccountBalance :account-name="accountStore.activeAccount.name"

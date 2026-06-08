@@ -7,6 +7,7 @@ import type {CategorySpendingSeries} from "~/models/reports/category-spending";
 import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {YearOverYear} from "~/models/reports/year-over-year";
 import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
+import type {SafeToSpend} from "~/models/reports/safe-to-spend";
 import {isoDateRangeForMonthsBack} from "~/utils/date";
 
 export const useReportsStore = defineStore('reportsStore', () => {
@@ -16,6 +17,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
   const cashFlow = ref<CashFlowPoint[]>([]);
   const yearOverYear = ref<YearOverYear | null>(null);
   const budgetVsActual = ref<BudgetVsActualPeriod[]>([]);
+  const safeToSpend = ref<SafeToSpend | null>(null);
   const inflight = ref(0);
   const pending = computed(() => inflight.value > 0);
 
@@ -87,12 +89,21 @@ export const useReportsStore = defineStore('reportsStore', () => {
     );
   }
 
+  async function fetchSafeToSpend() {
+    await runFetch(
+      "safe-to-spend",
+      async () => { safeToSpend.value = await reportsService.fetchSafeToSpend(); },
+      () => { safeToSpend.value = null; },
+    );
+  }
+
   return {
     netWorth,
     categorySpending,
     cashFlow,
     yearOverYear,
     budgetVsActual,
+    safeToSpend,
     pending,
     fetchNetWorth,
     fetchNetWorthBreakdown,
@@ -100,5 +111,6 @@ export const useReportsStore = defineStore('reportsStore', () => {
     fetchCashFlow,
     fetchYearOverYear,
     fetchBudgetVsActual,
+    fetchSafeToSpend,
   }
 });
