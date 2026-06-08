@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
@@ -99,7 +100,7 @@ class RecurringTransactionServiceTest {
         val f = form(foreignCategoryId)
         stubNotOwned(foreignCategoryId)
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.create(accountId, f, user)
         }
 
@@ -111,7 +112,7 @@ class RecurringTransactionServiceTest {
         val f = form(foreignCategoryId)
         stubNotOwned(foreignCategoryId)
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.update(UUID.randomUUID(), f, user)
         }
 

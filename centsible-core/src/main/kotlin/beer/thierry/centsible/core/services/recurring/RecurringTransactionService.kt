@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.services.recurring
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -155,7 +156,7 @@ class RecurringTransactionService(
         if (!categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))
                 .containsKey(categoryId)
         ) {
-            throw IllegalArgumentException("Category $categoryId not found or not accessible")
+            throw LocalizedException.BadRequest("error.category.notAccessible")
         }
     }
 }
