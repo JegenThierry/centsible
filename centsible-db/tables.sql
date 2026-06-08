@@ -114,8 +114,13 @@ CREATE TABLE IF NOT EXISTS accounts
     balance         DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     currency        VARCHAR(3)     NOT NULL DEFAULT 'EUR',
+    type            VARCHAR(20)    NOT NULL DEFAULT 'CHECKING',
     created_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
-    modified_at     TIMESTAMPTZ    NOT NULL DEFAULT now()
+    modified_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
+    CONSTRAINT accounts_type_check CHECK (type IN (
+        'CHECKING', 'SAVINGS', 'CASH', 'CREDIT_CARD',
+        'INVESTMENT', 'ASSET', 'LOAN', 'MORTGAGE', 'OTHER'
+        ))
 );
 
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts (user_id);
@@ -338,25 +343,91 @@ CREATE TABLE IF NOT EXISTS budgets
 CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets (user_id);
 
 
-CREATE TABLE IF NOT EXISTS categorization_rules
+CREATE TABLE IF NOT EXISTS tags
+(
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name        VARCHAR(50) NOT NULL,
+    color       VARCHAR(7)  NOT NULL DEFAULT '#6b7280',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    modified_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tags_user ON tags (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_tags_user_name ON tags (user_id, lower(name));
+
+CREATE TABLE IF NOT EXISTS transaction_tags
+(
+    transaction_id UUID   NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
+    tag_id         BIGINT NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+    PRIMARY KEY (transaction_id, tag_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_tags_tag ON transaction_tags (tag_id);
+
+
+-- Split transactions: per-category breakdown of a single transaction (see migrations/0.5.0/13).
+CREATE TABLE IF NOT EXISTS transaction_splits
+(
+    id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
+    transaction_id UUID           NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
+    category_id    BIGINT         NOT NULL REFERENCES categories (id),
+    amount         DECIMAL(15, 2) NOT NULL,
+    note           TEXT,
+    created_at     TIMESTAMPTZ    NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_splits_transaction_id ON transaction_splits (transaction_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_splits_category_id ON transaction_splits (category_id);
+
+
+-- Rule engine: each rule has N conditions (matched ALL or ANY) and N actions (set category / add tag).
+CREATE TABLE IF NOT EXISTS rules
 (
     id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
     user_id     UUID         NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    match_type  VARCHAR(16)  NOT NULL DEFAULT 'CONTAINS',
-    pattern     VARCHAR(255) NOT NULL,
-    category_id BIGINT       NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    name        VARCHAR(100) NOT NULL,
+    match_all   BOOLEAN      NOT NULL DEFAULT TRUE,
+    enabled     BOOLEAN      NOT NULL DEFAULT TRUE,
     priority    INTEGER      NOT NULL DEFAULT 0,
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    modified_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    CONSTRAINT chk_categorization_rules_match_type
-        CHECK (match_type IN ('CONTAINS', 'EQUALS', 'STARTS_WITH'))
+    modified_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_categorization_rules_user_priority
-    ON categorization_rules (user_id, priority DESC, created_at);
+CREATE INDEX IF NOT EXISTS idx_rules_user_priority
+    ON rules (user_id, priority DESC, created_at);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uq_categorization_rules_user_pattern
-    ON categorization_rules (user_id, lower(pattern), match_type);
+CREATE TABLE IF NOT EXISTS rule_conditions
+(
+    id       UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
+    rule_id  UUID         NOT NULL REFERENCES rules (id) ON DELETE CASCADE,
+    field    VARCHAR(20)  NOT NULL,
+    operator VARCHAR(20)  NOT NULL,
+    value    VARCHAR(255) NOT NULL,
+    CONSTRAINT chk_rule_conditions_field
+        CHECK (field IN ('DESCRIPTION', 'AMOUNT', 'DIRECTION', 'ACCOUNT')),
+    CONSTRAINT chk_rule_conditions_operator
+        CHECK (operator IN ('CONTAINS', 'EQUALS', 'STARTS_WITH', 'GT', 'GTE', 'LT', 'LTE', 'IS'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_rule_conditions_rule ON rule_conditions (rule_id);
+
+CREATE TABLE IF NOT EXISTS rule_actions
+(
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id     UUID        NOT NULL REFERENCES rules (id) ON DELETE CASCADE,
+    action_type VARCHAR(20) NOT NULL,
+    category_id BIGINT REFERENCES categories (id) ON DELETE CASCADE,
+    tag_id      BIGINT REFERENCES tags (id) ON DELETE CASCADE,
+    CONSTRAINT chk_rule_actions_type
+        CHECK (action_type IN ('SET_CATEGORY', 'ADD_TAG')),
+    CONSTRAINT chk_rule_actions_target CHECK (
+        (action_type = 'SET_CATEGORY' AND category_id IS NOT NULL AND tag_id IS NULL) OR
+        (action_type = 'ADD_TAG' AND tag_id IS NOT NULL AND category_id IS NULL)
+        )
+);
+
+CREATE INDEX IF NOT EXISTS idx_rule_actions_rule ON rule_actions (rule_id);
 
 
 CREATE TABLE IF NOT EXISTS notifications

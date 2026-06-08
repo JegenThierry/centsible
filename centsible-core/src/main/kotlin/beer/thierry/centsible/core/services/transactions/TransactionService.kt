@@ -3,7 +3,8 @@ package beer.thierry.centsible.core.services.transactions
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.categorization.firstMatch
+import beer.thierry.centsible.api.model.rule.RuleContext
+import beer.thierry.centsible.api.model.rule.RuleMatching
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
@@ -16,6 +17,7 @@ import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransactionSplitForm
 import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
 import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -23,8 +25,9 @@ import beer.thierry.centsible.api.repository.CategoryClassification
 import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
+import beer.thierry.centsible.api.repository.ITagRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
-import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.rule.IRuleService
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
@@ -44,8 +47,9 @@ class TransactionService(
     private val accountRepository: IBudgetAccountsRepository,
     private val categoriesRepository: ICategoriesRepository,
     private val attachmentRepository: IAttachmentRepository,
+    private val tagRepository: ITagRepository,
     private val notificationService: INotificationService,
-    private val categorizationService: ICategorizationService,
+    private val ruleService: IRuleService,
     private val currencyConversionService: ICurrencyConversionService,
 ) : ITransactionService {
 
@@ -86,6 +90,10 @@ class TransactionService(
 
         val counts = attachmentRepository.countByTransactionIds(authenticatedUser, ids)
         transactions.forEach { it.attachmentCount = counts[it.id] ?: 0 }
+        val tagsByTransaction = tagRepository.fetchTagsByTransactionIds(authenticatedUser, ids)
+        transactions.forEach { it.tags = tagsByTransaction[it.id] ?: emptyList() }
+        val splitsByTransaction = transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, ids)
+        transactions.forEach { it.splits = splitsByTransaction[it.id] ?: emptyList() }
         return transactions
     }
 
@@ -102,13 +110,22 @@ class TransactionService(
             account.currency,
             transactionForm.transactionDate,
         )
+        val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+        val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
+        // When split, the anchor row carries the first split's category so single-category views stay sensible.
         val resolvedForm = transactionForm.copy(
-            type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+            type = resolvedType,
+            categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
         )
         val transaction = transactionRepository.createTransaction(accountId, resolvedForm, conversion, authenticatedUser)
+        if (splits != null) {
+            transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
+            transaction.splits =
+                transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transaction.id!!))[transaction.id] ?: emptyList()
+        }
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, listOf(resolvedForm.categoryId))
+        checkBudgetAlerts(authenticatedUser, splits?.map { it.categoryId }?.distinct() ?: listOf(resolvedForm.categoryId))
         checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
         log.info(
             "Created transaction id={} accountId={} userId={} type={} amount={}",
@@ -126,6 +143,9 @@ class TransactionService(
     ): TransactionDTO {
         val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
+        val oldSplitCategories = transactionRepository
+            .fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId]
+            ?.mapNotNull { it.category.id } ?: emptyList()
 
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
         val conversion = currencyConversionService.convert(
@@ -134,15 +154,28 @@ class TransactionService(
             account.currency,
             transactionForm.transactionDate,
         )
+        val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+        val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
         val resolvedForm = transactionForm.copy(
-            type = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+            type = resolvedType,
+            categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
         )
         val updatedTransaction =
             transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
+        // Replace (or, when not split, clear) the splits, then reflect them on the returned DTO.
+        transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
+        updatedTransaction.splits = if (splits != null) {
+            transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId] ?: emptyList()
+        } else emptyList()
         val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
         accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, setOf(oldTransaction.category.id, updatedTransaction.category.id).filterNotNull())
+        val touchedCategories = (
+            oldSplitCategories +
+                listOfNotNull(oldTransaction.category.id, updatedTransaction.category.id) +
+                (splits?.map { it.categoryId } ?: emptyList())
+            ).distinct()
+        checkBudgetAlerts(authenticatedUser, touchedCategories)
         checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
         log.info(
             "Updated transaction id={} accountId={} userId={} type={} amount={}",
@@ -330,10 +363,13 @@ class TransactionService(
             ?: throw categoryNotFound(categoryId)
         if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
         val oldTransactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
+        val affectedIds = oldTransactions.map { it.id!! }
         val updated = transactionRepository.updateCategoryForTransactions(
-            accountId, oldTransactions.map { it.id!! }, categoryId, authenticatedUser
+            accountId, affectedIds, categoryId, authenticatedUser
         )
         if (updated == 0) return 0
+        // Assigning a single category collapses any split breakdown back to one category.
+        transactionRepository.deleteSplitsForTransactions(affectedIds, authenticatedUser)
 
         val touched = (oldTransactions.mapNotNull { it.category.id } + categoryId).distinct()
         checkBudgetAlerts(authenticatedUser, touched)
@@ -372,16 +408,17 @@ class TransactionService(
         val classifications = categoriesRepository.fetchCategoryClassifications(
             authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
         )
-        // Apply the user's categorization rules to file imports too — but only to rows left on the
-        // uncategorized fallback, so an explicit category choice is never overridden. Mirrors the
-        // provider-sync path (importProviderTransactions) for consistent behaviour across channels.
+        // Apply the user's rules to file imports too — but only to rows left on the uncategorized
+        // fallback, so an explicit category choice is never overridden. Mirrors the provider-sync
+        // path (importProviderTransactions) for consistent behaviour across channels.
         val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
-        val rules = if (fallbackCategoryId != null) categorizationService.list(authenticatedUser) else emptyList()
+        val rules = if (fallbackCategoryId != null) ruleService.list(authenticatedUser) else emptyList()
         val resolvedRows = rows.map { row ->
             val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
             val type = resolveType(classification, row.type)
             val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
-                rules.firstMatch(row.description, type)?.category?.id ?: row.categoryId
+                RuleMatching.evaluate(rules, RuleContext(row.description, row.amount, type, accountId)).categoryId
+                    ?: row.categoryId
             } else {
                 row.categoryId
             }
@@ -423,14 +460,16 @@ class TransactionService(
         }
 
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val rules = categorizationService.list(authenticatedUser)
+        val rules = ruleService.list(authenticatedUser)
         val priced = transactions.filter { it.amount.signum() != 0 }
         val rows = priced.map { tx ->
             val type = if (tx.amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME
             val description = tx.description.ifBlank { tx.counterparty ?: "Imported transaction" }.take(255)
+            val amount = tx.amount.abs()
             ImportTransactionRow(
-                amount = tx.amount.abs(),
-                categoryId = rules.firstMatch(description, type)?.category?.id ?: fallbackCategoryId,
+                amount = amount,
+                categoryId = RuleMatching.evaluate(rules, RuleContext(description, amount, type, accountId)).categoryId
+                    ?: fallbackCategoryId,
                 description = description,
                 transactionDate = tx.occurredAt.toLocalDate(),
                 type = type,
@@ -520,6 +559,36 @@ class TransactionService(
                 null
             }
         }
+
+    /**
+     * Validates the form's optional split breakdown against the transaction's stored ([storedAmount])
+     * amount and [type], returning the splits when the transaction is a split or null when it is a
+     * simple single-category one. A split needs at least two positive slices that sum exactly to the
+     * stored amount, each in a non-managed category of the transaction's own type.
+     */
+    private fun normalizeSplits(
+        form: TransactionForm,
+        storedAmount: BigDecimal,
+        type: CategoryType,
+        user: UserDTO,
+    ): List<TransactionSplitForm>? {
+        val splits = form.splits
+        if (splits.isNullOrEmpty()) return null
+        if (splits.size < 2) throw LocalizedException.BadRequest("error.split.minTwo")
+        if (splits.any { it.amount.signum() <= 0 }) throw LocalizedException.BadRequest("error.split.amountPositive")
+        val sum = splits.fold(BigDecimal.ZERO) { acc, s -> acc + s.amount }
+        if (sum.compareTo(storedAmount) != 0) throw LocalizedException.BadRequest("error.split.sumMismatch")
+
+        val classifications = categoriesRepository.fetchCategoryClassifications(
+            user, splits.mapTo(HashSet()) { it.categoryId }
+        )
+        splits.forEach { split ->
+            val classification = classifications[split.categoryId] ?: throw categoryNotFound(split.categoryId)
+            if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
+            if (classification.type != type) throw LocalizedException.BadRequest("error.split.typeMismatch")
+        }
+        return splits
+    }
 
     private fun resolveType(
         user: UserDTO,

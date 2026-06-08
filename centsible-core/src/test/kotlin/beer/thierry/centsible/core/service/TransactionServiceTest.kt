@@ -9,6 +9,8 @@ import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransactionSplitDTO
+import beer.thierry.centsible.api.model.transaction.TransactionSplitForm
 import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
@@ -17,8 +19,9 @@ import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
+import beer.thierry.centsible.api.repository.ITagRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
-import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.rule.IRuleService
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.core.services.transactions.TransactionService
@@ -66,7 +69,10 @@ class TransactionServiceTest {
     private lateinit var attachmentRepository: IAttachmentRepository
 
     @Mock
-    private lateinit var categorizationService: ICategorizationService
+    private lateinit var tagRepository: ITagRepository
+
+    @Mock
+    private lateinit var ruleService: IRuleService
 
     @Mock
     private lateinit var currencyConversionService: ICurrencyConversionService
@@ -618,5 +624,120 @@ class TransactionServiceTest {
         assertThrows(LocalizedException::class.java) {
             service.createBalanceAdjustment(accountId, form, user)
         }
+    }
+
+    @Test
+    fun `createTransaction persists splits, updates balance, and alerts on split categories`() {
+        val household = CategoryDTO(3L, "Household", "icon", "#0000FF", CategoryType.EXPENSE)
+        val splits = listOf(
+            TransactionSplitForm(categoryId = 1L, amount = BigDecimal("60.00")),
+            TransactionSplitForm(categoryId = 3L, amount = BigDecimal("20.00")),
+        )
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "Groceries run",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE, splits = splits,
+        )
+        val txId = UUID.randomUUID()
+        val created = TransactionDTO(
+            id = txId, category = expenseCategory, type = CategoryType.EXPENSE,
+            amount = BigDecimal("80.00"), description = "Groceries run", transactionDate = LocalDate.now(),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.EXPENSE, false),
+            )
+        )
+        `when`(transactionRepository.createTransaction(eqArg(accountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(created)
+        `when`(transactionRepository.fetchSplitsByTransactionIds(user, listOf(txId))).thenReturn(
+            mapOf(
+                txId to listOf(
+                    TransactionSplitDTO(UUID.randomUUID(), expenseCategory, BigDecimal("60.00")),
+                    TransactionSplitDTO(UUID.randomUUID(), household, BigDecimal("20.00")),
+                )
+            )
+        )
+
+        val result = service.createTransaction(accountId, form, user)
+
+        verify(transactionRepository).replaceSplits(eqArg(txId), eqArg(splits), eqArg(user))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("80.00").negate(), user)
+        verify(notificationService).maybeRaiseBudgetAlerts(user, listOf(1L, 3L))
+        assertEquals(2, result.splits.size)
+    }
+
+    @Test
+    fun `createTransaction with a single split is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(TransactionSplitForm(1L, BigDecimal("80.00"))),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split amounts not summing to the total is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("10.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split into a managed category is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("20.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.EXPENSE, true),
+            )
+        )
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split into a wrong-type category is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("20.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.INCOME, false),
+            )
+        )
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
     }
 }

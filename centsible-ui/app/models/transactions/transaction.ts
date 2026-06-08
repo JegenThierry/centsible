@@ -1,5 +1,13 @@
 import {type Category, type CategoryType} from "~/models/category/category";
 import type {Currency} from "~/models/budget-account/currency";
+import type {Tag} from "~/models/tag/tag";
+
+export interface TransactionSplit {
+  id?: string,
+  category: Category,
+  amount: number,
+  note?: string | null,
+}
 
 export interface Transaction {
   id: string,
@@ -16,6 +24,14 @@ export interface Transaction {
   exchangeRate?: number | null,
   rateDate?: string | null,
   transferGroupId?: string | null,
+  tags?: Tag[],
+  splits?: TransactionSplit[],
+}
+
+export interface TransactionSplitRequest {
+  categoryId: number,
+  amount: number,
+  note?: string | null,
 }
 
 export interface TransactionRequest {
@@ -25,6 +41,7 @@ export interface TransactionRequest {
   transactionDate: string,
   type?: CategoryType,
   currency?: Currency,
+  splits?: TransactionSplitRequest[],
 }
 
 export interface TransferRequest {
@@ -51,6 +68,12 @@ export interface TransferDetails {
   transactionDate: string,
 }
 
+export interface TransactionSplitRow {
+  category: Category | undefined,
+  amount: number,
+  note?: string,
+}
+
 export interface TransactionForm {
   amount: number,
   description: string,
@@ -58,6 +81,9 @@ export interface TransactionForm {
   type: CategoryType,
   transactionDate: string | undefined,
   currency: Currency,
+  tagIds?: number[],
+  // Undefined = simple single-category transaction; an array (>= 2 rows) = split.
+  splits?: TransactionSplitRow[],
 }
 
 export interface ConversionPreview {

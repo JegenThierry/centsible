@@ -22,13 +22,18 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_F
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_SPLITS__TRANSACTION_SPLITS_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_TAGS__TRANSACTION_TAGS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
+import beer.thierry.jooq.generated.tables.Tags.TagsPath
 import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
+import beer.thierry.jooq.generated.tables.TransactionSplits.TransactionSplitsPath
+import beer.thierry.jooq.generated.tables.TransactionTags.TransactionTagsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 
 import java.math.BigDecimal
@@ -330,6 +335,45 @@ open class Transactions(
 
     val transactionAttachments: TransactionAttachmentsPath
         get(): TransactionAttachmentsPath = transactionAttachments()
+
+    private lateinit var _transactionSplits: TransactionSplitsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_splits</code> table
+     */
+    fun transactionSplits(): TransactionSplitsPath {
+        if (!this::_transactionSplits.isInitialized)
+            _transactionSplits = TransactionSplitsPath(this, null, TRANSACTION_SPLITS__TRANSACTION_SPLITS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionSplits;
+    }
+
+    val transactionSplits: TransactionSplitsPath
+        get(): TransactionSplitsPath = transactionSplits()
+
+    private lateinit var _transactionTags: TransactionTagsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_tags</code> table
+     */
+    fun transactionTags(): TransactionTagsPath {
+        if (!this::_transactionTags.isInitialized)
+            _transactionTags = TransactionTagsPath(this, null, TRANSACTION_TAGS__TRANSACTION_TAGS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionTags;
+    }
+
+    val transactionTags: TransactionTagsPath
+        get(): TransactionTagsPath = transactionTags()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.tags</code>
+     * table
+     */
+    val tags: TagsPath
+        get(): TagsPath = transactionTags().tags()
     override fun getChecks(): List<Check<TransactionsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
     )

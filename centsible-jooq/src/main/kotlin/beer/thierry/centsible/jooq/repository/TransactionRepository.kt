@@ -1,8 +1,8 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
+import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.categorization.MatchType
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
@@ -12,14 +12,18 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.transaction.TransactionSort
+import beer.thierry.centsible.api.model.transaction.TransactionSplitDTO
+import beer.thierry.centsible.api.model.transaction.TransactionSplitForm
 import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.BatchImportOutcome
 import beer.thierry.centsible.api.repository.ITransactionRepository
+import beer.thierry.centsible.api.repository.RuleCandidateTransaction
 import beer.thierry.centsible.api.repository.TransferLeg
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
@@ -44,7 +48,18 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             condition = condition.and(TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%$escaped%"))
         }
         filters.categoryIds?.takeIf { it.isNotEmpty() }?.let { ids ->
-            condition = condition.and(TRANSACTIONS.CATEGORY_ID.`in`(ids))
+            // Match the transaction's own category or any of its splits' categories.
+            condition = condition.and(
+                TRANSACTIONS.CATEGORY_ID.`in`(ids).or(
+                    DSL.exists(
+                        dsl.selectOne().from(TRANSACTION_SPLITS)
+                            .where(
+                                TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID)
+                                    .and(TRANSACTION_SPLITS.CATEGORY_ID.`in`(ids))
+                            )
+                    )
+                )
+            )
         }
         filters.from?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.ge(it)) }
         filters.to?.let { condition = condition.and(TRANSACTIONS.TRANSACTION_DATE.le(it)) }
@@ -372,11 +387,16 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate
     ): List<CategoryAggregateDTO> {
-        val total = DSL.sum(TRANSACTIONS.AMOUNT).`as`("total")
+        // Split-aware: a split transaction's amount is attributed to its splits' categories, a
+        // simple one to its own. COALESCE picks the split row when present, the transaction otherwise.
+        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val total = DSL.sum(effectiveAmount).`as`("total")
 
         return dsl.select(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON, total)
             .from(TRANSACTIONS)
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .leftJoin(TRANSACTION_SPLITS).on(TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID))
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(effectiveCategoryId))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
                 baseCondition(accountId, authenticatedUser)
@@ -531,39 +551,131 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)
     }
 
-    override fun recategorizeByDescription(
-        authenticatedUser: UserDTO,
-        matchType: MatchType,
-        pattern: String,
-        categoryId: Long,
-        type: CategoryType,
-    ): Int {
-        val descMatch = when (matchType) {
-            MatchType.CONTAINS -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%${escapeLike(pattern)}%")
-            MatchType.STARTS_WITH -> TRANSACTIONS.DESCRIPTION.likeIgnoreCase("${escapeLike(pattern)}%")
-            MatchType.EQUALS -> DSL.lower(TRANSACTIONS.DESCRIPTION).eq(pattern.lowercase())
-        }
+    override fun fetchForRuleEvaluation(authenticatedUser: UserDTO): List<RuleCandidateTransaction> =
+        dsl.select(
+            TRANSACTIONS.ID, TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.DESCRIPTION,
+            TRANSACTIONS.AMOUNT, TRANSACTIONS.TYPE, TRANSACTIONS.CATEGORY_ID, CATEGORIES.IS_MANAGED,
+        )
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            // Transfers are excluded from rules (ADR-0015) — they must keep their managed legs.
+            // Split transactions are excluded too: their categorization is manual and multi-category,
+            // so a single-category rule must not clobber it.
+            .where(
+                ACCOUNTS.USER_ID.eq(authenticatedUser.id)
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
+                    .and(
+                        DSL.notExists(
+                            dsl.selectOne().from(TRANSACTION_SPLITS)
+                                .where(TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID))
+                        )
+                    )
+            )
+            .fetch { r ->
+                RuleCandidateTransaction(
+                    id = r[TRANSACTIONS.ID]!!,
+                    accountId = r[TRANSACTIONS.ACCOUNT_ID]!!,
+                    description = r[TRANSACTIONS.DESCRIPTION] ?: "",
+                    amount = r[TRANSACTIONS.AMOUNT]!!,
+                    type = CategoryType.fromValue(r[TRANSACTIONS.TYPE]!!),
+                    categoryId = r[TRANSACTIONS.CATEGORY_ID]!!,
+                    isManagedCategory = r[CATEGORIES.IS_MANAGED] ?: false,
+                )
+            }
+
+    override fun setCategoryForTransactions(authenticatedUser: UserDTO, ids: List<UUID>, categoryId: Long): Int {
+        if (ids.isEmpty()) return 0
         return dsl.update(TRANSACTIONS)
             .set(TRANSACTIONS.CATEGORY_ID, categoryId)
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
-                TRANSACTIONS.ACCOUNT_ID.`in`(
-                    dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                )
-                    .and(TRANSACTIONS.TYPE.eq(type.value))
-                    .and(TRANSACTIONS.CATEGORY_ID.ne(categoryId))
-                    .and(
-                        TRANSACTIONS.CATEGORY_ID.notIn(
-                            dsl.select(CATEGORIES.ID).from(CATEGORIES).where(CATEGORIES.IS_MANAGED.isTrue)
-                        )
+                TRANSACTIONS.ID.`in`(ids).and(
+                    TRANSACTIONS.ACCOUNT_ID.`in`(
+                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
                     )
-                    .and(descMatch)
+                )
             )
             .execute()
     }
 
-    private fun escapeLike(s: String): String =
-        s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    override fun fetchSplitsByTransactionIds(
+        authenticatedUser: UserDTO,
+        transactionIds: List<UUID>,
+    ): Map<UUID, List<TransactionSplitDTO>> {
+        if (transactionIds.isEmpty()) return emptyMap()
+        return dsl.select(
+            TRANSACTION_SPLITS.ID, TRANSACTION_SPLITS.TRANSACTION_ID, TRANSACTION_SPLITS.AMOUNT, TRANSACTION_SPLITS.NOTE,
+            CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.TYPE, CATEGORIES.COLOR, CATEGORIES.USER_ID,
+        )
+            .from(TRANSACTION_SPLITS)
+            .join(TRANSACTIONS).on(TRANSACTIONS.ID.eq(TRANSACTION_SPLITS.TRANSACTION_ID))
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTION_SPLITS.CATEGORY_ID))
+            .where(
+                TRANSACTION_SPLITS.TRANSACTION_ID.`in`(transactionIds)
+                    .and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+            )
+            .orderBy(TRANSACTION_SPLITS.CREATED_AT.asc(), TRANSACTION_SPLITS.ID.asc())
+            .fetch { r ->
+                r[TRANSACTION_SPLITS.TRANSACTION_ID]!! to TransactionSplitDTO(
+                    id = r[TRANSACTION_SPLITS.ID],
+                    amount = r[TRANSACTION_SPLITS.AMOUNT],
+                    note = r[TRANSACTION_SPLITS.NOTE],
+                    category = CategoryDTO(
+                        id = r[CATEGORIES.ID],
+                        name = r[CATEGORIES.NAME],
+                        icon = r[CATEGORIES.ICON],
+                        color = r[CATEGORIES.COLOR],
+                        type = r[CATEGORIES.TYPE]?.let { CategoryType.fromValue(it) },
+                        isSystem = r[CATEGORIES.USER_ID] == null,
+                    ),
+                )
+            }
+            .groupBy({ it.first }, { it.second })
+    }
+
+    override fun replaceSplits(
+        transactionId: UUID,
+        splits: List<TransactionSplitForm>,
+        authenticatedUser: UserDTO,
+    ) {
+        // Scope both the delete and the implicit insert to a transaction the user owns.
+        val ownsTransaction = dsl.selectOne()
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(TRANSACTIONS.ID.eq(transactionId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .fetchOne() != null
+        if (!ownsTransaction) throw LocalizedException.NotFound("error.transaction.notFound")
+
+        dsl.deleteFrom(TRANSACTION_SPLITS).where(TRANSACTION_SPLITS.TRANSACTION_ID.eq(transactionId)).execute()
+        if (splits.isEmpty()) return
+
+        val now = OffsetDateTime.now()
+        var step = dsl.insertInto(
+            TRANSACTION_SPLITS,
+            TRANSACTION_SPLITS.TRANSACTION_ID, TRANSACTION_SPLITS.CATEGORY_ID,
+            TRANSACTION_SPLITS.AMOUNT, TRANSACTION_SPLITS.NOTE, TRANSACTION_SPLITS.CREATED_AT,
+        )
+        splits.forEach { step = step.values(transactionId, it.categoryId, it.amount, it.note, now) }
+        step.execute()
+    }
+
+    override fun deleteSplitsForTransactions(transactionIds: List<UUID>, authenticatedUser: UserDTO): Int {
+        if (transactionIds.isEmpty()) return 0
+        return dsl.deleteFrom(TRANSACTION_SPLITS)
+            .where(
+                TRANSACTION_SPLITS.TRANSACTION_ID.`in`(transactionIds)
+                    .and(
+                        TRANSACTION_SPLITS.TRANSACTION_ID.`in`(
+                            dsl.select(TRANSACTIONS.ID).from(TRANSACTIONS)
+                                .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+                        )
+                    )
+            )
+            .execute()
+    }
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =
         TRANSACTIONS.ACCOUNT_ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))

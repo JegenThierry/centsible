@@ -61,11 +61,41 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
     {
       accessorKey: 'description',
       header: () => t('transactions.table.description'),
+      cell: ({row}) => {
+        const tags = row.original.tags ?? []
+        const description = h('span', row.original.description)
+        if (tags.length === 0) return description
+        return h('div', {class: 'flex flex-col gap-1'}, [
+          description,
+          h('div', {class: 'flex flex-wrap gap-1'}, tags.map((tag) => h('span', {
+            key: tag.id,
+            class: 'inline-flex items-center gap-1 rounded-full border border-default px-1.5 py-0.5 text-[10px] leading-none text-muted',
+          }, [
+            h('span', {class: 'w-1.5 h-1.5 rounded-full shrink-0', style: {backgroundColor: tag.color}}),
+            tag.name,
+          ]))),
+        ])
+      },
     },
     {
       accessorKey: 'category',
       header: () => t('transactions.table.category'),
       cell: ({row}) => {
+        const splits = row.original.splits ?? []
+        if (splits.length > 0) {
+          return h('div', {class: 'flex flex-col gap-1'}, [
+            h('span', {class: 'inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted'}, [
+              h('span', {class: 'i-lucide-split w-3 h-3'}),
+              t('transactions.table.splitBadge', {count: splits.length}),
+            ]),
+            h('div', {class: 'flex flex-wrap gap-1'}, splits.map((split, i) => h(CategoryBadge, {
+              key: i,
+              name: split.category?.name,
+              icon: split.category?.icon,
+              color: split.category?.color,
+            }))),
+          ])
+        }
         const category = row.getValue('category') as any
         return h(CategoryBadge, {
           name: category?.name,

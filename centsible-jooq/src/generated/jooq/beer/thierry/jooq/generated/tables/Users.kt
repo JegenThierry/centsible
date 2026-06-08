@@ -10,7 +10,6 @@ import beer.thierry.jooq.generated.indexes.IDX_USERS_REGISTRATION_TOKEN_HASH
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
-import beer.thierry.jooq.generated.keys.CATEGORIZATION_RULES__CATEGORIZATION_RULES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY
@@ -18,6 +17,8 @@ import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.MFA_PENDING_AUTH__MFA_PENDING_AUTH_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.RULES__RULES_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.TAGS__TAGS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
 import beer.thierry.jooq.generated.keys.USERS_PKEY
@@ -26,7 +27,6 @@ import beer.thierry.jooq.generated.keys.USER_RECOVERY_CODES__USER_RECOVERY_CODES
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
-import beer.thierry.jooq.generated.tables.CategorizationRules.CategorizationRulesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates.ImportMappingTemplatesPath
@@ -34,6 +34,8 @@ import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.MfaPendingAuth.MfaPendingAuthPath
 import beer.thierry.jooq.generated.tables.Notifications.NotificationsPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
+import beer.thierry.jooq.generated.tables.Rules.RulesPath
+import beer.thierry.jooq.generated.tables.Tags.TagsPath
 import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.UserRecoveryCodes.UserRecoveryCodesPath
 import beer.thierry.jooq.generated.tables.records.UsersRecord
@@ -311,22 +313,6 @@ open class Users(
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
 
-    private lateinit var _categorizationRules: CategorizationRulesPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.categorization_rules</code> table
-     */
-    fun categorizationRules(): CategorizationRulesPath {
-        if (!this::_categorizationRules.isInitialized)
-            _categorizationRules = CategorizationRulesPath(this, null, CATEGORIZATION_RULES__CATEGORIZATION_RULES_USER_ID_FKEY.inverseKey)
-
-        return _categorizationRules;
-    }
-
-    val categorizationRules: CategorizationRulesPath
-        get(): CategorizationRulesPath = categorizationRules()
-
     private lateinit var _contacts: ContactsPath
 
     /**
@@ -437,6 +423,36 @@ open class Users(
 
     val providerConnections: ProviderConnectionsPath
         get(): ProviderConnectionsPath = providerConnections()
+
+    private lateinit var _rules: RulesPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.rules</code> table
+     */
+    fun rules(): RulesPath {
+        if (!this::_rules.isInitialized)
+            _rules = RulesPath(this, null, RULES__RULES_USER_ID_FKEY.inverseKey)
+
+        return _rules;
+    }
+
+    val rules: RulesPath
+        get(): RulesPath = rules()
+
+    private lateinit var _tags: TagsPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.tags</code> table
+     */
+    fun tags(): TagsPath {
+        if (!this::_tags.isInitialized)
+            _tags = TagsPath(this, null, TAGS__TAGS_USER_ID_FKEY.inverseKey)
+
+        return _tags;
+    }
+
+    val tags: TagsPath
+        get(): TagsPath = tags()
 
     private lateinit var _transactionAttachments: TransactionAttachmentsPath
 

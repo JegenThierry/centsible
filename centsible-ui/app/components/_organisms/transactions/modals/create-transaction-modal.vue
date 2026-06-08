@@ -13,11 +13,13 @@ import TransactionAttachments from "~/components/_organisms/transactions/transac
 import LoanFormFields from "~/components/_organisms/loans/loan-form.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
+import {useTagService} from "~/services/tag/tag-service";
 import {useLoansStore} from "~/stores/loansStore";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {resolveSplitPayload} from "~/utils/transaction";
 import {todayIsoDate} from "~/utils/date";
 import {AMOUNT_INPUT, BALANCE_INPUT} from "~/utils/money";
 
@@ -40,6 +42,7 @@ const emit = defineEmits<{
 
 const api = useApi();
 const transactionService = useTransactionService(api);
+const tagService = useTagService(api);
 const loansStore = useLoansStore();
 const categoriesStore = useCategoriesStore();
 const toasts = useToasts();
@@ -168,6 +171,7 @@ function makeBlankTransactionForm(): TransactionForm {
     type: props.filterType ?? CategoryType.EXPENSE,
     transactionDate: todayIsoDate(),
     currency: budgetAccountsStore.activeAccount?.currency ?? Currency.EUR,
+    tagIds: [],
   };
 }
 
@@ -278,6 +282,11 @@ async function saveTransfer() {
 async function saveStandard() {
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
+  const splitResolution = resolveSplitPayload(form.value);
+  if (splitResolution.error) {
+    toasts.error(t('transactions.form.split.invalidTitle'), t(`transactions.form.split.error.${splitResolution.error}`));
+    return;
+  }
 
   loading.value = true;
   try {
@@ -290,6 +299,7 @@ async function saveStandard() {
         transactionDate: form.value.transactionDate,
         type: form.value.type,
         currency: form.value.currency,
+        splits: splitResolution.splits,
       }
     );
     toasts.success(t('transactions.create.toastSuccessTitle'), t('transactions.create.toastSuccessBody'));
@@ -300,6 +310,14 @@ async function saveStandard() {
         t('transactions.attachments.errors.uploadPartialTitle'),
         t('transactions.attachments.errors.uploadPartialBody', {count: result.failed.length}),
       );
+    }
+
+    if (form.value.tagIds && form.value.tagIds.length > 0) {
+      try {
+        await tagService.setForTransaction(created.id, form.value.tagIds);
+      } catch {
+        toasts.error(t('transactions.form.tagsApplyFailedTitle'), t('transactions.form.tagsApplyFailedBody'));
+      }
     }
 
     emit('created');

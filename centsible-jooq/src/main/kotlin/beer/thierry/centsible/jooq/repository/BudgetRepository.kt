@@ -11,6 +11,7 @@ import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.BUDGETS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
@@ -83,20 +84,26 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         to: LocalDate,
     ): Map<Long, BigDecimal> {
         if (categoryIds.isEmpty()) return emptyMap()
-        val total = DSL.sum(TRANSACTIONS.AMOUNT)
-        return dsl.select(TRANSACTIONS.CATEGORY_ID, total)
+        // Split-aware: attribute a split transaction's slices to their categories, a simple one to
+        // its own. COALESCE selects the split row when present, the transaction otherwise.
+        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val categoryKey = effectiveCategoryId.`as`("category_id")
+        val total = DSL.sum(effectiveAmount).`as`("total")
+        return dsl.select(categoryKey, total)
             .from(TRANSACTIONS)
+            .leftJoin(TRANSACTION_SPLITS).on(TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
-                TRANSACTIONS.CATEGORY_ID.`in`(categoryIds)
+                effectiveCategoryId.`in`(categoryIds)
                     .and(ACCOUNTS.USER_ID.eq(user.id))
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
                     .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
                     .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
             )
-            .groupBy(TRANSACTIONS.CATEGORY_ID)
+            .groupBy(effectiveCategoryId)
             .fetch()
-            .associate { it[TRANSACTIONS.CATEGORY_ID]!! to (it[total] ?: BigDecimal.ZERO) }
+            .associate { it[categoryKey]!! to (it[total] ?: BigDecimal.ZERO) }
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): BudgetDTO {

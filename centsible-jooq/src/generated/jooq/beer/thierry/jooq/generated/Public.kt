@@ -8,7 +8,6 @@ import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExchangeRates
@@ -22,9 +21,15 @@ import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
+import beer.thierry.jooq.generated.tables.RuleActions
+import beer.thierry.jooq.generated.tables.RuleConditions
+import beer.thierry.jooq.generated.tables.Rules
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.Tags
 import beer.thierry.jooq.generated.tables.TransactionAttachments
+import beer.thierry.jooq.generated.tables.TransactionSplits
+import beer.thierry.jooq.generated.tables.TransactionTags
 import beer.thierry.jooq.generated.tables.Transactions
 import beer.thierry.jooq.generated.tables.UserRecoveryCodes
 import beer.thierry.jooq.generated.tables.Users
@@ -68,11 +73,6 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.categories</code>.
      */
     val CATEGORIES: Categories get() = Categories.CATEGORIES
-
-    /**
-     * The table <code>public.categorization_rules</code>.
-     */
-    val CATEGORIZATION_RULES: CategorizationRules get() = CategorizationRules.CATEGORIZATION_RULES
 
     /**
      * The table <code>public.contact_balances</code>.
@@ -140,6 +140,21 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val RECURRING_TRANSACTIONS: RecurringTransactions get() = RecurringTransactions.RECURRING_TRANSACTIONS
 
     /**
+     * The table <code>public.rule_actions</code>.
+     */
+    val RULE_ACTIONS: RuleActions get() = RuleActions.RULE_ACTIONS
+
+    /**
+     * The table <code>public.rule_conditions</code>.
+     */
+    val RULE_CONDITIONS: RuleConditions get() = RuleConditions.RULE_CONDITIONS
+
+    /**
+     * The table <code>public.rules</code>.
+     */
+    val RULES: Rules get() = Rules.RULES
+
+    /**
      * The table <code>public.schema_migrations</code>.
      */
     val SCHEMA_MIGRATIONS: SchemaMigrations get() = SchemaMigrations.SCHEMA_MIGRATIONS
@@ -150,9 +165,24 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val SYSTEM_INFORMATION: SystemInformation get() = SystemInformation.SYSTEM_INFORMATION
 
     /**
+     * The table <code>public.tags</code>.
+     */
+    val TAGS: Tags get() = Tags.TAGS
+
+    /**
      * The table <code>public.transaction_attachments</code>.
      */
     val TRANSACTION_ATTACHMENTS: TransactionAttachments get() = TransactionAttachments.TRANSACTION_ATTACHMENTS
+
+    /**
+     * The table <code>public.transaction_splits</code>.
+     */
+    val TRANSACTION_SPLITS: TransactionSplits get() = TransactionSplits.TRANSACTION_SPLITS
+
+    /**
+     * The table <code>public.transaction_tags</code>.
+     */
+    val TRANSACTION_TAGS: TransactionTags get() = TransactionTags.TRANSACTION_TAGS
 
     /**
      * The table <code>public.transactions</code>.
@@ -176,7 +206,6 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         Accounts.ACCOUNTS,
         Budgets.BUDGETS,
         Categories.CATEGORIES,
-        CategorizationRules.CATEGORIZATION_RULES,
         ContactBalances.CONTACT_BALANCES,
         Contacts.CONTACTS,
         ExchangeRates.EXCHANGE_RATES,
@@ -190,9 +219,15 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         ProviderConnectionAccounts.PROVIDER_CONNECTION_ACCOUNTS,
         ProviderConnections.PROVIDER_CONNECTIONS,
         RecurringTransactions.RECURRING_TRANSACTIONS,
+        RuleActions.RULE_ACTIONS,
+        RuleConditions.RULE_CONDITIONS,
+        Rules.RULES,
         SchemaMigrations.SCHEMA_MIGRATIONS,
         SystemInformation.SYSTEM_INFORMATION,
+        Tags.TAGS,
         TransactionAttachments.TRANSACTION_ATTACHMENTS,
+        TransactionSplits.TRANSACTION_SPLITS,
+        TransactionTags.TRANSACTION_TAGS,
         Transactions.TRANSACTIONS,
         UserRecoveryCodes.USER_RECOVERY_CODES,
         Users.USERS

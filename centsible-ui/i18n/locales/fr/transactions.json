@@ -14,6 +14,7 @@
       "date": "Date",
       "description": "Description",
       "category": "Catégorie",
+      "splitBadge": "Ventilation · {count}",
       "amount": "Montant",
       "actionsLabel": "Actions de la transaction",
       "actionEdit": "Modifier",
@@ -73,6 +74,10 @@
       }
     },
     "form": {
+      "tags": "Étiquettes",
+      "noTags": "Aucune étiquette — créez-en sous Catégories → Étiquettes.",
+      "tagsApplyFailedTitle": "Étiquettes non appliquées",
+      "tagsApplyFailedBody": "La transaction a été enregistrée, mais ses étiquettes n'ont pas pu être mises à jour.",
       "category": "Catégorie",
       "transactionType": "Type de transaction :",
       "typeLabel": "Type de transaction",
@@ -86,6 +91,22 @@
       "description": "Description",
       "descriptionPlaceholder": "Déjeuner, courses, etc.",
       "date": "Date",
+      "split": {
+        "toggle": "Ventiler par catégorie",
+        "hint": "Répartissez cette transaction entre plusieurs catégories.",
+        "unavailableForeign": "La ventilation n’est pas disponible pour les transactions en devise étrangère.",
+        "category": "Catégorie",
+        "amount": "Montant",
+        "add": "Ajouter une ventilation",
+        "remove": "Supprimer la ventilation",
+        "balanced": "Les ventilations correspondent",
+        "remaining": "Restant",
+        "invalidTitle": "Ventilation invalide",
+        "error": {
+          "incomplete": "Ajoutez au moins deux ventilations, chacune avec une catégorie.",
+          "unbalanced": "Le total des ventilations doit correspondre au montant de la transaction."
+        }
+      },
       "modes": {
         "setBalance": {
           "newBalance": "Nouveau solde du compte",
@@ -158,6 +179,18 @@
       "errorBody": "Impossible de supprimer votre {entity}, veuillez réessayer."
     },
     "advancedImport": {
+      "savedProfiles": {
+        "selectLabel": "Profil enregistré",
+        "selectPlaceholder": "Appliquer un profil enregistré…",
+        "saveAction": "Enregistrer comme profil",
+        "nameLabel": "Nom du profil",
+        "namePlaceholder": "ex. Ma banque — compte courant",
+        "hint": "Enregistrez ce mappage de colonnes pour le réutiliser lors du prochain import depuis la même banque.",
+        "savedTitle": "Profil enregistré",
+        "savedBody": "{name} est prêt à être réutilisé.",
+        "saveFailedTitle": "Échec de l'enregistrement du profil",
+        "saveFailedBody": "Le profil n'a pas pu être enregistré. Veuillez réessayer."
+      },
       "titleUpload": "Importer depuis un fichier",
       "titleReview": "Vérifier et importer",
       "descUpload": "Importez un CSV ou un OFX exporté depuis votre banque.",

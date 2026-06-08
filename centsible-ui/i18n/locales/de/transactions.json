@@ -14,6 +14,7 @@
       "date": "Datum",
       "description": "Beschreibung",
       "category": "Kategorie",
+      "splitBadge": "Aufteilung · {count}",
       "amount": "Betrag",
       "actionsLabel": "Transaktionsaktionen",
       "actionEdit": "Bearbeiten",
@@ -73,6 +74,10 @@
       }
     },
     "form": {
+      "tags": "Tags",
+      "noTags": "Noch keine Tags — leg sie unter Kategorien → Tags an.",
+      "tagsApplyFailedTitle": "Tags nicht angewendet",
+      "tagsApplyFailedBody": "Die Transaktion wurde gespeichert, aber ihre Tags konnten nicht aktualisiert werden.",
       "category": "Kategorie",
       "transactionType": "Transaktionstyp:",
       "typeLabel": "Transaktionstyp",
@@ -86,6 +91,22 @@
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
       "date": "Datum",
+      "split": {
+        "toggle": "Auf Kategorien aufteilen",
+        "hint": "Diese Transaktion auf mehrere Kategorien verteilen.",
+        "unavailableForeign": "Aufteilung ist für Fremdwährungstransaktionen nicht verfügbar.",
+        "category": "Kategorie",
+        "amount": "Betrag",
+        "add": "Aufteilung hinzufügen",
+        "remove": "Aufteilung entfernen",
+        "balanced": "Aufteilungen stimmen",
+        "remaining": "Verbleibend",
+        "invalidTitle": "Ungültige Aufteilung",
+        "error": {
+          "incomplete": "Füge mindestens zwei Aufteilungen mit jeweils einer Kategorie hinzu.",
+          "unbalanced": "Die Summe der Aufteilungen muss dem Transaktionsbetrag entsprechen."
+        }
+      },
       "modes": {
         "setBalance": {
           "newBalance": "Neuer Kontostand",
@@ -158,6 +179,18 @@
       "errorBody": "Ihre {entity} konnte nicht gelöscht werden, bitte versuchen Sie es erneut."
     },
     "advancedImport": {
+      "savedProfiles": {
+        "selectLabel": "Gespeichertes Profil",
+        "selectPlaceholder": "Gespeichertes Profil anwenden…",
+        "saveAction": "Als Profil speichern",
+        "nameLabel": "Profilname",
+        "namePlaceholder": "z. B. Meine Bank — Girokonto",
+        "hint": "Speichern Sie diese Spaltenzuordnung, um sie beim nächsten Import von derselben Bank wiederzuverwenden.",
+        "savedTitle": "Profil gespeichert",
+        "savedBody": "{name} kann wiederverwendet werden.",
+        "saveFailedTitle": "Profil konnte nicht gespeichert werden",
+        "saveFailedBody": "Das Profil konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      },
       "titleUpload": "Aus Datei importieren",
       "titleReview": "Überprüfen und importieren",
       "descUpload": "Lade eine von deiner Bank exportierte CSV- oder OFX-Datei hoch.",

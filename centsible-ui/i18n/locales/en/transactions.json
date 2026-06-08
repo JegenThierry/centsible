@@ -14,6 +14,7 @@
       "date": "Date",
       "description": "Description",
       "category": "Category",
+      "splitBadge": "Split · {count}",
       "amount": "Amount",
       "actionsLabel": "Transaction actions",
       "actionEdit": "Edit",
@@ -73,6 +74,10 @@
       }
     },
     "form": {
+      "tags": "Tags",
+      "noTags": "No tags yet — create them under Categories → Tags.",
+      "tagsApplyFailedTitle": "Tags not applied",
+      "tagsApplyFailedBody": "The transaction was saved, but its tags couldn't be updated.",
       "category": "Category",
       "transactionType": "Transaction Type:",
       "typeLabel": "Transaction type",
@@ -86,6 +91,22 @@
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
       "date": "Date",
+      "split": {
+        "toggle": "Split across categories",
+        "hint": "Divide this transaction between several categories.",
+        "unavailableForeign": "Splitting is unavailable for foreign-currency transactions.",
+        "category": "Category",
+        "amount": "Amount",
+        "add": "Add split",
+        "remove": "Remove split",
+        "balanced": "Splits add up",
+        "remaining": "Remaining",
+        "invalidTitle": "Invalid split",
+        "error": {
+          "incomplete": "Add at least two splits, each with a category.",
+          "unbalanced": "The split amounts must add up to the transaction total."
+        }
+      },
       "modes": {
         "setBalance": {
           "newBalance": "New account balance",
@@ -158,6 +179,18 @@
       "errorBody": "Your {entity} could not be deleted, please try again."
     },
     "advancedImport": {
+      "savedProfiles": {
+        "selectLabel": "Saved profile",
+        "selectPlaceholder": "Apply a saved profile…",
+        "saveAction": "Save as profile",
+        "nameLabel": "Profile name",
+        "namePlaceholder": "e.g. My bank — checking",
+        "hint": "Save this column mapping to reuse it next time you import a file from the same bank.",
+        "savedTitle": "Profile saved",
+        "savedBody": "{name} is ready to reuse.",
+        "saveFailedTitle": "Couldn't save profile",
+        "saveFailedBody": "The profile could not be saved. Please try again."
+      },
       "titleUpload": "Import from file",
       "titleReview": "Review and import",
       "descUpload": "Upload a CSV or OFX exported from your bank.",

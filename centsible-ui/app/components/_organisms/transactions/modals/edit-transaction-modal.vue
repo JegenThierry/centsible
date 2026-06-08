@@ -2,13 +2,14 @@
 import {z} from 'zod';
 import type {FormSubmitEvent} from '@nuxt/ui';
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
-import {transactionType} from "~/utils/transaction";
+import {resolveSplitPayload, transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
 import {Currency} from "~/models/budget-account/currency";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
+import {useTagService} from "~/services/tag/tag-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
@@ -26,6 +27,7 @@ const emit = defineEmits<{
 
 const api = useApi();
 const transactionService = useTransactionService(api);
+const tagService = useTagService(api);
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
@@ -37,6 +39,7 @@ const form = ref<TransactionForm>({
   type: CategoryType.EXPENSE,
   transactionDate: todayIsoDate(),
   currency: Currency.EUR,
+  tagIds: [],
 });
 
 const loading = ref(false);
@@ -62,6 +65,10 @@ function loadTransaction(transaction: Transaction) {
     type: transactionType(transaction),
     transactionDate: transaction.transactionDate.split('T')[0],
     currency: transaction.originalCurrency ?? activeCurrency.value ?? Currency.EUR,
+    tagIds: transaction.tags?.map((tg) => tg.id) ?? [],
+    splits: transaction.splits && transaction.splits.length > 0
+      ? transaction.splits.map((s) => ({category: s.category, amount: s.amount, note: s.note ?? undefined}))
+      : undefined,
   };
 }
 
@@ -77,6 +84,11 @@ async function handleEdit(_event: FormSubmitEvent<Schema>) {
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (props.transaction.id === undefined) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
+  const splitResolution = resolveSplitPayload(form.value);
+  if (splitResolution.error) {
+    toasts.error(t('transactions.form.split.invalidTitle'), t(`transactions.form.split.error.${splitResolution.error}`));
+    return;
+  }
 
   loading.value = true;
   try {
@@ -90,8 +102,14 @@ async function handleEdit(_event: FormSubmitEvent<Schema>) {
         transactionDate: form.value.transactionDate,
         type: form.value.type,
         currency: form.value.currency,
+        splits: splitResolution.splits,
       }
     );
+    try {
+      await tagService.setForTransaction(props.transaction.id, form.value.tagIds ?? []);
+    } catch {
+      toasts.error(t('transactions.form.tagsApplyFailedTitle'), t('transactions.form.tagsApplyFailedBody'));
+    }
     emit('updated');
     toasts.success(t('transactions.edit.toastSuccessTitle'), t('transactions.edit.toastSuccessBody'));
     isOpen.value = false;
