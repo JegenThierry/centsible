@@ -1,5 +1,6 @@
 package beer.thierry.centsibleexport.render.impl
 
+import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.PdfRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
@@ -8,6 +9,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 
 private const val DEFAULT_LOCALE_TAG = "en-GB"
 private const val DEFAULT_CURRENCY = "EUR"
@@ -35,6 +37,20 @@ internal fun filenameTimestamp(): Long = OffsetDateTime.now(ZoneOffset.UTC).toEp
 
 internal fun slug(s: String): String =
     s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').ifBlank { "export" }
+
+/**
+ * Filename stem for a per-contact lendings export: `lendings-<slug(contactName)>`, so PDF, CSV and
+ * JSON agree (CSV/JSON previously fell back to the raw contact UUID). Re-fetches the contact name
+ * (cheap, and the contact is already known to exist by the time the filename is built); falls back
+ * to the contact id if it can't be loaded.
+ */
+internal fun lendingsPerContactStem(data: IExportDataRepository, request: ExportRequest): String {
+    val contactId = request.lendingsPerContact.contactId
+    val name = runCatching {
+        data.fetchContactSummary(UUID.fromString(request.meta.userId), UUID.fromString(contactId))?.contactName
+    }.getOrNull()
+    return "lendings-${slug(name ?: contactId)}"
+}
 
 /**
  * Renders [template] with [context] and packages it as a [RenderedExport] whose filename is
