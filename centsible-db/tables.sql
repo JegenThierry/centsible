@@ -61,49 +61,11 @@ CREATE TABLE IF NOT EXISTS users
     password_reset_token_hash       BYTEA,
     password_reset_token_expires_at TIMESTAMPTZ,
     notification_settings           JSONB        NOT NULL DEFAULT '{}'::jsonb,
-    totp_secret_encrypted           BYTEA,
-    totp_pending_secret_encrypted   BYTEA,
-    totp_enabled                    BOOLEAN      NOT NULL DEFAULT FALSE,
-    totp_last_used_step             BIGINT,
-    totp_enabled_at                 TIMESTAMPTZ,
-    default_currency                VARCHAR(3)   NOT NULL DEFAULT 'EUR',
-    token_version                   INTEGER      NOT NULL DEFAULT 0,
-    CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de')),
-    CONSTRAINT users_default_currency_supported CHECK (default_currency IN (
-        'EUR', 'USD', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
-        'SEK', 'NOK', 'DKK', 'SGD', 'KRW', 'INR', 'MXN', 'BRL', 'ZAR', 'TRY',
-        'PLN', 'PHP', 'IDR'
-    ))
+    CONSTRAINT users_locale_supported CHECK (locale IN ('en', 'fr', 'de'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_registration_token_hash ON users (registration_token_hash);
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token_hash ON users (password_reset_token_hash);
-
--- Short-lived, single-use credential bridging password-verify and TOTP code-submit.
-CREATE TABLE IF NOT EXISTS mfa_pending_auth
-(
-    id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    token_hash BYTEA       NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    used_at    TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_mfa_pending_auth_token_hash ON mfa_pending_auth (token_hash);
-CREATE INDEX IF NOT EXISTS idx_mfa_pending_auth_user ON mfa_pending_auth (user_id);
-
--- Single-use TOTP recovery codes; stored as a salted slow-KDF hash, never plaintext.
-CREATE TABLE IF NOT EXISTS user_recovery_codes
-(
-    id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    code_hash  TEXT        NOT NULL,
-    used_at    TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_recovery_codes_user ON user_recovery_codes (user_id);
 
 
 CREATE TABLE IF NOT EXISTS accounts
@@ -114,13 +76,8 @@ CREATE TABLE IF NOT EXISTS accounts
     balance         DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     currency        VARCHAR(3)     NOT NULL DEFAULT 'EUR',
-    type            VARCHAR(20)    NOT NULL DEFAULT 'CHECKING',
     created_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
-    modified_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
-    CONSTRAINT accounts_type_check CHECK (type IN (
-        'CHECKING', 'SAVINGS', 'CASH', 'CREDIT_CARD',
-        'INVESTMENT', 'ASSET', 'LOAN', 'MORTGAGE', 'OTHER'
-        ))
+    modified_at     TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts (user_id);
@@ -182,7 +139,7 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
 (
     id          UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     account_id  UUID           NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
-    category_id BIGINT         REFERENCES categories (id),
+    category_id BIGINT         NOT NULL REFERENCES categories (id),
     amount      DECIMAL(15, 2) NOT NULL CHECK (amount > 0),
     description TEXT           NOT NULL,
     frequency   VARCHAR(10)    NOT NULL CHECK (frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')),
@@ -192,22 +149,13 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
     active      BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at TIMESTAMPTZ    NOT NULL DEFAULT now(),
-    original_amount        DECIMAL(15, 2),
-    original_currency      VARCHAR(3),
-    is_transfer            BOOLEAN        NOT NULL DEFAULT FALSE,
-    destination_account_id UUID           REFERENCES accounts (id) ON DELETE CASCADE,
-    type                   VARCHAR(10)    CHECK (type IN ('INCOME', 'EXPENSE')),
-    CONSTRAINT chk_recurring_end_after_start CHECK (end_date IS NULL OR end_date >= start_date),
-    CONSTRAINT chk_recurring_transfer CHECK (
-        (is_transfer = FALSE AND category_id IS NOT NULL AND destination_account_id IS NULL)
-            OR (is_transfer = TRUE AND destination_account_id IS NOT NULL AND destination_account_id <> account_id)
-        )
+    original_amount   DECIMAL(15, 2),
+    original_currency VARCHAR(3),
+    CONSTRAINT chk_recurring_end_after_start CHECK (end_date IS NULL OR end_date >= start_date)
 );
 
 CREATE INDEX IF NOT EXISTS idx_recurring_account_id ON recurring_transactions (account_id);
 CREATE INDEX IF NOT EXISTS idx_recurring_due ON recurring_transactions (next_run_at) WHERE active = TRUE;
-CREATE INDEX IF NOT EXISTS idx_recurring_destination_account
-    ON recurring_transactions (destination_account_id) WHERE destination_account_id IS NOT NULL;
 
 
 CREATE TABLE IF NOT EXISTS transactions
@@ -228,7 +176,6 @@ CREATE TABLE IF NOT EXISTS transactions
     original_currency        VARCHAR(3),
     exchange_rate            NUMERIC(20, 10),
     rate_date                DATE,
-    transfer_group_id        UUID,
     CONSTRAINT transactions_type_check CHECK (type IN ('INCOME', 'EXPENSE'))
 );
 
@@ -245,9 +192,6 @@ CREATE INDEX IF NOT EXISTS idx_transactions_provider_connection_id
     WHERE provider_connection_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_transactions_account_date
     ON transactions (account_id, transaction_date, id);
-CREATE INDEX IF NOT EXISTS idx_transactions_transfer_group
-    ON transactions (transfer_group_id)
-    WHERE transfer_group_id IS NOT NULL;
 
 
 CREATE TABLE IF NOT EXISTS exchange_rates
@@ -287,11 +231,9 @@ CREATE TABLE IF NOT EXISTS loans
     id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     user_id        UUID           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     contact_id     UUID           NOT NULL,
-    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE SET NULL,
+    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE CASCADE,
     lent_amount    DECIMAL(15, 2) NOT NULL CHECK (lent_amount > 0),
     owed_amount    DECIMAL(15, 2) NOT NULL CHECK (owed_amount >= 0),
-    currency       VARCHAR(3)     NOT NULL DEFAULT 'EUR',
-    interest_rate  NUMERIC(5, 2)  CHECK (interest_rate IS NULL OR interest_rate >= 0),
     loan_date      DATE           NOT NULL DEFAULT CURRENT_DATE,
     description    TEXT,
     due_date       DATE,
@@ -299,12 +241,7 @@ CREATE TABLE IF NOT EXISTS loans
     created_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
     modified_at    TIMESTAMPTZ    NOT NULL DEFAULT now(),
     CONSTRAINT fk_loans_contact_user FOREIGN KEY (contact_id, user_id)
-        REFERENCES contacts (id, user_id) ON DELETE RESTRICT,
-    CONSTRAINT loans_currency_supported CHECK (currency IN (
-        'EUR', 'USD', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
-        'SEK', 'NOK', 'DKK', 'SGD', 'KRW', 'INR', 'MXN', 'BRL', 'ZAR', 'TRY',
-        'PLN', 'PHP', 'IDR'
-        ))
+        REFERENCES contacts (id, user_id) ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_loans_user_contact ON loans (user_id, contact_id);
@@ -315,7 +252,7 @@ CREATE TABLE IF NOT EXISTS loan_repayments
 (
     id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
     loan_id        UUID           NOT NULL REFERENCES loans (id) ON DELETE CASCADE,
-    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE SET NULL,
+    transaction_id UUID UNIQUE REFERENCES transactions (id) ON DELETE CASCADE,
     amount         DECIMAL(15, 2) NOT NULL CHECK (amount > 0),
     repaid_at      DATE           NOT NULL DEFAULT CURRENT_DATE,
     created_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
@@ -336,98 +273,32 @@ CREATE TABLE IF NOT EXISTS budgets
     modified_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
     period_type      VARCHAR(16)    NOT NULL DEFAULT 'MONTHLY',
     rollover_enabled BOOLEAN        NOT NULL DEFAULT FALSE,
-    CONSTRAINT uq_budgets_user_category_period UNIQUE (user_id, category_id, period_type),
+    CONSTRAINT uq_budgets_user_category UNIQUE (user_id, category_id),
     CONSTRAINT chk_budgets_period_type CHECK (period_type IN ('MONTHLY', 'QUARTERLY', 'ANNUAL'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets (user_id);
 
 
-CREATE TABLE IF NOT EXISTS tags
-(
-    id          BIGSERIAL PRIMARY KEY,
-    user_id     UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    name        VARCHAR(50) NOT NULL,
-    color       VARCHAR(7)  NOT NULL DEFAULT '#6b7280',
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    modified_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_tags_user ON tags (user_id);
-CREATE UNIQUE INDEX IF NOT EXISTS uq_tags_user_name ON tags (user_id, lower(name));
-
-CREATE TABLE IF NOT EXISTS transaction_tags
-(
-    transaction_id UUID   NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
-    tag_id         BIGINT NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
-    PRIMARY KEY (transaction_id, tag_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_transaction_tags_tag ON transaction_tags (tag_id);
-
-
--- Split transactions: per-category breakdown of a single transaction (see migrations/0.5.0/13).
-CREATE TABLE IF NOT EXISTS transaction_splits
-(
-    id             UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
-    transaction_id UUID           NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
-    category_id    BIGINT         NOT NULL REFERENCES categories (id),
-    amount         DECIMAL(15, 2) NOT NULL,
-    note           TEXT,
-    created_at     TIMESTAMPTZ    NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_transaction_splits_transaction_id ON transaction_splits (transaction_id);
-CREATE INDEX IF NOT EXISTS idx_transaction_splits_category_id ON transaction_splits (category_id);
-
-
--- Rule engine: each rule has N conditions (matched ALL or ANY) and N actions (set category / add tag).
-CREATE TABLE IF NOT EXISTS rules
+CREATE TABLE IF NOT EXISTS categorization_rules
 (
     id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
     user_id     UUID         NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    name        VARCHAR(100) NOT NULL,
-    match_all   BOOLEAN      NOT NULL DEFAULT TRUE,
-    enabled     BOOLEAN      NOT NULL DEFAULT TRUE,
+    match_type  VARCHAR(16)  NOT NULL DEFAULT 'CONTAINS',
+    pattern     VARCHAR(255) NOT NULL,
+    category_id BIGINT       NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
     priority    INTEGER      NOT NULL DEFAULT 0,
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    modified_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    modified_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT chk_categorization_rules_match_type
+        CHECK (match_type IN ('CONTAINS', 'EQUALS', 'STARTS_WITH'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_rules_user_priority
-    ON rules (user_id, priority DESC, created_at);
+CREATE INDEX IF NOT EXISTS idx_categorization_rules_user_priority
+    ON categorization_rules (user_id, priority DESC, created_at);
 
-CREATE TABLE IF NOT EXISTS rule_conditions
-(
-    id       UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    rule_id  UUID         NOT NULL REFERENCES rules (id) ON DELETE CASCADE,
-    field    VARCHAR(20)  NOT NULL,
-    operator VARCHAR(20)  NOT NULL,
-    value    VARCHAR(255) NOT NULL,
-    CONSTRAINT chk_rule_conditions_field
-        CHECK (field IN ('DESCRIPTION', 'AMOUNT', 'DIRECTION', 'ACCOUNT')),
-    CONSTRAINT chk_rule_conditions_operator
-        CHECK (operator IN ('CONTAINS', 'EQUALS', 'STARTS_WITH', 'GT', 'GTE', 'LT', 'LTE', 'IS'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_rule_conditions_rule ON rule_conditions (rule_id);
-
-CREATE TABLE IF NOT EXISTS rule_actions
-(
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    rule_id     UUID        NOT NULL REFERENCES rules (id) ON DELETE CASCADE,
-    action_type VARCHAR(20) NOT NULL,
-    category_id BIGINT REFERENCES categories (id) ON DELETE CASCADE,
-    tag_id      BIGINT REFERENCES tags (id) ON DELETE CASCADE,
-    CONSTRAINT chk_rule_actions_type
-        CHECK (action_type IN ('SET_CATEGORY', 'ADD_TAG')),
-    CONSTRAINT chk_rule_actions_target CHECK (
-        (action_type = 'SET_CATEGORY' AND category_id IS NOT NULL AND tag_id IS NULL) OR
-        (action_type = 'ADD_TAG' AND tag_id IS NOT NULL AND category_id IS NULL)
-        )
-);
-
-CREATE INDEX IF NOT EXISTS idx_rule_actions_rule ON rule_actions (rule_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_categorization_rules_user_pattern
+    ON categorization_rules (user_id, lower(pattern), match_type);
 
 
 CREATE TABLE IF NOT EXISTS notifications
@@ -640,9 +511,6 @@ VALUES ('Food', 'i-lucide-utensils', '#ef4444', 'EXPENSE', FALSE, NULL),
        ('Savings Deposit', 'i-lucide-piggy-bank', '#22d3ee', 'EXPENSE', FALSE, NULL),
        ('Lending', 'i-lucide-hand-coins', '#f97316', 'EXPENSE', TRUE, NULL),
        ('Repayment', 'i-lucide-hand-helping', '#10b981', 'INCOME', TRUE, NULL),
-       ('Transfer', 'i-lucide-arrow-right-left', '#06b6d4', 'EXPENSE', FALSE, NULL),
-       ('Transfer out', 'i-lucide-arrow-up-right', '#06b6d4', 'EXPENSE', TRUE, 'TRANSFER_OUT'),
-       ('Transfer in', 'i-lucide-arrow-down-left', '#06b6d4', 'INCOME', TRUE, 'TRANSFER_IN'),
        ('Uncategorized', 'i-lucide-circle-help', '#9ca3af', 'EXPENSE', FALSE, 'UNCATEGORIZED')
 ON CONFLICT (name)
 WHERE user_id IS NULL DO NOTHING;
@@ -660,6 +528,3 @@ INSERT INTO schema_migrations (version) VALUES ('0.4.0/01_uncategorized_category
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/02_categorization_rules.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/03_multi_currency.sql') ON CONFLICT (version) DO NOTHING;
 INSERT INTO schema_migrations (version) VALUES ('0.4.0/04_SetVersion_0_4_0.sql') ON CONFLICT (version) DO NOTHING;
-INSERT INTO schema_migrations (version) VALUES ('0.5.0/01_transfer_support.sql') ON CONFLICT (version) DO NOTHING;
-INSERT INTO schema_migrations (version) VALUES ('0.5.0/02_transfer_categories.sql') ON CONFLICT (version) DO NOTHING;
-INSERT INTO schema_migrations (version) VALUES ('0.5.0/04_transfer_evaluation_category.sql') ON CONFLICT (version) DO NOTHING;
