@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {useCategoriesStore} from "~/stores/categoriesStore";
-const CreateCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/create-category-modal.vue"));
-const EditCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/edit-category-modal.vue"));
+const CategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/category-modal.vue"));
 const DeleteCategoryModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/delete-category-modal.vue"));
 import CategoryCard from "~/components/_molecules/cards/category-card.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
@@ -131,8 +130,8 @@ onMounted(() => {
       </template>
     </UTabs>
 
-    <CreateCategoryModal v-model:open="isCreateModalOpen"/>
-    <EditCategoryModal v-model:open="isEditModalOpen" :category="selectedCategory"/>
+    <CategoryModal v-model:open="isCreateModalOpen"/>
+    <CategoryModal v-model:open="isEditModalOpen" :category="selectedCategory"/>
     <DeleteCategoryModal v-model:open="isDeleteModalOpen" :category="selectedCategory"/>
   </UContainer>
 </template>

@@ -12,6 +12,7 @@ import ModalFooterActions from "~/components/_molecules/modals/modal-footer-acti
 import {categorySchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
+  /** Present → edit that category; absent → create a new one. */
   category?: Category;
 }>();
 
@@ -20,44 +21,50 @@ const isOpen = defineModel<boolean>('open', {required: true});
 const categoriesStore = useCategoriesStore();
 const {t} = useI18n();
 
-const form = ref<CategoryForm>({
-  name: '',
-  icon: 'i-lucide-tag',
-  color: '#3b82f6',
-  type: CategoryType.EXPENSE,
-});
-
+const form = ref<CategoryForm>(blankForm());
 const loading = ref(false);
 const formId = useId();
 
 const schema = categorySchema(t);
 type Schema = z.output<typeof schema>;
 
+const isEdit = computed(() => !!props.category);
+
 const typeOptions = computed(() => [
   {label: t('categories.type.expense'), value: CategoryType.EXPENSE},
   {label: t('categories.type.income'), value: CategoryType.INCOME},
 ]);
 
-watch(() => props.category, (newCategory) => {
-  if (newCategory) {
-    form.value = {
-      name: newCategory.name,
-      icon: newCategory.icon,
-      color: newCategory.color,
-      type: newCategory.type,
-    };
-  }
-}, {immediate: true});
+function blankForm(): CategoryForm {
+  return {name: '', icon: 'i-lucide-tag', color: '#3b82f6', type: CategoryType.EXPENSE};
+}
+
+function syncForm() {
+  const c = props.category;
+  form.value = c
+    ? {name: c.name, icon: c.icon, color: c.color, type: c.type}
+    : blankForm();
+}
+
+watch(isOpen, (open) => {
+  if (open) syncForm();
+});
+watch(() => props.category, () => {
+  if (isOpen.value) syncForm();
+});
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
-  if (!props.category?.id) return;
-
   loading.value = true;
   try {
-    await categoriesStore.updateCategory(props.category.id, form.value);
+    if (props.category) {
+      if (!props.category.id) return;
+      await categoriesStore.updateCategory(props.category.id, form.value);
+    } else {
+      await categoriesStore.createCategory(form.value);
+    }
     isOpen.value = false;
   } catch (error) {
-    adze.ns('categories').error('Failed to update category', error);
+    adze.ns('categories').error(`Failed to ${isEdit.value ? 'update' : 'create'} category`, error);
   } finally {
     loading.value = false;
   }
@@ -66,8 +73,8 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 
 <template>
   <UModal v-model:open="isOpen"
-          :description="t('categories.edit.description')"
-          :title="t('categories.edit.title')">
+          :description="t(isEdit ? 'categories.edit.description' : 'categories.create.description')"
+          :title="t(isEdit ? 'categories.edit.title' : 'categories.create.title')">
     <template #body>
       <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
         <AppRadioGroup v-model="form.type"
@@ -96,7 +103,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
     <template #footer>
       <ModalFooterActions :form="formId"
                           :loading="loading"
-                          :submit-label="t('categories.edit.submit')"
+                          :submit-label="t(isEdit ? 'categories.edit.submit' : 'categories.create.submit')"
                           @cancel="isOpen = false"/>
     </template>
   </UModal>
