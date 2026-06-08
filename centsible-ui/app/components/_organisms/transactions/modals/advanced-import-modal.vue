@@ -5,6 +5,7 @@ import {type Category, CategoryType} from "~/models/category/category";
 import {useImportService} from "~/services/imports/import-service";
 import {useCategoryService} from "~/services/category/category-service";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useImportTemplatesStore} from "~/stores/importTemplatesStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import type {
@@ -19,6 +20,7 @@ import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import CsvMappingEditor from "~/components/_organisms/transactions/modals/csv-mapping-editor.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
+import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -47,6 +49,16 @@ const defaultCategory = ref<Category | undefined>(undefined);
 const categories = ref<Category[]>([]);
 const loading = ref(false);
 const committing = ref(false);
+
+const templatesStore = useImportTemplatesStore();
+const selectedProfileId = ref<string | null>(null);
+const showSaveProfile = ref(false);
+const newProfileName = ref('');
+const savingProfile = ref(false);
+
+const profileItems = computed(() =>
+  templatesStore.templates.map(tpl => ({label: tpl.name, value: tpl.id})),
+);
 
 function blankMapping(): CsvColumnMapping {
   return {
@@ -87,6 +99,10 @@ watch(isOpen, async (open) => {
   mapping.value = blankMapping();
   preview.value = null;
   defaultCategory.value = undefined;
+  selectedProfileId.value = null;
+  showSaveProfile.value = false;
+  newProfileName.value = '';
+  void templatesStore.fetchAll();
   if (categories.value.length === 0) {
     try {
       categories.value = await categoryService.fetchCategories();
@@ -125,6 +141,15 @@ async function detectAndProceed() {
       const probed = await importService.csvProbe(file.value);
       probe.value = probed;
       mapping.value = probed.suggestedMapping ?? guessMapping(probed.header);
+      // If the user already saved a profile for the bank profile we just recognized, prefer it —
+      // their tweaks win over the built-in suggestion.
+      const savedMatch = probed.suggestedProfileId
+        ? templatesStore.templates.find(tpl => tpl.sourceProfileId === probed.suggestedProfileId)
+        : undefined;
+      if (savedMatch) {
+        mapping.value = {...savedMatch.mapping};
+        selectedProfileId.value = savedMatch.id;
+      }
       step.value = 'map';
     } else {
       probe.value = null;
@@ -162,6 +187,43 @@ async function previewWithMapping() {
 
 function backFromReview() {
   step.value = detection.value?.parserId === 'csv' ? 'map' : 'upload';
+}
+
+function applyProfile(id: string | null) {
+  selectedProfileId.value = id;
+  if (!id) return;
+  const tpl = templatesStore.templates.find(p => p.id === id);
+  if (tpl) mapping.value = {...tpl.mapping};
+}
+
+async function saveProfile() {
+  const name = newProfileName.value.trim();
+  if (!name || !mappingValid.value) return;
+  savingProfile.value = true;
+  try {
+    const created = await templatesStore.create({
+      name,
+      sourceProfileId: probe.value?.suggestedProfileId ?? null,
+      sourceProfileVersion: probe.value?.suggestedProfileVersion ?? null,
+      mapping: mapping.value,
+      dialect: probe.value?.dialect ?? {delimiter: ',', quote: '"', hasHeader: true, encoding: 'UTF-8'},
+    });
+    selectedProfileId.value = created.id;
+    showSaveProfile.value = false;
+    newProfileName.value = '';
+    toasts.success(
+      t('transactions.advancedImport.savedProfiles.savedTitle'),
+      t('transactions.advancedImport.savedProfiles.savedBody', {name: created.name}),
+    );
+  } catch (error) {
+    useApiErrors().toastError(
+      error,
+      t('transactions.advancedImport.savedProfiles.saveFailedTitle'),
+      t('transactions.advancedImport.savedProfiles.saveFailedBody'),
+    );
+  } finally {
+    savingProfile.value = false;
+  }
 }
 
 async function commit() {
@@ -223,6 +285,45 @@ async function commit() {
             {{ probe.suggestedProfileId }} v{{ probe.suggestedProfileVersion }}
           </UBadge>
         </div>
+
+        <div class="rounded-md border border-default p-3 space-y-3">
+          <div class="flex items-end gap-2 flex-wrap">
+            <UFormField :label="t('transactions.advancedImport.savedProfiles.selectLabel')" class="flex-1 min-w-[12rem]">
+              <AppSelect :model-value="selectedProfileId"
+                         :items="profileItems"
+                         value-key="value"
+                         :placeholder="t('transactions.advancedImport.savedProfiles.selectPlaceholder')"
+                         :disabled="profileItems.length === 0"
+                         class="w-full"
+                         @update:model-value="(v) => applyProfile(v as string)"/>
+            </UFormField>
+            <AppButton v-if="!showSaveProfile"
+                       color="neutral"
+                       variant="subtle"
+                       icon="i-lucide-bookmark"
+                       :disabled="!mappingValid"
+                       @click="showSaveProfile = true">
+              {{ t('transactions.advancedImport.savedProfiles.saveAction') }}
+            </AppButton>
+          </div>
+          <div v-if="showSaveProfile" class="flex items-end gap-2 flex-wrap">
+            <UFormField :label="t('transactions.advancedImport.savedProfiles.nameLabel')" class="flex-1 min-w-[12rem]">
+              <AppInput v-model="newProfileName"
+                        :placeholder="t('transactions.advancedImport.savedProfiles.namePlaceholder')"
+                        class="w-full"/>
+            </UFormField>
+            <AppButton :disabled="!newProfileName.trim() || !mappingValid"
+                       :loading="savingProfile"
+                       @click="saveProfile">
+              {{ t('common.actions.save') }}
+            </AppButton>
+            <AppButton color="neutral" variant="ghost" @click="showSaveProfile = false">
+              {{ t('common.actions.cancel') }}
+            </AppButton>
+          </div>
+          <p class="text-xs text-muted">{{ t('transactions.advancedImport.savedProfiles.hint') }}</p>
+        </div>
+
         <CsvMappingEditor v-model="mapping"
                           :headers="probe?.header ?? []"
                           :sample-row="probe?.sample?.[0] ?? []"/>
