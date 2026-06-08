@@ -103,19 +103,7 @@ class TransactionService(
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val conversion = currencyConversionService.convert(
-            transactionForm.amount,
-            transactionForm.currency ?: account.currency,
-            account.currency,
-            transactionForm.transactionDate,
-        )
-        val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
-        val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
-        val resolvedForm = transactionForm.copy(
-            type = resolvedType,
-            categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
-        )
+        val (conversion, splits, resolvedForm) = prepareTransaction(accountId, transactionForm, authenticatedUser)
         val transaction = transactionRepository.createTransaction(accountId, resolvedForm, conversion, authenticatedUser)
         if (splits != null) {
             transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
@@ -146,19 +134,7 @@ class TransactionService(
             .fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId]
             ?.mapNotNull { it.category.id } ?: emptyList()
 
-        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val conversion = currencyConversionService.convert(
-            transactionForm.amount,
-            transactionForm.currency ?: account.currency,
-            account.currency,
-            transactionForm.transactionDate,
-        )
-        val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
-        val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
-        val resolvedForm = transactionForm.copy(
-            type = resolvedType,
-            categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
-        )
+        val (conversion, splits, resolvedForm) = prepareTransaction(accountId, transactionForm, authenticatedUser)
         val updatedTransaction =
             transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
         transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
@@ -556,6 +532,39 @@ class TransactionService(
      * simple single-category one. A split needs at least two positive slices that sum exactly to the
      * stored amount, each in a non-managed category of the transaction's own type.
      */
+    private data class PreparedTransaction(
+        val conversion: ConversionResult,
+        val splits: List<TransactionSplitForm>?,
+        val resolvedForm: TransactionForm,
+    )
+
+    /**
+     * Shared create/update prologue: fetch the account for its currency, convert the amount into
+     * it, resolve the effective category type, validate/normalize splits, and fold the resolved
+     * type and primary category back into the form. Create and update diverge only afterwards (a
+     * single balance adjustment vs. a delta against the old transaction).
+     */
+    private fun prepareTransaction(
+        accountId: UUID,
+        transactionForm: TransactionForm,
+        authenticatedUser: UserDTO,
+    ): PreparedTransaction {
+        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        val conversion = currencyConversionService.convert(
+            transactionForm.amount,
+            transactionForm.currency ?: account.currency,
+            account.currency,
+            transactionForm.transactionDate,
+        )
+        val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
+        val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
+        val resolvedForm = transactionForm.copy(
+            type = resolvedType,
+            categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
+        )
+        return PreparedTransaction(conversion, splits, resolvedForm)
+    }
+
     private fun normalizeSplits(
         form: TransactionForm,
         storedAmount: BigDecimal,
