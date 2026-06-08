@@ -9,8 +9,7 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
-const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
-const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
+const BudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {format, parseISO, subMonths} from 'date-fns';
@@ -169,15 +168,15 @@ onMounted(() => refresh());
 
     <CreateFab @create="isCreateModalOpen = true"/>
 
-    <CreateBudgetModal v-if="isCreateModalOpen"
-                       v-model:open="isCreateModalOpen"
-                       :existing-combos="existingCombos"
-                       @created="refresh"/>
+    <BudgetModal v-if="isCreateModalOpen"
+                 v-model:open="isCreateModalOpen"
+                 :existing-combos="existingCombos"
+                 @created="refresh"/>
 
-    <EditBudgetModal v-if="isEditModalOpen && selected"
-                     v-model:open="isEditModalOpen"
-                     :budget="selected"
-                     @updated="refresh"/>
+    <BudgetModal v-if="isEditModalOpen && selected"
+                 v-model:open="isEditModalOpen"
+                 :budget="selected"
+                 @updated="refresh"/>
 
     <DeleteBudgetModal v-if="isDeleteModalOpen"
                        v-model:open="isDeleteModalOpen"
