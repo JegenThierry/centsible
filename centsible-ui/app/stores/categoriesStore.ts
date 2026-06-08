@@ -27,19 +27,13 @@ export const useCategoriesStore = defineStore('categoriesStore', () => {
     }
   }
 
-  async function runMutation(action: () => Promise<void>, successTitle: string, successBody: string, errorTitle: string) {
-    pending.value = true;
-    try {
-      await action();
-      await updateCategories();
-      toasts.success(successTitle, successBody);
-    } catch (error) {
-      apiErrors.toastError(error, errorTitle, t('categories.toasts.genericErrorBody'));
-      throw error;
-    } finally {
-      pending.value = false;
-    }
-  }
+  const runMutation = useRunMutation({
+    pending,
+    refetch: updateCategories,
+    fallbackBody: () => t('categories.toasts.genericErrorBody'),
+    toasts,
+    apiErrors,
+  });
 
   async function createCategory(form: CategoryForm) {
     await runMutation(

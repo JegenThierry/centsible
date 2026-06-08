@@ -27,19 +27,13 @@ export const useRulesStore = defineStore('rulesStore', () => {
     }
   }
 
-  async function runMutation(action: () => Promise<void>, successTitle: string, successBody: string, errorTitle: string) {
-    pending.value = true;
-    try {
-      await action();
-      await updateRules();
-      toasts.success(successTitle, successBody);
-    } catch (error) {
-      apiErrors.toastError(error, errorTitle, t('categories.rules.toasts.genericErrorBody'));
-      throw error;
-    } finally {
-      pending.value = false;
-    }
-  }
+  const runMutation = useRunMutation({
+    pending,
+    refetch: updateRules,
+    fallbackBody: () => t('categories.rules.toasts.genericErrorBody'),
+    toasts,
+    apiErrors,
+  });
 
   async function createRule(form: RuleForm) {
     await runMutation(
