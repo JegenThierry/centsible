@@ -1,22 +1,21 @@
 package beer.thierry.centsible.integrations.fx.frankfurter
 
 import beer.thierry.centsible.api.services.integrations.IExchangeRateProvider
-import beer.thierry.centsible.integrations.support.timeoutRequestFactory
+import beer.thierry.centsible.integrations.support.HttpTimeoutProperties
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestClient
-import java.time.Duration
 
 @Configuration
 @ConditionalOnProperty(value = ["fx.frankfurter.enabled"], havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(HttpTimeoutProperties::class)
 class FrankfurterFxConfig(
     @param:Value("\${fx.frankfurter.api-base:https://api.frankfurter.dev}") private val apiBase: String,
-    @param:Value("\${integrations.http.connect-timeout-ms:10000}") private val connectTimeoutMs: Long,
-    @param:Value("\${integrations.http.read-timeout-ms:30000}") private val readTimeoutMs: Long,
 ) {
 
     private val log = LoggerFactory.getLogger(FrankfurterFxConfig::class.java)
@@ -27,9 +26,9 @@ class FrankfurterFxConfig(
     }
 
     @Bean
-    fun frankfurterHttpClient(): FrankfurterHttpClient = FrankfurterHttpClient(
+    fun frankfurterHttpClient(httpTimeouts: HttpTimeoutProperties): FrankfurterHttpClient = FrankfurterHttpClient(
         RestClient.builder()
-            .requestFactory(timeoutRequestFactory(Duration.ofMillis(connectTimeoutMs), Duration.ofMillis(readTimeoutMs)))
+            .requestFactory(httpTimeouts.requestFactory())
             .build(),
         apiBase,
     )
