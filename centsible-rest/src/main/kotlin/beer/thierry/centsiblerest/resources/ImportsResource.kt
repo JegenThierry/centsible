@@ -66,32 +66,12 @@ class ImportsResource(
         val dialect = dialectJson?.let { objectMapper.readValue(it, CsvDialectDTO::class.java) }?.let(ImportMappersImpl::toCore)
         val probe = csvParser.probe(bytes, ParseHints(csvDialect = dialect))
         val suggested = registry.bestProfileMatch(probe.header, probe.sample)
-        val mapping = suggested?.toMapping()?.let {
-            CsvColumnMappingDTO(
-                dateColumn = it.dateColumn,
-                descriptionColumn = it.descriptionColumn,
-                amountColumn = it.amountColumn,
-                debitColumn = it.debitColumn,
-                creditColumn = it.creditColumn,
-                currencyColumn = it.currencyColumn,
-                counterpartyColumn = it.counterpartyColumn,
-                categoryColumn = it.categoryColumn,
-                dateFormat = it.dateFormat,
-                decimalSeparator = it.decimalSeparator,
-                thousandsSeparator = it.thousandsSeparator,
-                debitsArePositive = it.debitsArePositive,
-            )
-        }
+        val mapping = suggested?.toMapping()?.let { ImportMappersImpl.toDto(it) }
         return ResponseEntity.ok(
             CsvProbeResponse(
                 header = probe.header,
                 sample = probe.sample,
-                dialect = CsvDialectDTO(
-                    delimiter = probe.detectedDialect.delimiter,
-                    quote = probe.detectedDialect.quote,
-                    hasHeader = probe.detectedDialect.hasHeader,
-                    encoding = probe.detectedDialect.encoding,
-                ),
+                dialect = ImportMappersImpl.toDto(probe.detectedDialect),
                 suggestedProfileId = suggested?.id,
                 suggestedProfileVersion = suggested?.version,
                 suggestedMapping = mapping,
