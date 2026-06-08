@@ -17,7 +17,6 @@ export const useLoansStore = defineStore('loansStore', () => {
   const loansByContact = ref<Record<string, Loan[]>>({});
   const repaymentsByLoan = ref<Record<string, Repayment[]>>({});
   const totalOutstanding = ref<number>(0);
-  // Loans whose currency couldn't be converted into the default currency (counted as 0 in the total).
   const outstandingExcludedCount = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);

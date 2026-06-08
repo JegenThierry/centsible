@@ -50,7 +50,6 @@ const chartData = computed<ChartData<'bar'>>(() => ({
 }));
 
 const chartOptions = computed<ChartOptions<'bar'>>(() => {
-  // This chart uses a softer rgba grid (existing visual choice) instead of the shared gridColor.
   const softGrid = isDark.value ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const fmt = currencyFmt(2);
 

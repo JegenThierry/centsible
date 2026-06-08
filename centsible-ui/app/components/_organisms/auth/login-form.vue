@@ -34,7 +34,6 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
     .login({username: state.username, password: state.password})
     .then(async (result) => {
       if (result.twoFactorRequired) {
-        // Hold the session: the pre-auth cookie is set; complete the TOTP challenge next.
         authStore.setTwoFactorPending(true);
         navigateTo('/auth/2fa');
         return;

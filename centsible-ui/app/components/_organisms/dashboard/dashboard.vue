@@ -40,8 +40,6 @@ const reportsStore = useReportsStore();
 const loansStore = useLoansStore();
 const transactionService = useTransactionService(useApi());
 
-// Recent-transactions widget shares the one transaction data path (pagination + error state) instead
-// of a stunted dedicated store; we only ever load the first page here.
 const {
   transactions: recentTransactions,
   loading: recentLoading,

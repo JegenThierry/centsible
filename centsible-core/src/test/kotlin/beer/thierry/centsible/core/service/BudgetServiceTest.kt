@@ -25,7 +25,6 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class BudgetServiceTest {
 
-    // Mockito's `any()` returns null which Kotlin's non-null types reject; reify the type.
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
     @Mock

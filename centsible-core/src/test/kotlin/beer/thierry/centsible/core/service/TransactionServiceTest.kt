@@ -45,8 +45,6 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TransactionServiceTest {
 
-    // Helpers — Mockito's `any()` returns null which Kotlin's non-null types reject;
-    // these reify the type so the call sites read naturally.
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
 
@@ -86,12 +84,9 @@ class TransactionServiceTest {
     private val expenseCategory = CategoryDTO(1L, "Category", "icon", "#FF0000", CategoryType.EXPENSE)
     private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", "#00FF00", CategoryType.INCOME)
 
-    // By default the account is EUR and conversions are same-currency no-ops echoing the amount, so the
-    // balance-math assertions below are unaffected. lenient() because delete/bulk tests never convert.
     @BeforeEach
     fun stubAccountAndConversion() {
         lenient().`when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(eurAccount)
-        // doAnswer (not when/thenAnswer) so a per-test re-stub of convert() doesn't re-trigger this answer.
         lenient().doAnswer { inv ->
             val amount = inv.getArgument<BigDecimal>(0)
             val from = inv.getArgument<Currency>(1)
@@ -185,13 +180,11 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Balance moves by the converted EUR amount, never the original 10 USD.
         verify(accountRepository).updateBalance(accountId, BigDecimal("-9.07"), user)
     }
 
     @Test
     fun `createTransaction with explicit type override beats category default`() {
-        // INCOME-typed category but user marks the transaction EXPENSE (e.g. a refund-style scenario).
         val form = TransactionForm(BigDecimal("75.00"), 2L, "Override", LocalDate.now(), type = CategoryType.EXPENSE)
         val transaction = TransactionDTO(
             id = UUID.randomUUID(),
@@ -207,7 +200,6 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Service must not mutate the caller's form.
         assertEquals(CategoryType.EXPENSE, form.type)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-75.00"), user)
     }
@@ -233,7 +225,6 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Caller's form must not be mutated; the managed-type rule lives in the resolved copy.
         assertEquals(CategoryType.INCOME, form.type)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"), user)
     }
@@ -271,7 +262,6 @@ class TransactionServiceTest {
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
-        // reverse old expense (+50) + apply new income (+100) = +150
         verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"), user)
     }
 
@@ -318,8 +308,6 @@ class TransactionServiceTest {
     @Test
     fun `deleteTransaction with a mismatched account is rejected and never touches the balance`() {
         val transactionId = UUID.randomUUID()
-        // The guarded repository delete finds 0 rows for this (transaction, account) pair and throws,
-        // so the service must abort before adjusting any balance — the core of the fixed bug.
         `when`(transactionRepository.deleteTransaction(transactionId, accountId, user))
             .thenThrow(LocalizedException.NotFound("error.transaction.notFound"))
 
@@ -363,7 +351,6 @@ class TransactionServiceTest {
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
-        // reverse old income (-120) + apply new expense (-80) = -200
         verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"), user)
     }
 
@@ -570,16 +557,12 @@ class TransactionServiceTest {
         val result = service.updateTransfer(sourceLegId, accountId, form, user)
 
         assertEquals(2, result.size)
-        // Ids are preserved (in-place edit), not regenerated.
         assertEquals(sourceLegId, result[0].id)
         assertEquals(destLegId, result[1].id)
-        // Old effect reversed...
         verify(accountRepository).updateBalance(accountId, BigDecimal("100.00"), user)
         verify(accountRepository).updateBalance(destAccountId, BigDecimal("-100.00"), user)
-        // ...new effect applied.
         verify(accountRepository).updateBalance(accountId, BigDecimal("-80.00"), user)
         verify(accountRepository).updateBalance(destAccountId, BigDecimal("80.00"), user)
-        // No delete-and-recreate.
         verify(transactionRepository, never()).deleteTransactionsByIds(anyArg(), eqArg(user))
         verify(transactionRepository, never()).insertTransfer(anyArg(), anyArg(), anyArg(), anyArg(), anyArg())
     }

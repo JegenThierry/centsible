@@ -10,6 +10,7 @@ export function useAttachmentService(api: AxiosInstance) {
     return validateRequest<Attachment[]>(response);
   }
 
+  /** Lists every attachment across all the user's transactions, paged. */
   async function listForUser(page = 1, size = 25): Promise<EnrichedAttachment[]> {
     const response = await api.get<EnrichedAttachment[]>(`/attachments`, {params: {page, size}});
     return validateRequest<EnrichedAttachment[]>(response);

@@ -65,8 +65,6 @@ const schema = z.object({
     .max(500, t('common.validation.maxLength', {field: notesLabel, max: 500}))
     .optional(),
 }).superRefine((d, ctx) => {
-  // A contact is required: either an existing one (contactId, also set when lockContact) or a new
-  // contact's first name. The error lands on whichever field the active mode shows.
   if (!d.contactId && !d.newContactFirstName) {
     ctx.addIssue({code: z.ZodIssueCode.custom, path: ['contactId'], message: t('common.validation.required', {field: contactLabel})});
     ctx.addIssue({code: z.ZodIssueCode.custom, path: ['newContactFirstName'], message: t('common.validation.required', {field: firstNameLabel})});

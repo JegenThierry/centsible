@@ -28,8 +28,6 @@ const emit = defineEmits<{
   (e: 'imported'): void;
 }>();
 
-// CSV gets an extra mapping step (so a wrong auto-detection can be corrected); other formats (OFX)
-// skip straight to review.
 type Step = 'upload' | 'map' | 'review';
 
 const api = useApi();
@@ -70,8 +68,6 @@ function blankMapping(): CsvColumnMapping {
   };
 }
 
-// Best-effort guess used only when the server matched no bank profile, so the editor opens with
-// sensible defaults the user can correct.
 function guessMapping(header: string[]): CsvColumnMapping {
   const lower = header.map(h => h.toLowerCase());
   const findIdx = (re: RegExp) => lower.findIndex(h => re.test(h));
@@ -130,7 +126,6 @@ function buildHints(): ParseHints {
   };
 }
 
-// Step 1 -> detect the format. CSV branches to the mapping step; everything else previews directly.
 async function detectAndProceed() {
   if (!file.value || !defaultCategory.value) return;
   loading.value = true;
@@ -141,8 +136,6 @@ async function detectAndProceed() {
       const probed = await importService.csvProbe(file.value);
       probe.value = probed;
       mapping.value = probed.suggestedMapping ?? guessMapping(probed.header);
-      // If the user already saved a profile for the bank profile we just recognized, prefer it —
-      // their tweaks win over the built-in suggestion.
       const savedMatch = probed.suggestedProfileId
         ? templatesStore.templates.find(tpl => tpl.sourceProfileId === probed.suggestedProfileId)
         : undefined;
@@ -167,7 +160,6 @@ async function detectAndProceed() {
   }
 }
 
-// Step 2 (CSV) -> preview with the (possibly edited) mapping.
 async function previewWithMapping() {
   if (!file.value || !detection.value || !mappingValid.value) return;
   loading.value = true;

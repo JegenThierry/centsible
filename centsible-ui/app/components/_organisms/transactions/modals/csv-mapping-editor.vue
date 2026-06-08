@@ -4,9 +4,6 @@ import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 
-// Editable view over the server's suggested CsvColumnMapping, so a user can correct a wrong
-// auto-detection before previewing. Each header column is assigned a role; the role positions are
-// folded back into the column-index mapping the parser expects.
 type Role =
   | 'ignore' | 'date' | 'description' | 'amount'
   | 'debit' | 'credit' | 'currency' | 'counterparty' | 'category';
@@ -46,7 +43,6 @@ function roleForColumn(idx: number): Role {
 
 function setRole(idx: number, role: Role) {
   const roles = props.headers.map((_, i) => roleForColumn(i));
-  // A unique role can live on only one column — clear it elsewhere before assigning.
   if (UNIQUE_ROLES.includes(role)) {
     roles.forEach((r, i) => {
       if (r === role && i !== idx) roles[i] = 'ignore';

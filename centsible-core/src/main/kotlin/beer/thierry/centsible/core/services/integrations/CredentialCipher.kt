@@ -52,15 +52,11 @@ class CredentialCipher(
 
     @PostConstruct
     fun validateAtBoot() {
-        // Look up the registry lazily — both beans are constructed in undefined order, but by the
-        // time @PostConstruct runs Spring guarantees all singletons exist. Going through the
-        // application context avoids a constructor cycle.
         val registry = runCatching { applicationContext.getBean(IProviderRegistry::class.java) }
             .getOrNull() ?: return
         val needsCipher = registry.listDescriptors().any { it.authType != AuthType.NONE }
         if (!needsCipher) return
         try {
-            // Touch the lazy encryptor to fail fast with a clear message at boot.
             encryptor
             log.info("Credential cipher ready; {} credentialled provider(s) enabled.",
                 registry.listDescriptors().count { it.authType != AuthType.NONE })

@@ -63,7 +63,6 @@ watch(isOpen, (open) => {
   if (open) form.value = makeForm();
 });
 
-// When interest is set, owed is derived from the (immutable) lent amount and read-only.
 const hasInterest = computed(() => hasInterestRate(form.value.interestRate));
 
 watch(() => form.value.interestRate, () => {

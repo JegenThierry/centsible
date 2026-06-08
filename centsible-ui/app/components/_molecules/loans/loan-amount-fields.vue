@@ -12,7 +12,6 @@ const form = defineModel<LoanForm>({required: true});
 
 const {t} = useI18n();
 
-// When an interest rate is set, owed is derived (owed = lent * (1 + rate/100)) and read-only.
 const hasInterest = computed(() => hasInterestRate(form.value.interestRate));
 
 watch([() => form.value.interestRate, () => form.value.lentAmount], () => {

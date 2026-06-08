@@ -16,7 +16,6 @@ class ProductionGuardTest {
 
     @Test
     fun `non-prod profile tolerates skip-email-verification and insecure cookies`() {
-        // No exception expected — these flags are intentionally allowed outside prod for local dev.
         ProductionGuard(
             environment = env(arrayOf("dev")),
             skipEmailVerification = true,
@@ -115,7 +114,6 @@ class ProductionGuardTest {
 
     @Test
     fun `non-prod profile tolerates the committed env-example placeholders`() {
-        // Outside prod the placeholders are fine for local dev — the guard must not fire.
         ProductionGuard(
             environment = env(arrayOf("dev")),
             skipEmailVerification = false,

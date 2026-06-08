@@ -21,6 +21,7 @@ data class BudgetDTO(
     var updatedAt: OffsetDateTime? = null,
 ) {
     companion object {
+        /** Canonical `period` key (`YYYY-MM`) for [yearMonth], used to scope a budget to its period. */
         fun periodKey(yearMonth: YearMonth): String = yearMonth.toString()
     }
 }

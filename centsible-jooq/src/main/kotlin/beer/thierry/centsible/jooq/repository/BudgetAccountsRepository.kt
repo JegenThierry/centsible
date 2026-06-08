@@ -76,7 +76,6 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
             .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .execute()
-        // Must throw, not no-op: @Transactional callers rely on this to roll back.
         if (rows == 0) throw LocalizedException.NotFound("error.account.notFound")
     }
 

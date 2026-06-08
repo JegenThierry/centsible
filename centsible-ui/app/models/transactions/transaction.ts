@@ -82,7 +82,6 @@ export interface TransactionForm {
   transactionDate: string | undefined,
   currency: Currency,
   tagIds?: number[],
-  // Undefined = simple single-category transaction; an array (>= 2 rows) = split.
   splits?: TransactionSplitRow[],
 }
 

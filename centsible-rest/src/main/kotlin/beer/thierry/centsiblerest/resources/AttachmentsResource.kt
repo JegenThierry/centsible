@@ -65,7 +65,6 @@ class AttachmentsResource(private val service: IAttachmentService) {
         val headers = HttpHeaders().apply {
             contentType = MediaType.parseMediaType(download.metadata.contentType)
             contentLength = download.metadata.sizeBytes
-            // `inline` lets the browser preview where possible; download still works.
             set(HttpHeaders.CONTENT_DISPOSITION,
                 """inline; filename="${download.metadata.filename.replace("\"", "")}"""")
             cacheControl = "no-store"

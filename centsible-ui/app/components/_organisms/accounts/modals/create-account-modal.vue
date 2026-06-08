@@ -40,7 +40,6 @@ const schema = z.object({
     .min(1, t('common.validation.required', {field: nameLabel}))
     .max(100, t('common.validation.maxLength', {field: nameLabel, max: 100})),
   initialBalance: z.preprocess(
-    // Treat a blank field as missing so the required check fires before coercion (empty -> NaN otherwise).
     (v) => (v === '' || v === null ? undefined : v),
     z.number({
       error: (issue) => issue.input === undefined

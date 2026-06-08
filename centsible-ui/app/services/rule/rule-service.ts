@@ -23,6 +23,7 @@ export function useRuleService(api: AxiosInstance) {
     assertStatus(await api.delete(`/rules/${id}`));
   }
 
+  /** Re-evaluates rule [id] against the user's existing transactions; returns rows touched. */
   async function applyRule(id: string): Promise<ApplyRuleResult> {
     return validateRequest<ApplyRuleResult>(await api.post<ApplyRuleResult>(`/rules/${id}/apply`, {}));
   }

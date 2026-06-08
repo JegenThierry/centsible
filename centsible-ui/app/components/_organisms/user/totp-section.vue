@@ -18,7 +18,6 @@ type Step = 'loading' | 'disabled' | 'enrolling' | 'recovery' | 'regenerating' |
 const {t} = useI18n();
 const totpService = useTotpService(useApi());
 const {success, error} = useToasts();
-// legacy:true adds an execCommand fallback for non-HTTPS contexts — common when self-hosting over a LAN.
 const {copy: copyToClipboard, isSupported: clipboardSupported} = useClipboard({legacy: true});
 
 const codeSchema = z.object({
@@ -31,7 +30,6 @@ const busy = ref<boolean>(false);
 const enrollment = ref<TotpEnrollment | null>(null);
 const recoveryCodes = ref<string[]>([]);
 const recoveryRemaining = ref(0);
-// Gates the "I've saved them" button so codes can't be dismissed without an explicit acknowledgement.
 const recoverySaved = ref(false);
 
 const confirmState = reactive({code: ''});
@@ -83,7 +81,6 @@ async function onConfirm(_e: FormSubmitEvent<CodeSchema>) {
 }
 
 function onCancelEnroll() {
-  // Best-effort server cleanup of the orphaned pending secret; the UI resets regardless.
   totpService.cancelEnroll().catch((err) => adze.ns('totp').warn('Failed to cancel enrollment', err));
   enrollment.value = null;
   confirmState.code = '';

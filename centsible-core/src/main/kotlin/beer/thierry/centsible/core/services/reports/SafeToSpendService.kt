@@ -30,12 +30,10 @@ class SafeToSpendService(
         val monthStart = month.atDay(1)
         val monthEnd = month.atEndOfMonth()
 
-        // Booked actuals this month (the repository already excludes transfer legs).
         val cashFlow = reportsRepository.fetchCashFlow(monthStart, monthEnd, authenticatedUser)
         val actualIncome = cashFlow.fold(BigDecimal.ZERO) { acc, point -> acc + point.income }
         val alreadySpent = cashFlow.fold(BigDecimal.ZERO) { acc, point -> acc + point.expense }
 
-        // Recurring rules still due in [today, end-of-month] that have not been generated yet.
         var upcomingIncome = BigDecimal.ZERO
         var upcomingExpenses = BigDecimal.ZERO
         for (rule in recurringRepository.fetchAll(authenticatedUser)) {

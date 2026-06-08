@@ -7,8 +7,8 @@ import type {AxiosInstance} from "axios";
 import {validateRequest} from "~/composables/use-api";
 
 export function useAuthService(api: AxiosInstance) {
+  /** Resolves with status 200 (fully authenticated) or 202 (password ok, TOTP challenge required). */
   async function login(authRequest: AuthRequest): Promise<LoginResponse> {
-    // 200 = fully authenticated; 202 = password ok but a TOTP challenge is required.
     const response = await api.post<LoginResponse>('/auth/login', authRequest, {
       validateStatus: (status) => status === 200 || status === 202,
     });
@@ -53,18 +53,17 @@ export function useAuthService(api: AxiosInstance) {
     return response.status === 204;
   }
 
-  // Authenticated password change; throws on a non-2xx (e.g. 401 wrong current password) so the
-  // caller can surface the specific error. Reissues this session's cookie (other sessions revoked).
+  /** Changes the password and reissues this session's cookie while revoking all other sessions. */
   async function changePassword(request: ChangePasswordRequest): Promise<void> {
     await api.post('/auth/change-password', request);
   }
 
-  // Revokes every other session; the server reissues this session's cookie so the caller stays in.
+  /** Revokes every other session; the server reissues this session's cookie so the caller stays in. */
   async function signOutEverywhere(): Promise<void> {
     await api.post('/auth/sign-out-everywhere');
   }
 
-  // Irreversible self-delete; requires the password (and a TOTP/recovery code when 2FA is on).
+  /** Irreversible self-delete; requires the password (and a TOTP/recovery code when 2FA is on). */
   async function deleteAccount(payload: { password: string, totpCode?: string }): Promise<void> {
     await api.post('/auth/account/delete', payload);
   }

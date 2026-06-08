@@ -30,8 +30,6 @@ const destinationAccount = computed<BudgetAccount | undefined>({
 const sourceCurrency = computed<Currency | undefined>(() => sourceAccount.value?.currency);
 const destinationCurrency = computed<Currency | undefined>(() => destinationAccount.value?.currency);
 
-// A transfer must move money between two distinct accounts, so each leg's picker hides the
-// account already chosen for the other leg — making an identical source/destination unselectable.
 const sourceOptions = computed(() => props.accounts.filter(a => a.id !== form.value.destinationAccountId));
 const destinationOptions = computed(() => props.accounts.filter(a => a.id !== form.value.sourceAccountId));
 

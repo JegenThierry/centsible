@@ -72,8 +72,6 @@ class TotpResource(
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
         totpService.disable(user.id, request.code)
-        // Disabling 2FA is a security downgrade: revoke every other session and reissue this one's
-        // cookie so the current device stays signed in while other devices are kicked.
         val token = authService.signOutOtherSessions(user.id)
         authCookieIssuer.issue(response, token)
         log.info("2FA disabled and other sessions revoked userId={}", user.id)

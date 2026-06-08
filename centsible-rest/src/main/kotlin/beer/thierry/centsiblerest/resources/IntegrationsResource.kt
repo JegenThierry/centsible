@@ -151,7 +151,6 @@ class IntegrationsResource(
         @PathVariable providerKey: String,
         request: HttpServletRequest,
     ): RedirectView {
-        // Standards-compliant providers send `state`; GoCardless echoes our `reference` as `ref`.
         val state = request.getParameter("state")
             ?: request.getParameter("ref")
             ?: ""
@@ -172,9 +171,6 @@ class IntegrationsResource(
 
     private fun buildReturnUrl(result: OAuthCompletionResult): String {
         val front = uiBaseUrl.trim().removeSuffix("/").ifEmpty { "" }
-        // `errorCode` is an opaque vocabulary defined by OAuthFlowService.ERROR_* — the UI
-        // translates each to a localized toast. Raw provider exception messages stay in server
-        // logs only; they MUST NOT reach the browser-visible URL.
         val (status, connectionId, errorCode) = when (result) {
             is OAuthCompletionResult.Success -> Triple("ok", result.connectionId.toString(), null)
             is OAuthCompletionResult.Failure -> Triple("error", result.connectionId?.toString(), result.reason)

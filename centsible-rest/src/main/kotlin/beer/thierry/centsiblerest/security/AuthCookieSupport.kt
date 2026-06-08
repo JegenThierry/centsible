@@ -9,7 +9,6 @@ import java.time.Duration
 const val AUTH_COOKIE_NAME = "auth_token"
 const val MFA_PENDING_COOKIE_NAME = "mfa_pending"
 
-// ProductionGuard enforces cookieSecure=true under the prod profile.
 @Component
 class AuthCookieIssuer(
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,

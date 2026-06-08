@@ -8,7 +8,6 @@ export const useAuthStore = defineStore('authStore', () => {
   const authService = useAuthService(api);
 
   const isAuthenticated = ref(false)
-  // True between a correct password and a completed TOTP challenge — gates the /auth/2fa page.
   const twoFactorPending = ref(false)
 
   const setAuthenticated = (value: boolean) => {
@@ -29,17 +28,11 @@ export const useAuthStore = defineStore('authStore', () => {
     return navigateTo('/auth')
   }
 
-  // Authenticated password change. The server revokes other sessions and reissues this session's
-  // cookie, so the user stays signed in here. Errors propagate to the caller for toast handling.
   const changePassword = (currentPassword: string, newPassword: string) =>
     authService.changePassword({currentPassword, newPassword})
 
-  // Signs out every other device. The server reissues this session's cookie, so the current device
-  // stays signed in. Errors propagate to the caller for toast handling.
   const signOutEverywhere = () => authService.signOutEverywhere()
 
-  // Deletes the account, then tears down local auth state and redirects to /auth — the server has
-  // already cleared the session cookie.
   const deleteAccount = async (password: string, totpCode?: string) => {
     await authService.deleteAccount({password, totpCode})
     isAuthenticated.value = false

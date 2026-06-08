@@ -18,6 +18,7 @@ data class ExportJobDTO(
     val postProcessing: List<ExportPostProcessingDTO> = emptyList(),
 )
 
+/** A pending job leased by a worker, paired with its protobuf export-request [payload]. */
 data class ClaimedExportJob(
     val job: ExportJobDTO,
     val payload: ByteArray,

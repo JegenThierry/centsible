@@ -7,8 +7,11 @@ import beer.thierry.centsible.api.model.user.UserDTO
 
 interface ICategoriesRepository {
     fun fetchAllCategories(authenticatedUser: UserDTO): List<CategoryDTO>
+
+    /** [authenticatedUser]'s or a shared system category by [id], excluding managed (Lending / Repayment) ones; null if absent. */
     fun fetchCategoryById(authenticatedUser: UserDTO, id: Long): CategoryDTO?
 
+    /** Shared, user-agnostic system category identified by its stable [systemKey], or null. */
     fun fetchSystemCategoryByKey(systemKey: String): CategoryDTO?
 
     /**

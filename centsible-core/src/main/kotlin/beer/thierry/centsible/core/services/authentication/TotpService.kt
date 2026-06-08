@@ -33,7 +33,6 @@ class TotpService(
     private val recoveryCodeGenerator = RecoveryCodeGenerator()
     private val timeProvider = SystemTimeProvider()
 
-    // ±1 time-step (≈90s window) for clock drift — RFC 6238's recommended minimum; do not widen.
     private val codeVerifier: CodeVerifier = DefaultCodeVerifier(DefaultCodeGenerator(), timeProvider).apply {
         setTimePeriod(TIME_PERIOD_SECONDS)
         setAllowedTimePeriodDiscrepancy(1)
@@ -82,7 +81,6 @@ class TotpService(
         if (!userRepository.activateTotp(userId, cipher.encrypt(secret))) {
             throw LocalizedException.InternalError("error.totp.enrollFailed")
         }
-        // Burn the confirming code's window so it can't immediately be replayed at first login.
         userRepository.updateTotpLastUsedStep(userId, currentStep())
 
         val plainCodes = generateAndStoreRecoveryCodes(userId)
@@ -106,7 +104,6 @@ class TotpService(
     }
 
     override fun cancelEnrollment(userId: UUID) {
-        // Discards the at-rest pending secret left by beginEnrollment when the user backs out.
         if (userRepository.clearPendingTotpSecret(userId)) {
             log.info("Cancelled TOTP enrollment userId={}", userId)
         }
@@ -150,7 +147,6 @@ class TotpService(
             val current = currentStep()
             val lastUsed = userRepository.getTotpLastUsedStep(userId)
             if (lastUsed != null && current <= lastUsed) {
-                // A code from this 30s window was already accepted — reject the replay.
                 log.warn("TOTP replay rejected userId={} step={}", userId, current)
                 return false
             }
@@ -158,7 +154,6 @@ class TotpService(
             return true
         }
 
-        // Not a valid TOTP code — try a single-use recovery code.
         val match = mfaRepository.fetchUnusedRecoveryCodeHashes(userId)
             .firstOrNull { passwordEncoder.matches(trimmed, it) }
             ?: return false

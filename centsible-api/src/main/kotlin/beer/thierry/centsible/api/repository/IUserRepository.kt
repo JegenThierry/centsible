@@ -56,8 +56,6 @@ interface IUserRepository {
 
     fun updateNotificationSettings(id: UUID, settings: NotificationSettingsDTO): NotificationSettingsDTO
 
-    // --- TOTP two-factor (opt-in) ---
-
     /** Stores the encrypted secret in the pending slot during enrollment (before the user confirms). */
     fun savePendingTotpSecret(id: UUID, encryptedSecret: ByteArray): Boolean
 

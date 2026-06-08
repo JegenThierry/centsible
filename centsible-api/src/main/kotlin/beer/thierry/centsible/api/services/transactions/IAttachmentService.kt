@@ -9,6 +9,7 @@ import java.util.UUID
 interface IAttachmentService {
     fun list(user: UserDTO, transactionId: UUID): List<AttachmentDTO>
 
+    /** Paginated feed of attachments across all of the user's transactions, each enriched with its parent context. */
     fun listForUser(user: UserDTO, page: Int, size: Int): List<AttachmentEnrichedDTO>
 
     fun store(
@@ -20,6 +21,7 @@ interface IAttachmentService {
         content: ByteArray,
     ): AttachmentDTO
 
+    /** Opens the attachment's bytes for download, or null if absent; caller must close the returned stream. */
     fun open(user: UserDTO, attachmentId: UUID): AttachmentDownload?
 
     fun delete(user: UserDTO, attachmentId: UUID): Boolean

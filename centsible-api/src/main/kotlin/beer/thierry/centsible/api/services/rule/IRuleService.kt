@@ -5,6 +5,7 @@ import beer.thierry.centsible.api.model.rule.RuleForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import java.util.UUID
 
+/** Manages user-defined auto-categorization rules and applies them to transactions. Owner-scoped (ADR-0003). */
 interface IRuleService {
     fun list(user: UserDTO): List<RuleDTO>
     fun create(user: UserDTO, form: RuleForm): RuleDTO

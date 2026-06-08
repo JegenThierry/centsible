@@ -89,7 +89,6 @@ function defaultAction(): ActionRow {
   return {type: 'SET_CATEGORY', categoryId: undefined, tagId: undefined};
 }
 
-// When a condition's field changes, snap the operator to a valid one and clear the now-mismatched value.
 function changeField(row: ConditionRow, field: RuleField) {
   row.field = field;
   row.operator = OPERATORS_BY_FIELD[field][0] ?? 'IS';

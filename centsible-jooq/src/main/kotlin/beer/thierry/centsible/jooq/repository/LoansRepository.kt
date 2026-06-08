@@ -58,8 +58,6 @@ class LoansRepository(
             val lendingCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.LENDING)
                 ?: throw IllegalStateException("System Lending category not found. Migration may not have run.")
 
-            // The loan keeps its own currency; the lending transaction is stored in the account
-            // currency (convertedAmount) with the original loan-currency amount/rate on the FX columns.
             val fx = FxColumns.from(conversion)
             val newTransactionId = dsl.insertInto(TRANSACTIONS)
                 .set(TRANSACTIONS.ACCOUNT_ID, accountId)
@@ -79,7 +77,6 @@ class LoansRepository(
                 ?.get(TRANSACTIONS.ID)
                 ?: throw IllegalStateException("Failed to create lending transaction")
 
-            // Lending is an EXPENSE-typed managed category, so the cash leaves the account.
             budgetAccountsRepository.updateBalance(accountId, conversion.convertedAmount.negate(), authenticatedUser)
 
             newTransactionId
@@ -109,7 +106,6 @@ class LoansRepository(
     }
 
     override fun updateLoan(authenticatedUser: UserDTO, id: UUID, form: LoanUpdateForm): LoanDTO? {
-        // Balance-neutral: only metadata + owed/interest change, never the lending transaction.
         val updated = dsl.update(LOANS)
             .set(LOANS.OWED_AMOUNT, form.owedAmount)
             .set(LOANS.INTEREST_RATE, form.interestRate)
@@ -131,7 +127,6 @@ class LoansRepository(
 
         val loanTransactionId: UUID? = record[LOANS.TRANSACTION_ID]
 
-        // Lending tx originally decreased balance; reversal adds the amount back.
         val lendingReversal: Pair<UUID, BigDecimal>? = loanTransactionId?.let { txId ->
             dsl.select(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.AMOUNT)
                 .from(TRANSACTIONS)
@@ -140,9 +135,6 @@ class LoansRepository(
                 ?.let { it[TRANSACTIONS.ACCOUNT_ID]!! to (it[TRANSACTIONS.AMOUNT] ?: BigDecimal.ZERO) }
         }
 
-        // Repayment txs don't cascade-delete with the loan, so collect them first
-        // along with the data needed to reverse their balance impact (repayments
-        // originally increased balance, so reversal subtracts).
         val repaymentTxRows = dsl.select(TRANSACTIONS.ID, TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.AMOUNT)
             .from(LOAN_REPAYMENTS)
             .join(TRANSACTIONS).on(TRANSACTIONS.ID.eq(LOAN_REPAYMENTS.TRANSACTION_ID))
@@ -150,7 +142,6 @@ class LoansRepository(
             .fetch()
         val repaymentTransactionIds: List<UUID> = repaymentTxRows.map { it[TRANSACTIONS.ID]!! }
 
-        // Deleting the loan cascades to loan_repayments via FK.
         dsl.deleteFrom(LOANS).where(LOANS.ID.eq(id)).execute()
 
         val txIdsToDelete = (repaymentTransactionIds + listOfNotNull(loanTransactionId)).distinct()

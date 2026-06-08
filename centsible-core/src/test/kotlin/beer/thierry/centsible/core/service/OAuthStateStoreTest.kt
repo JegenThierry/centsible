@@ -16,7 +16,6 @@ class OAuthStateStoreTest {
         val token = store.mint(UUID.randomUUID(), UUID.randomUUID(), "paypal")
 
         assertNotNull(token)
-        // 16 bytes of entropy → 22-char URL-safe base64 (no padding).
         assertEquals(22, token.length)
     }
 
@@ -36,8 +35,6 @@ class OAuthStateStoreTest {
 
     @Test
     fun `consume returns null on replay`() {
-        // Single-use semantics: the same token cannot be redeemed twice within the TTL.
-        // This is the entire replay-protection property.
         val store = OAuthStateStore()
         val token = store.mint(UUID.randomUUID(), UUID.randomUUID(), "paypal")
 
@@ -60,14 +57,10 @@ class OAuthStateStoreTest {
 
     @Test
     fun `consume rejects token minted for a different provider`() {
-        // Defense-in-depth: a token minted for provider A must not complete provider B's
-        // callback even if URL routing somehow misfires.
         val store = OAuthStateStore()
         val token = store.mint(UUID.randomUUID(), UUID.randomUUID(), "paypal")
 
         assertNull(store.consume(token, "banking-gocardless"))
-        // The mismatched-provider attempt still consumes the token — by design, even a probe
-        // burns it so an attacker can't iterate provider keys against a stolen state.
         assertNull(store.consume(token, "paypal"))
     }
 

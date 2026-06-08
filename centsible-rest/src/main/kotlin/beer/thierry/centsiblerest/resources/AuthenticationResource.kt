@@ -49,8 +49,6 @@ class AuthenticationResource(
                 ResponseEntity.ok(LoginResponse(twoFactorRequired = false, token = result.token))
             }
             is LoginResult.TwoFactorRequired -> {
-                // Set the scoped, short-lived pre-auth cookie; the real session is withheld until
-                // the TOTP challenge succeeds.
                 mfaPendingCookieIssuer.issue(response, result.pendingToken)
                 log.info("Login step 1 ok for username={}; 2FA challenge required", request.username)
                 ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginResponse(twoFactorRequired = true))
@@ -71,7 +69,6 @@ class AuthenticationResource(
         val authResult = try {
             authService.completeTwoFactorChallenge(pendingToken, request.code)
         } catch (ex: RuntimeException) {
-            // Clear the (now consumed or invalid) pre-auth cookie so a fresh login is required.
             mfaPendingCookieIssuer.clear(response)
             throw ex
         }
@@ -92,7 +89,6 @@ class AuthenticationResource(
             log.warn("Registration failed for username={}", form.username)
             throw ex
         }
-        // Token is blank when registration is pending email confirmation; skip cookie in that case.
         if (authResult.token.isNotBlank()) authCookieIssuer.issue(response, authResult.token)
         log.info(
             "Registration accepted for username={} pendingConfirmation={}",
@@ -121,7 +117,6 @@ class AuthenticationResource(
         return ResponseEntity.noContent().build()
     }
 
-    // Always 204 regardless of whether the username exists — prevents account enumeration.
     @PostMapping("/forgot-password")
     fun forgotPassword(@Valid @RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
         authService.requestPasswordReset(request.username)
@@ -141,8 +136,6 @@ class AuthenticationResource(
         else ResponseEntity.badRequest().build()
     }
 
-    // Authenticated password change. Revokes every other session (token-version bump) and reissues
-    // this session's cookie with a fresh token so the caller stays signed in on this device only.
     @PostMapping("/change-password")
     fun changePassword(
         @AuthenticationPrincipal user: UserDTO,
@@ -155,8 +148,6 @@ class AuthenticationResource(
         return ResponseEntity.noContent().build()
     }
 
-    // Signs out every other device by bumping the token version, then reissues this session's cookie
-    // so the current device stays signed in. Other devices are rejected on their next request.
     @PostMapping("/sign-out-everywhere")
     fun signOutEverywhere(
         @AuthenticationPrincipal user: UserDTO,
@@ -185,8 +176,6 @@ class AuthenticationResource(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
         response: HttpServletResponse,
     ): ResponseEntity<String> {
-        // The JWT filter rebuilds the principal from claims alone, so a valid token can
-        // outlive the user. Reject — and clear the cookie — when that happens.
         if (userService.userExists(authenticatedUser.id)) return ResponseEntity.ok("ok")
         authCookieIssuer.clear(response)
         log.warn("Verify failed: account no longer exists userId={}", authenticatedUser.id)

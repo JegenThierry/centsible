@@ -34,8 +34,6 @@ class SecurityConfig(
                 configurationSource = corsConfig.corsConfigurationSource()
             }
 
-            // SameSite=Strict cookie + CORS allowlist defend against CSRF.
-            // Re-enable if SameSite is ever loosened or form-encoded writes are accepted.
             csrf { disable() }
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS
@@ -62,7 +60,6 @@ class SecurityConfig(
                 authorize("/api/auth/logout", permitAll)
                 authorize("/api/auth/forgot-password", permitAll)
                 authorize("/api/auth/reset-password", permitAll)
-                // Second login step: redeems the pre-auth token, so it runs before a real session exists.
                 authorize("/api/auth/2fa/challenge", permitAll)
                 authorize("/api/system", permitAll)
                 authorize("/api/integrations/oauth/callback/**", permitAll)

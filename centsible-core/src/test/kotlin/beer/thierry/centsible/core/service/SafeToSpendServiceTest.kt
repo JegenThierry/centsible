@@ -25,7 +25,6 @@ import java.util.UUID
 @ExtendWith(MockitoExtension::class)
 class SafeToSpendServiceTest {
 
-    // Mockito's any() returns null which Kotlin's non-null types reject; reify the type.
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
     @Mock
@@ -98,7 +97,6 @@ class SafeToSpendServiceTest {
         assertEquals(money("1200.00"), result.alreadySpent)
         assertEquals(money("0.00"), result.upcomingExpenses)
         assertEquals(money("1800.00"), result.safeToSpend)
-        // dailyAllowance spreads the (positive) headroom over the days left in the month.
         val expectedDaily = money("1800.00").divide(result.daysRemaining.toBigDecimal(), 2, RoundingMode.HALF_UP)
         assertEquals(expectedDaily, result.dailyAllowance)
     }
@@ -108,8 +106,8 @@ class SafeToSpendServiceTest {
         stub(
             listOf(cashFlow(income = "1000", expense = "300")),
             listOf(
-                rule(amount = money("2000"), type = CategoryType.INCOME),   // monthly, due today -> 1x
-                rule(amount = money("800"), type = CategoryType.EXPENSE),   // monthly, due today -> 1x
+                rule(amount = money("2000"), type = CategoryType.INCOME),
+                rule(amount = money("800"), type = CategoryType.EXPENSE),
             ),
         )
 
@@ -144,7 +142,6 @@ class SafeToSpendServiceTest {
 
     @Test
     fun `counts only occurrences inside the remaining month and respects endDate`() {
-        // Daily rule that started 5 days ago but ends today: only today falls in [today, endOfMonth].
         stub(
             emptyList(),
             listOf(

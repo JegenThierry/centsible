@@ -32,7 +32,6 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class RecurringTransactionServiceTest {
 
-    // Mockito's `any()` returns null which Kotlin's non-null types reject; reify the type.
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
     @Mock
@@ -147,7 +146,6 @@ class RecurringTransactionServiceTest {
         `when`(accountRepository.fetchAccountCurrency(accountId)).thenReturn(Currency.EUR)
         `when`(currencyConversionService.convert(BigDecimal("10.00"), Currency.USD, Currency.EUR, today))
             .thenReturn(conversion)
-        // Returning null deactivates/stops the rule after this single occurrence.
         `when`(repository.materializeOnce(rule, conversion)).thenReturn(null)
 
         val count = service.runMaterializationPass()

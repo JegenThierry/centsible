@@ -49,8 +49,6 @@ function defaultCurrency(): Currency {
   return userStore.user?.defaultCurrency ?? Currency.EUR;
 }
 
-// Currency defaults to the account currency (balance-affecting) or the user's default, but can be
-// overridden to record a loan in a foreign currency (the backend converts the linked transaction).
 const currency = computed<Currency>({
   get: () => form.value.currency ?? defaultCurrency(),
   set: (c) => { form.value = {...form.value, currency: c}; },
@@ -58,7 +56,6 @@ const currency = computed<Currency>({
 
 const amountCurrency = computed(() => currency.value);
 
-// When a balance-affecting loan is in a foreign currency, show what actually leaves the account.
 const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
 const {converted: previewAmount, failed: previewFailed, isForeign: previewIsForeign} = useConversionPreview({
   accountId: computed(() => form.value.affectBalance ? form.value.accountId : undefined),

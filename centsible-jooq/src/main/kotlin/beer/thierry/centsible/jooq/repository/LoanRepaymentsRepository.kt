@@ -71,8 +71,6 @@ class LoanRepaymentsRepository(
             val repaymentCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.REPAYMENT)
                 ?: throw IllegalStateException("System Repayment category not found. Migration may not have run.")
 
-            // Stored repayment amount stays in the loan currency; the transaction lands in the account
-            // currency (convertedAmount) with the loan-currency original amount/rate on the FX columns.
             val fx = FxColumns.from(conversion)
             val newTransactionId = dsl.insertInto(TRANSACTIONS)
                 .set(TRANSACTIONS.ACCOUNT_ID, accountId)
@@ -92,7 +90,6 @@ class LoanRepaymentsRepository(
                 ?.get(TRANSACTIONS.ID)
                 ?: throw IllegalStateException("Failed to create repayment transaction")
 
-            // Repayment is an INCOME-typed managed category, so the cash returns to the account.
             budgetAccountsRepository.updateBalance(accountId, conversion.convertedAmount, authenticatedUser)
 
             newTransactionId
@@ -127,8 +124,6 @@ class LoanRepaymentsRepository(
 
         val transactionId = record[LOAN_REPAYMENTS.TRANSACTION_ID]
 
-        // Look up the (accountId, amount) pair on the linked tx before deleting it,
-        // so the original INCOME-typed balance bump can be undone.
         val reversal: Pair<UUID, BigDecimal>? = transactionId?.let { txId ->
             dsl.select(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.AMOUNT)
                 .from(TRANSACTIONS)
@@ -138,7 +133,6 @@ class LoanRepaymentsRepository(
         }
 
         val deleted = if (transactionId != null) {
-            // Deleting the transaction cascades to the repayment row.
             dsl.deleteFrom(TRANSACTIONS).where(TRANSACTIONS.ID.eq(transactionId)).execute() > 0
         } else {
             dsl.deleteFrom(LOAN_REPAYMENTS).where(LOAN_REPAYMENTS.ID.eq(repaymentId)).execute() > 0

@@ -40,9 +40,6 @@ class EmailPostProcessor(
         }
     )
 
-    // Resend can return a transient 5xx/429 or time out; retry with backoff before failing the row,
-    // otherwise delivery waits a full post-processing lease timeout to be re-claimed. 4xx surfaces
-    // immediately (bad key / malformed request gains nothing from a retry).
     private val emailRetry: Retry = Retry.of(
         "resend-email",
         RetryConfig.custom<Any>()

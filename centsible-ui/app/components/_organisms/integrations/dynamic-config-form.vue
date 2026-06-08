@@ -57,7 +57,6 @@ function validate(): boolean {
 async function loadRemoteOptions(field: ConfigField, query: string = ''): Promise<void> {
   if (!props.providerKey) return;
   if (field.type !== 'SELECT_REMOTE') return;
-  // If dependencies are missing, skip the call — the dropdown shows an empty list with a hint.
   for (const dep of field.dependsOn ?? []) {
     if (isEmpty(values.value[dep])) {
       remoteOptions.value[field.name] = [];
@@ -85,10 +84,6 @@ function onRemoteQuery(field: ConfigField, query: string) {
   debounceTimers.set(field.name, setTimeout(() => loadRemoteOptions(field, query), 300));
 }
 
-// Snapshot of every dependency value across all SELECT_REMOTE fields, joined into a single
-// string. Watching this getter gives Vue genuinely distinct prev/next values to compare —
-// `watch` on the model ref with `{deep: true}` does NOT (Vue passes the same proxy as both
-// arguments on nested mutations), so the previous implementation never detected dep changes.
 const dependencySnapshot = computed(() => {
   return props.fields
     .filter(f => f.type === 'SELECT_REMOTE')
@@ -114,8 +109,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  // Pending debounce callbacks would otherwise mutate refs (and call into the Pinia store)
-  // after the component is gone, producing Vue warnings or zombie network calls.
   for (const timer of debounceTimers.values()) clearTimeout(timer);
   debounceTimers.clear();
 });

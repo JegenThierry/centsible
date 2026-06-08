@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class LoanForm(
+    /** Existing contact to lend to; when null a new contact is created from the [newContactFirstName]/[newContactLastName] fields. */
     var contactId: UUID? = null,
 
     @field:Size(max = 100, message = "{validation.firstName.tooLong}")
@@ -22,6 +23,7 @@ data class LoanForm(
 
     var accountId: UUID? = null,
 
+    /** When true the lending creates a transaction on [accountId]; when false the loan is tracking-only. */
     var affectBalance: Boolean = true,
 
     @field:NotNull(message = "{validation.loan.lent.required}")

@@ -10,7 +10,6 @@ const {t} = useI18n();
 const authStore = useAuthStore();
 const {success, error} = useToasts();
 
-// Mirrors the server-side strength rule so we can fail fast before the round-trip.
 const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
 const state = reactive({currentPassword: '', newPassword: '', confirmPassword: ''});
@@ -35,7 +34,6 @@ const schema = z.object({
   })
 type Schema = z.output<typeof schema>
 
-// Same live checklist as registration/reset, so all three password surfaces share one UX.
 const passwordRules = computed(() => [
   {label: t('auth.password.rules.length'), met: state.newPassword.length >= 8},
   {label: t('auth.password.rules.case'), met: /[A-Z]/.test(state.newPassword) && /[a-z]/.test(state.newPassword)},

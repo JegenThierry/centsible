@@ -28,7 +28,6 @@ function patch(partial: Partial<TransactionFilters>) {
   model.value = {...model.value, ...partial};
 }
 
-// Debounce search-text input only: every other control is a discrete pick that should fire instantly.
 const searchDraft = ref(model.value.search ?? '');
 watch(() => model.value.search, (v) => { if ((v ?? '') !== searchDraft.value) searchDraft.value = v ?? ''; });
 
@@ -60,7 +59,6 @@ const type = computed({
   set: (v: string) => patch({type: (v || undefined) as TransactionTypeFilter | undefined}),
 });
 
-// Amount bounds are free-typed numbers, so debounce them like search rather than reloading per keystroke.
 const amountMinDraft = ref(model.value.amountMin != null ? String(model.value.amountMin) : '');
 const amountMaxDraft = ref(model.value.amountMax != null ? String(model.value.amountMax) : '');
 watch(() => model.value.amountMin, (v) => { const s = v != null ? String(v) : ''; if (s !== amountMinDraft.value) amountMinDraft.value = s; });

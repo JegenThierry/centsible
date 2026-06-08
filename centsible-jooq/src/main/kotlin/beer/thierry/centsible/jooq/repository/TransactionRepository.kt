@@ -48,7 +48,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             condition = condition.and(TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%$escaped%"))
         }
         filters.categoryIds?.takeIf { it.isNotEmpty() }?.let { ids ->
-            // Match the transaction's own category or any of its splits' categories.
             condition = condition.and(
                 TRANSACTIONS.CATEGORY_ID.`in`(ids).or(
                     DSL.exists(
@@ -101,7 +100,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             ?: throw LocalizedException.BadRequest("error.transaction.typeRequired")
         val fx = FxColumns.from(conversion)
 
-        // INSERT...SELECT WHERE EXISTS: ownership check and insert in one roundtrip.
         val now = OffsetDateTime.now()
         val record = dsl.insertInto(
             TRANSACTIONS,
@@ -141,7 +139,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             ?: throw LocalizedException.BadRequest("error.transaction.typeRequired")
         val fx = FxColumns.from(conversion)
 
-        // Account subquery ownership-scopes the UPDATE itself (not just the post-fetch).
         val updated = dsl.update(TRANSACTIONS).set(TRANSACTIONS.CATEGORY_ID, transactionForm.categoryId)
             .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
             .set(TRANSACTIONS.DESCRIPTION, transactionForm.description)
@@ -266,9 +263,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         val now = OffsetDateTime.now()
         val destFx = FxColumns.from(conversion)
 
-        // Source (EXPENSE) leg: amount stays in the source account's currency, so it carries no FX
-        // columns — clear any left over from a previous edit. Ownership is enforced by scoping the
-        // UPDATE's WHERE to the user's accounts (the row's *current* account is still theirs).
         val outUpdated = dsl.update(TRANSACTIONS)
             .set(TRANSACTIONS.ACCOUNT_ID, sourceAccountId)
             .set(TRANSACTIONS.AMOUNT, form.amount)
@@ -282,7 +276,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .where(transferLegOwnershipCondition(sourceLegId, authenticatedUser))
             .execute()
 
-        // Destination (INCOME) leg: holds the converted amount plus the FX provenance.
         val inUpdated = dsl.update(TRANSACTIONS)
             .set(TRANSACTIONS.ACCOUNT_ID, destinationAccountId)
             .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
@@ -387,8 +380,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate
     ): List<CategoryAggregateDTO> {
-        // Split-aware: a split transaction's amount is attributed to its splits' categories, a
-        // simple one to its own. COALESCE picks the split row when present, the transaction otherwise.
         val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
         val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
         val total = DSL.sum(effectiveAmount).`as`("total")
@@ -559,9 +550,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
-            // Transfers are excluded from rules (ADR-0015) — they must keep their managed legs.
-            // Split transactions are excluded too: their categorization is manual and multi-category,
-            // so a single-category rule must not clobber it.
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
@@ -640,7 +628,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         splits: List<TransactionSplitForm>,
         authenticatedUser: UserDTO,
     ) {
-        // Scope both the delete and the implicit insert to a transaction the user owns.
         val ownsTransaction = dsl.selectOne()
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))

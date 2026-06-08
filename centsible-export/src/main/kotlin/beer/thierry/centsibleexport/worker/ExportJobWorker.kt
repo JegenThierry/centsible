@@ -56,7 +56,5 @@ class ExportJobWorker(
 private fun ProtoExportFormat.toModelFormat(): ExportFormat = when (this) {
     ProtoExportFormat.CSV -> ExportFormat.CSV
     ProtoExportFormat.JSON -> ExportFormat.JSON
-    // PDF (the proto default) and any future-unknown value fall back to PDF for back-compat
-    // with payloads written before the format field existed.
     else -> ExportFormat.PDF
 }

@@ -7,6 +7,7 @@ private const val MAX_IMAGE_SIZE_BYTES = 2L * 1024 * 1024
 
 private val ALLOWED_IMAGE_TYPES = setOf("image/png", "image/jpeg", "image/gif", "image/webp")
 
+/** Validates this upload's MIME type and size, returning it as a base64 `data:` URL. */
 fun MultipartFile.toValidatedImageDataUrl(): String {
     val (detected, bytes) = validateContentType(
         allowedTypes = ALLOWED_IMAGE_TYPES,

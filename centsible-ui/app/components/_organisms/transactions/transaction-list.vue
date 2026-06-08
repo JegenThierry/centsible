@@ -102,8 +102,6 @@ function clearSelection() {
   selectedIds.value = new Set();
 }
 
-// Columns are built once. Header strings use thunks so locale changes still surface, and cell
-// closures read reactive state (currency, selection) lazily — TanStack calls them per render.
 const columns = createTransactionColumns({
   t,
   currency: () => currency.value,

@@ -40,7 +40,6 @@ class AuthenticationServiceTest {
     @Mock private lateinit var registerEmailService: IRegisterEmailService
     @Mock private lateinit var passwordResetEmailService: IPasswordResetEmailService
 
-    // 32 zero bytes, Base64-encoded — a valid HS256 (256-bit) signing key so generateJwt() works.
     private val validJwtSecret = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
     private fun service() = AuthenticationService(
@@ -72,9 +71,7 @@ class AuthenticationServiceTest {
         val ex = assertThrows(LocalizedException.Unauthorized::class.java) {
             service().authenticate(AuthRequest("ghost", "whatever"))
         }
-        // Generic message — identical to the wrong-password case, so the body reveals nothing.
         assertEquals("error.auth.invalidCredentials", ex.messageKey)
-        // The equalizing hash MUST have run, otherwise the missing-user path returns measurably faster.
         verify(passwordEncoder).matches(eq("whatever"), anyString())
     }
 
@@ -97,8 +94,6 @@ class AuthenticationServiceTest {
         val ex = assertThrows(LocalizedException.Unauthorized::class.java) {
             service().authenticate(AuthRequest("alice", "correct"))
         }
-        // The helpful "confirm your email" hint is preserved, but only the holder of the correct
-        // password can ever observe it — so it cannot be used to enumerate accounts pre-auth.
         assertEquals("error.auth.emailNotConfirmed", ex.messageKey)
     }
 
@@ -110,7 +105,6 @@ class AuthenticationServiceTest {
         val result = service().authenticate(AuthRequest("alice", "correct"))
         val authenticated = assertInstanceOf(LoginResult.Authenticated::class.java, result)
         assertTrue(authenticated.token.isNotBlank())
-        // No second factor was required, so no pre-auth token is created.
         verifyNoInteractions(mfaRepository)
     }
 
@@ -123,7 +117,6 @@ class AuthenticationServiceTest {
         val result = service().authenticate(AuthRequest("alice", "correct"))
         val pending = assertInstanceOf(LoginResult.TwoFactorRequired::class.java, result)
         assertTrue(pending.pendingToken.isNotBlank())
-        // A hashed, time-boxed pre-auth row is persisted for the challenge step; no JWT yet.
         verify(mfaRepository).deletePendingAuthForUser(twoFa.id)
         verify(mfaRepository).createPendingAuth(
             anyArg(UUID::class.java, twoFa.id),
@@ -132,17 +125,12 @@ class AuthenticationServiceTest {
         )
     }
 
-    // requestPasswordReset is @Async in production so the controller's 204 latency is branch-independent;
-    // these run it synchronously to lock the per-branch behaviour the async dispatch decouples from timing.
-
     @Test
     fun `requestPasswordReset stays silent and does no work for an unknown username`() {
         `when`(userRepository.findUserByUsername("ghost")).thenReturn(null)
 
         service().requestPasswordReset("ghost")
 
-        // Only the lookup happens; no token is persisted and no email goes out (so the response would
-        // have the same near-instant latency as any other unknown/unconfirmed input).
         verify(userRepository).findUserByUsername("ghost")
         verifyNoMoreInteractions(userRepository)
         verifyNoInteractions(passwordResetEmailService)
@@ -182,7 +170,6 @@ class AuthenticationServiceTest {
 
         assertTrue(token.isNotBlank())
         verify(userRepository).updatePassword(u.id, "newhash")
-        // Other sessions are revoked by bumping the version.
         verify(userRepository).incrementTokenVersion(u.id)
     }
 
@@ -208,9 +195,6 @@ class AuthenticationServiceTest {
         }
     }
 
-    // Plain mockito's any() returns null, which trips Kotlin's non-null parameter types; this registers
-    // the "any of this type" matcher and returns a non-null dummy (ignored by Mockito) so the call
-    // type-checks at runtime. Mirrors what mockito-kotlin's any() does internally.
     private fun <T : Any> anyArg(clazz: Class<T>, dummy: T): T {
         any(clazz)
         return dummy

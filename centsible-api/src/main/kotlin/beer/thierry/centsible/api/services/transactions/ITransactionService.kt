@@ -52,6 +52,7 @@ interface ITransactionService {
 
     fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int
 
+    /** Reassigns [ids] to [categoryId] without touching balances; rejects system-managed target categories. Returns rows updated. */
     fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO): Int
 
     fun aggregateByCategory(
@@ -92,12 +93,14 @@ interface ITransactionService {
         authenticatedUser: UserDTO,
     ): ImportResult
 
+    /** Records an income/expense adjustment transaction bringing the account to the form's target balance; rejects a no-op delta. */
     fun createBalanceAdjustment(
         accountId: UUID,
         form: SetBalanceForm,
         authenticatedUser: UserDTO,
     ): TransactionDTO
 
+    /** Computes how [amount] in [currency] would convert into the account's currency on [date], without persisting anything. */
     fun previewConversion(
         accountId: UUID,
         amount: BigDecimal,

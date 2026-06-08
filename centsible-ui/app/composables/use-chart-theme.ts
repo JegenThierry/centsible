@@ -40,7 +40,6 @@ export function useChartTheme(currencyRef: MaybeRefOrGetter<Currency>) {
 
   if (import.meta.client) {
     onMounted(resolveSeriesColors);
-    // nextTick lets Nuxt UI re-emit its colour variables before we read them back.
     watch(
       [() => colorMode.value, () => appConfig.ui.colors?.primary],
       () => nextTick(resolveSeriesColors),

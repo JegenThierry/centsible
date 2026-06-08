@@ -63,7 +63,6 @@ class TransactionResource(private val transactionService: ITransactionService) {
             amountMax = amountMax,
             sort = sort ?: TransactionSort.DATE_DESC,
         )
-        // Service contract is 1-based; Spring's Pageable is 0-based — translate at the boundary.
         val page = pageable.pageNumber + 1
         return ResponseEntity.ok(
             transactionService.fetchTransactions(accountId, authenticatedUser, page, pageable.pageSize, filters)

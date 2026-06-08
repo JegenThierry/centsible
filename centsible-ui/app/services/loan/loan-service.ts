@@ -48,6 +48,7 @@ export function useLoanService(api: AxiosInstance) {
     ));
   }
 
+  /** Total amount still owed across loans; [excludedCount] counts loans omitted from the sum. */
   async function fetchOutstanding(): Promise<{ outstanding: number; excludedCount: number }> {
     const response = await api.get<{ outstanding: number; excludedCount: number }>('/loans/outstanding');
     return validateRequest<{ outstanding: number; excludedCount: number }>(response);

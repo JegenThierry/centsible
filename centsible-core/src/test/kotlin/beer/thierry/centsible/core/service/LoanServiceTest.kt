@@ -141,7 +141,6 @@ class LoanServiceTest {
 
         service.createLoan(user, form)
 
-        // owed = 100 * (1 + 10/100) = 110.00
         assertEquals(BigDecimal("110.00"), form.owedAmount)
     }
 
@@ -156,7 +155,6 @@ class LoanServiceTest {
 
         service.updateLoan(user, loanId, form)
 
-        // owed = 200 * (1 + 5/100) = 210.00
         assertEquals(BigDecimal("210.00"), form.owedAmount)
     }
 
@@ -193,7 +191,6 @@ class LoanServiceTest {
             .thenReturn(LoanDTO(id = loanId, owedAmount = BigDecimal("50.00")))
         `when`(repaymentsRepository.totalRepaidForLoan(loanId)).thenReturn(BigDecimal("30.00"))
 
-        // Outstanding = 50 - 30 = 20. Try to repay 25.
         val ex = assertThrows(IllegalArgumentException::class.java) {
             service.recordRepayment(user, loanId, RepaymentForm(amount = BigDecimal("25.00")))
         }

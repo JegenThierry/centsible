@@ -113,7 +113,6 @@ class NotificationService(
         val threshold = settings.lowBalanceThreshold ?: return
         if (threshold.signum() <= 0) return
 
-        // One alert per (account, week) so a balance hovering below the line doesn't spam the user.
         val weekKey = currentWeekKey()
         val all = accounts.fetchAllAccounts(user)
         val scoped = if (accountIds == null) all else all.filter { it.id in accountIds }

@@ -7,6 +7,7 @@ import type {TransactionFilters} from "~/models/transactions/transaction-filters
 import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useTransactionService(api: AxiosInstance) {
+  /** Fetches a page of transactions for [accountId]; [page] is 1-based. */
   async function fetchTransactions(accountId: string, page: number = 1, size: number = 25, filters: TransactionFilters = {},): Promise<Transaction[]> {
     const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
     if (filters.search) params.search = filters.search;

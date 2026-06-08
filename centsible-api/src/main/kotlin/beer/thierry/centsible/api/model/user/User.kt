@@ -11,6 +11,7 @@ data class User(
     val lastName: String = "",
     val passwordHash: String = "",
     val profilePicture: String? = null,
+    /** True once the user has completed sign-up (e.g. email verified); false while the account is still pending. */
     val registered: Boolean = false,
     val locale: String = "en",
     val totpEnabled: Boolean = false,

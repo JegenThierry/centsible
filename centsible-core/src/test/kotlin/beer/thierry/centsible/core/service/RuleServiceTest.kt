@@ -98,7 +98,6 @@ class RuleServiceTest {
 
         val touched = service.applyToExisting(user, ruleId)
 
-        // coffeeTx (retagged + tagged) and managedCoffeeTx (tag only — managed category is preserved) = 2.
         assertEquals(2, touched)
         verify(transactions).setCategoryForTransactions(eqArg(user), eqArg(listOf(coffeeTx.id)), eqArg(8L))
         verify(tags).addTagsToTransactions(eqArg(user), eqArg(listOf(coffeeTx.id, managedCoffeeTx.id)), eqArg(listOf(2L)))

@@ -10,7 +10,6 @@ const {success, error} = useToasts();
 
 const confirmOpen = ref(false);
 
-// Re-throws on failure so the modal stays open (and adze logs it); on success the modal closes.
 async function confirmSignOut() {
   try {
     await authStore.signOutEverywhere();

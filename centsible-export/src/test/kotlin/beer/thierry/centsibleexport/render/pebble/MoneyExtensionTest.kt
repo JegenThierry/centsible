@@ -25,7 +25,6 @@ class MoneyFilterTest {
     fun `BigDecimal renders with two fraction digits using the requested currency and locale`() {
         val out = apply(BigDecimal("1234.5"), currency = "EUR", locale = "en-GB") as String
         assertTrue(out.contains("1,234.50"))
-        // Symbol for EUR in en-GB is €.
         assertTrue(out.contains("€"))
     }
 
@@ -49,7 +48,6 @@ class MoneyFilterTest {
 
     @Test
     fun `unsupported input type falls back to toString`() {
-        // Objects without a numeric representation should not blow up the renderer.
         val custom = object {
             override fun toString(): String = "custom-rep"
         }

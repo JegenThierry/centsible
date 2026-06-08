@@ -8,6 +8,7 @@ import type {useTransactionService} from '~/services/transactions/transaction-se
 type TransactionService = ReturnType<typeof useTransactionService>
 type BudgetAccountsStore = ReturnType<typeof useBudgetAccountsStore>
 
+/** Paginated transaction list for the active account; appends pages and reloads on [filters] change. */
 export function useTransactionList(
   transactionService: TransactionService,
   budgetAccountsStore: BudgetAccountsStore,
@@ -59,9 +60,6 @@ export function useTransactionList(
   }
 
   if (filters) {
-    // Track only the fields that actually affect the server query. A deep watch fires once per
-    // nested mutation (e.g. categoryIds array push), causing duplicate reloads while the user
-    // is mid-interaction in the filter bar.
     watch(
       () => {
         const f = filters.value

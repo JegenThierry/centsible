@@ -28,6 +28,7 @@ data class OAuthCredentialEnvelope(
     val scope: String? = null,
     val obtainedAt: Instant = Instant.now(),
 ) {
+    /** True if the token expires within [safetyWindowSeconds]; always false when no expiry is known. */
     fun isExpired(safetyWindowSeconds: Long = 60): Boolean {
         val expiry = expiresAt ?: return false
         return Instant.now().plusSeconds(safetyWindowSeconds).isAfter(expiry)
@@ -43,6 +44,7 @@ data class OAuthCredentialEnvelope(
     }
 
     companion object {
+        /** Parses an envelope out of a raw credentials map; null when no access token is present. */
         fun from(credentials: Map<String, String>): OAuthCredentialEnvelope? {
             val accessToken = credentials[OAuthCredentialKeys.ACCESS_TOKEN] ?: return null
             return OAuthCredentialEnvelope(

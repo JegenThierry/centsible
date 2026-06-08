@@ -13,7 +13,6 @@ import java.util.Locale
 class PasswordResetEmailService(
     private val emailService: IEmailService,
     private val templateRenderer: EmailTemplateRenderer,
-    // Must be the user-facing origin (where the UI is served), not the REST host.
     @Value("\${app.base-url:http://localhost:3000}") private val baseUrl: String,
 ) : IPasswordResetEmailService {
 

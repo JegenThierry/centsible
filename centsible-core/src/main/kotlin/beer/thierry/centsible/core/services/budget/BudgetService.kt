@@ -50,8 +50,6 @@ class BudgetService(
         log.info("Deleted budget id={} userId={}", id, authenticatedUser.id)
     }
 
-    // One budget per (category, period type). The DB unique constraint is the hard guard; this gives
-    // a specific localized message instead of the generic conflict the constraint violation maps to.
     private fun assertNoDuplicate(authenticatedUser: UserDTO, form: BudgetForm, excludeBudgetId: UUID? = null) {
         if (repository.existsForCategoryAndPeriod(authenticatedUser, form.categoryId, form.periodType, excludeBudgetId)) {
             log.warn(

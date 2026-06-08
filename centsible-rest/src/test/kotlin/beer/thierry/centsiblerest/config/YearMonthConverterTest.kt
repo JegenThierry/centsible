@@ -20,7 +20,6 @@ class YearMonthConverterTest {
         val ex = assertThrows(IllegalArgumentException::class.java) {
             converter.convert("not-a-year-month")
         }
-        // The handler turns this into HTTP 400, so the message must be human-readable.
         assertTrue(ex.message!!.contains("YearMonth"))
         assertTrue(ex.message!!.contains("not-a-year-month"))
     }

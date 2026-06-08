@@ -3,8 +3,6 @@ import {useReportsStore} from "~/stores/reportsStore";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 
-// User-wide "safe to spend" for the current month. Reads the reports store, which the dashboard
-// loads (and refreshes after a transaction is created) via fetchSafeToSpend().
 const reportsStore = useReportsStore();
 const {t} = useI18n();
 

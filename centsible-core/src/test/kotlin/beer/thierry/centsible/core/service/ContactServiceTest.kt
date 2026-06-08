@@ -54,8 +54,6 @@ class ContactServiceTest {
 
     @Test
     fun `deleteContact never probes loan state for a contact the user does not own`() {
-        // fetchContactById is user-scoped: a foreign/non-existent id returns null. The method must
-        // return not-found WITHOUT calling hasOutstandingLoans, so the 400-vs-404 oracle is closed.
         val id = UUID.randomUUID()
         `when`(repository.fetchContactById(user, id)).thenReturn(null)
 

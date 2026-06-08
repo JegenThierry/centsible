@@ -28,9 +28,6 @@ class MessageSourceConfig {
         source.setDefaultEncoding("UTF-8")
         source.setFallbackToSystemLocale(false)
         source.setUseCodeAsDefaultMessage(true)
-        // Run every message through MessageFormat so the `''` apostrophe-escape works
-        // consistently — required because French messages use apostrophes in nearly every
-        // string and would otherwise leak `''` into responses for arg-free lookups.
         source.setAlwaysUseMessageFormat(true)
         return source
     }

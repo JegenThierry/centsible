@@ -23,10 +23,15 @@ interface IExportJobRepository {
 
     fun fetchPdf(jobId: UUID, userId: UUID): ExportPdf?
 
+    /** Resets the owned job (and its post-processing rows) back to pending, clearing prior PDF, error and lease. */
     fun retrigger(jobId: UUID, userId: UUID): ExportJobDTO?
 
     fun delete(jobId: UUID, userId: UUID): Boolean
 
+    /**
+     * Atomically leases the oldest pending job (or one whose lease lapsed past [leaseTimeoutSeconds]) to
+     * [workerId], marking it in-progress and bumping its attempt count; null if none is claimable.
+     */
     fun claimNextPending(workerId: String, leaseTimeoutSeconds: Long): ClaimedExportJob?
 
     fun fetchByIdForWorker(jobId: UUID): ExportJobDTO?

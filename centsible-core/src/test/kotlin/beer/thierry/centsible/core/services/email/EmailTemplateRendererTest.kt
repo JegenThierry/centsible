@@ -31,13 +31,11 @@ class EmailTemplateRendererTest {
         assertTrue(html.contains("<title>Subject line</title>"))
         assertTrue(html.contains("Body text"))
         assertTrue(html.contains("Confirm"))
-        // Ampersand in the URL is escaped for the HTML attribute/text context.
         assertTrue(html.contains("https://example.com/confirm?token=abc&amp;x=1"))
     }
 
     @Test
     fun `renderHtml emits the already-escaped heading raw, not double-escaped`() {
-        // heading carries a greeting name that renderGreetingName has already escaped once.
         val html = renderer.renderHtml(copy(heading = "Hi &lt;script&gt;"), "https://example.com")
 
         assertTrue(html.contains("Hi &lt;script&gt;"))

@@ -55,7 +55,6 @@ class TransactionService(
 
     private val log = LoggerFactory.getLogger(TransactionService::class.java)
 
-    // Alerting must never fail a transaction commit, so swallow with a log instead of letting it propagate.
     private fun checkBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>? = null) {
         try {
             notificationService.maybeRaiseBudgetAlerts(user, categoryIds)
@@ -112,7 +111,6 @@ class TransactionService(
         )
         val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
         val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
-        // When split, the anchor row carries the first split's category so single-category views stay sensible.
         val resolvedForm = transactionForm.copy(
             type = resolvedType,
             categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
@@ -162,7 +160,6 @@ class TransactionService(
         )
         val updatedTransaction =
             transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
-        // Replace (or, when not split, clear) the splits, then reflect them on the returned DTO.
         transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
         updatedTransaction.splits = if (splits != null) {
             transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId] ?: emptyList()
@@ -275,14 +272,12 @@ class TransactionService(
             form.amount, source.currency, destination.currency, form.transactionDate
         )
 
-        // Reverse the old legs' effect on their (possibly different) accounts...
         oldLegs.forEach { leg ->
             accountRepository.updateBalance(
                 leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
             )
         }
 
-        // ...mutate both legs in place — ids, transferGroupId, attachments and createdAt survive...
         val legs = transactionRepository.updateTransfer(
             sourceLegId = sourceLeg.id,
             destinationLegId = destinationLeg.id,
@@ -293,7 +288,6 @@ class TransactionService(
             authenticatedUser = authenticatedUser,
         )
 
-        // ...then apply the new amounts to the (new) source and destination accounts.
         accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
         accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
 
@@ -368,7 +362,6 @@ class TransactionService(
             accountId, affectedIds, categoryId, authenticatedUser
         )
         if (updated == 0) return 0
-        // Assigning a single category collapses any split breakdown back to one category.
         transactionRepository.deleteSplitsForTransactions(affectedIds, authenticatedUser)
 
         val touched = (oldTransactions.mapNotNull { it.category.id } + categoryId).distinct()
@@ -408,9 +401,6 @@ class TransactionService(
         val classifications = categoriesRepository.fetchCategoryClassifications(
             authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
         )
-        // Apply the user's rules to file imports too — but only to rows left on the uncategorized
-        // fallback, so an explicit category choice is never overridden. Mirrors the provider-sync
-        // path (importProviderTransactions) for consistent behaviour across channels.
         val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
         val rules = if (fallbackCategoryId != null) ruleService.list(authenticatedUser) else emptyList()
         val resolvedRows = rows.map { row ->
@@ -600,7 +590,6 @@ class TransactionService(
         return resolveType(classification, requestedType)
     }
 
-    // Managed categories (Lending / Repayment) must keep their type to preserve domain invariants.
     private fun resolveType(classification: CategoryClassification, requestedType: CategoryType?): CategoryType =
         if (classification.isManaged) classification.type else requestedType ?: classification.type
 

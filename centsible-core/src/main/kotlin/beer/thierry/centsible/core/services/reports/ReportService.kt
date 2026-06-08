@@ -50,19 +50,16 @@ class ReportService(
         for (snapshot in snapshots) {
             val date = snapshot.createdAt.toLocalDate()
             if (!crossedStart && !date.isBefore(startDate)) {
-                // Capture the opening total from everything that happened strictly before startDate.
                 pointByDate[startDate] = totalOf(accountBalances, liabilityIds)
                 crossedStart = true
             }
             accountBalances[snapshot.accountId] = snapshot.balance
             if (!date.isBefore(startDate)) {
-                // Last write wins for same-day events — keeps the series at most one point per day.
                 pointByDate[date] = totalOf(accountBalances, liabilityIds)
             }
         }
 
         if (pointByDate.isEmpty()) {
-            // No events in range: anchor a flat line at the current total.
             val total = totalOf(accountBalances, liabilityIds)
             pointByDate[startDate] = total
             pointByDate[endDate] = total
@@ -89,7 +86,6 @@ class ReportService(
                 accountId = acc.id,
                 accountName = acc.name,
                 currency = acc.currency,
-                // Net-worth breakdown: liabilities contribute their magnitude as debt (negative).
                 balance = if (acc.type.isLiability) raw.abs().negate() else raw,
                 date = date,
             )
@@ -194,9 +190,6 @@ class ReportService(
         spent = b.amountSpent,
     )
 
-    // Net worth = assets + liabilities, where a liability contributes the negative of its magnitude.
-    // This is robust to how the user recorded the balance (a card spent down to -500 and a loan
-    // entered as +500 both count as -500 of debt).
     private fun totalOf(balances: Map<UUID, BigDecimal>, liabilities: Set<UUID>): BigDecimal =
         balances.entries.fold(BigDecimal.ZERO) { acc, (id, balance) ->
             acc + if (id in liabilities) balance.abs().negate() else balance

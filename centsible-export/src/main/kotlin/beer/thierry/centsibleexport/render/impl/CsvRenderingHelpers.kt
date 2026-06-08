@@ -68,7 +68,6 @@ abstract class CsvExportRenderer : ExportRenderer {
                 javaClass.simpleName, supports(), csv.rowCount(), bytes.size,
             )
             return RenderedExport(
-                // `pdf` field name is historical; it carries CSV bytes for CSV renderers.
                 pdf = bytes,
                 filename = "${filenameStem(request)}-${filenameTimestamp()}.csv",
             )

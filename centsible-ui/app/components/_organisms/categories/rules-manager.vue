@@ -40,7 +40,6 @@ async function apply(rule: Rule) {
     const count = await store.applyRule(rule.id);
     toasts.success(t('categories.rules.appliedTitle'), t('categories.rules.appliedBody', {count}));
   } catch {
-    // handled by the store toast
   }
 }
 

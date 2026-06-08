@@ -74,11 +74,8 @@ class AuthenticationService(
         }
 
         if (user.totpEnabled) {
-            // Password is correct but a second factor is required: issue a short-lived, single-use
-            // pre-auth token instead of the real JWT. The challenge step redeems it.
             val rawToken = generateRegistrationToken()
             val expiresAt = OffsetDateTime.now().plusMinutes(PRE_AUTH_TOKEN_TTL_MINUTES)
-            // Drop any stale pending tokens for this user so only the freshest attempt is live.
             mfaRepository.deletePendingAuthForUser(user.id)
             mfaRepository.createPendingAuth(user.id, sha256(rawToken), expiresAt)
             log.info("Authentication step 1 ok; awaiting 2FA challenge userId={}", user.id)
@@ -134,8 +131,6 @@ class AuthenticationService(
             return AuthResponse(generateJwt(registeredUser))
         }
 
-        // Use the locale the user just chose during registration so the confirmation email
-        // arrives in their language, not whatever the calling request's Accept-Language said.
         registerEmailService.sendRegistrationEmail(registeredUser, rawToken, resolveEmailLocale(registeredUser.locale))
         return AuthResponse("")
     }
@@ -157,19 +152,12 @@ class AuthenticationService(
         return confirmed
     }
 
-    // Runs off the request thread so the controller can write its 204 with branch-independent latency.
-    // Otherwise a valid+confirmed username pays a full synchronous Resend round-trip (the token UPDATE
-    // plus the outbound email) while every other input returns near-instantly — a timing oracle that
-    // defeats the "always 204" enumeration defence. Fire-and-forget: failures are logged, never surfaced.
     @Async
     override fun requestPasswordReset(username: String) {
-        // Always silent: don't leak which usernames exist. Trim only — no other normalisation,
-        // since findUserByUsername is case-sensitive on the username column.
         val trimmed = username.trim().ifBlank { return }
         val user = userRepository.findUserByUsername(trimmed) ?: return
 
         if (!user.registered) {
-            // Only registered (email-confirmed) accounts can reset; otherwise the confirmation flow applies.
             log.info("Password reset requested for unconfirmed account username='{}'; skipping email", trimmed)
             return
         }
@@ -228,7 +216,6 @@ class AuthenticationService(
         if (!userRepository.updatePassword(userId, passwordHash)) {
             throw LocalizedException.InternalError("error.auth.passwordHashFailed")
         }
-        // Revoke every other live session, then mint a fresh token so the caller stays signed in.
         userRepository.incrementTokenVersion(userId)
         log.info("Password changed successfully; other sessions revoked userId={}", userId)
         return issueFreshToken(userId)
@@ -259,7 +246,6 @@ class AuthenticationService(
         }
 
         if (user.totpEnabled) {
-            // 2FA users must additionally prove a current factor for this irreversible action.
             val code = totpCode?.takeIf { it.isNotBlank() }
                 ?: throw LocalizedException.Unauthorized("error.totp.invalidCode")
             if (!totpService.verifyChallengeCode(userId, code)) {
@@ -304,8 +290,6 @@ class AuthenticationService(
             .claim("lastName", user.lastName)
             .claim("name", "${user.firstName} ${user.lastName}")
             .claim("locale", user.locale)
-            // Embeds the user's session generation; the JWT filter rejects tokens whose tv no longer
-            // matches the stored value (sign-out-everywhere / password change / 2FA disable).
             .claim("tv", user.tokenVersion)
             .issuedAt(now)
             .expiration(expiry)

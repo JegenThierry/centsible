@@ -50,7 +50,6 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         endDate: LocalDate,
         authenticatedUser: UserDTO,
     ): List<CategorySpendingSeriesDTO> {
-        // Split-aware: a split transaction's slices land in their own categories (see migration 13).
         val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
         val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
         val total = DSL.sum(effectiveAmount)

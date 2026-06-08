@@ -20,8 +20,6 @@ class HttpTimeoutsTest {
     @Test
     fun `read timeout aborts a hung response instead of blocking forever`() {
         ServerSocket(0).use { server ->
-            // Accept the connection on a daemon thread but never write a response, simulating a
-            // hung upstream. The socket is held open until the JVM exits.
             Thread {
                 runCatching {
                     val socket = server.accept()
@@ -41,8 +39,6 @@ class HttpTimeoutsTest {
                 }
             }
 
-            // 300 ms read timeout + slack; must be far below the 60 s server hold, proving it
-            // aborted on the timeout rather than waiting for (a never-arriving) response.
             assertTrue(elapsed < 5_000, "call should abort on read timeout, took ${elapsed}ms")
         }
     }

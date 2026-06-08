@@ -17,7 +17,6 @@ import {type Loan, type LoanStatus, loanStatus} from "~/models/loan/loan";
 
 const loansStore = useLoansStore();
 const userStore = useUserStore();
-// The outstanding total is converted server-side into the user's default currency.
 const defaultCurrency = computed<Currency>(() => userStore.user?.defaultCurrency ?? Currency.EUR);
 const {t} = useI18n();
 

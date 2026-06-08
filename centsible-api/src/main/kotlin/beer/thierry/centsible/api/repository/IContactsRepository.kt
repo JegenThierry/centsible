@@ -12,5 +12,7 @@ interface IContactsRepository {
     fun updateContact(authenticatedUser: UserDTO, id: UUID, form: ContactForm): ContactDTO?
     fun updateContactPicture(authenticatedUser: UserDTO, id: UUID, picture: String?): ContactDTO?
     fun deleteContact(authenticatedUser: UserDTO, id: UUID): Boolean
+
+    /** Whether [contactId] still has unsettled loans; used to block deletion. Not ownership-scoped. */
     fun hasOutstandingLoans(contactId: UUID): Boolean
 }

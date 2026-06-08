@@ -9,7 +9,6 @@ const {t} = useI18n();
 const password = defineModel<string>('password', {required: true});
 const confirmPassword = defineModel<string>('confirm-password', {required: true});
 
-// Live requirement checklist; the actual password rules + match are enforced by the parent form schema.
 const passwordRules = computed(() => [
   {label: t('auth.password.rules.length'), met: password.value.length >= 8},
   {label: t('auth.password.rules.case'), met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},

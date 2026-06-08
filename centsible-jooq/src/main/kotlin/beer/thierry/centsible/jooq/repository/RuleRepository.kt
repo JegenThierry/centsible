@@ -73,7 +73,6 @@ class RuleRepository(private val dsl: DSLContext) : IRuleRepository {
             .where(RULES.ID.eq(id).and(RULES.USER_ID.eq(user.id)))
             .execute()
         if (updated == 0) return null
-        // Children cascade off the rule; replacing them wholesale keeps the write idempotent and simple.
         dsl.deleteFrom(RULE_CONDITIONS).where(RULE_CONDITIONS.RULE_ID.eq(id)).execute()
         dsl.deleteFrom(RULE_ACTIONS).where(RULE_ACTIONS.RULE_ID.eq(id)).execute()
         insertConditions(id, form)

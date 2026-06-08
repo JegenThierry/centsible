@@ -32,7 +32,6 @@ watch(isOpen, async (open) => {
   try {
     await loansStore.refreshRepayments(props.loan.id);
   } catch {
-    // toast surfaced by the store
   } finally {
     loading.value = false;
   }

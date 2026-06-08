@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
+/** Hard-fails boot under the `prod` profile when a secret is left at its `.env.example` placeholder or unsafe config (insecure cookies, skipped email verification) is set. */
 @Component
 class ProductionGuard(
     private val environment: Environment,
@@ -37,8 +38,6 @@ class ProductionGuard(
             rejectPlaceholder("JWT_SECRET", "jwt.secret", jwtSecret, PLACEHOLDER_JWT_SECRET)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_KEY", "integrations.encryption-key", encryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
             rejectPlaceholder("INTEGRATIONS_ENCRYPTION_SALT", "integrations.encryption-salt", encryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)
-            // Same placeholders as the integrations cipher (shared .env.example values); a 2FA secret
-            // encrypted under the committed key is effectively plaintext, so reject it in prod.
             rejectPlaceholder("MFA_ENCRYPTION_KEY", "mfa.encryption-key", mfaEncryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
             rejectPlaceholder("MFA_ENCRYPTION_SALT", "mfa.encryption-salt", mfaEncryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)
             rejectPlaceholder("POSTGRES_PASSWORD", "spring.datasource.password", datasourcePassword, PLACEHOLDER_DB_PASSWORD)

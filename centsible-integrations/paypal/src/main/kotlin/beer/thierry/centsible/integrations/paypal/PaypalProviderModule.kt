@@ -90,10 +90,6 @@ class PaypalProviderModule(
     }
 
     override fun listExternalAccounts(ctx: ProviderContext): List<ExternalAccountDTO> {
-        // The userinfo endpoint requires "openid profile email" scopes on the merchant's REST
-        // app. Older / Personal apps may lack them, in which case the call 403s. Best-effort
-        // enrichment for the display name; the account id stays a stable constant. Catch only
-        // expected HTTP/IO errors — other Throwables propagate so real bugs are visible.
         val displayName = try {
             val (clientId, clientSecret, environment) = readCredentials(ctx)
             val token = client.obtainAccessToken(environment, clientId, clientSecret)

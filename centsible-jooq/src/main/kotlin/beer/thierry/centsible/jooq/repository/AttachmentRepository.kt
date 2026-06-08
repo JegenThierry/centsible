@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.UUID
 
-// Manual refs until the next jooqCodegen run includes transaction_attachments.
 private val ATTACHMENTS = DSL.table("transaction_attachments")
 private val A_ID = DSL.field("id", UUID::class.java)
 private val A_TXN = DSL.field("transaction_id", UUID::class.java)

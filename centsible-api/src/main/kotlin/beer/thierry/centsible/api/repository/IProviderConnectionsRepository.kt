@@ -37,6 +37,7 @@ interface IProviderConnectionsRepository {
 
     fun delete(authenticatedUser: UserDTO, id: UUID): Boolean
 
+    /** Clears the sync schedule/error so [claimNextDueForSync] picks the connection up next poll; true if a row was updated. */
     fun requeueForSync(authenticatedUser: UserDTO, id: UUID): Boolean
 
     /** Worker-lease claim — atomic SELECT-FOR-UPDATE + UPDATE. Returns null if none due. */
@@ -46,7 +47,10 @@ interface IProviderConnectionsRepository {
         syncIntervalSeconds: Long,
     ): ProviderSyncCandidate?
 
+    /** Releases the worker lease, clears the error, and stores [cursor] for the next incremental sync. */
     fun markSyncSuccess(id: UUID, cursor: String?)
+
+    /** Releases the worker lease and records [errorMessage]; leaves the connection due so it retries. */
     fun markSyncError(id: UUID, errorMessage: String)
 }
 

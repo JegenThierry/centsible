@@ -50,16 +50,12 @@ class LoanService(
     override fun createLoan(authenticatedUser: UserDTO, form: LoanForm): LoanDTO {
         val contactId = resolveContactId(authenticatedUser, form)
 
-        // Resolve the loan currency: explicit choice, else the account currency (balance-affecting),
-        // else the user's default currency (tracking-only).
         val loanCurrency: Currency = form.currency
             ?: form.accountId?.takeIf { form.affectBalance }?.let { budgetAccountsRepository.fetchAccountCurrency(it) }
             ?: parseCurrency(authenticatedUser.defaultCurrency)
 
-        // Interest computes the owed amount once at creation.
         form.interestRate?.let { rate -> form.owedAmount = applyInterest(form.lentAmount, rate) }
 
-        // FX for the lending transaction, only when the loan affects an account balance.
         val conversion: ConversionResult? = if (form.affectBalance) {
             val accountId = form.accountId
                 ?: throw IllegalArgumentException("Account is required when the loan affects an account balance.")
@@ -79,7 +75,6 @@ class LoanService(
     override fun updateLoan(authenticatedUser: UserDTO, id: UUID, form: LoanUpdateForm): LoanDTO? {
         val loan = loansRepository.fetchLoanById(authenticatedUser, id) ?: return null
 
-        // Recompute owed from interest against the (immutable) lent amount; otherwise keep the provided value.
         form.interestRate?.let { rate -> form.owedAmount = applyInterest(loan.lentAmount, rate) }
         if (form.owedAmount < loan.totalRepaid) {
             throw IllegalArgumentException(
@@ -117,8 +112,6 @@ class LoanService(
             )
         }
 
-        // The repayment is denominated in the loan currency; convert it into the account currency when
-        // it affects a balance (no-op when they match).
         val conversion: ConversionResult? = if (form.affectBalance) {
             val accountId = form.accountId
                 ?: throw IllegalArgumentException("Account is required when the repayment affects an account balance.")
@@ -147,10 +140,6 @@ class LoanService(
     }
 
     override fun totalOutstanding(authenticatedUser: UserDTO): OutstandingTotalDTO {
-        // Loans can be in different currencies, so convert each open balance into the user's default
-        // currency before summing. FX failures skip that loan rather than failing the whole total, and
-        // are counted so the UI can flag the figure as approximate. The JWT principal doesn't carry
-        // the default currency, so read it from the repository.
         val defaultCurrency = parseCurrency(
             userRepository.findUserById(authenticatedUser.id)?.defaultCurrency ?: authenticatedUser.defaultCurrency
         )

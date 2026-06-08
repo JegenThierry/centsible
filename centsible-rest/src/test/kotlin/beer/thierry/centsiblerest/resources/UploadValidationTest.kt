@@ -13,7 +13,6 @@ class UploadValidationTest {
 
     private val allowed = setOf("image/png", "application/pdf")
 
-    // 8-byte PNG signature; enough for Tika to detect image/png.
     private val pngBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
     private val pdfBytes = "%PDF-1.4".toByteArray()
 
@@ -56,7 +55,6 @@ class UploadValidationTest {
 
     @Test
     fun `ignores a spoofed declared content type and detects the real one`() {
-        // Declares image/png but the body is a PDF; detection wins, and pdf is allowed.
         val (type, bytes) = upload(pdfBytes, contentType = "image/png")
             .validateContentType(allowed, maxBytes = 1000, tooLargeMessage = "too big")
         assertEquals("application/pdf", type)

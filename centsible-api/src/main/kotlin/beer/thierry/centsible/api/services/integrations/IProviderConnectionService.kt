@@ -12,6 +12,8 @@ interface IProviderConnectionService {
     fun createConnection(authenticatedUser: UserDTO, form: ProviderConnectionForm): ProviderConnectionDTO
     fun updateConnection(authenticatedUser: UserDTO, id: UUID, form: ProviderConnectionForm): ProviderConnectionDTO?
     fun deleteConnection(authenticatedUser: UserDTO, id: UUID): Boolean
+
+    /** Requeues the connection for the background sync worker; returns false if it isn't the user's. */
     fun triggerSync(authenticatedUser: UserDTO, id: UUID): Boolean
 
     /**

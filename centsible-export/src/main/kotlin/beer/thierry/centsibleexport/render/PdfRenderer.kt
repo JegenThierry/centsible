@@ -16,6 +16,7 @@ class PdfRenderer(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    /** Renders the Pebble [template] with [context] to HTML, then prints it to PDF via headless Chromium. */
     fun renderHtmlToPdf(template: String, context: Map<String, Any?>): ByteArray {
         log.debug("Rendering PDF template={}", template)
         val startNanos = System.nanoTime()

@@ -11,7 +11,6 @@ const {success, error} = useToasts();
 const selected = ref<Currency>(userStore.user?.defaultCurrency ?? Currency.EUR);
 const saving = ref(false);
 
-// Keep the control in sync if the user is (re)loaded after this section mounts.
 watch(() => userStore.user?.defaultCurrency, (currency) => {
   if (currency) selected.value = currency;
 });
@@ -23,7 +22,6 @@ async function onChange(currency: Currency) {
     await userStore.updateDefaultCurrency(currency);
     success(t('profile.currency.toasts.savedTitle'), t('profile.currency.toasts.savedBody'));
   } catch {
-    // Revert the control to the persisted value on failure.
     selected.value = userStore.user?.defaultCurrency ?? Currency.EUR;
     error(t('profile.currency.toasts.errorTitle'), t('profile.currency.toasts.errorBody'));
   } finally {

@@ -57,8 +57,6 @@ class RuleService(
 
         val touched = HashSet<UUID>()
 
-        // SET_CATEGORY: the first usable category action wins; only retag non-managed transactions of the
-        // category's own type that aren't already on it (the type never changes, so balances are untouched).
         val category = rule.actions.firstOrNull { it.type == RuleActionType.SET_CATEGORY && it.category?.id != null }?.category
         if (category?.id != null) {
             val targets = matched
@@ -70,7 +68,6 @@ class RuleService(
             }
         }
 
-        // ADD_TAG: the union of the rule's tags, applied to every matched transaction.
         val tagIds = rule.actions.filter { it.type == RuleActionType.ADD_TAG }.mapNotNull { it.tag?.id }.distinct()
         if (tagIds.isNotEmpty()) {
             val txIds = matched.map { it.id }
@@ -109,7 +106,6 @@ class RuleService(
         }
         if (!valueOk) throw LocalizedException.BadRequest("error.rule.conditionInvalid")
 
-        // Store the canonical value (uppercased enum name for DIRECTION) so evaluation stays case-stable.
         val canonical = if (condition.field == RuleField.DIRECTION) value.uppercase() else value
         return condition.copy(value = canonical)
     }

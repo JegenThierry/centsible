@@ -12,5 +12,7 @@ interface ITagService {
     fun update(authenticatedUser: UserDTO, id: Long, form: TagForm): TagDTO
     fun delete(authenticatedUser: UserDTO, id: Long)
     fun fetchTagsForTransaction(authenticatedUser: UserDTO, transactionId: UUID): List<TagDTO>
+
+    /** Replaces the transaction's tag set with [tagIds] (not additive); returns the resulting tags. */
     fun setTransactionTags(authenticatedUser: UserDTO, transactionId: UUID, tagIds: List<Long>): List<TagDTO>
 }

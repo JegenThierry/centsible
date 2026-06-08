@@ -64,8 +64,6 @@ const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 const activeAccountBalance = computed(() => budgetAccountsStore.activeAccount?.balance ?? 0);
 
-// Optional numeric field: a cleared number input emits '' — treat blank/undefined as absent rather
-// than coercing to 0, then apply the bounds only when a value is actually present.
 const optionalNumber = (min: number, max: number, label: string) =>
   z.preprocess(
     (v) => (v === '' || v === undefined || v === null) ? undefined : v,
@@ -148,7 +146,6 @@ const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 const setBalanceForm = ref<SetBalanceFormModel>(makeBlankSetBalanceForm());
 const transferForm = ref<TransferFormModel>(makeBlankTransferForm());
 
-// The active mode picks the schema UForm validates against and the form object it reads.
 const schema = computed(() => ({
   standard: schemaStd,
   transfer: schemaTransfer,
@@ -210,16 +207,12 @@ function makeBlankTransferForm(): TransferFormModel {
   };
 }
 
-// Categories may not be loaded when the modal first opens. Once they arrive,
-// prefill the set-balance form's category if it's still empty.
 watch(balanceAdjustmentCategory, (category) => {
   if (category && mode.value === 'setBalance' && !setBalanceForm.value.category) {
     setBalanceForm.value.category = category;
   }
 });
 
-// The dirty guard only needs to see the form for the active mode — including
-// the inactive ones would flag fields the user can't currently see.
 function activeFormSnapshot() {
   if (mode.value === 'transfer') return transferForm.value;
   if (mode.value === 'lending') return loanForm.value;
@@ -243,7 +236,6 @@ const {requestClose} = useModalDirtyGuard({
   },
 });
 
-// One handler for all four modes — UForm only fires @submit when the active mode's schema passes.
 async function handleSave(_event: FormSubmitEvent<unknown>) {
   if (loading.value) return;
   if (mode.value === 'transfer') return saveTransfer();

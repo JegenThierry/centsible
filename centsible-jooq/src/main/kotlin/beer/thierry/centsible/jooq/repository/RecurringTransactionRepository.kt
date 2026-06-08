@@ -201,7 +201,6 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         val endDate = rule.endDate
         val deactivate = endDate != null && newNext > endDate
 
-        // CAS on next_run_at so only one concurrent materialization wins this occurrence.
         val advanced = dsl.update(RECURRING_TRANSACTIONS)
             .set(RECURRING_TRANSACTIONS.NEXT_RUN_AT, newNext)
             .set(RECURRING_TRANSACTIONS.ACTIVE, !deactivate)

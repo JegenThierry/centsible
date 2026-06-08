@@ -24,8 +24,6 @@ class MfaRepository(
             ?: error("failed to insert pending auth row")
 
     override fun consumePendingAuth(tokenHash: ByteArray): UUID? =
-        // Single-statement claim: only flips used_at on a row that is still unused and unexpired,
-        // returning its user id. A second redemption of the same token matches nothing.
         dsl.update(MFA_PENDING_AUTH)
             .set(MFA_PENDING_AUTH.USED_AT, OffsetDateTime.now())
             .where(MFA_PENDING_AUTH.TOKEN_HASH.eq(tokenHash))

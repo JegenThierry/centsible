@@ -14,9 +14,6 @@ export function useLoanColumns() {
   const {t} = useI18n();
   const UBadge = resolveComponent('UBadge');
 
-  // Loans can each be in a different currency, so cells render in the loan's own currency.
-  // Number grouping follows the active locale (BalanceNumberFormat's default) rather than a
-  // hardcoded one, matching every other money display in the app.
   function balanceCell(value: number, currency: Currency) {
     return h(BalanceNumberFormat, {balance: value, currency});
   }

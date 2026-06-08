@@ -188,8 +188,6 @@ class UserRepository(
     }
 
     override fun resetPassword(id: UUID, newPasswordHash: String): Boolean {
-        // A reset (forgotten password) also revokes every existing session: the prior password may
-        // have been compromised, so any JWT issued before the reset must stop working.
         return dsl.update(USERS)
             .set(USERS.PASSWORD_HASH, newPasswordHash)
             .set(PASSWORD_RESET_TOKEN_HASH, null as ByteArray?)

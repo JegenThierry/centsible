@@ -1,16 +1,10 @@
 export default defineAppConfig({
   ui: {
-    // Brand palette — swapped at runtime by `useTheme` (composables/use-theme.ts).
-    // `primary` is reserved for accents, CTAs and active states; `neutral` carries every surface.
     colors: {
       primary: 'blush',
       neutral: 'blush-neutral',
     },
 
-    // Flat surface language: solid `bg-default`, a hairline `ring-default` border and a subtle
-    // shadow for gentle elevation — no translucency or backdrop-blur. Overlay components below
-    // (modal, popover, menus, toast, ...) intentionally inherit Nuxt UI's defaults, which already
-    // ship this exact treatment (`bg-default shadow-lg ring ring-default`), so they need no override.
     card: {
       variants: {
         variant: {
@@ -44,7 +38,6 @@ export default defineAppConfig({
       },
     },
 
-    // Wayfinding: the active item gets a subtle primary pill; inactive items hover neutral.
     navigationMenu: {
       compoundVariants: [
         {
@@ -90,7 +83,6 @@ export default defineAppConfig({
       },
     },
 
-    // Menus keep a primary accent on the *selected* item only; hover stays neutral (Nuxt UI default).
     dropdownMenu: {
       variants: {
         active: {

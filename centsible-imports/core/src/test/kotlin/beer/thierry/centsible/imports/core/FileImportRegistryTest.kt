@@ -52,7 +52,6 @@ class FileImportRegistryTest {
     @Test
     fun `detect prefers extension match over MIME and sniff`() {
         val csv = FakeParser(id = "csv", supportedExtensions = setOf("csv"))
-        // Same MIME registered to two parsers — extension wins decisively.
         val other = FakeParser(
             id = "other",
             supportedMimeTypes = setOf("text/csv"),

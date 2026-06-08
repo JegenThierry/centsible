@@ -84,8 +84,6 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         to: LocalDate,
     ): Map<Long, BigDecimal> {
         if (categoryIds.isEmpty()) return emptyMap()
-        // Split-aware: attribute a split transaction's slices to their categories, a simple one to
-        // its own. COALESCE selects the split row when present, the transaction otherwise.
         val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
         val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
         val categoryKey = effectiveCategoryId.`as`("category_id")

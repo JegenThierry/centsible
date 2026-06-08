@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.export.proto.ExportRequest
 
+/** Renders an [ExportRequest] into a [RenderedExport] for the [ExportType] it [supports]. */
 interface ExportRenderer {
     fun supports(): ExportType
 

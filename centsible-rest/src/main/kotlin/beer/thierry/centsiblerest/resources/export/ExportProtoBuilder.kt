@@ -17,6 +17,7 @@ import beer.thierry.centsible.export.proto.ExportFormat as ProtoExportFormat
 @Component
 class ExportProtoBuilder {
 
+    /** Serializes an [ExportRequest] protobuf payload for [params], tagged with the user's export [ExportMeta]. */
     fun build(
         user: UserDTO,
         params: ExportRequestParams,

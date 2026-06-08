@@ -21,5 +21,6 @@ interface ILoanService {
     fun recordRepayment(authenticatedUser: UserDTO, loanId: UUID, form: RepaymentForm): RepaymentDTO
     fun deleteRepayment(authenticatedUser: UserDTO, loanId: UUID, repaymentId: UUID): Boolean
 
+    /** Aggregates every open loan's remaining balance into the user's default currency. */
     fun totalOutstanding(authenticatedUser: UserDTO): OutstandingTotalDTO
 }

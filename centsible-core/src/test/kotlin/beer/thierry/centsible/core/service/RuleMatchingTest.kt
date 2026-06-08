@@ -72,7 +72,6 @@ class RuleMatchingTest {
         assertTrue(RuleMatching.conditionMatches(condition(RuleField.AMOUNT, RuleOperator.GTE, "15.99"), ctx(amount = BigDecimal("15.99"))))
         assertTrue(RuleMatching.conditionMatches(condition(RuleField.AMOUNT, RuleOperator.GT, "10"), ctx(amount = BigDecimal("15.99"))))
         assertFalse(RuleMatching.conditionMatches(condition(RuleField.AMOUNT, RuleOperator.LT, "10"), ctx(amount = BigDecimal("15.99"))))
-        // Non-numeric value never matches (rather than blowing up).
         assertFalse(RuleMatching.conditionMatches(condition(RuleField.AMOUNT, RuleOperator.EQUALS, "abc"), ctx()))
     }
 

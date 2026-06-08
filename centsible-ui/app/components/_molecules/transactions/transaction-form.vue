@@ -34,8 +34,6 @@ const {converted: previewAmount, failed: previewFailed, isForeign: previewIsFore
 const categoriesStore = useCategoriesStore();
 const tagsStore = useTagsStore();
 
-// Once the user picks a type explicitly, picking a new category must not
-// silently overwrite their choice.
 const userTouchedType = ref(false);
 
 const visibleCategories = computed(() => {
@@ -66,9 +64,6 @@ function onTypeChange(value: CategoryType) {
   userTouchedType.value = true;
 }
 
-// --- Split transactions -------------------------------------------------------------------------
-// Splitting is only offered when the entered currency matches the account's, so the split amounts
-// (which the backend validates against the stored, account-currency amount) need no FX conversion.
 const canSplit = computed(() =>
   !props.accountCurrency || form.value.currency === props.accountCurrency,
 );
@@ -115,13 +110,10 @@ function onSplitCategoryPicked(row: TransactionSplitRow, cat: Category | undefin
   row.category = cat;
 }
 
-// A foreign currency disables splitting; collapse any existing split back to a single category.
 watch(canSplit, (allowed) => {
   if (!allowed && isSplit.value) disableSplit();
 });
 
-// Keep the (hidden) anchor category mirroring the first split so the form schema — which still
-// requires a category — passes in split mode, and the backend's anchor matches the first slice.
 watch(() => form.value.splits?.[0]?.category, (cat) => {
   if (isSplit.value) form.value.category = cat;
 });

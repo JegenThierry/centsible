@@ -69,6 +69,7 @@ interface ITransactionRepository {
         authenticatedUser: UserDTO,
     ): List<TransactionDTO>
 
+    /** Deletes [authenticatedUser]'s transactions matching [ids] across all accounts (no account scope). Returns count deleted. */
     fun deleteTransactionsByIds(ids: List<UUID>, authenticatedUser: UserDTO): Int
 
     /** Returns the transactions matching [ids] that belong to [accountId] owned by [authenticatedUser]. */
@@ -108,6 +109,7 @@ interface ITransactionRepository {
         months: Int,
     ): List<MonthlyAggregateDTO>
 
+    /** Returns income and expense totals per day for the last [days] calendar days (most-recent last). */
     fun aggregateByDay(
         accountId: UUID,
         authenticatedUser: UserDTO,

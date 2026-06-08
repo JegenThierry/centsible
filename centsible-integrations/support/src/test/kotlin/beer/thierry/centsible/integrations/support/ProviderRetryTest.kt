@@ -141,7 +141,6 @@ class ProviderRetryTest {
 
         assertEquals("recovered", result)
         assertEquals(2, invocations.get())
-        // Sanity: retry must have applied some delay between attempts.
         assertTrue(invocations.get() == 2)
     }
 }

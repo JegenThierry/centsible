@@ -12,6 +12,7 @@ class RendererRegistry(renderers: List<ExportRenderer>) {
         RendererKey(it.supports(), it.supportedFormat())
     }
 
+    /** Returns the renderer registered for [type]/[format]; throws if none matches. */
     fun find(type: ExportType, format: ExportFormat): ExportRenderer =
         byKey[RendererKey(type, format)]
             ?: throw IllegalStateException("No renderer registered for type=$type format=$format")

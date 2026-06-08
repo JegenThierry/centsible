@@ -30,9 +30,6 @@ data class EmailCopy(
 @Component
 class EmailTemplateRenderer(private val messageSource: MessageSource) {
 
-    // Auto-escaping renders every copy field safe in HTML context; the greeting name in `heading` is
-    // already escaped once by renderGreetingName, so heading is emitted with the `raw` filter to
-    // avoid double-escaping.
     private val emailTemplate: PebbleTemplate = PebbleEngine.Builder()
         .loader(ClasspathLoader().apply { prefix = "templates/emails/" })
         .strictVariables(false)
@@ -43,6 +40,7 @@ class EmailTemplateRenderer(private val messageSource: MessageSource) {
     fun resolveMessage(key: String, locale: Locale, vararg args: Any): String =
         messageSource.getMessage(key, args, key, locale) ?: key
 
+    /** HTML-escaped [rawName], or the localized [fallbackKey] message when it is blank or null. */
     fun renderGreetingName(rawName: String?, fallbackKey: String, locale: Locale): String =
         rawName?.takeIf { it.isNotBlank() }
             ?.let { HtmlUtils.htmlEscape(it) }

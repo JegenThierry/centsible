@@ -23,7 +23,6 @@ const loading = ref(false);
 
 const username = computed(() => userStore.user?.username ?? '');
 
-// On open, reset fields and learn whether a 2FA code is also required.
 watch(isOpen, async (open) => {
   if (!open) return;
   password.value = '';
@@ -36,7 +35,6 @@ watch(isOpen, async (open) => {
   }
 });
 
-// Require typing the exact username — friction proportional to an irreversible, cascading delete.
 const confirmMatches = computed(() => confirmText.value.trim() === username.value && username.value.length > 0);
 
 const canSubmit = computed(() =>
@@ -51,7 +49,6 @@ async function onConfirm() {
   try {
     await authStore.deleteAccount(password.value, twoFactorEnabled.value ? totpCode.value.trim() : undefined);
     success(t('profile.dangerZone.delete.toasts.successTitle'), t('profile.dangerZone.delete.toasts.successBody'));
-    // Navigation to /auth is handled by the store on success.
   } catch (e: any) {
     if (e?.response?.status === 401) {
       error(t('profile.dangerZone.delete.toasts.passwordIncorrectTitle'), t('profile.dangerZone.delete.toasts.passwordIncorrectBody'));

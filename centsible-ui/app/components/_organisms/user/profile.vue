@@ -44,7 +44,6 @@ function isTab(value: unknown): value is TabValue {
   return typeof value === 'string' && (TAB_VALUES as readonly string[]).includes(value);
 }
 
-// Deep-link the active tab via ?tab= so other screens can link straight to e.g. Security.
 const activeTab = ref<TabValue>(isTab(route.query.tab) ? route.query.tab : 'profile');
 
 watch(activeTab, (tab) => {

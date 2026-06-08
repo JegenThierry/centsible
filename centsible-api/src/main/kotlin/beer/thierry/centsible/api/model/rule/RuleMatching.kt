@@ -29,6 +29,7 @@ data class RuleEffects(
  */
 object RuleMatching {
 
+    /** Whether a single [condition] holds for [context]; an operator invalid for the field never matches. */
     fun conditionMatches(condition: RuleConditionDTO, context: RuleContext): Boolean = when (condition.field) {
         RuleField.DESCRIPTION -> when (condition.operator) {
             RuleOperator.CONTAINS -> context.description.contains(condition.value, ignoreCase = true)

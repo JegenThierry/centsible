@@ -34,7 +34,6 @@ const selectedAccount = computed<BudgetAccount | undefined>({
 
 const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
 
-// The repayment amount is in the loan's currency; show what hits the account when they differ.
 const {converted: previewAmount, failed: previewFailed, isForeign: previewIsForeign} = useConversionPreview({
   accountId: computed(() => form.value.affectBalance ? form.value.accountId : undefined),
   accountCurrency: computed(() => form.value.affectBalance ? accountCurrency.value : undefined),

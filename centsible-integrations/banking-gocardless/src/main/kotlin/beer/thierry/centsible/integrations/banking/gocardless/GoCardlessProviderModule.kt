@@ -168,8 +168,6 @@ class GoCardlessProviderModule(
             "OAuth complete provider={} userId={} connectionId={} requisitionId={} accounts={}",
             PROVIDER, request.userId, request.connectionId, requisitionId, requisition.accounts.size,
         )
-        // GoCardless end-user agreements last 90 days; the connection's stored expiry mirrors that
-        // so TokenRefreshGuard surfaces an expired consent rather than silently failing on sync.
         val expiresAt = Instant.now().plusSeconds(CONSENT_LIFETIME_SECONDS)
         val envelope = OAuthCredentialEnvelope(
             accessToken = "delegated",
@@ -181,7 +179,6 @@ class GoCardlessProviderModule(
                 "requisitionId" to requisitionId,
                 "accountIds" to requisition.accounts,
                 "consentExpiresAt" to expiresAt.toString(),
-                // Clear the pending markers; the requisition has been confirmed.
                 "pendingRequisitionId" to null,
                 "pendingAgreementId" to null,
             ),

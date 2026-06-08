@@ -26,6 +26,7 @@ function iso(date: Date): string {
   return format(date, ISO_DATE);
 }
 
+/** Resolves a preset to a concrete window; ALL_TIME yields null [from]/[to] so range tests match everything. */
 export function resolveWindow(preset: Exclude<DateRangePreset, 'CUSTOM'>, reference: Date = new Date()): DateWindow {
   switch (preset) {
     case 'CURRENT_MONTH': {
@@ -46,12 +47,12 @@ export function resolveWindow(preset: Exclude<DateRangePreset, 'CUSTOM'>, refere
     case 'ALL_TIME': {
       const from = new Date(1970, 0, 1);
       const to = endOfYear(reference);
-      /* `from`/`to` are nulled out so client-side range tests treat ALL_TIME as "match everything". */
       return {from: null, to: null, fromDate: iso(from), toDate: iso(to), months: 36};
     }
   }
 }
 
+/** ISO bounds to send to the API; both null for CUSTOM and ALL_TIME (server applies no date filter). */
 export function resolvePreset(preset: DateRangePreset, reference: Date = new Date()): IsoDateRange {
   if (preset === 'CUSTOM') return {fromDate: null, toDate: null};
   const w = resolveWindow(preset, reference);

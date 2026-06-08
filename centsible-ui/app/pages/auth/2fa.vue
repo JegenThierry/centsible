@@ -9,7 +9,6 @@ definePageMeta({
       if (authStore.isAuthenticated) {
         return navigateTo('/accounts');
       }
-      // Only reachable mid-login, right after a correct password set the pre-auth state.
       if (!authStore.twoFactorPending) {
         return navigateTo('/auth');
       }

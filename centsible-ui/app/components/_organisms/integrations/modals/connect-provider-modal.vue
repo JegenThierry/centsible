@@ -54,7 +54,6 @@ watch(isOpen, (open) => {
 async function handleSave() {
   if (!props.descriptor) return;
 
-  // Step 2 of the OAuth flow: connection already created; redirect to provider.
   if (isOAuth.value && createdConnectionId.value) {
     await launchOAuth(createdConnectionId.value);
     return;
@@ -74,7 +73,6 @@ async function handleSave() {
       values: values.value,
     });
     if (isOAuth.value && created) {
-      // Stay open so the user sees the "Continue to {provider}" CTA.
       createdConnectionId.value = created.id;
     } else {
       isOpen.value = false;

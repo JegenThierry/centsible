@@ -34,7 +34,6 @@ const format = ref<ExportFormat>('PDF');
 const userEmail = computed(() => authStore.user?.email ?? '');
 const supportsDateRange = computed(() => props.type === 'TRANSACTIONS');
 
-// A custom range needs both ends, with start on or before end (ISO date strings compare chronologically).
 const customRangeInvalid = computed(() =>
   supportsDateRange.value && preset.value === 'CUSTOM'
   && (!customFrom.value || !customTo.value || customFrom.value > customTo.value),

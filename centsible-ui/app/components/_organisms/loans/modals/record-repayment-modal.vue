@@ -30,7 +30,6 @@ const amountLabel = t('contacts.loans.repayment.form.amountLabel');
 const descriptionLabel = t('contacts.loans.repayment.form.descriptionLabel');
 const dateLabel = t('contacts.loans.repayment.form.dateLabel');
 
-// The amount is capped at the loan's outstanding balance (mirrors the field's :max-amount).
 const maxAmount = computed(() => Number(props.loan?.outstanding ?? 9999999.99));
 
 const schema = computed(() => z.object({

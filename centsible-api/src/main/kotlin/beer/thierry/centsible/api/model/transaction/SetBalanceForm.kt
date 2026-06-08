@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/** Sets an account's balance by recording a categorized adjustment transaction reaching [newBalance]. */
 data class SetBalanceForm(
     @field:NotNull(message = "{validation.account.initialBalance.required}")
     @field:Digits(integer = 13, fraction = 2, message = "{validation.account.initialBalance.fraction}")
