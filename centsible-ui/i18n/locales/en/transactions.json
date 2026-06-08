@@ -88,6 +88,7 @@
       "currency": "Currency",
       "currencyPlaceholder": "Select a currency",
       "conversionUnavailable": "Conversion unavailable",
+      "ruleHint": "Auto-categorized by rule “{rule}”",
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
       "date": "Date",

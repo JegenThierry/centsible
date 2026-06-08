@@ -19,6 +19,7 @@ import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {resolveSplitPayload} from "~/utils/transaction";
 import {todayIsoDate} from "~/utils/date";
 import {AMOUNT_INPUT, BALANCE_INPUT, MONEY_FIELD_MAX} from "~/utils/money";
@@ -146,6 +147,16 @@ const loanForm = ref<LoanFormModel>(makeBlankLoanForm());
 const setBalanceForm = ref<SetBalanceFormModel>(makeBlankSetBalanceForm());
 const transferForm = ref<TransferFormModel>(makeBlankTransferForm());
 
+const {
+  reset: resetRuleSuggestions,
+  markCategoryTouched,
+  appliedRule: ruleHint,
+} = useRuleSuggestions({
+  enabled: computed(() => isOpen.value && mode.value === 'standard'),
+  form,
+  accountId: computed(() => budgetAccountsStore.activeAccount?.id),
+});
+
 const schema = computed(() => ({
   standard: schemaStd,
   transfer: schemaTransfer,
@@ -233,6 +244,7 @@ const {requestClose} = useModalDirtyGuard({
     attachmentsRef.value?.clearPending();
     if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
     if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
+    resetRuleSuggestions();
   },
 });
 
@@ -377,7 +389,9 @@ async function saveSetBalance() {
                                :account-id="budgetAccountsStore.activeAccount?.id"
                                :account-currency="activeCurrency"
                                :disabled="loading"
-                               :filter-type="filterType"/>
+                               :filter-type="filterType"
+                               :rule-hint="ruleHint"
+                               @manual-category="markCategoryTouched"/>
         <TransferFormFields v-else-if="mode === 'transfer'"
                             v-model="transferForm"
                             :accounts="budgetAccountsStore.availableAccounts"

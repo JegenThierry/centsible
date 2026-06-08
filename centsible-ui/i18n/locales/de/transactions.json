@@ -88,6 +88,7 @@
       "currency": "Währung",
       "currencyPlaceholder": "Währung auswählen",
       "conversionUnavailable": "Umrechnung nicht verfügbar",
+      "ruleHint": "Automatisch kategorisiert durch Regel „{rule}“",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
       "date": "Datum",

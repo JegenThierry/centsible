@@ -88,6 +88,7 @@
       "currency": "Devise",
       "currencyPlaceholder": "Sélectionnez une devise",
       "conversionUnavailable": "Conversion indisponible",
+      "ruleHint": "Catégorisé automatiquement par la règle « {rule} »",
       "description": "Description",
       "descriptionPlaceholder": "Déjeuner, courses, etc.",
       "date": "Date",

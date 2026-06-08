@@ -13,6 +13,7 @@ import {useTagService} from "~/services/tag/tag-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {todayIsoDate} from "~/utils/date";
 import {AMOUNT_INPUT} from "~/utils/money";
 
@@ -46,6 +47,16 @@ const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
+const {
+  reset: resetRuleSuggestions,
+  markCategoryTouched,
+  appliedRule: ruleHint,
+} = useRuleSuggestions({
+  enabled: isOpen,
+  form,
+  accountId: computed(() => budgetAccountsStore.activeAccount?.id),
+});
+
 const schema = z.object({
   category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
   amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
@@ -76,7 +87,10 @@ const {requestClose} = useModalDirtyGuard({
   isOpen,
   loading,
   getSnapshot: () => form.value,
-  onResetOnOpen: () => loadTransaction(props.transaction),
+  onResetOnOpen: () => {
+    loadTransaction(props.transaction);
+    resetRuleSuggestions();
+  },
 });
 
 async function handleEdit(_event: FormSubmitEvent<Schema>) {
@@ -132,7 +146,9 @@ async function handleEdit(_event: FormSubmitEvent<Schema>) {
         <TransactionFormFields v-model="form"
                                :account-id="budgetAccountsStore.activeAccount?.id"
                                :account-currency="activeCurrency"
-                               :disabled="loading"/>
+                               :disabled="loading"
+                               :rule-hint="ruleHint"
+                               @manual-category="markCategoryTouched"/>
       </UForm>
       <div class="mt-6 border-t border-default pt-4">
         <TransactionAttachments :transaction-id="transaction.id"/>

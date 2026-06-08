@@ -4,6 +4,7 @@ import {type TransactionForm, type TransactionSplitRow} from "~/models/transacti
 import type {Currency} from "~/models/budget-account/currency";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
+import RuleSuggestionHint from "~/components/_atoms/labels/rule-suggestion-hint.vue";
 import CurrencySelect from "~/components/_atoms/inputs/currency-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
@@ -12,15 +13,21 @@ import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useTagsStore} from "~/stores/tagsStore";
 import {useConversionPreview} from "~/composables/use-conversion-preview";
 import {AMOUNT_INPUT} from "~/utils/money";
+import ConversionPreviewHint from "~/components/_molecules/transactions/conversion-preview-hint.vue";
 
 const props = defineProps<{
   filterType?: CategoryType;
   disabled?: boolean;
   accountId?: string;
   accountCurrency?: Currency;
+  ruleHint?: string | null;
 }>();
 
 const form = defineModel<TransactionForm>({required: true});
+
+const emit = defineEmits<{
+  (e: 'manual-category'): void;
+}>();
 
 const {t} = useI18n();
 
@@ -52,6 +59,7 @@ watch(
 
 function onCategoryPicked(cat: Category | undefined) {
   if (cat && !userTouchedType.value) form.value.type = cat.type;
+  emit('manual-category');
 }
 
 const typeOptions = computed(() => [
@@ -135,14 +143,16 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4">
-    <CategorySelect v-if="!isSplit"
-                    name="category"
-                    v-model="form.category"
-                    :disabled="disabled"
-                    :options="visibleCategories"
-                    :label="t('transactions.form.category')"
-                    required
-                    @update:model-value="onCategoryPicked"/>
+    <div v-if="!isSplit" class="space-y-1">
+      <CategorySelect name="category"
+                      v-model="form.category"
+                      :disabled="disabled"
+                      :options="visibleCategories"
+                      :label="t('transactions.form.category')"
+                      required
+                      @update:model-value="onCategoryPicked"/>
+      <RuleSuggestionHint :rule="ruleHint"/>
+    </div>
 
     <div v-if="!filterType" class="flex flex-col gap-1">
       <span class="text-sm text-neutral-500">{{ t('transactions.form.typeLabel') }}</span>
