@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
@@ -30,7 +31,7 @@ const amountLabel = t('contacts.loans.repayment.form.amountLabel');
 const descriptionLabel = t('contacts.loans.repayment.form.descriptionLabel');
 const dateLabel = t('contacts.loans.repayment.form.dateLabel');
 
-const maxAmount = computed(() => Number(props.loan?.outstanding ?? 9999999.99));
+const maxAmount = computed(() => Number(props.loan?.outstanding ?? MONEY_FIELD_MAX));
 
 const schema = computed(() => z.object({
   affectBalance: z.boolean(),

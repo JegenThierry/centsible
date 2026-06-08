@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
@@ -40,7 +41,7 @@ const schema = z.object({
     .optional(),
   owedAmount: z.coerce.number({message: t('common.validation.number', {field: owedLabel})})
     .min(0, t('common.validation.min', {field: owedLabel, min: 0}))
-    .max(9999999.99, t('common.validation.max', {field: owedLabel, max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: owedLabel, max: MONEY_FIELD_MAX})),
   dueDate: z.string().optional(),
   notes: z.string().trim()
     .max(500, t('common.validation.maxLength', {field: notesLabel, max: 500}))
@@ -117,7 +118,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 
         <BaseInput name="owedAmount"
                    v-model="form.owedAmount"
-                   :max="9999999.99"
+                   :max="MONEY_FIELD_MAX"
                    :min="0"
                    :description="hasInterest ? t('contacts.loans.form.owedComputedDescription') : t('contacts.loans.form.owedDescription')"
                    :disabled="hasInterest"

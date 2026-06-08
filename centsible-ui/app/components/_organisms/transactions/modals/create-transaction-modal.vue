@@ -21,7 +21,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {resolveSplitPayload} from "~/utils/transaction";
 import {todayIsoDate} from "~/utils/date";
-import {AMOUNT_INPUT, BALANCE_INPUT} from "~/utils/money";
+import {AMOUNT_INPUT, BALANCE_INPUT, MONEY_FIELD_MAX} from "~/utils/money";
 
 const {t} = useI18n();
 
@@ -117,10 +117,10 @@ const schemaLoan = z.object({
   affectBalance: z.boolean(),
   lentAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.lentLabel')})})
     .min(0.01, t('common.validation.min', {field: t('contacts.loans.form.lentLabel'), min: 0.01}))
-    .max(9999999.99, t('common.validation.max', {field: t('contacts.loans.form.lentLabel'), max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: t('contacts.loans.form.lentLabel'), max: MONEY_FIELD_MAX})),
   owedAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.owedLabel')})})
     .min(0, t('common.validation.min', {field: t('contacts.loans.form.owedLabel'), min: 0}))
-    .max(9999999.99, t('common.validation.max', {field: t('contacts.loans.form.owedLabel'), max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: t('contacts.loans.form.owedLabel'), max: MONEY_FIELD_MAX})),
   interestRate: optionalNumber(0, 999.99, t('contacts.loans.form.interestRateLabel')),
   description: z.string().trim().min(1, t('common.validation.required', {field: t('contacts.loans.form.descriptionLabel')}))
     .max(255, t('common.validation.maxLength', {field: t('contacts.loans.form.descriptionLabel'), max: 255})),

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
@@ -48,14 +49,14 @@ const schema = z.object({
   accountId: z.string().optional(),
   lentAmount: z.coerce.number({message: t('common.validation.number', {field: lentLabel})})
     .min(0.01, t('common.validation.min', {field: lentLabel, min: 0.01}))
-    .max(9999999.99, t('common.validation.max', {field: lentLabel, max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: lentLabel, max: MONEY_FIELD_MAX})),
   interestRate: z.coerce.number({message: t('common.validation.number', {field: interestLabel})})
     .min(0, t('common.validation.min', {field: interestLabel, min: 0}))
     .max(999.99, t('common.validation.max', {field: interestLabel, max: 999.99}))
     .optional(),
   owedAmount: z.coerce.number({message: t('common.validation.number', {field: owedLabel})})
     .min(0, t('common.validation.min', {field: owedLabel, min: 0}))
-    .max(9999999.99, t('common.validation.max', {field: owedLabel, max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: owedLabel, max: MONEY_FIELD_MAX})),
   description: z.string().trim()
     .min(1, t('common.validation.required', {field: descriptionLabel}))
     .max(255, t('common.validation.maxLength', {field: descriptionLabel, max: 255})),

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import type {RepaymentForm} from "~/models/loan/loan";
 import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -75,7 +76,7 @@ onMounted(async () => {
     <BaseInput name="amount"
                v-model="form.amount"
                :description="amountDescription"
-               :max="maxAmount ?? 9999999.99"
+               :max="maxAmount ?? MONEY_FIELD_MAX"
                :min="0.01"
                :label="t('contacts.loans.repayment.form.amountLabel')"
                :placeholder="t('contacts.loans.repayment.form.amountPlaceholder')"

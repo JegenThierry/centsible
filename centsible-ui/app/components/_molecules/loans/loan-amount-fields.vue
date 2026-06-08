@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import {computeOwedFromLent, hasInterestRate, type LoanForm} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
@@ -25,7 +26,7 @@ watch([() => form.value.interestRate, () => form.value.lentAmount], () => {
   <div class="space-y-4">
     <BaseInput name="lentAmount"
                v-model="form.lentAmount"
-               :max="9999999.99"
+               :max="MONEY_FIELD_MAX"
                :min="0.01"
                :disabled="disabled"
                :label="t('contacts.loans.form.lentLabel')"
@@ -47,7 +48,7 @@ watch([() => form.value.interestRate, () => form.value.lentAmount], () => {
 
     <BaseInput name="owedAmount"
                v-model="form.owedAmount"
-               :max="9999999.99"
+               :max="MONEY_FIELD_MAX"
                :min="0"
                :description="hasInterest ? t('contacts.loans.form.owedComputedDescription') : t('contacts.loans.form.owedDescription')"
                :disabled="disabled || hasInterest"

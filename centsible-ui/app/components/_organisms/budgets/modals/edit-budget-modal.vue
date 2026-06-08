@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import type {Budget, BudgetForm} from "~/models/budget/budget";
@@ -31,7 +32,7 @@ const schema = z.object({
   category: z.any().refine((v) => !!v, t('common.validation.required', {field: categoryLabel})),
   amountLimit: z.coerce.number({message: t('common.validation.number', {field: limitLabel})})
     .min(0.01, t('common.validation.min', {field: limitLabel, min: 0.01}))
-    .max(9999999.99, t('common.validation.max', {field: limitLabel, max: 9999999.99})),
+    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: limitLabel, max: MONEY_FIELD_MAX})),
 })
 type Schema = z.output<typeof schema>
 

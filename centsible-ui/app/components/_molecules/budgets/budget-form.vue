@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
 import {BUDGET_PERIOD_TYPES, type BudgetForm, type BudgetPeriodType} from "~/models/budget/budget";
@@ -72,7 +73,7 @@ onMounted(() => loadCategories());
 
     <BaseInput name="amountLimit"
                v-model="form.amountLimit"
-               :max="9999999.99"
+               :max="MONEY_FIELD_MAX"
                :min="0.01"
                :description="t('budgets.form.limitDescription')"
                :label="t('budgets.form.limitLabel')"
