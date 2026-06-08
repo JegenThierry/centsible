@@ -13,6 +13,7 @@ import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -24,21 +25,28 @@ import java.util.*
 @Repository
 class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
 
+    /**
+     * BUDGETS + joined CATEGORIES columns read by [mapToDTO], shared by both reads. Includes
+     * BUDGETS.CATEGORY_ID (needed by the spent-aggregation pass); it is a harmless unused extra
+     * column for the single-budget read.
+     */
+    private val budgetProjection: Array<Field<*>> = arrayOf(
+        BUDGETS.ID,
+        BUDGETS.AMOUNT_LIMIT,
+        BUDGETS.CREATED_AT,
+        BUDGETS.MODIFIED_AT,
+        BUDGETS.CATEGORY_ID,
+        CATEGORIES.ID,
+        CATEGORIES.NAME,
+        CATEGORIES.ICON,
+        CATEGORIES.TYPE,
+        CATEGORIES.COLOR,
+        BUDGETS.PERIOD_TYPE,
+        BUDGETS.ROLLOVER_ENABLED,
+    )
+
     override fun fetchAllWithSpentForMonth(authenticatedUser: UserDTO, yearMonth: YearMonth): List<BudgetDTO> {
-        val rows = dsl.select(
-            BUDGETS.ID,
-            BUDGETS.AMOUNT_LIMIT,
-            BUDGETS.CREATED_AT,
-            BUDGETS.MODIFIED_AT,
-            BUDGETS.CATEGORY_ID,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR,
-            BUDGETS.PERIOD_TYPE,
-            BUDGETS.ROLLOVER_ENABLED,
-        )
+        val rows = dsl.select(*budgetProjection)
             .from(BUDGETS)
             .join(CATEGORIES).on(
                 CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
@@ -103,19 +111,7 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): BudgetDTO {
-        return dsl.select(
-            BUDGETS.ID,
-            BUDGETS.AMOUNT_LIMIT,
-            BUDGETS.CREATED_AT,
-            BUDGETS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR,
-            BUDGETS.PERIOD_TYPE,
-            BUDGETS.ROLLOVER_ENABLED,
-        )
+        return dsl.select(*budgetProjection)
             .from(BUDGETS)
             .join(CATEGORIES).on(
                 CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
