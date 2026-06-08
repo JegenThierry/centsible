@@ -64,20 +64,27 @@ async function onStartEnroll() {
   }
 }
 
-async function onConfirm(_e: FormSubmitEvent<CodeSchema>) {
+/** Busy-guarded runner for the code-submit actions: any failure surfaces the invalid-code toast. */
+async function runWithCode(action: () => Promise<void>) {
   if (busy.value) return;
   busy.value = true;
   try {
-    const result = await totpService.confirm(confirmState.code.trim());
-    recoveryCodes.value = result.recoveryCodes;
-    recoverySaved.value = false;
-    step.value = 'recovery';
-    success(t('profile.twoFactor.toasts.enabledTitle'), t('profile.twoFactor.toasts.enabledBody'));
+    await action();
   } catch (err: any) {
     error(t('profile.twoFactor.toasts.invalidCodeTitle'), t('profile.twoFactor.toasts.invalidCodeBody'));
   } finally {
     busy.value = false;
   }
+}
+
+async function onConfirm(_e: FormSubmitEvent<CodeSchema>) {
+  await runWithCode(async () => {
+    const result = await totpService.confirm(confirmState.code.trim());
+    recoveryCodes.value = result.recoveryCodes;
+    recoverySaved.value = false;
+    step.value = 'recovery';
+    success(t('profile.twoFactor.toasts.enabledTitle'), t('profile.twoFactor.toasts.enabledBody'));
+  });
 }
 
 function onCancelEnroll() {
@@ -94,18 +101,12 @@ async function onDone() {
 }
 
 async function onDisable(_e: FormSubmitEvent<CodeSchema>) {
-  if (busy.value) return;
-  busy.value = true;
-  try {
+  await runWithCode(async () => {
     await totpService.disable(disableState.code.trim());
     disableState.code = '';
     success(t('profile.twoFactor.toasts.disabledTitle'), t('profile.twoFactor.toasts.disabledBody'));
     await refreshStatus();
-  } catch (err: any) {
-    error(t('profile.twoFactor.toasts.invalidCodeTitle'), t('profile.twoFactor.toasts.invalidCodeBody'));
-  } finally {
-    busy.value = false;
-  }
+  });
 }
 
 function onStartRegenerate() {
@@ -119,19 +120,13 @@ function onCancelRegenerate() {
 }
 
 async function onRegenerate(_e: FormSubmitEvent<CodeSchema>) {
-  if (busy.value) return;
-  busy.value = true;
-  try {
+  await runWithCode(async () => {
     const result = await totpService.regenerateRecoveryCodes(regenState.code.trim());
     recoveryCodes.value = result.recoveryCodes;
     recoverySaved.value = false;
     step.value = 'recovery';
     success(t('profile.twoFactor.recovery.regeneratedTitle'), t('profile.twoFactor.recovery.regeneratedBody'));
-  } catch (err: any) {
-    error(t('profile.twoFactor.toasts.invalidCodeTitle'), t('profile.twoFactor.toasts.invalidCodeBody'));
-  } finally {
-    busy.value = false;
-  }
+  });
 }
 
 async function copyRecoveryCodes() {
