@@ -23,12 +23,12 @@ import beer.thierry.centsible.api.services.integrations.OAuthCallbackResult
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.banking.gocardless.GoCardlessHttpClient.Companion.PROVIDER
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 class GoCardlessProviderModule(
@@ -334,11 +334,7 @@ class GoCardlessProviderModule(
             }
         }
         val dateStr = tx.bookingDate ?: tx.valueDate ?: return null
-        return try {
-            LocalDate.parse(dateStr).atStartOfDay().atOffset(ZoneOffset.UTC)
-        } catch (_: DateTimeParseException) {
-            null
-        }
+        return parseDateOnlyAtUtc(dateStr)
     }
 
     private fun extractAccountIds(raw: Any?): List<String> = when (raw) {
