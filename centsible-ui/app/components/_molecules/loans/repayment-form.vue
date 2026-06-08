@@ -84,13 +84,11 @@ onMounted(async () => {
                required
                type="number"/>
 
-    <p v-if="previewIsForeign && Number(form.amount) > 0" class="-mt-2 px-1 text-xs text-muted">
-      <span v-if="previewAmount != null && accountCurrency">
-        ≈ <BalanceNumberFormat :balance="previewAmount" :currency="accountCurrency"/>
-      </span>
-      <span v-else-if="previewFailed">{{ t('transactions.form.conversionUnavailable') }}</span>
-      <span v-else>≈ …</span>
-    </p>
+    <ConversionPreviewHint :foreign="previewIsForeign"
+                           :amount="Number(form.amount)"
+                           :converted="previewAmount"
+                           :failed="previewFailed"
+                           :currency="accountCurrency"/>
 
     <BaseInput name="description"
                v-model="form.description"

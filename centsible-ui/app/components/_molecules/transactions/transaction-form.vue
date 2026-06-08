@@ -170,13 +170,11 @@ onMounted(() => {
                required
                type="number"/>
 
-    <p v-if="previewIsForeign && form.amount > 0" class="-mt-2 px-1 text-xs text-neutral-400">
-      <span v-if="previewAmount != null && accountCurrency">
-        ≈ <BalanceNumberFormat :balance="previewAmount" :currency="accountCurrency"/>
-      </span>
-      <span v-else-if="previewFailed">{{ t('transactions.form.conversionUnavailable') }}</span>
-      <span v-else>≈ …</span>
-    </p>
+    <ConversionPreviewHint :foreign="previewIsForeign"
+                           :amount="form.amount"
+                           :converted="previewAmount"
+                           :failed="previewFailed"
+                           :currency="accountCurrency"/>
 
     <div class="flex flex-col gap-2 rounded-lg border border-default p-3">
       <div class="flex items-center justify-between gap-2">
