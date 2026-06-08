@@ -44,9 +44,7 @@ const {converted: previewAmount, failed: previewFailed, isForeign: previewIsFore
 
 const amountDescription = computed(() => {
   if (props.maxAmount === undefined) return undefined;
-  const formatted = props.currency
-    ? new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency}).format(props.maxAmount)
-    : props.maxAmount.toFixed(2);
+  const formatted = formatCurrency(props.maxAmount, props.currency, localeTag.value);
   return t('contacts.loans.repayment.form.outstandingHelp', {amount: formatted});
 });
 

@@ -5,7 +5,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
-import {BALANCE_INPUT} from "~/utils/money";
+import {BALANCE_INPUT, formatCurrency} from "~/utils/money";
 
 const props = defineProps<{
   currentBalance: number;
@@ -43,9 +43,7 @@ const previewKey = computed(() => {
 
 const previewText = computed(() => {
   const amount = Math.abs(deltaKind.value === 'none' ? props.currentBalance : delta.value);
-  const formatted = props.currency
-    ? new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency}).format(amount)
-    : amount.toFixed(2);
+  const formatted = formatCurrency(amount, props.currency, localeTag.value);
   return t(previewKey.value, {amount: formatted});
 });
 

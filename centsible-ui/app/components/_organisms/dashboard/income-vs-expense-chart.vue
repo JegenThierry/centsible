@@ -24,15 +24,8 @@ const {data: aggregates, loading} = useMonthlyAggregates(
   () => resolvedMonths.value,
 );
 
-function formatLabel(yearMonth: string): string {
-  const [year, month] = yearMonth.split('-');
-  if (!year || !month) return yearMonth;
-  const date = new Date(Number(year), Number(month) - 1, 1);
-  return date.toLocaleDateString(localeTag.value, {month: 'short', year: '2-digit'});
-}
-
 const chartData = computed<ChartData<'bar'>>(() => ({
-  labels: aggregates.value.map(a => formatLabel(a.yearMonth)),
+  labels: aggregates.value.map(a => formatMonthYearLabel(a.yearMonth, localeTag.value, {month: 'short', year: '2-digit'})),
   datasets: [
     {
       label: t('accounts.dashboard.income'),

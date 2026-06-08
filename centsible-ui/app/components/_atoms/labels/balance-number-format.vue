@@ -8,10 +8,7 @@ const props = defineProps<{
 }>();
 
 const localeTag = useLocaleTag();
-const formatted = computed(() => new Intl.NumberFormat(
-  props.locale ?? localeTag.value,
-  {style: 'currency', currency: props.currency},
-).format(props.balance));
+const formatted = computed(() => formatCurrency(props.balance, props.currency, props.locale ?? localeTag.value));
 </script>
 
 <template>

@@ -31,10 +31,7 @@ const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
 const periodLabel = computed(() => t(`budgets.periods.${props.budget.periodType ?? 'MONTHLY'}`));
 
 const localeTag = useLocaleTag();
-const rolloverFormatted = computed(() => new Intl.NumberFormat(localeTag.value, {
-  style: 'currency',
-  currency: resolvedCurrency.value,
-}).format(props.budget.rolloverAmount ?? 0));
+const rolloverFormatted = computed(() => formatCurrency(props.budget.rolloverAmount ?? 0, resolvedCurrency.value, localeTag.value));
 </script>
 
 <template>
