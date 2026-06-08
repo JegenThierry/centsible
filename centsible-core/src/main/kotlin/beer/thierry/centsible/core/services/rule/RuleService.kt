@@ -14,6 +14,7 @@ import beer.thierry.centsible.api.model.rule.RuleOperator
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRuleRepository
+import beer.thierry.centsible.core.services.categories.requireOwnedClassification
 import beer.thierry.centsible.api.repository.ITagRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.rule.IRuleService
@@ -113,8 +114,7 @@ class RuleService(
     private fun validateAction(user: UserDTO, action: RuleActionForm): RuleActionForm = when (action.type) {
         RuleActionType.SET_CATEGORY -> {
             val categoryId = action.categoryId ?: throw LocalizedException.BadRequest("error.rule.actionInvalid")
-            val classification = categories.fetchCategoryClassifications(user, listOf(categoryId))[categoryId]
-                ?: throw LocalizedException.BadRequest("error.category.notAccessible")
+            val classification = categories.requireOwnedClassification(user, categoryId)
             if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
             action.copy(categoryId = categoryId, tagId = null)
         }

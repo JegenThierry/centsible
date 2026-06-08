@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.services.budget.IBudgetService
+import beer.thierry.centsible.core.services.categories.requireOwnedClassification
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.YearMonth
@@ -61,11 +62,6 @@ class BudgetService(
     }
 
     private fun assertCategoryOwned(authenticatedUser: UserDTO, categoryId: Long) {
-        if (!categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))
-                .containsKey(categoryId)
-        ) {
-            log.warn("Category {} not found or not accessible", categoryId)
-            throw LocalizedException.BadRequest("error.category.notAccessible")
-        }
+        categoriesRepository.requireOwnedClassification(authenticatedUser, categoryId)
     }
 }

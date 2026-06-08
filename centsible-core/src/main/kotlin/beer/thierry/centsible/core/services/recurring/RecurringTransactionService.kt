@@ -1,12 +1,12 @@
 package beer.thierry.centsible.core.services.recurring
 
-import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
+import beer.thierry.centsible.core.services.categories.requireOwnedClassification
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.recurring.IRecurringTransactionService
 import org.slf4j.LoggerFactory
@@ -153,10 +153,6 @@ class RecurringTransactionService(
     }
 
     private fun assertCategoryOwned(authenticatedUser: UserDTO, categoryId: Long) {
-        if (!categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))
-                .containsKey(categoryId)
-        ) {
-            throw LocalizedException.BadRequest("error.category.notAccessible")
-        }
+        categoriesRepository.requireOwnedClassification(authenticatedUser, categoryId)
     }
 }

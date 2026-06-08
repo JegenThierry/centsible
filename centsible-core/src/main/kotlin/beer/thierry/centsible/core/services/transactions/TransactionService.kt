@@ -26,6 +26,7 @@ import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.ITagRepository
+import beer.thierry.centsible.core.services.categories.requireOwnedClassification
 import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.services.rule.IRuleService
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
@@ -584,8 +585,7 @@ class TransactionService(
         categoryId: Long,
         requestedType: CategoryType?,
     ): CategoryType {
-        val classification = categoriesRepository.fetchCategoryClassifications(user, listOf(categoryId))[categoryId]
-            ?: throw categoryNotFound(categoryId)
+        val classification = categoriesRepository.requireOwnedClassification(user, categoryId)
         return resolveType(classification, requestedType)
     }
 
