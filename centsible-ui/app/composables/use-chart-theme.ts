@@ -91,6 +91,17 @@ export function useChartTheme(currencyRef: MaybeRefOrGetter<Currency>) {
     }
   };
 
+  /**
+   * The bottom legend config shared verbatim by every currency chart (point-style swatches, muted
+   * tick colour, 11px). A builder so each chart reads the current `tickColor`.
+   */
+  function chartLegend() {
+    return {
+      position: 'bottom' as const,
+      labels: {color: tickColor.value, usePointStyle: true, font: {size: 11}},
+    };
+  }
+
   return {
     isDark,
     tickColor,
@@ -101,5 +112,6 @@ export function useChartTheme(currencyRef: MaybeRefOrGetter<Currency>) {
     withAlpha,
     currencyFmt,
     pointerCursorOnHover,
+    chartLegend,
   };
 }

@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const {t} = useI18n();
 const localeTag = useLocaleTag();
-const {isDark, tickColor, currencyFmt, successColor, errorColor} = useChartTheme(() => props.currency);
+const {isDark, tickColor, currencyFmt, successColor, errorColor, chartLegend} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
 const resolvedMonths = computed(() => Math.max(1, Math.min(36, props.months ?? window.value.months)));
@@ -50,10 +50,7 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {color: tickColor.value, usePointStyle: true, font: {size: 11}},
-      },
+      legend: chartLegend(),
       tooltip: {
         callbacks: {
           label: (ctx) => `${ctx.dataset.label}: ${fmt.format(Number(ctx.parsed.y))}`,

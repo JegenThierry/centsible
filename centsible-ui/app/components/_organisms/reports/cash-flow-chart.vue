@@ -10,7 +10,7 @@ const props = defineProps<{
   currency: Currency;
 }>();
 
-const {tickColor, gridColor, currencyFmt, primaryColor, successColor, errorColor} = useChartTheme(() => props.currency);
+const {tickColor, gridColor, currencyFmt, primaryColor, successColor, errorColor, chartLegend} = useChartTheme(() => props.currency);
 const {t} = useI18n();
 
 const chartData = computed<ChartData<'bar'>>(() => ({
@@ -40,7 +40,7 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {position: 'bottom', labels: {color: tickColor.value, usePointStyle: true, font: {size: 11}}},
+      legend: chartLegend(),
       tooltip: {
         callbacks: {
           label: (ctx) => `${ctx.dataset.label}: ${fmt.format(ctx.parsed.y as number)}`,
