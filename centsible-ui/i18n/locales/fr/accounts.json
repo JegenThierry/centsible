@@ -30,8 +30,21 @@
       "totalBalanceLabel": "Solde total",
       "last30Days": "30 derniers jours"
     },
+    "types": {
+      "CHECKING": "Compte courant",
+      "SAVINGS": "Épargne",
+      "CASH": "Espèces",
+      "CREDIT_CARD": "Carte de crédit",
+      "INVESTMENT": "Investissement",
+      "ASSET": "Actif",
+      "LOAN": "Prêt",
+      "MORTGAGE": "Hypothèque",
+      "OTHER": "Autre"
+    },
     "modals": {
       "create": {
+        "fieldTypeLabel": "Type de compte",
+        "fieldTypePlaceholder": "Sélectionnez un type",
         "title": "Créer un compte budgétaire",
         "description": "Un compte vous permet de gérer votre budget.",
         "fieldNameLabel": "Nom du compte budgétaire",
@@ -72,6 +85,14 @@
       "monthlyIncome": "Revenus du mois",
       "monthlyExpenses": "Dépenses du mois",
       "netSavings": "Épargne nette",
+      "safeToSpend": {
+        "title": "Reste à dépenser",
+        "subtitle": "Ce mois-ci · tous les comptes",
+        "perDay": "/jour · {days} jour(s) restant(s)",
+        "expectedIncome": "Revenus attendus",
+        "alreadySpent": "Déjà dépensé",
+        "upcomingExpenses": "Prélèvements à venir"
+      },
       "budgetsThisMonth": "Budgets ce mois-ci",
       "budgetsViewAll": "Tout voir",
       "activityTitle": "Activité",

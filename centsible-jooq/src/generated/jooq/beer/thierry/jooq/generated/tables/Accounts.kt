@@ -25,6 +25,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -115,6 +116,11 @@ open class Accounts(
      * The column <code>public.accounts.currency</code>.
      */
     val CURRENCY: TableField<AccountsRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+
+    /**
+     * The column <code>public.accounts.type</code>.
+     */
+    val TYPE: TableField<AccountsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'CHECKING'::character varying"), SQLDataType.VARCHAR)), this, "")
 
     /**
      * The column <code>public.accounts.created_at</code>.
@@ -242,6 +248,9 @@ open class Accounts(
 
     val transactions: TransactionsPath
         get(): TransactionsPath = transactions()
+    override fun getChecks(): List<Check<AccountsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("accounts_type_check"), "(((type)::text = ANY ((ARRAY['CHECKING'::character varying, 'SAVINGS'::character varying, 'CASH'::character varying, 'CREDIT_CARD'::character varying, 'INVESTMENT'::character varying, 'ASSET'::character varying, 'LOAN'::character varying, 'MORTGAGE'::character varying, 'OTHER'::character varying])::text[])))", true)
+    )
     override fun `as`(alias: String): Accounts = Accounts(DSL.name(alias), this)
     override fun `as`(alias: Name): Accounts = Accounts(alias, this)
     override fun `as`(alias: Table<*>): Accounts = Accounts(alias.qualifiedName, this)

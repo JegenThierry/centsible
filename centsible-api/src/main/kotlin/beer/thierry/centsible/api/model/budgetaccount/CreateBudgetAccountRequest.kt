@@ -17,4 +17,6 @@ data class CreateBudgetAccountRequest(
 
     @field:NotNull(message = "{validation.account.currency.required}")
     var currency: Currency? = Currency.EUR,
+
+    var type: AccountType = AccountType.CHECKING,
 )

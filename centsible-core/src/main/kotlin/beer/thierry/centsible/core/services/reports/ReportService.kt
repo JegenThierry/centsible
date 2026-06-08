@@ -41,6 +41,7 @@ class ReportService(
 
         val endOffset = OffsetDateTime.of(endDate, LocalTime.MAX, ZoneOffset.UTC)
         val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(endOffset, authenticatedUser)
+        val liabilityIds = liabilityAccountIds(authenticatedUser)
 
         val accountBalances = mutableMapOf<UUID, BigDecimal>()
         val pointByDate = sortedMapOf<LocalDate, BigDecimal>()
@@ -50,23 +51,23 @@ class ReportService(
             val date = snapshot.createdAt.toLocalDate()
             if (!crossedStart && !date.isBefore(startDate)) {
                 // Capture the opening total from everything that happened strictly before startDate.
-                pointByDate[startDate] = totalOf(accountBalances)
+                pointByDate[startDate] = totalOf(accountBalances, liabilityIds)
                 crossedStart = true
             }
             accountBalances[snapshot.accountId] = snapshot.balance
             if (!date.isBefore(startDate)) {
                 // Last write wins for same-day events — keeps the series at most one point per day.
-                pointByDate[date] = totalOf(accountBalances)
+                pointByDate[date] = totalOf(accountBalances, liabilityIds)
             }
         }
 
         if (pointByDate.isEmpty()) {
             // No events in range: anchor a flat line at the current total.
-            val total = totalOf(accountBalances)
+            val total = totalOf(accountBalances, liabilityIds)
             pointByDate[startDate] = total
             pointByDate[endDate] = total
         } else if (pointByDate.lastKey().isBefore(endDate)) {
-            pointByDate[endDate] = totalOf(accountBalances)
+            pointByDate[endDate] = totalOf(accountBalances, liabilityIds)
         }
 
         return pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
@@ -83,11 +84,13 @@ class ReportService(
         for (s in snapshots) balances[s.accountId] = s.balance
 
         return accounts.map { acc ->
+            val raw = balances[acc.id] ?: acc.initialBalance
             AccountBalanceAtDateDTO(
                 accountId = acc.id,
                 accountName = acc.name,
                 currency = acc.currency,
-                balance = balances[acc.id] ?: acc.initialBalance,
+                // Net-worth breakdown: liabilities contribute their magnitude as debt (negative).
+                balance = if (acc.type.isLiability) raw.abs().negate() else raw,
                 date = date,
             )
         }
@@ -191,6 +194,16 @@ class ReportService(
         spent = b.amountSpent,
     )
 
-    private fun totalOf(balances: Map<UUID, BigDecimal>): BigDecimal =
-        balances.values.fold(BigDecimal.ZERO, BigDecimal::add)
+    // Net worth = assets + liabilities, where a liability contributes the negative of its magnitude.
+    // This is robust to how the user recorded the balance (a card spent down to -500 and a loan
+    // entered as +500 both count as -500 of debt).
+    private fun totalOf(balances: Map<UUID, BigDecimal>, liabilities: Set<UUID>): BigDecimal =
+        balances.entries.fold(BigDecimal.ZERO) { acc, (id, balance) ->
+            acc + if (id in liabilities) balance.abs().negate() else balance
+        }
+
+    private fun liabilityAccountIds(user: UserDTO): Set<UUID> =
+        accountsRepository.fetchAllAccounts(user)
+            .filter { it.type.isLiability }
+            .mapTo(HashSet()) { it.id }
 }

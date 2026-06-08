@@ -2,6 +2,7 @@
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import {Currency, currencyOptions} from "~/models/budget-account/currency";
+import {AccountType, ACCOUNT_TYPES} from "~/models/budget-account/account-type";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
@@ -23,10 +24,12 @@ const state = reactive<{
   name: string;
   initialBalance: number | undefined;
   currency: Currency;
+  type: AccountType;
 }>({
   name: '',
   initialBalance: undefined,
   currency: Currency.EUR,
+  type: AccountType.CHECKING,
 })
 
 const nameLabel = t('accounts.modals.create.fieldNameLabel');
@@ -49,19 +52,21 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const activeIcon = computed(() => currencyOptions.find(item => item.value === state.currency)?.icon)
+const typeOptions = computed(() => ACCOUNT_TYPES.map((value) => ({label: t(`accounts.types.${value}`), value})))
 
 function onValidationError() {
   toast.error(t('accounts.modals.create.validationErrorTitle'), t('accounts.modals.create.validationErrorBody'));
 }
 
 async function onSubmit(_event: FormSubmitEvent<Schema>) {
-  const {name, initialBalance, currency} = state;
+  const {name, initialBalance, currency, type} = state;
   loading.value = true;
   try {
     const createdAccount = await accountService.createAccount({
       name,
       initialBalance: initialBalance as number,
-      currency
+      currency,
+      type
     })
     toast.success(t('accounts.modals.create.toastSuccessTitle'), t('accounts.modals.create.toastSuccessBody', {name: createdAccount.name}));
 
@@ -116,6 +121,14 @@ function onCloseModal() {
                    :items="currencyOptions"
                    class="w-full"
                    :placeholder="t('accounts.modals.create.fieldCurrencyPlaceholder')"
+                   required/>
+        </UFormField>
+
+        <UFormField :label="t('accounts.modals.create.fieldTypeLabel')" name="type" required>
+          <AppSelect v-model="state.type"
+                   :items="typeOptions"
+                   class="w-full"
+                   :placeholder="t('accounts.modals.create.fieldTypePlaceholder')"
                    required/>
         </UFormField>
       </UForm>

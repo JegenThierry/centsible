@@ -26,6 +26,9 @@ const {t} = useI18n();
         <div class="flex items-center gap-3">
           <CurrencyBadge :currency="account.currency"/>
           <span class="font-semibold text-base sm:text-lg">{{ account.name }}</span>
+          <UBadge v-if="account.type" color="neutral" variant="subtle">
+            {{ t(`accounts.types.${account.type}`) }}
+          </UBadge>
         </div>
         <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right"/>
       </div>

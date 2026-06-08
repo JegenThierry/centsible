@@ -22,6 +22,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.BALANCE,
             ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
+            ACCOUNTS.TYPE,
         )
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
@@ -35,6 +36,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.BALANCE,
             ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
+            ACCOUNTS.TYPE,
         )
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id).and(ACCOUNTS.ID.eq(id)))
@@ -51,9 +53,10 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.BALANCE, createBudgetAccountRequest.initialBalance)
             .set(ACCOUNTS.INITIAL_BALANCE, createBudgetAccountRequest.initialBalance)
             .set(ACCOUNTS.CURRENCY, createBudgetAccountRequest.currency.toString())
+            .set(ACCOUNTS.TYPE, createBudgetAccountRequest.type.toString())
             .set(ACCOUNTS.CREATED_AT, OffsetDateTime.now())
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
-            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY)
+            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY, ACCOUNTS.TYPE)
             .fetchOneInto(BudgetAccountDTO::class.java)
             ?: throw IllegalStateException("Failed to retrieve generated Account")
     }

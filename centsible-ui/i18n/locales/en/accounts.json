@@ -30,8 +30,21 @@
       "totalBalanceLabel": "Total balance",
       "last30Days": "Last 30 days"
     },
+    "types": {
+      "CHECKING": "Checking",
+      "SAVINGS": "Savings",
+      "CASH": "Cash",
+      "CREDIT_CARD": "Credit card",
+      "INVESTMENT": "Investment",
+      "ASSET": "Asset",
+      "LOAN": "Loan",
+      "MORTGAGE": "Mortgage",
+      "OTHER": "Other"
+    },
     "modals": {
       "create": {
+        "fieldTypeLabel": "Account type",
+        "fieldTypePlaceholder": "Select a type",
         "title": "Create Budget Account",
         "description": "An account allows you to manage your budget.",
         "fieldNameLabel": "Budget Account Name",
@@ -72,6 +85,14 @@
       "monthlyIncome": "Monthly Income",
       "monthlyExpenses": "Monthly Expenses",
       "netSavings": "Net Savings",
+      "safeToSpend": {
+        "title": "Safe to spend",
+        "subtitle": "This month · all accounts",
+        "perDay": "/day · {days} day(s) left",
+        "expectedIncome": "Expected income",
+        "alreadySpent": "Spent so far",
+        "upcomingExpenses": "Upcoming bills"
+      },
       "budgetsThisMonth": "Budgets this month",
       "budgetsViewAll": "View all",
       "activityTitle": "Activity",
