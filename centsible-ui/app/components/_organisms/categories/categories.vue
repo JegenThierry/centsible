@@ -9,7 +9,8 @@ import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import CategorizationRules from "~/components/_organisms/categories/categorization-rules.vue";
+import RulesManager from "~/components/_organisms/categories/rules-manager.vue";
+import TagsManager from "~/components/_organisms/categories/tags-manager.vue";
 import type {Category} from "~/models/category/category";
 
 const categoriesStore = useCategoriesStore();
@@ -23,10 +24,11 @@ const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selectedCategory = ref<Category>();
 
-const activeTab = ref<'categories' | 'rules'>('categories');
+const activeTab = ref<'categories' | 'rules' | 'tags'>('categories');
 const tabs = computed(() => [
   {label: t('categories.tabs.categories'), icon: 'i-lucide-tag', slot: 'categories', value: 'categories'},
   {label: t('categories.tabs.rules'), icon: 'i-lucide-wand-sparkles', slot: 'rules', value: 'rules'},
+  {label: t('categories.tabs.tags'), icon: 'i-lucide-tags', slot: 'tags', value: 'tags'},
 ]);
 
 function openEditModal(category: Category) {
@@ -118,7 +120,13 @@ onMounted(() => {
 
       <template #rules>
         <div class="pt-4">
-          <CategorizationRules/>
+          <RulesManager/>
+        </div>
+      </template>
+
+      <template #tags>
+        <div class="pt-4">
+          <TagsManager/>
         </div>
       </template>
     </UTabs>

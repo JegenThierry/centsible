@@ -7,7 +7,8 @@
     },
     "tabs": {
       "categories": "Catégories",
-      "rules": "Règles"
+      "rules": "Règles",
+      "tags": "Étiquettes"
     },
     "sections": {
       "yours": "Vos catégories",
@@ -65,48 +66,94 @@
       "deleteFailedTitle": "Échec de la suppression de la catégorie",
       "genericErrorBody": "Une erreur est survenue."
     },
+    "tags": {
+      "newTag": "Nouvelle étiquette",
+      "nameLabel": "Nom",
+      "namePlaceholder": "ex. remboursable, vacances",
+      "colorLabel": "Couleur",
+      "emptyTitle": "Aucune étiquette",
+      "emptyDescription": "Créez des étiquettes pour marquer des transactions au-delà des catégories — par ex. remboursable ou un voyage.",
+      "entity": "étiquette",
+      "editAria": "Modifier l'étiquette",
+      "deleteAria": "Supprimer l'étiquette",
+      "toastCreatedTitle": "Étiquette créée",
+      "toastCreatedBody": "{name} a été ajoutée.",
+      "toastUpdatedTitle": "Étiquette mise à jour",
+      "toastUpdatedBody": "{name} a été enregistrée.",
+      "toastSaveFailedTitle": "Échec de l'enregistrement de l'étiquette",
+      "toastSaveFailedBody": "L'étiquette n'a pas pu être enregistrée. Veuillez réessayer."
+    },
     "rules": {
       "newRule": "Nouvelle règle",
-      "emptyTitle": "Aucune règle de catégorisation",
-      "emptyDescription": "Créez une règle pour catégoriser automatiquement les transactions importées et synchronisées selon leur description.",
-      "patternLabel": "Texte à rechercher",
-      "patternPlaceholder": "ex. Migros, Netflix, CFF",
-      "matchLabel": "Type de correspondance",
-      "categoryLabel": "Catégorie à attribuer",
-      "priorityLabel": "Priorité",
-      "priorityDescription": "Les règles de priorité plus élevée sont appliquées en premier.",
-      "createTitle": "Nouvelle règle",
-      "editTitle": "Modifier la règle",
-      "modalDescription": "Attribuez automatiquement une catégorie aux transactions dont la description correspond.",
-      "createSubmit": "Créer",
-      "editSubmit": "Enregistrer",
+      "emptyTitle": "Aucune règle",
+      "emptyDescription": "Créez une règle pour catégoriser et étiqueter automatiquement les transactions importées, synchronisées et existantes.",
       "entity": "règle",
       "applyAria": "Appliquer la règle aux transactions existantes",
       "editAria": "Modifier la règle",
       "deleteAria": "Supprimer la règle",
+      "removeAria": "Retirer",
       "appliedTitle": "Règle appliquée",
-      "appliedBody": "{count} transaction(s) existante(s) recatégorisée(s).",
+      "appliedBody": "{count} transaction(s) existante(s) mise(s) à jour.",
+      "disabledBadge": "Désactivée",
+      "nameLabel": "Nom de la règle",
+      "namePlaceholder": "ex. Abonnement Netflix",
+      "matchModeLabel": "Correspondance",
+      "matchAll": "Toutes les conditions",
+      "matchAny": "Au moins une condition",
+      "conditionsLabel": "Conditions",
+      "addCondition": "Ajouter une condition",
+      "noConditions": "Ajoutez au moins une condition.",
+      "actionsLabel": "Actions",
+      "addAction": "Ajouter une action",
+      "noActions": "Ajoutez au moins une action.",
+      "priorityLabel": "Priorité",
+      "priorityDescription": "Les règles de priorité plus élevée l'emportent pour la catégorie.",
+      "enabledLabel": "Activée",
+      "valuePlaceholder": "ex. Migros, Netflix, CFF",
+      "selectCategory": "Choisir une catégorie",
+      "selectTag": "Choisir une étiquette",
+      "selectAccount": "Choisir un compte",
+      "selectDirection": "Choisir un type",
+      "createTitle": "Nouvelle règle",
+      "editTitle": "Modifier la règle",
+      "modalDescription": "Catégorisez et étiquetez automatiquement les transactions qui correspondent à vos conditions.",
+      "createSubmit": "Créer",
+      "editSubmit": "Enregistrer",
+      "field": {
+        "DESCRIPTION": "Description",
+        "AMOUNT": "Montant",
+        "DIRECTION": "Type",
+        "ACCOUNT": "Compte"
+      },
+      "operator": {
+        "CONTAINS": "contient",
+        "EQUALS": "est égal à",
+        "STARTS_WITH": "commence par",
+        "GT": "supérieur à",
+        "GTE": "au moins",
+        "LT": "inférieur à",
+        "LTE": "au plus",
+        "IS": "est"
+      },
+      "actionType": {
+        "SET_CATEGORY": "Définir la catégorie",
+        "ADD_TAG": "Ajouter une étiquette"
+      },
+      "direction": {
+        "INCOME": "Revenu",
+        "EXPENSE": "Dépense"
+      },
       "toasts": {
         "createdTitle": "Règle créée",
-        "createdBody": "La règle de catégorisation a été ajoutée.",
+        "createdBody": "La règle a été ajoutée.",
         "updatedTitle": "Règle mise à jour",
-        "updatedBody": "La règle de catégorisation a été enregistrée.",
+        "updatedBody": "La règle a été enregistrée.",
         "fetchFailedTitle": "Échec du chargement des règles",
-        "fetchFailedBody": "Impossible de charger les règles de catégorisation.",
+        "fetchFailedBody": "Impossible de charger les règles.",
         "createFailedTitle": "Échec de la création de la règle",
         "updateFailedTitle": "Échec de la mise à jour de la règle",
         "applyFailedTitle": "Échec de l'application de la règle",
         "genericErrorBody": "Une erreur est survenue."
-      },
-      "match": {
-        "CONTAINS": "contient",
-        "EQUALS": "est égal à",
-        "STARTS_WITH": "commence par"
-      },
-      "matchHelp": {
-        "CONTAINS": "Correspond si la description contient ce texte n'importe où.",
-        "EQUALS": "Correspond uniquement si la description est exactement ce texte.",
-        "STARTS_WITH": "Correspond si la description commence par ce texte."
       }
     }
   }

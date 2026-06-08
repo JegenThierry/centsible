@@ -1,18 +1,18 @@
 import {defineStore} from "pinia";
 import adze from 'adze'
-import type {CategorizationRule, CategorizationRuleForm} from "~/models/categorization/rule";
-import {useCategorizationService} from "~/services/categorization/categorization-service";
+import type {Rule, RuleForm} from "~/models/rule/rule";
+import {useRuleService} from "~/services/rule/rule-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 
-export const useCategorizationRulesStore = defineStore('categorizationRulesStore', () => {
+export const useRulesStore = defineStore('rulesStore', () => {
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
   const {t} = useNuxtApp().$i18n;
-  const service = useCategorizationService(api);
+  const service = useRuleService(api);
 
-  const rules = ref<CategorizationRule[]>([]);
+  const rules = ref<Rule[]>([]);
   const pending = ref(false);
 
   async function updateRules() {
@@ -21,7 +21,7 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
       rules.value = await service.fetchRules();
     } catch (error) {
       toasts.error(t('categories.rules.toasts.fetchFailedTitle'), t('categories.rules.toasts.fetchFailedBody'));
-      adze.ns('categorization').error('Failed to fetch rules', error);
+      adze.ns('rules').error('Failed to fetch rules', error);
     } finally {
       pending.value = false;
     }
@@ -41,14 +41,14 @@ export const useCategorizationRulesStore = defineStore('categorizationRulesStore
     }
   }
 
-  async function createRule(form: CategorizationRuleForm) {
+  async function createRule(form: RuleForm) {
     await runMutation(
       () => service.createRule(form).then(() => undefined),
       t('categories.rules.toasts.createdTitle'), t('categories.rules.toasts.createdBody'), t('categories.rules.toasts.createFailedTitle'),
     );
   }
 
-  async function updateRule(id: string, form: CategorizationRuleForm) {
+  async function updateRule(id: string, form: RuleForm) {
     await runMutation(
       () => service.updateRule(id, form).then(() => undefined),
       t('categories.rules.toasts.updatedTitle'), t('categories.rules.toasts.updatedBody'), t('categories.rules.toasts.updateFailedTitle'),

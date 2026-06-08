@@ -1,9 +1,9 @@
 package beer.thierry.centsiblerest.resources
 
-import beer.thierry.centsible.api.model.categorization.CategorizationRuleDTO
-import beer.thierry.centsible.api.model.categorization.CategorizationRuleForm
+import beer.thierry.centsible.api.model.rule.RuleDTO
+import beer.thierry.centsible.api.model.rule.RuleForm
 import beer.thierry.centsible.api.model.user.UserDTO
-import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.rule.IRuleService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -18,41 +18,41 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-@RequestMapping("/api/categorization-rules")
+@RequestMapping("/api/rules")
 @RestController
-class CategorizationRulesResource(private val categorizationService: ICategorizationService) {
+class RulesResource(private val ruleService: IRuleService) {
 
-    private val log = LoggerFactory.getLogger(CategorizationRulesResource::class.java)
+    private val log = LoggerFactory.getLogger(RulesResource::class.java)
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<CategorizationRuleDTO>> =
-        ResponseEntity.ok(categorizationService.list(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<RuleDTO>> =
+        ResponseEntity.ok(ruleService.list(user))
 
     @PostMapping
     fun create(
-        @Valid @RequestBody form: CategorizationRuleForm,
+        @Valid @RequestBody form: RuleForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<CategorizationRuleDTO> {
-        val created = categorizationService.create(user, form)
-        log.info("Created categorization rule id={} userId={}", created.id, user.id)
+    ): ResponseEntity<RuleDTO> {
+        val created = ruleService.create(user, form)
+        log.info("Created rule id={} userId={}", created.id, user.id)
         return ResponseEntity.ok(created)
     }
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: UUID,
-        @Valid @RequestBody form: CategorizationRuleForm,
+        @Valid @RequestBody form: RuleForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<CategorizationRuleDTO> =
-        ResponseEntity.ok(categorizationService.update(user, id, form))
+    ): ResponseEntity<RuleDTO> =
+        ResponseEntity.ok(ruleService.update(user, id, form))
 
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<Void> =
-        if (categorizationService.delete(user, id)) {
-            log.info("Deleted categorization rule id={} userId={}", id, user.id)
+        if (ruleService.delete(user, id)) {
+            log.info("Deleted rule id={} userId={}", id, user.id)
             ResponseEntity.noContent().build()
         } else {
             ResponseEntity.notFound().build()
@@ -63,8 +63,8 @@ class CategorizationRulesResource(private val categorizationService: ICategoriza
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ApplyRuleResult> {
-        val updated = categorizationService.applyToExisting(user, id)
-        log.info("Applied categorization rule id={} to {} transaction(s) userId={}", id, updated, user.id)
+        val updated = ruleService.applyToExisting(user, id)
+        log.info("Applied rule id={} to {} transaction(s) userId={}", id, updated, user.id)
         return ResponseEntity.ok(ApplyRuleResult(updated))
     }
 }
