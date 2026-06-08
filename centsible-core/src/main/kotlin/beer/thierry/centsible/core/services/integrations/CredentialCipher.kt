@@ -2,14 +2,13 @@ package beer.thierry.centsible.core.services.integrations
 
 import beer.thierry.centsible.api.model.integrations.AuthType
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
+import beer.thierry.centsible.core.services.crypto.LazyAesGcmEncryptor
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
-import org.springframework.security.crypto.encrypt.BytesEncryptor
-import org.springframework.security.crypto.encrypt.Encryptors
 import org.springframework.stereotype.Component
 
 /**
@@ -32,20 +31,17 @@ class CredentialCipher(
 ) {
     private val log = LoggerFactory.getLogger(CredentialCipher::class.java)
 
-    private val encryptor: BytesEncryptor by lazy {
-        require(encryptionKey.isNotBlank()) {
-            "integrations.encryption-key (env INTEGRATIONS_ENCRYPTION_KEY) is not set — refusing to handle credentials"
-        }
-        require(encryptionSalt.matches(HEX_SALT_REGEX)) {
-            "integrations.encryption-salt (env INTEGRATIONS_ENCRYPTION_SALT) must be a hex string of at least 16 chars"
-        }
-        Encryptors.stronger(encryptionKey, encryptionSalt)
-    }
+    private val encryptor = LazyAesGcmEncryptor(
+        key = encryptionKey,
+        salt = encryptionSalt,
+        keyErrorMessage = "integrations.encryption-key (env INTEGRATIONS_ENCRYPTION_KEY) is not set — refusing to handle credentials",
+        saltErrorMessage = "integrations.encryption-salt (env INTEGRATIONS_ENCRYPTION_SALT) must be a hex string of at least 16 chars",
+    )
 
     private val mapType = object : TypeReference<Map<String, String>>() {}
 
     init {
-        if (encryptionKey.isBlank()) {
+        if (!encryptor.isConfigured) {
             log.warn("integrations.encryption-key is not configured; provider connections that store secrets will fail until it is set")
         }
     }
@@ -57,7 +53,7 @@ class CredentialCipher(
         val needsCipher = registry.listDescriptors().any { it.authType != AuthType.NONE }
         if (!needsCipher) return
         try {
-            encryptor
+            encryptor.ensureReady()
             log.info("Credential cipher ready; {} credentialled provider(s) enabled.",
                 registry.listDescriptors().count { it.authType != AuthType.NONE })
         } catch (e: IllegalArgumentException) {
@@ -87,9 +83,5 @@ class CredentialCipher(
             log.error("Credential decryption failed (cipherBytes={})", ciphertext.size, e)
             throw e
         }
-    }
-
-    companion object {
-        private val HEX_SALT_REGEX = Regex("^[0-9a-fA-F]{16,}$")
     }
 }

@@ -18,7 +18,7 @@ dependencyCheck {
 
     nvd.apiKey = (findProperty("nvdApiKey") as String?)
         ?: System.getenv("NVD_API_KEY")
-        ?: ""
+            ?: ""
 
     val suppression = file("dependency-check-suppression.xml")
     if (suppression.exists()) {
@@ -96,6 +96,7 @@ subprojects {
 
 tasks.register("dependencyReportAll") {
     group = "reporting"
-    description = "Generates HTML dependency reports for every subproject under each module's build/reports/project/dependencies/."
+    description =
+        "Generates HTML dependency reports for every subproject under each module's build/reports/project/dependencies/."
     dependsOn(subprojects.map { "${it.path}:htmlDependencyReport" })
 }
