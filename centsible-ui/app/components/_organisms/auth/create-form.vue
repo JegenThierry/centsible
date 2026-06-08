@@ -52,10 +52,7 @@ const schema = z.object({
     .max(100, t('common.validation.maxLength', {field: lastNameLabel, max: 100})),
   password: z.string()
     .min(1, t('common.validation.required', {field: passwordLabel}))
-    .refine(
-      (v) => v.length >= 8 && /[A-Z]/.test(v) && /[a-z]/.test(v) && /\d/.test(v) && /[@$!%*?&]/.test(v),
-      t('auth.password.doesNotMeetRequirements'),
-    ),
+    .refine(isStrongPassword, t('auth.password.doesNotMeetRequirements')),
   confirmPassword: z.string()
     .min(1, t('common.validation.required', {field: confirmPasswordLabel})),
 }).refine((d) => d.password === d.confirmPassword, {

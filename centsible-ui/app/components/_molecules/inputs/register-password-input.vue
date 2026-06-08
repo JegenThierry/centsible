@@ -9,12 +9,9 @@ const {t} = useI18n();
 const password = defineModel<string>('password', {required: true});
 const confirmPassword = defineModel<string>('confirm-password', {required: true});
 
-const passwordRules = computed(() => [
-  {label: t('auth.password.rules.length'), met: password.value.length >= 8},
-  {label: t('auth.password.rules.case'), met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},
-  {label: t('auth.password.rules.digit'), met: /\d/.test(password.value)},
-  {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(password.value)}
-])
+const passwordRules = computed(() =>
+  PASSWORD_RULES.map((rule) => ({label: t(rule.labelKey), met: rule.test(password.value)})),
+)
 </script>
 
 <template>

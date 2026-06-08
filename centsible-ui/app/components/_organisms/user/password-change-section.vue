@@ -10,8 +10,6 @@ const {t} = useI18n();
 const authStore = useAuthStore();
 const {success, error} = useToasts();
 
-const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
 const state = reactive({currentPassword: '', newPassword: '', confirmPassword: ''});
 const loading = ref(false);
 
@@ -20,7 +18,7 @@ const schema = z.object({
     .min(1, t('common.validation.required', {field: t('profile.password.currentLabel')})),
   newPassword: z.string()
     .min(1, t('common.validation.required', {field: t('profile.password.newLabel')}))
-    .refine((v) => PASSWORD_PATTERN.test(v), t('profile.password.validation.tooWeak')),
+    .refine(isStrongPassword, t('profile.password.validation.tooWeak')),
   confirmPassword: z.string()
     .min(1, t('common.validation.required', {field: t('profile.password.confirmLabel')})),
 })
@@ -34,12 +32,9 @@ const schema = z.object({
   })
 type Schema = z.output<typeof schema>
 
-const passwordRules = computed(() => [
-  {label: t('auth.password.rules.length'), met: state.newPassword.length >= 8},
-  {label: t('auth.password.rules.case'), met: /[A-Z]/.test(state.newPassword) && /[a-z]/.test(state.newPassword)},
-  {label: t('auth.password.rules.digit'), met: /\d/.test(state.newPassword)},
-  {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(state.newPassword)},
-]);
+const passwordRules = computed(() =>
+  PASSWORD_RULES.map((rule) => ({label: t(rule.labelKey), met: rule.test(state.newPassword)})),
+);
 
 function reset() {
   state.currentPassword = '';
