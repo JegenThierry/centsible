@@ -6,6 +6,7 @@ import type {Contact, ContactForm as ContactFormModel} from "~/models/contact/co
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
+import {contactSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
   contact: Contact | undefined;
@@ -19,17 +20,7 @@ const {t} = useI18n();
 const form = ref<ContactFormModel>({firstName: '', lastName: ''});
 const loading = ref(false);
 
-const firstNameLabel = t('contacts.form.firstNameLabel');
-const lastNameLabel = t('contacts.form.lastNameLabel');
-
-const schema = z.object({
-  firstName: z.string().trim()
-    .min(1, t('common.validation.required', {field: firstNameLabel}))
-    .max(100, t('common.validation.maxLength', {field: firstNameLabel, max: 100})),
-  lastName: z.string().trim()
-    .max(100, t('common.validation.maxLength', {field: lastNameLabel, max: 100}))
-    .optional(),
-})
+const schema = contactSchema(t);
 type Schema = z.output<typeof schema>
 
 watch(() => props.contact, (c) => {

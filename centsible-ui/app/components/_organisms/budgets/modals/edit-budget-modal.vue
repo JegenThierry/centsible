@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import {MONEY_FIELD_MAX} from "~/utils/money";
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import type {Budget, BudgetForm} from "~/models/budget/budget";
@@ -8,6 +7,7 @@ import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
 import {useBudgetService} from "~/services/budget/budget-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {budgetSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
   budget: Budget;
@@ -25,15 +25,7 @@ const {t} = useI18n();
 const form = ref<BudgetForm>(toForm(props.budget));
 const loading = ref(false);
 
-const categoryLabel = t('budgets.form.categoryLabel');
-const limitLabel = t('budgets.form.limitLabel');
-
-const schema = z.object({
-  category: z.any().refine((v) => !!v, t('common.validation.required', {field: categoryLabel})),
-  amountLimit: z.coerce.number({message: t('common.validation.number', {field: limitLabel})})
-    .min(0.01, t('common.validation.min', {field: limitLabel, min: 0.01}))
-    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: limitLabel, max: MONEY_FIELD_MAX})),
-})
+const schema = budgetSchema(t);
 type Schema = z.output<typeof schema>
 
 function toForm(budget: Budget): BudgetForm {

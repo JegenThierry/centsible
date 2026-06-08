@@ -9,6 +9,7 @@ import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import {categorySchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
   category?: Category;
@@ -29,18 +30,7 @@ const form = ref<CategoryForm>({
 const loading = ref(false);
 const formId = useId();
 
-const nameLabel = t('categories.form.nameLabel');
-const iconLabel = t('categories.form.iconLabel');
-
-const schema = z.object({
-  name: z.string().trim()
-    .min(1, t('common.validation.required', {field: nameLabel}))
-    .max(50, t('common.validation.maxLength', {field: nameLabel, max: 50})),
-  icon: z.string().trim()
-    .min(1, t('common.validation.required', {field: iconLabel}))
-    .max(50, t('common.validation.maxLength', {field: iconLabel, max: 50}))
-    .regex(ICON_PATTERN, t('categories.form.iconPatternMessage')),
-});
+const schema = categorySchema(t);
 type Schema = z.output<typeof schema>;
 
 const typeOptions = computed(() => [
