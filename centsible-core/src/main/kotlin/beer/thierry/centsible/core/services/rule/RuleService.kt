@@ -10,7 +10,6 @@ import beer.thierry.centsible.api.model.rule.RuleDTO
 import beer.thierry.centsible.api.model.rule.RuleField
 import beer.thierry.centsible.api.model.rule.RuleForm
 import beer.thierry.centsible.api.model.rule.RuleMatching
-import beer.thierry.centsible.api.model.rule.RuleOperator
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRuleRepository
@@ -92,11 +91,7 @@ class RuleService(
 
     private fun validateCondition(condition: RuleConditionForm): RuleConditionForm {
         val value = condition.value.trim()
-        val operatorOk = when (condition.field) {
-            RuleField.DESCRIPTION -> condition.operator in DESCRIPTION_OPERATORS
-            RuleField.AMOUNT -> condition.operator in AMOUNT_OPERATORS
-            RuleField.DIRECTION, RuleField.ACCOUNT -> condition.operator == RuleOperator.IS
-        }
+        val operatorOk = condition.operator in RuleMatching.VALID_OPERATORS.getValue(condition.field)
         if (!operatorOk) throw LocalizedException.BadRequest("error.rule.conditionInvalid")
 
         val valueOk = when (condition.field) {
@@ -124,11 +119,5 @@ class RuleService(
             tags.fetchById(user, tagId) ?: throw LocalizedException.BadRequest("error.tag.notAccessible")
             action.copy(tagId = tagId, categoryId = null)
         }
-    }
-
-    companion object {
-        private val DESCRIPTION_OPERATORS = setOf(RuleOperator.CONTAINS, RuleOperator.EQUALS, RuleOperator.STARTS_WITH)
-        private val AMOUNT_OPERATORS =
-            setOf(RuleOperator.GT, RuleOperator.GTE, RuleOperator.LT, RuleOperator.LTE, RuleOperator.EQUALS)
     }
 }

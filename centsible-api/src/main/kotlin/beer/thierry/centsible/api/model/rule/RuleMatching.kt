@@ -29,6 +29,14 @@ data class RuleEffects(
  */
 object RuleMatching {
 
+    /** Operators legal for each field — the single source consulted by rule validation (and mirrored in the UI). */
+    val VALID_OPERATORS: Map<RuleField, Set<RuleOperator>> = mapOf(
+        RuleField.DESCRIPTION to setOf(RuleOperator.CONTAINS, RuleOperator.EQUALS, RuleOperator.STARTS_WITH),
+        RuleField.AMOUNT to setOf(RuleOperator.GT, RuleOperator.GTE, RuleOperator.LT, RuleOperator.LTE, RuleOperator.EQUALS),
+        RuleField.DIRECTION to setOf(RuleOperator.IS),
+        RuleField.ACCOUNT to setOf(RuleOperator.IS),
+    )
+
     /** Whether a single [condition] holds for [context]; an operator invalid for the field never matches. */
     fun conditionMatches(condition: RuleConditionDTO, context: RuleContext): Boolean = when (condition.field) {
         RuleField.DESCRIPTION -> when (condition.operator) {
