@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {Budget} from "~/models/budget/budget";
+import {type Budget, budgetBarColor, effectiveLimit as budgetEffectiveLimit} from "~/models/budget/budget";
 import {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
@@ -10,9 +10,7 @@ const props = defineProps<{
 
 const {t} = useI18n();
 
-const effectiveLimit = computed(() =>
-  props.budget.amountLimit + (props.budget.rolloverAmount ?? 0)
-);
+const effectiveLimit = computed(() => budgetEffectiveLimit(props.budget));
 
 const ratio = computed(() => effectiveLimit.value > 0
   ? props.budget.amountSpent / effectiveLimit.value
@@ -21,11 +19,7 @@ const ratio = computed(() => effectiveLimit.value > 0
 const percent = computed(() => Math.min(100, Math.round(ratio.value * 100)));
 const overBudget = computed(() => ratio.value > 1);
 
-const barColor = computed(() => {
-  if (overBudget.value) return 'bg-error';
-  if (ratio.value >= 0.85) return 'bg-warning';
-  return 'bg-success';
-});
+const barColor = computed(() => budgetBarColor(ratio.value));
 
 const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
 const periodLabel = computed(() => t(`budgets.periods.${props.budget.periodType ?? 'MONTHLY'}`));
