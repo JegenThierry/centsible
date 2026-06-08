@@ -1,6 +1,5 @@
 package beer.thierry.centsible.imports.csv
 
-import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.CsvDialect
@@ -8,6 +7,9 @@ import beer.thierry.centsible.imports.core.FileFormatParser
 import beer.thierry.centsible.imports.core.ParseHints
 import beer.thierry.centsible.imports.core.ParseWarning
 import beer.thierry.centsible.imports.core.ParsedFile
+import beer.thierry.centsible.imports.core.importRow
+import beer.thierry.centsible.imports.core.logWarningSummary
+import beer.thierry.centsible.imports.core.requireDefaultCategoryId
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.slf4j.LoggerFactory
@@ -70,9 +72,7 @@ class CsvFileParser : FileFormatParser {
             val mapping = requireNotNull(hints.csvMapping) {
                 "CsvFileParser requires ParseHints.csvMapping; call probe() and let the user confirm before parsing."
             }
-            val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
-                "CsvFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
-            }
+            val defaultCategoryId = requireDefaultCategoryId(hints, "CsvFileParser")
             val dialect = hints.csvDialect ?: detectDialect(bytes)
             val all = readAllRecords(bytes, dialect)
             val dataStart = if (dialect.hasHeader) 1 else 0
@@ -86,24 +86,12 @@ class CsvFileParser : FileFormatParser {
                 val parsed = parseRow(cells, mapping, dateParser, defaultCategoryId, sourceRow, warnings)
                 if (parsed != null) rows.add(parsed)
             }
-            logWarningSummary(warnings)
+            logWarningSummary("CSV", warnings, log)
             log.info("Parsed file format=csv rows={} warnings={}", rows.size, warnings.size)
             return ParsedFile(rows = rows, warnings = warnings)
         } catch (ex: Exception) {
             log.error("Failed to parse CSV file bytes={}", bytes.size, ex)
             throw ex
-        }
-    }
-
-    /**
-     * Logged once per distinct warning code as a summary (with row counts) rather than per row —
-     * a malformed CSV can emit thousands of skipped-row warnings, and flooding the log per row
-     * would drown out everything else.
-     */
-    private fun logWarningSummary(warnings: List<ParseWarning>) {
-        if (warnings.isEmpty()) return
-        warnings.groupingBy { it.code }.eachCount().forEach { (code, count) ->
-            log.warn("CSV parse warning code={} count={}", code, count)
         }
     }
 
@@ -156,13 +144,7 @@ class CsvFileParser : FileFormatParser {
 
         val description = descRaw.ifBlank { "(no description)" }.take(255)
 
-        return ImportTransactionRow(
-            amount = amount.abs(),
-            categoryId = defaultCategoryId,
-            description = description,
-            transactionDate = date,
-            type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
-        )
+        return importRow(amount, description, date, defaultCategoryId)
     }
 
     private fun resolveAmount(
