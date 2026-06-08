@@ -95,9 +95,7 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .where(
                 effectiveCategoryId.`in`(categoryIds)
                     .and(ACCOUNTS.USER_ID.eq(user.id))
-                    .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
-                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
-                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
+                    .and(expenseInPeriod(from, to))
             )
             .groupBy(effectiveCategoryId)
             .fetch()

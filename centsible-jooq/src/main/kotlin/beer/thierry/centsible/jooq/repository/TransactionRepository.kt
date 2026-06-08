@@ -391,9 +391,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
                 baseCondition(accountId, authenticatedUser)
-                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
-                    .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
-                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
+                    .and(expenseInPeriod(from, to))
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON)
             .orderBy(total.desc())
