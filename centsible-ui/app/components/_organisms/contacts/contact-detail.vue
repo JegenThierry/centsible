@@ -14,7 +14,7 @@ const EditLoanModal = defineAsyncComponent(() => import("~/components/_organisms
 const RecordRepaymentModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/record-repayment-modal.vue"));
 const RepaymentsModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/repayments-modal.vue"));
 const DeleteLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/delete-loan-modal.vue"));
-const EditContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/edit-contact-modal.vue"));
+const ContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/contact-modal.vue"));
 const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
@@ -126,7 +126,7 @@ onMounted(async () => {
                  @edit="openEditLoan"
                  @delete="openDeleteLoan"/>
 
-      <EditContactModal v-model:open="isEditContactOpen" :contact="contact"/>
+      <ContactModal v-model:open="isEditContactOpen" :contact="contact"/>
       <DeleteContactModal v-model:open="isDeleteContactOpen" :contact="contact" @deleted="onContactDeleted"/>
       <CreateLoanModal v-if="isCreateLoanOpen"
                        v-model:open="isCreateLoanOpen"
