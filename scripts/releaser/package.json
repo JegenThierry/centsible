@@ -1,0 +1,20 @@
+{
+  "name": "releaser",
+  "version": "1.0.0",
+  "description": "Creates releases of Centsible",
+  "author": "Thierry Jegen",
+  "license": "AGPL-3.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "release": "node release.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.1",
+    "typescript": "6.0.3"
+  }
+}
