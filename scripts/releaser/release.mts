@@ -1,13 +1,9 @@
 import {useArgumentParser} from "./arguments/argumentParser.mts";
 
 const args = process.argv.slice(2)
+const {version, isPush, isDryRun} = useArgumentParser(args);
 
-const parser = useArgumentParser(args);
-const version = parser.getVersion()
-const dryRun = parser.isDryRun()
-const push = parser.isPush()
-
-console.log(parser.getVersion(), parser.isPush(), parser.isDryRun())
+console.log(version, isPush, isDryRun)
 
 
 /**
