@@ -24,7 +24,6 @@ if (commandHelper.doesReleaseExist(version)) {
  * 2.2 Check if the current branch is 'develop'.
  * 2.3 Fetch and Pull develop
  */
-
 const unstagedFiles = commandHelper.getUnstagedFiles();
 if (unstagedFiles.length > 0) {
     console.error(`Unstaged files: ${unstagedFiles.join(', ')}`)
