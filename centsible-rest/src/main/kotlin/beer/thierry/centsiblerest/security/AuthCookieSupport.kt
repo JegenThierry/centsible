@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 const val AUTH_COOKIE_NAME = "auth_token"
-const val MFA_PENDING_COOKIE_NAME = "mfa_pending"
+const val PRE_AUTH_COOKIE_NAME = "pre_auth"
 
 @Component
 class AuthCookieIssuer(
@@ -44,7 +44,7 @@ class AuthCookieIssuer(
  * reads it — so it can never stand in for a real JWT.
  */
 @Component
-class MfaPendingCookieIssuer(
+class PreAuthCookieIssuer(
     @Value("\${auth.cookie.secure:false}") private val cookieSecure: Boolean,
     @Value("\${auth.cookie.domain:}") private val cookieDomain: String,
 ) {
@@ -56,7 +56,7 @@ class MfaPendingCookieIssuer(
         response.addHeader("Set-Cookie", baseBuilder("").maxAge(Duration.ZERO).build().toString())
     }
 
-    private fun baseBuilder(value: String) = ResponseCookie.from(MFA_PENDING_COOKIE_NAME, value)
+    private fun baseBuilder(value: String) = ResponseCookie.from(PRE_AUTH_COOKIE_NAME, value)
         .httpOnly(true)
         .secure(cookieSecure)
         .sameSite("Strict")

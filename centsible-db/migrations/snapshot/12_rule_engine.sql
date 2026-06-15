@@ -1,7 +1,3 @@
--- Generalize the single-trigger/single-action categorization_rules into a rule engine:
--- a rule has N conditions (matched ALL or ANY) and N actions (set category, add a tag).
--- Existing categorization rules are migrated 1:1 (one DESCRIPTION condition + one SET_CATEGORY action).
-
 CREATE TABLE IF NOT EXISTS rules
 (
     id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
@@ -49,8 +45,6 @@ CREATE TABLE IF NOT EXISTS rule_actions
 
 CREATE INDEX IF NOT EXISTS idx_rule_actions_rule ON rule_actions (rule_id);
 
--- One-time migration of existing categorization_rules into the new structure, then drop the old table.
--- A transactional DO block so a partial failure rolls back cleanly and the file can safely re-run.
 DO
 $$
     BEGIN

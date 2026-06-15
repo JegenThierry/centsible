@@ -1,6 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
-import beer.thierry.centsible.api.repository.IMfaRepository
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.jooq.generated.tables.references.MFA_PENDING_AUTH
 import beer.thierry.jooq.generated.tables.references.USER_RECOVERY_CODES
 import org.jooq.DSLContext
@@ -9,9 +9,9 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Repository
-class MfaRepository(
+class TwoFactorRepository(
     private val dsl: DSLContext,
-) : IMfaRepository {
+) : ITwoFactorRepository {
 
     override fun createPendingAuth(userId: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): UUID =
         dsl.insertInto(MFA_PENDING_AUTH)

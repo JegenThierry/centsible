@@ -4,10 +4,10 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 /**
- * Persistence for the transient MFA artefacts that live outside the users row: the short-lived
+ * Persistence for the transient 2FA artefacts that live outside the users row: the short-lived
  * pre-auth token bridging password-verify and code-submit, and the single-use recovery codes.
  */
-interface IMfaRepository {
+interface ITwoFactorRepository {
     /** Stores a hashed, time-boxed pre-auth token for [userId]. Returns the new row id. */
     fun createPendingAuth(userId: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): UUID
 

@@ -1,7 +1,3 @@
--- Tags: free-form, user-scoped labels attached to transactions (many-to-many).
--- Foundational for cross-cutting filtering (e.g. #reimbursable) and, later, the rule engine's
--- "add tag" action. Split transactions are intentionally a separate, later migration.
-
 CREATE TABLE IF NOT EXISTS tags
 (
     id          BIGSERIAL PRIMARY KEY,
@@ -22,6 +18,4 @@ CREATE TABLE IF NOT EXISTS transaction_tags
     PRIMARY KEY (transaction_id, tag_id)
 );
 
--- Reverse lookup (transactions carrying a given tag); the composite PK already covers the
--- transaction_id -> tags direction.
 CREATE INDEX IF NOT EXISTS idx_transaction_tags_tag ON transaction_tags (tag_id);

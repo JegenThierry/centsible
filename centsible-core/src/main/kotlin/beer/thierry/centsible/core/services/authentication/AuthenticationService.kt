@@ -6,7 +6,7 @@ import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
 import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
-import beer.thierry.centsible.api.repository.IMfaRepository
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.authentication.ITotpService
@@ -35,7 +35,7 @@ private fun resolveEmailLocale(stored: String?): Locale {
 @Service
 class AuthenticationService(
     private val userRepository: IUserRepository,
-    private val mfaRepository: IMfaRepository,
+    private val twoFactorRepository: ITwoFactorRepository,
     private val totpService: ITotpService,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
@@ -76,8 +76,8 @@ class AuthenticationService(
         if (user.totpEnabled) {
             val rawToken = generateRegistrationToken()
             val expiresAt = OffsetDateTime.now().plusMinutes(PRE_AUTH_TOKEN_TTL_MINUTES)
-            mfaRepository.deletePendingAuthForUser(user.id)
-            mfaRepository.createPendingAuth(user.id, sha256(rawToken), expiresAt)
+            twoFactorRepository.deletePendingAuthForUser(user.id)
+            twoFactorRepository.createPendingAuth(user.id, sha256(rawToken), expiresAt)
             log.info("Authentication step 1 ok; awaiting 2FA challenge userId={}", user.id)
             return LoginResult.TwoFactorRequired(rawToken)
         }
@@ -90,7 +90,7 @@ class AuthenticationService(
         if (pendingToken.isBlank() || pendingToken.length > REGISTRATION_TOKEN_MAX_LENGTH) {
             throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
         }
-        val userId = mfaRepository.consumePendingAuth(sha256(pendingToken))
+        val userId = twoFactorRepository.consumePendingAuth(sha256(pendingToken))
             ?: throw LocalizedException.Unauthorized("error.totp.challengeExpired")
 
         if (!totpService.verifyChallengeCode(userId, code)) {

@@ -4,7 +4,7 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.RecoveryCodesDTO
 import beer.thierry.centsible.api.model.auth.TotpEnrollmentDTO
 import beer.thierry.centsible.api.model.auth.TotpStatusDTO
-import beer.thierry.centsible.api.repository.IMfaRepository
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.authentication.ITotpService
 import dev.samstevens.totp.code.CodeVerifier
@@ -23,7 +23,7 @@ import java.util.UUID
 @Service
 class TotpService(
     private val userRepository: IUserRepository,
-    private val mfaRepository: IMfaRepository,
+    private val twoFactorRepository: ITwoFactorRepository,
     private val cipher: TotpSecretCipher,
     private val passwordEncoder: PasswordEncoder,
 ) : ITotpService {
@@ -41,7 +41,7 @@ class TotpService(
     override fun status(userId: UUID): TotpStatusDTO {
         val user = userRepository.findUserById(userId)
             ?: throw LocalizedException.NotFound("error.user.notFound")
-        val remaining = if (user.totpEnabled) mfaRepository.fetchUnusedRecoveryCodeHashes(userId).size else 0
+        val remaining = if (user.totpEnabled) twoFactorRepository.fetchUnusedRecoveryCodeHashes(userId).size else 0
         return TotpStatusDTO(enabled = user.totpEnabled, recoveryCodesRemaining = remaining)
     }
 
@@ -99,7 +99,7 @@ class TotpService(
             throw LocalizedException.BadRequest("error.totp.invalidCode")
         }
         userRepository.disableTotp(userId)
-        mfaRepository.deleteRecoveryCodes(userId)
+        twoFactorRepository.deleteRecoveryCodes(userId)
         log.info("Disabled TOTP 2FA userId={}", userId)
     }
 
@@ -128,7 +128,7 @@ class TotpService(
         val hashes = plainCodes.map {
             passwordEncoder.encode(it) ?: throw LocalizedException.InternalError("error.totp.enrollFailed")
         }
-        mfaRepository.replaceRecoveryCodes(userId, hashes)
+        twoFactorRepository.replaceRecoveryCodes(userId, hashes)
         return plainCodes
     }
 
@@ -154,10 +154,10 @@ class TotpService(
             return true
         }
 
-        val match = mfaRepository.fetchUnusedRecoveryCodeHashes(userId)
+        val match = twoFactorRepository.fetchUnusedRecoveryCodeHashes(userId)
             .firstOrNull { passwordEncoder.matches(trimmed, it) }
             ?: return false
-        val consumed = mfaRepository.markRecoveryCodeUsed(userId, match)
+        val consumed = twoFactorRepository.markRecoveryCodeUsed(userId, match)
         if (consumed) log.info("Recovery code consumed userId={}", userId)
         return consumed
     }

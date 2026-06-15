@@ -14,8 +14,8 @@ import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.users.IUserService
 import beer.thierry.centsiblerest.security.AuthCookieIssuer
-import beer.thierry.centsiblerest.security.MFA_PENDING_COOKIE_NAME
-import beer.thierry.centsiblerest.security.MfaPendingCookieIssuer
+import beer.thierry.centsiblerest.security.PRE_AUTH_COOKIE_NAME
+import beer.thierry.centsiblerest.security.PreAuthCookieIssuer
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -30,7 +30,7 @@ class AuthenticationResource(
     private val authService: IAuthService,
     private val userService: IUserService,
     private val authCookieIssuer: AuthCookieIssuer,
-    private val mfaPendingCookieIssuer: MfaPendingCookieIssuer,
+    private val preAuthCookieIssuer: PreAuthCookieIssuer,
 ) {
     private val log = LoggerFactory.getLogger(AuthenticationResource::class.java)
 
@@ -49,7 +49,7 @@ class AuthenticationResource(
                 ResponseEntity.ok(LoginResponse(twoFactorRequired = false, token = result.token))
             }
             is LoginResult.TwoFactorRequired -> {
-                mfaPendingCookieIssuer.issue(response, result.pendingToken)
+                preAuthCookieIssuer.issue(response, result.pendingToken)
                 log.info("Login step 1 ok for username={}; 2FA challenge required", request.username)
                 ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginResponse(twoFactorRequired = true))
             }
@@ -59,7 +59,7 @@ class AuthenticationResource(
     @PostMapping("/2fa/challenge")
     fun twoFactorChallenge(
         @Valid @RequestBody request: TotpChallengeRequest,
-        @CookieValue(name = MFA_PENDING_COOKIE_NAME, required = false) pendingToken: String?,
+        @CookieValue(name = PRE_AUTH_COOKIE_NAME, required = false) pendingToken: String?,
         response: HttpServletResponse,
     ): ResponseEntity<AuthResponse> {
         if (pendingToken.isNullOrBlank()) {
@@ -69,10 +69,10 @@ class AuthenticationResource(
         val authResult = try {
             authService.completeTwoFactorChallenge(pendingToken, request.code)
         } catch (ex: RuntimeException) {
-            mfaPendingCookieIssuer.clear(response)
+            preAuthCookieIssuer.clear(response)
             throw ex
         }
-        mfaPendingCookieIssuer.clear(response)
+        preAuthCookieIssuer.clear(response)
         authCookieIssuer.issue(response, authResult.token)
         log.info("2FA challenge succeeded; session issued")
         return ResponseEntity.ok(authResult)

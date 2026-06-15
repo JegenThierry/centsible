@@ -47,7 +47,8 @@ async function onConfirm() {
   if (!canSubmit.value || loading.value) return;
   loading.value = true;
   try {
-    await authStore.deleteAccount(password.value, twoFactorEnabled.value ? totpCode.value.trim() : undefined);
+    const code = twoFactorEnabled.value ? totpCode.value.trim() : undefined;
+    await authStore.deleteAccount(password.value, code);
     success(t('profile.dangerZone.delete.toasts.successTitle'), t('profile.dangerZone.delete.toasts.successBody'));
   } catch (e: any) {
     if (e?.response?.status === 401) {

@@ -4,7 +4,7 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
-import beer.thierry.centsible.api.repository.IMfaRepository
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.authentication.ITotpService
 import beer.thierry.centsible.api.services.email.IPasswordResetEmailService
@@ -34,7 +34,7 @@ import java.util.UUID
 class AuthenticationServiceTest {
 
     @Mock private lateinit var userRepository: IUserRepository
-    @Mock private lateinit var mfaRepository: IMfaRepository
+    @Mock private lateinit var twoFactorRepository: ITwoFactorRepository
     @Mock private lateinit var totpService: ITotpService
     @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var registerEmailService: IRegisterEmailService
@@ -44,7 +44,7 @@ class AuthenticationServiceTest {
 
     private fun service() = AuthenticationService(
         userRepository = userRepository,
-        mfaRepository = mfaRepository,
+        twoFactorRepository = twoFactorRepository,
         totpService = totpService,
         passwordEncoder = passwordEncoder,
         registerEmailService = registerEmailService,
@@ -105,7 +105,7 @@ class AuthenticationServiceTest {
         val result = service().authenticate(AuthRequest("alice", "correct"))
         val authenticated = assertInstanceOf(LoginResult.Authenticated::class.java, result)
         assertTrue(authenticated.token.isNotBlank())
-        verifyNoInteractions(mfaRepository)
+        verifyNoInteractions(twoFactorRepository)
     }
 
     @Test
@@ -117,8 +117,8 @@ class AuthenticationServiceTest {
         val result = service().authenticate(AuthRequest("alice", "correct"))
         val pending = assertInstanceOf(LoginResult.TwoFactorRequired::class.java, result)
         assertTrue(pending.pendingToken.isNotBlank())
-        verify(mfaRepository).deletePendingAuthForUser(twoFa.id)
-        verify(mfaRepository).createPendingAuth(
+        verify(twoFactorRepository).deletePendingAuthForUser(twoFa.id)
+        verify(twoFactorRepository).createPendingAuth(
             anyArg(UUID::class.java, twoFa.id),
             anyArg(ByteArray::class.java, ByteArray(0)),
             anyArg(OffsetDateTime::class.java, OffsetDateTime.now()),
