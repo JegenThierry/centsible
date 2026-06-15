@@ -1,8 +1,8 @@
-import {useArgumentParser} from "./arguments/argumentParser.mts";
-import {useCommandHelper} from "./command/commandHelper.mts";
+import { useArgumentParser } from "./arguments/argumentParser.mts";
+import { useCommandHelper } from "./command/commandHelper.mts";
 
-const args = process.argv.slice(2)
-const commandHelper = useCommandHelper()
+const args = process.argv.slice(2);
+const commandHelper = useCommandHelper();
 
 /**
  * General workflow:
@@ -10,13 +10,12 @@ const commandHelper = useCommandHelper()
  * 2. Navigate to the repository root.
  * 3. Check if the release already exists.
  */
-const {version, isPush, isDryRun} = useArgumentParser(args);
+const { version, isPush, isDryRun } = useArgumentParser(args);
 commandHelper.navigateToRepoRoot();
 if (commandHelper.doesReleaseExist(version)) {
-    console.error(`Release ${version} already exists`)
-    process.exit(1)
+  console.error(`Release ${version} already exists`);
+  process.exit(1);
 }
-
 
 /**
  * 2. Ensure a clean working tree.
@@ -26,14 +25,14 @@ if (commandHelper.doesReleaseExist(version)) {
  */
 const unstagedFiles = commandHelper.getUnstagedFiles();
 if (unstagedFiles.length > 0) {
-    console.error(`Unstaged files: ${unstagedFiles.join(', ')}`)
-    process.exit(1)
+  console.error(`Unstaged files: ${unstagedFiles.join(", ")}`);
+  process.exit(1);
 }
 
 const branch = commandHelper.getCurrentBranch();
-if (branch !== 'develop') {
-    console.error(`Current branch is ${branch}, but should be develop`)
-    process.exit(1)
+if (branch !== "develop") {
+  console.error(`Current branch is ${branch}, but should be develop`);
+  process.exit(1);
 }
 
 commandHelper.runGitFetch();
@@ -59,9 +58,10 @@ commandHelper.updateBuildGradleVersion(version);
  * 5.3 Check the highest number in the moved files.
  * 5.4 Create a new migration script: <NN>_SetVersion_<version>.sql (updates system_information)
  */
-commandHelper.createMigrationFolder(version)
-const highestMigrationNumber = commandHelper.moveSnapshotScriptsToMigrationFolder(version)
-commandHelper.createMigrationScript(version, highestMigrationNumber)
+commandHelper.createMigrationFolder(version);
+const highestMigrationNumber =
+  commandHelper.moveSnapshotScriptsToMigrationFolder(version);
+commandHelper.createMigrationScript(version, highestMigrationNumber);
 
 // TODO: Verify build
 
@@ -71,9 +71,7 @@ commandHelper.createMigrationScript(version, highestMigrationNumber)
  * 9. Create tag: git tag -a <version> -m "Release <version>"
  * 10. Push tag: git push origin <version>
  */
-commandHelper.createVersionBumpCommit(version)
-commandHelper.pushBranch(version)
+commandHelper.createVersionBumpCommit(version);
+commandHelper.pushBranch(version);
 commandHelper.createTag(version);
 commandHelper.pushTag(version);
-
-
