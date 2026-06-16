@@ -4,15 +4,15 @@ import { useCommandHelper } from "./command/commandHelper.mts";
 const args = process.argv.slice(2);
 const commandHelper = useCommandHelper();
 
+const { version, isPush, isDryRun } = useArgumentParser(args);
+
 /**
  * General workflow:
  * 1. Parse and validate arguments.
  * 2. Navigate to the repository root.
  * 3. Check if the release already exists.
  */
-const { version, isPush, isDryRun } = useArgumentParser(args);
-commandHelper.navigateToRepoRoot();
-if (commandHelper.doesReleaseExist(version)) {
+if (await commandHelper.doesReleaseExist(version)) {
   console.error(`Release ${version} already exists`);
   process.exit(1);
 }
@@ -23,25 +23,25 @@ if (commandHelper.doesReleaseExist(version)) {
  * 2.2 Check if the current branch is 'develop'.
  * 2.3 Fetch and Pull develop
  */
-const unstagedFiles = commandHelper.getUnstagedFiles();
+const unstagedFiles = await commandHelper.getUnstagedFiles();
 if (unstagedFiles.length > 0) {
   console.error(`Unstaged files: ${unstagedFiles.join(", ")}`);
   process.exit(1);
 }
 
-const branch = commandHelper.getCurrentBranch();
+const branch = await commandHelper.getCurrentBranch();
 if (branch !== "develop") {
   console.error(`Current branch is ${branch}, but should be develop`);
   process.exit(1);
 }
 
-commandHelper.runGitFetch();
-commandHelper.runGitPull();
+await commandHelper.runGitFetch();
+await commandHelper.runGitPull();
 
 /**
  * 3. Create a release branch: git checkout -b release/<version>
  */
-commandHelper.checkoutNewBranchBasedOnVersion(version);
+await commandHelper.checkoutNewBranchBasedOnVersion(version);
 
 /**
  * 4. Bump versions
@@ -71,7 +71,7 @@ commandHelper.createMigrationScript(version, highestMigrationNumber);
  * 9. Create tag: git tag -a <version> -m "Release <version>"
  * 10. Push tag: git push origin <version>
  */
-commandHelper.createVersionBumpCommit(version);
-commandHelper.pushBranch(version);
-commandHelper.createTag(version);
-commandHelper.pushTag(version);
+await commandHelper.createVersionBumpCommit(version);
+await commandHelper.pushBranch(version);
+await commandHelper.createTag(version);
+await commandHelper.pushTag(version);

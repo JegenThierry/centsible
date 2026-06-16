@@ -1,82 +1,81 @@
-import { execFileSync } from "node:child_process";
+import { $ } from "execa";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+/**
+ * Changes the current directory to the specified directory.
+ * @param dir The directory to change to.
+ * @throws {Error} If the directory is not provided.
+ */
+export function changeDirectory(dir: string): void {
+  if (!dir) {
+    throw new Error("No directory provided.");
+  }
+
+  console.log(`Changing directory to: ${dir}`);
+  process.chdir(dir.trim());
+}
+
 export function useCommandHelper() {
-  function executeCommand(cmd: string, args: string[]): string {
-    try {
-      console.log(`Executing command: ${cmd} ${args.join(" ")}`);
-      return execFileSync(cmd, args, { encoding: "utf-8" });
-    } catch (error) {
-      console.error(`Error executing command: ${error}`);
-      throw error;
-    }
-  }
-
-  function navigateToRepoRoot() {
-    const root = executeCommand("git", ["rev-parse", "--show-toplevel"]);
-    console.log(`Navigating to repo root: ${root}`);
-    process.chdir(root);
-  }
-
-  function doesReleaseExist(version: string): boolean {
+  async function doesReleaseExist(version: string): Promise<boolean> {
     const tagName = version.startsWith("v") ? version : `v${version}`;
     console.log(`Checking if release ${tagName} exists...`);
-    const output = executeCommand("git", ["tag", "-l", tagName]);
+    const output = (await $`git tag -l ${tagName}`).stdout;
     return output.trim() === tagName;
   }
 
-  function getCurrentBranch(): string {
+  async function getCurrentBranch(): Promise<string> {
     console.log("Getting current branch...");
-    const branch = executeCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+    const branch = (await $`git rev-parse --abbrev-ref HEAD`).stdout;
     console.log(`Current branch: ${branch.trim()}`);
     return branch.trim();
   }
 
-  function getUnstagedFiles(): string[] {
+  async function getUnstagedFiles(): Promise<string[]> {
     console.log("Getting unstaged files...");
-    const output = executeCommand("git", ["status", "--porcelain"]);
+    const output = (await $`git status --porcelain`).stdout;
     return output.split("\n").map((line) => line.trim().slice(3));
   }
 
-  function runGitFetch(): void {
+  async function runGitFetch(): Promise<void> {
     console.log("Fetching latest changes...");
-    executeCommand("git", ["fetch", "origin"]);
+    await $`git fetch origin`;
   }
 
-  function runGitPull(): void {
+  async function runGitPull(): Promise<void> {
     console.log("Pulling latest changes...");
-    executeCommand("git", ["pull", "origin", getCurrentBranch()]);
+    const currentBranch = await getCurrentBranch();
+    await $`git pull origin ${currentBranch}`;
   }
 
-  function checkoutNewBranchBasedOnVersion(version: string): void {
+  async function checkoutNewBranchBasedOnVersion(version: string): Promise<void> {
     const branchName = `release/${version}`;
     console.log(`Creating new branch ${branchName}...`);
-    executeCommand("git", ["checkout", "-b", branchName]);
+    await $`git checkout -b ${branchName}`;
   }
 
-  function createTag(version: string): void {
+  async function createTag(version: string): Promise<void> {
     const tagName = `v${version}`;
     console.log(`Creating tag ${tagName}...`);
-    executeCommand("git", ["tag", "-a", tagName, "-m", `Release ${version}`]);
+    await $`git tag -a ${tagName} -m ${`Release ${version}`}`;
   }
 
-  function createVersionBumpCommit(version: string): void {
+  async function createVersionBumpCommit(version: string): Promise<void> {
     const commitMessage = `chore: bump version to ${version}`;
     console.log(`Creating commit ${commitMessage}...`);
-    executeCommand("git", ["commit", "-m", commitMessage]);
+    await $`git commit -m ${commitMessage}`;
   }
 
-  function pushTag(version: string): void {
+  async function pushTag(version: string): Promise<void> {
     const tagName = `v${version}`;
     console.log(`Pushing tag ${tagName}...`);
-    executeCommand("git", ["push", "origin", tagName]);
+    await $`git push origin ${tagName}`;
   }
 
-  function pushBranch(version: string): void {
+  async function pushBranch(version: string): Promise<void> {
     const branchName = `release/${version}`;
     console.log(`Pushing branch ${branchName}...`);
-    executeCommand("git", ["push", "origin", branchName]);
+    await $`git push origin ${branchName}`;
   }
 
   function updatePackageJsonVersion(version: string): void {
