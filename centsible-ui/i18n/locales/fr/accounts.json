@@ -41,6 +41,10 @@
       "MORTGAGE": "Hypothèque",
       "OTHER": "Autre"
     },
+    "actions": {
+      "editAria": "Modifier {name}",
+      "deleteAria": "Supprimer {name}"
+    },
     "modals": {
       "create": {
         "fieldTypeLabel": "Type de compte",
@@ -60,6 +64,28 @@
         "toastSuccessBody": "Votre compte : {name} a bien été créé",
         "toastErrorTitle": "Compte non créé.",
         "toastErrorBody": "Impossible de créer le compte, veuillez réessayer."
+      },
+      "edit": {
+        "title": "Modifier le compte",
+        "description": "Modifiez le nom et le type de votre compte.",
+        "fieldNameLabel": "Nom du compte",
+        "fieldNamePlaceholder": "Nom du compte",
+        "fieldTypeLabel": "Type de compte",
+        "fieldTypePlaceholder": "Sélectionnez un type",
+        "fieldCurrencyLabel": "Devise",
+        "currencyLocked": "La devise ne peut pas être modifiée après la création du compte.",
+        "submit": "Enregistrer les modifications",
+        "validationErrorTitle": "Erreurs de validation",
+        "validationErrorBody": "Veuillez corriger les champs en surbrillance.",
+        "toastSuccessTitle": "Compte mis à jour",
+        "toastSuccessBody": "Votre compte : {name} a été mis à jour",
+        "toastErrorTitle": "Compte non mis à jour",
+        "toastErrorBody": "Le compte n'a pas pu être mis à jour, veuillez réessayer."
+      },
+      "delete": {
+        "title": "Supprimer le compte",
+        "body": "Supprimer « {name} » ? Toutes les transactions et les entrées récurrentes de ce compte seront définitivement supprimées. Cette action est irréversible.",
+        "submit": "Supprimer le compte"
       }
     },
     "dashboard": {

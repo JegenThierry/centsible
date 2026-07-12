@@ -9,11 +9,29 @@ import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-bu
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
+import EditAccountModal from "~/components/_organisms/accounts/modals/edit-account-modal.vue";
+import DeleteAccountModal from "~/components/_organisms/accounts/modals/delete-account-modal.vue";
+import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import {todayIsoDate} from "~/utils/date";
 
 const accountStore = useBudgetAccountsStore();
 const {previousBalances, refresh: refreshTrends} = useAccountBalanceTrends(30);
 const {t} = useI18n();
+
+const editTarget = ref<BudgetAccount>();
+const isEditOpen = ref(false);
+const deleteTarget = ref<BudgetAccount>();
+const isDeleteOpen = ref(false);
+
+function onEdit(account: BudgetAccount): void {
+  editTarget.value = account;
+  isEditOpen.value = true;
+}
+
+function onDelete(account: BudgetAccount): void {
+  deleteTarget.value = account;
+  isDeleteOpen.value = true;
+}
 
 function load(): void {
   accountStore.updateAvailableAccounts();
@@ -76,6 +94,8 @@ load();
           :account="account"
           :previous-balance="previousBalances[account.id]"
           @click="navigateTo(`/${account.id}/dashboard`)"
+          @edit="onEdit(account)"
+          @delete="onDelete(account)"
         />
       </div>
 
@@ -85,5 +105,8 @@ load();
         class="mt-4 sm:mt-6"
       />
     </template>
+
+    <EditAccountModal v-if="editTarget" v-model="isEditOpen" :account="editTarget"/>
+    <DeleteAccountModal v-model:open="isDeleteOpen" :account="deleteTarget" @deleted="refreshTrends"/>
   </UContainer>
 </template>

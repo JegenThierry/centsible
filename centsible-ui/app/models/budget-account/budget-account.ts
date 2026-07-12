@@ -9,7 +9,9 @@ export interface BudgetAccountForm {
 }
 
 export type CreateBudgetAccountForm = BudgetAccountForm;
-export type UpdateBudgetAccountForm = BudgetAccountForm;
+
+/** Only name and type are editable after creation — balance and currency are fixed. */
+export type UpdateBudgetAccountForm = Pick<BudgetAccountForm, 'name' | 'type'>;
 
 export interface BudgetAccount {
   id: string;

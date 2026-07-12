@@ -3,6 +3,7 @@ package beer.thierry.centsible.core.services.account
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
+import beer.thierry.centsible.api.model.budgetaccount.UpdateBudgetAccountRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
@@ -35,6 +36,23 @@ class BudgetAccountService(
             created.id, authenticatedUser.id, created.currency,
         )
         return created
+    }
+
+    @Transactional
+    override fun updateAccount(
+        id: String,
+        updateBudgetAccountRequest: UpdateBudgetAccountRequest,
+        authenticatedUser: UserDTO,
+    ): BudgetAccountDTO {
+        val updated = accountRepository.updateAccount(UUID.fromString(id), updateBudgetAccountRequest, authenticatedUser)
+        log.info("Updated budget account id={} userId={}", updated.id, authenticatedUser.id)
+        return updated
+    }
+
+    @Transactional
+    override fun deleteAccount(id: String, authenticatedUser: UserDTO) {
+        accountRepository.deleteAccount(UUID.fromString(id), authenticatedUser)
+        log.info("Deleted budget account id={} userId={}", id, authenticatedUser.id)
     }
 
     override fun fetchAccounts(authenticatedUser: UserDTO): List<BudgetAccountDTO> =

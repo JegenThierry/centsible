@@ -3,6 +3,7 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
+import beer.thierry.centsible.api.model.budgetaccount.UpdateBudgetAccountRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.account.IBudgetAccountService
 import jakarta.validation.Valid
@@ -27,6 +28,27 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
         val created = budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser)
         log.info("Created budget account id={} userId={}", created.id, authenticatedUser.id)
         return ResponseEntity.ok(created)
+    }
+
+    @PutMapping("/{id}")
+    fun updateAccount(
+        @PathVariable id: String,
+        @Valid @RequestBody updateBudgetAccountRequest: UpdateBudgetAccountRequest,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<BudgetAccountDTO> {
+        val updated = budgetAccountService.updateAccount(id, updateBudgetAccountRequest, authenticatedUser)
+        log.info("Updated budget account id={} userId={}", updated.id, authenticatedUser.id)
+        return ResponseEntity.ok(updated)
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteAccount(
+        @PathVariable id: String,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<Void> {
+        budgetAccountService.deleteAccount(id, authenticatedUser)
+        log.info("Deleted budget account id={} userId={}", id, authenticatedUser.id)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("")

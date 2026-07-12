@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import adze from 'adze'
-import type {BudgetAccount} from "~/models/budget-account/budget-account";
+import type {BudgetAccount, UpdateBudgetAccountForm} from "~/models/budget-account/budget-account";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 
@@ -55,6 +55,29 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     activeAccount.value = undefined;
   }
 
+  async function updateAccount(id: string, form: UpdateBudgetAccountForm): Promise<BudgetAccount> {
+    pending.value = true;
+    try {
+      const updated = await accountService.updateAccount(id, form);
+      availableAccounts.value = availableAccounts.value.map((account) => account.id === id ? updated : account);
+      if (activeAccount.value?.id === id) activeAccount.value = updated;
+      return updated;
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  async function deleteAccount(id: string): Promise<void> {
+    pending.value = true;
+    try {
+      await accountService.deleteAccount(id);
+      availableAccounts.value = availableAccounts.value.filter((account) => account.id !== id);
+      if (activeAccount.value?.id === id) clearActiveAccount();
+    } finally {
+      pending.value = false;
+    }
+  }
+
   return {
     activeAccount,
     availableAccounts,
@@ -63,5 +86,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     updateActiveAccount,
     loadActiveAccount,
     clearActiveAccount,
+    updateAccount,
+    deleteAccount,
   }
 });

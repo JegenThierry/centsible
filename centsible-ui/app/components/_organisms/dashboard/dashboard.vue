@@ -18,6 +18,9 @@ import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skel
 import ListCardSkeleton from "~/components/_molecules/skeletons/list-card-skeleton.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import PeriodSelector from "~/components/_molecules/dashboard/period-selector.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
+import EditAccountModal from "~/components/_organisms/accounts/modals/edit-account-modal.vue";
+import DeleteAccountModal from "~/components/_organisms/accounts/modals/delete-account-modal.vue";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useBudgetsStore} from "~/stores/budgetsStore";
 import {useReportsStore} from "~/stores/reportsStore";
@@ -123,6 +126,13 @@ async function onCreated() {
 watch(() => accountStore.activeAccount?.id, (newId) => {
   if (newId && newId === routeAccountId.value) fetchData();
 }, {immediate: true});
+
+const isEditAccountOpen = ref(false);
+const isDeleteAccountOpen = ref(false);
+
+async function onAccountDeleted() {
+  await navigateTo('/accounts');
+}
 </script>
 
 <template>
@@ -132,9 +142,20 @@ watch(() => accountStore.activeAccount?.id, (newId) => {
       :title="t('accounts.dashboard.title')"
     >
       <template #actions>
-        <PeriodSelector v-if="isAccountReady"/>
+        <div v-if="isAccountReady" class="flex items-center gap-2">
+          <EditDeleteActions
+            :edit-aria-label="t('accounts.actions.editAria', {name: accountStore.activeAccount?.name ?? ''})"
+            :delete-aria-label="t('accounts.actions.deleteAria', {name: accountStore.activeAccount?.name ?? ''})"
+            @edit="isEditAccountOpen = true"
+            @delete="isDeleteAccountOpen = true"
+          />
+          <PeriodSelector/>
+        </div>
       </template>
     </PageHeader>
+
+    <EditAccountModal v-if="accountStore.activeAccount" v-model="isEditAccountOpen" :account="accountStore.activeAccount"/>
+    <DeleteAccountModal v-model:open="isDeleteAccountOpen" :account="accountStore.activeAccount" @deleted="onAccountDeleted"/>
 
     <div v-if="isLoading" class="space-y-4 sm:space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">

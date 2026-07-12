@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.budgetaccount.UpdateBudgetAccountRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
@@ -59,6 +60,28 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY, ACCOUNTS.TYPE)
             .fetchOneInto(BudgetAccountDTO::class.java)
             ?: throw IllegalStateException("Failed to retrieve generated Account")
+    }
+
+    override fun updateAccount(
+        id: UUID,
+        updateBudgetAccountRequest: UpdateBudgetAccountRequest,
+        authenticatedUser: UserDTO
+    ): BudgetAccountDTO {
+        return dsl.update(ACCOUNTS)
+            .set(ACCOUNTS.NAME, updateBudgetAccountRequest.name)
+            .set(ACCOUNTS.TYPE, updateBudgetAccountRequest.type.toString())
+            .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
+            .where(ACCOUNTS.ID.eq(id).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY, ACCOUNTS.TYPE)
+            .fetchOneInto(BudgetAccountDTO::class.java)
+            ?: throw LocalizedException.NotFound("error.account.notFound")
+    }
+
+    override fun deleteAccount(id: UUID, authenticatedUser: UserDTO) {
+        val rows = dsl.deleteFrom(ACCOUNTS)
+            .where(ACCOUNTS.ID.eq(id).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .execute()
+        if (rows == 0) throw LocalizedException.NotFound("error.account.notFound")
     }
 
     override fun fetchInitialBalance(accountId: UUID, authenticatedUser: UserDTO): BigDecimal {
