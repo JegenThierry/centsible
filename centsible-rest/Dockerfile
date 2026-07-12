@@ -18,7 +18,7 @@ COPY centsible-imports/csv/build.gradle.kts ./centsible-imports/csv/
 COPY centsible-imports/ofx/build.gradle.kts ./centsible-imports/ofx/
 COPY centsible-integrations ./centsible-integrations
 
-RUN --mount=type=cache,target=/root/.gradle \
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
     sh ./gradlew :centsible-rest:dependencies --no-daemon --quiet || true
 
 COPY centsible-api/src ./centsible-api/src
@@ -30,7 +30,7 @@ COPY centsible-imports/csv/src ./centsible-imports/csv/src
 COPY centsible-imports/ofx/src ./centsible-imports/ofx/src
 COPY centsible-core/src ./centsible-core/src
 COPY centsible-rest/src ./centsible-rest/src
-RUN --mount=type=cache,target=/root/.gradle \
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
     sh ./gradlew :centsible-rest:bootJar -x jooqCodegen --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine AS release
