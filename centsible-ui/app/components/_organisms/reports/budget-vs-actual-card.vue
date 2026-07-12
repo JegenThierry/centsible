@@ -15,12 +15,12 @@ function adherencePct(spent: number, limit: number): number {
   return Math.min(100, Math.round((spent / limit) * 100));
 }
 
-function adherenceClass(spent: number, limit: number): string {
-  if (limit <= 0) return 'bg-default';
+function adherenceColor(spent: number, limit: number): 'neutral' | 'error' | 'warning' | 'success' {
+  if (limit <= 0) return 'neutral';
   const ratio = spent / limit;
-  if (ratio >= 1) return 'bg-error';
-  if (ratio >= 0.85) return 'bg-warning';
-  return 'bg-success';
+  if (ratio >= 1) return 'error';
+  if (ratio >= 0.85) return 'warning';
+  return 'success';
 }
 </script>
 
@@ -62,10 +62,10 @@ function adherenceClass(spent: number, limit: number): string {
                 <BalanceNumberFormat :balance="Number(entry.limit)" :currency="currency"/>
               </span>
             </div>
-            <div class="h-1.5 bg-elevated/60 rounded">
-              <div :class="['h-full rounded transition-all', adherenceClass(Number(entry.spent), Number(entry.limit))]"
-                   :style="{width: `${adherencePct(Number(entry.spent), Number(entry.limit))}%`}"/>
-            </div>
+            <UProgress :color="adherenceColor(Number(entry.spent), Number(entry.limit))"
+                       :model-value="adherencePct(Number(entry.spent), Number(entry.limit))"
+                       :ui="{base: 'h-1.5 bg-elevated/60'}"
+                       size="sm"/>
           </li>
         </ul>
       </section>

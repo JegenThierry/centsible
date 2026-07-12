@@ -464,11 +464,8 @@ class TransactionService(
         )
     }
 
-    private fun providerRowHash(providerConnectionId: UUID, externalId: String): String {
-        val payload = "provider:$providerConnectionId:$externalId"
-        val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
-        return HexFormat.of().formatHex(digest)
-    }
+    private fun providerRowHash(providerConnectionId: UUID, externalId: String): String =
+        sha256Hex("provider:$providerConnectionId:$externalId")
 
     @Transactional
     override fun createBalanceAdjustment(
@@ -506,8 +503,12 @@ class TransactionService(
     private fun rowHash(accountId: UUID, row: ImportTransactionRow): String {
         val currencyPart = row.currency?.let { "|${it.name}" } ?: ""
         val typePart = row.type?.let { "|${it.name}" } ?: ""
-        val payload =
+        return sha256Hex(
             "$accountId|${row.transactionDate}|${row.amount.toPlainString()}|${row.description}|${row.categoryId}$typePart$currencyPart"
+        )
+    }
+
+    private fun sha256Hex(payload: String): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
         return HexFormat.of().formatHex(digest)
     }
@@ -575,7 +576,7 @@ class TransactionService(
         if (splits.isNullOrEmpty()) return null
         if (splits.size < 2) throw LocalizedException.BadRequest("error.split.minTwo")
         if (splits.any { it.amount.signum() <= 0 }) throw LocalizedException.BadRequest("error.split.amountPositive")
-        val sum = splits.fold(BigDecimal.ZERO) { acc, s -> acc + s.amount }
+        val sum = splits.sumOf { it.amount }
         if (sum.compareTo(storedAmount) != 0) throw LocalizedException.BadRequest("error.split.sumMismatch")
 
         val classifications = categoriesRepository.fetchCategoryClassifications(

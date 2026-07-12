@@ -50,9 +50,7 @@ const monthLabel = computed(() => formatMonthYearLabel(props.month, localeTag.va
         </span>
       </div>
 
-      <div class="h-2.5 w-full rounded-full bg-elevated overflow-hidden">
-        <div :class="barColor" :style="{width: barPercent + '%'}" class="h-full transition-all"/>
-      </div>
+      <UProgress :color="barColor" :model-value="barPercent" :ui="{base: 'h-2.5 bg-elevated'}" size="md"/>
 
       <div class="flex items-center justify-between gap-2 text-sm">
         <span :class="remaining >= 0 ? 'text-success' : 'text-error'" class="tabular-nums font-medium">

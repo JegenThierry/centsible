@@ -84,7 +84,7 @@ class OAuthFlowService(
                 id = connectionId,
                 displayName = record.displayName,
                 status = record.status,
-                config = record.config.mergedWith(started.configPatch),
+                config = record.config + started.configPatch,
                 credentials = repository.fetchEncryptedCredentialsById(authenticatedUser, connectionId),
             )
         }
@@ -149,13 +149,13 @@ class OAuthFlowService(
             return OAuthCompletionResult.Failure(stateRecord.connectionId, ERROR_PROVIDER)
         }
 
-        val mergedSecrets = currentSecrets.mergedWith(result.envelope.toMap() + result.extraCredentials)
+        val mergedSecrets = currentSecrets + result.envelope.toMap() + result.extraCredentials
         repository.update(
             authenticatedUser = callbackUser,
             id = stateRecord.connectionId,
             displayName = record.displayName,
             status = ProviderConnectionStatus.ACTIVE,
-            config = record.config.mergedWith(result.configPatch),
+            config = record.config + result.configPatch,
             credentials = cipher.encrypt(mergedSecrets),
         ) ?: return OAuthCompletionResult.Failure(stateRecord.connectionId, ERROR_PERSIST)
 

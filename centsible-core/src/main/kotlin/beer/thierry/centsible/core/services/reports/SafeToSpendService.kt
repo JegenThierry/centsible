@@ -31,8 +31,8 @@ class SafeToSpendService(
         val monthEnd = month.atEndOfMonth()
 
         val cashFlow = reportsRepository.fetchCashFlow(monthStart, monthEnd, authenticatedUser)
-        val actualIncome = cashFlow.fold(BigDecimal.ZERO) { acc, point -> acc + point.income }
-        val alreadySpent = cashFlow.fold(BigDecimal.ZERO) { acc, point -> acc + point.expense }
+        val actualIncome = cashFlow.sumOf { it.income }
+        val alreadySpent = cashFlow.sumOf { it.expense }
 
         var upcomingIncome = BigDecimal.ZERO
         var upcomingExpenses = BigDecimal.ZERO

@@ -531,10 +531,10 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
         if (inserted.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
 
-        val net = inserted.fold(BigDecimal.ZERO) { acc, rec ->
+        val net = inserted.sumOf { rec ->
             val type = CategoryType.fromValue(rec[TRANSACTIONS.TYPE]!!)
             val amount = rec[TRANSACTIONS.AMOUNT]!!
-            acc + if (type == CategoryType.INCOME) amount else amount.negate()
+            if (type == CategoryType.INCOME) amount else amount.negate()
         }
 
         return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)

@@ -1,4 +1,5 @@
 import {computed} from 'vue';
+import {differenceInCalendarMonths} from 'date-fns';
 import {monthsAgoIsoDate, todayIsoDate} from "~/utils/date";
 
 export type ReportRangePreset = '3m' | '6m' | '12m' | '24m' | 'custom';
@@ -85,6 +86,5 @@ function monthsBetween(fromIso: string, toIso: string): number {
   const from = new Date(fromIso);
   const to = new Date(toIso);
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return 6;
-  const diffMs = to.getTime() - from.getTime();
-  return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
+  return Math.max(1, differenceInCalendarMonths(to, from));
 }

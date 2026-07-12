@@ -19,20 +19,11 @@ const modes = computed<Array<{value: ThemeMode; label: string; icon: string}>>((
 </script>
 
 <template>
-  <div class="grid grid-cols-3 gap-1 p-1 bg-elevated/60 rounded-md ring-1 ring-default">
-    <button
-      v-for="m in modes"
-      :key="m.value"
-      :class="[
-        'flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-xs font-medium transition-colors',
-        modelValue === m.value
-          ? 'bg-default text-highlighted shadow-sm ring-1 ring-default'
-          : 'text-muted hover:text-default'
-      ]"
-      type="button"
-      @click="$emit('update:modelValue', m.value)">
-      <UIcon :name="m.icon" class="w-3.5 h-3.5"/>
-      {{ m.label }}
-    </button>
-  </div>
+  <UTabs :content="false"
+         :items="modes"
+         :model-value="modelValue"
+         :ui="{indicator: 'bg-default ring-1 ring-default', trigger: 'data-[state=active]:text-highlighted'}"
+         color="neutral"
+         size="sm"
+         @update:model-value="$emit('update:modelValue', $event as ThemeMode)"/>
 </template>

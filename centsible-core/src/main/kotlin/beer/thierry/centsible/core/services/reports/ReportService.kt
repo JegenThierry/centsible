@@ -190,5 +190,5 @@ class ReportService(
     )
 
     private fun totalOf(balances: Map<UUID, BigDecimal>): BigDecimal =
-        balances.values.fold(BigDecimal.ZERO, BigDecimal::add)
+        balances.values.sumOf { it }
 }

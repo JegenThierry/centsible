@@ -51,11 +51,7 @@ const rolloverFormatted = computed(() => formatCurrency(props.budget.rolloverAmo
         <BalanceNumberFormat :balance="effectiveLimit" :currency="resolvedCurrency"/>
       </div>
     </div>
-    <div class="h-2 w-full rounded-full bg-elevated overflow-hidden">
-      <div :class="barColor"
-           :style="{width: percent + '%'}"
-           class="h-full transition-all"/>
-    </div>
+    <UProgress :color="barColor" :model-value="percent" :ui="{base: 'bg-elevated'}" size="md"/>
     <p v-if="budget.rolloverEnabled && budget.rolloverAmount > 0"
        class="text-xs text-muted">
       {{ t('budgets.list.rolloverNote', {amount: rolloverFormatted}) }}

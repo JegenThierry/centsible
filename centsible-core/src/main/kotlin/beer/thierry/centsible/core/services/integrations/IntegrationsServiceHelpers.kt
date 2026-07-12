@@ -11,11 +11,3 @@ import java.util.UUID
  * fields can be defaulted. Defined once here to avoid drifting copies across the package.
  */
 internal fun syntheticUser(id: UUID): UserDTO = UserDTO().apply { this.id = id }
-
-/**
- * Returns a copy of this map with `patch`'s entries put on top, preserving insertion order and
- * leaving the receiver untouched. Used wherever a stored config map is updated by merging a
- * provider's configPatch into the row's current config.
- */
-internal fun <K, V> Map<K, V>.mergedWith(patch: Map<K, V>): MutableMap<K, V> =
-    toMutableMap().apply { putAll(patch) }

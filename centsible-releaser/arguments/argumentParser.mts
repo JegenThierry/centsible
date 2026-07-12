@@ -1,32 +1,38 @@
+import { parseArgs } from "node:util";
+
 export interface Arguments {
   version: string;
   isDryRun: boolean;
 }
 
+const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
+
 export function useArgumentParser(args: string[]): Arguments {
-  const flags = args.filter((arg) => arg.startsWith("--"));
-  const positional = args.filter((arg) => !arg.startsWith("--"));
-  const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
-
-  function getVersion(): string {
-    const version = positional[0];
-    if (!version) {
-      console.error("Version was not provided, aborting.");
-      process.exit(1);
-    }
-
-    if (!SEMVER_REGEX.test(version)) {
-      console.error(
-        `Version ${version} is not a valid semantic version. Please use the format major.minor.patch`,
-      );
-      process.exit(1);
-    }
-
-    return version;
+  let values: { "dry-run": boolean };
+  let positionals: string[];
+  try {
+    ({ values, positionals } = parseArgs({
+      args,
+      options: { "dry-run": { type: "boolean", default: false } },
+      allowPositionals: true,
+    }));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
   }
 
-  return {
-    version: getVersion(),
-    isDryRun: flags.includes("--dry-run"),
-  };
+  const version = positionals[0];
+  if (!version) {
+    console.error("Version was not provided, aborting.");
+    process.exit(1);
+  }
+
+  if (!SEMVER_REGEX.test(version)) {
+    console.error(
+      `Version ${version} is not a valid semantic version. Please use the format major.minor.patch`,
+    );
+    process.exit(1);
+  }
+
+  return { version, isDryRun: values["dry-run"] };
 }
