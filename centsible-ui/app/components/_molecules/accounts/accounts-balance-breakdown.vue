@@ -2,7 +2,6 @@
 import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
-import {accountNetContribution} from "~/models/budget-account/account-type";
 
 const props = defineProps<{
   accounts: BudgetAccount[];
@@ -34,7 +33,7 @@ const groups = computed<CurrencyGroup[]>(() => {
   }
 
   return [...byCurrency.entries()].map(([currency, list]) => {
-    const valued = list.map(account => ({account, value: accountNetContribution(account)}));
+    const valued = list.map(account => ({account, value: account.balance}));
     const gross = Math.max(valued.reduce((sum, v) => sum + Math.abs(v.value), 0), 1);
     const net = valued.reduce((sum, v) => sum + v.value, 0);
     const sorted = [...valued].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));

@@ -3,7 +3,6 @@ import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-badge.vue";
-import {accountNetContribution} from "~/models/budget-account/account-type";
 
 const props = withDefaults(defineProps<{
   accounts: BudgetAccount[];
@@ -26,8 +25,8 @@ const totals = computed<CurrencyTotal[]>(() => {
     const entry = byCurrency.get(account.currency)
       ?? {currency: account.currency, balance: 0, previousBalance: 0};
     const previous = props.previousBalances[account.id] ?? account.initialBalance;
-    entry.balance += accountNetContribution(account);
-    entry.previousBalance += accountNetContribution({type: account.type, balance: previous});
+    entry.balance += account.balance;
+    entry.previousBalance += previous;
     byCurrency.set(account.currency, entry);
   }
   return [...byCurrency.values()];

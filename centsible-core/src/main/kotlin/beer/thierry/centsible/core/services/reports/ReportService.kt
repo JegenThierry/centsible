@@ -41,7 +41,6 @@ class ReportService(
 
         val endOffset = OffsetDateTime.of(endDate, LocalTime.MAX, ZoneOffset.UTC)
         val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(endOffset, authenticatedUser)
-        val liabilityIds = liabilityAccountIds(authenticatedUser)
 
         val accountBalances = mutableMapOf<UUID, BigDecimal>()
         val pointByDate = sortedMapOf<LocalDate, BigDecimal>()
@@ -50,21 +49,21 @@ class ReportService(
         for (snapshot in snapshots) {
             val date = snapshot.createdAt.toLocalDate()
             if (!crossedStart && !date.isBefore(startDate)) {
-                pointByDate[startDate] = totalOf(accountBalances, liabilityIds)
+                pointByDate[startDate] = totalOf(accountBalances)
                 crossedStart = true
             }
             accountBalances[snapshot.accountId] = snapshot.balance
             if (!date.isBefore(startDate)) {
-                pointByDate[date] = totalOf(accountBalances, liabilityIds)
+                pointByDate[date] = totalOf(accountBalances)
             }
         }
 
         if (pointByDate.isEmpty()) {
-            val total = totalOf(accountBalances, liabilityIds)
+            val total = totalOf(accountBalances)
             pointByDate[startDate] = total
             pointByDate[endDate] = total
         } else if (pointByDate.lastKey().isBefore(endDate)) {
-            pointByDate[endDate] = totalOf(accountBalances, liabilityIds)
+            pointByDate[endDate] = totalOf(accountBalances)
         }
 
         return pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
@@ -86,7 +85,7 @@ class ReportService(
                 accountId = acc.id,
                 accountName = acc.name,
                 currency = acc.currency,
-                balance = if (acc.type.isLiability) raw.abs().negate() else raw,
+                balance = raw,
                 date = date,
             )
         }
@@ -190,13 +189,6 @@ class ReportService(
         spent = b.amountSpent,
     )
 
-    private fun totalOf(balances: Map<UUID, BigDecimal>, liabilities: Set<UUID>): BigDecimal =
-        balances.entries.fold(BigDecimal.ZERO) { acc, (id, balance) ->
-            acc + if (id in liabilities) balance.abs().negate() else balance
-        }
-
-    private fun liabilityAccountIds(user: UserDTO): Set<UUID> =
-        accountsRepository.fetchAllAccounts(user)
-            .filter { it.type.isLiability }
-            .mapTo(HashSet()) { it.id }
+    private fun totalOf(balances: Map<UUID, BigDecimal>): BigDecimal =
+        balances.values.fold(BigDecimal.ZERO, BigDecimal::add)
 }
