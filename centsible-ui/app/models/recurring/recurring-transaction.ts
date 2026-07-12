@@ -1,4 +1,4 @@
-import {type Category} from "~/models/category/category";
+import {type Category, type CategoryType} from "~/models/category/category";
 import type {Currency} from "~/models/budget-account/currency";
 
 export enum Frequency {
@@ -30,17 +30,23 @@ export interface RecurringTransaction {
   updatedAt: string;
   originalAmount?: number | null;
   originalCurrency?: Currency | null;
+  type?: CategoryType | null;
+  isTransfer: boolean;
+  destinationAccountId?: string | null;
 }
 
 export interface RecurringTransactionRequest {
   amount: number;
   description: string;
-  categoryId: number;
+  categoryId?: number | null;
   frequency: Frequency;
   startDate: string;
   endDate?: string | null;
   active: boolean;
   currency?: Currency;
+  type?: CategoryType | null;
+  isTransfer: boolean;
+  destinationAccountId?: string | null;
 }
 
 export interface RecurringTransactionForm {
@@ -52,4 +58,8 @@ export interface RecurringTransactionForm {
   endDate?: string | undefined;
   active: boolean;
   currency: Currency;
+  type: CategoryType;
+  isTransfer: boolean;
+  sourceAccountId?: string | undefined;
+  destinationAccountId?: string | undefined;
 }

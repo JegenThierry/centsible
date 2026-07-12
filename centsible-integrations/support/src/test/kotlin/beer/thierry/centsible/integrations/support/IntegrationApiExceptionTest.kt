@@ -34,7 +34,6 @@ class IntegrationApiExceptionTest {
 
         assertTrue(ex.message!!.contains("GoCardless"))
         assertTrue(ex.message!!.contains("404"))
-        // No parenthesised context.
         assertTrue(!ex.message!!.contains("(") && !ex.message!!.contains(")"))
     }
 

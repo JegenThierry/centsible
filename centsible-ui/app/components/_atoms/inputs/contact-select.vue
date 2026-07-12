@@ -2,6 +2,7 @@
 import type {Contact} from "~/models/contact/contact";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -11,23 +12,11 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<Contact | undefined>();
-const error = ref<string | undefined>(undefined);
 const {t} = useI18n();
-
-function validate(): boolean {
-  error.value = undefined;
-  if (props.required && !model.value) {
-    error.value = t('common.validation.required', {field: props.label});
-    return false;
-  }
-  return true;
-}
-
-defineExpose({validate})
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
               :help="description"
               :hint="hint"
               :label="label"

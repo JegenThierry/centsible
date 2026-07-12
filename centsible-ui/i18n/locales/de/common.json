@@ -75,9 +75,11 @@
     },
     "category": {
       "system": "System",
-      "outstanding": "Offen",
-      "loanCount": "{count} Kredit",
-      "loansCount": "{count} Kredite"
+      "outstanding": "Offen"
+    },
+    "system": {
+      "loadFailedTitle": "Systeminformationen konnten nicht geladen werden",
+      "loadFailedBody": "Die Systeminformationen konnten nicht geladen werden."
     }
   }
 }

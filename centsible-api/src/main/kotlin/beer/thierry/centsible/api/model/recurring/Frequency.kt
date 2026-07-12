@@ -13,6 +13,7 @@ enum class Frequency {
     }
 
     companion object {
+        /** Parses [value] case-insensitively; throws [IllegalArgumentException] if it names no [Frequency]. */
         fun fromValue(value: String): Frequency =
             runCatching { valueOf(value.uppercase()) }
                 .getOrElse { throw IllegalArgumentException("Unknown frequency: $value") }

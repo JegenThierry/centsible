@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 import adze from 'adze'
-import {type Category} from "~/models/category/category";
+import {type Category, CategoryType} from "~/models/category/category";
+import type {BudgetAccount} from "~/models/budget-account/budget-account";
+import type {Currency} from "~/models/budget-account/currency";
 import {Frequency, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
+import AccountSelect from "~/components/_atoms/inputs/account-select.vue";
+import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import CurrencySelect from "~/components/_atoms/inputs/currency-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import FrequencySelect from "~/components/_atoms/inputs/frequency-select.vue";
-import CategoryTypeBadge from "~/components/_molecules/badges/category-type-badge.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import {useCategoryService} from "~/services/category/category-service";
 import {ISO_DATE} from "~/utils/date";
@@ -17,6 +20,7 @@ import {addDays, addMonths, addWeeks, addYears, format, parseISO} from 'date-fns
 const props = defineProps<{
   modelValue: RecurringTransactionForm;
   disabled?: boolean;
+  sourceLocked?: boolean;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -24,13 +28,10 @@ const emit = defineEmits(['update:modelValue']);
 const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
+const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref();
-const frequencyInput = ref();
-const startDateInput = ref();
+const userTouchedType = ref(false);
 
 async function loadCategories() {
   try {
@@ -44,6 +45,44 @@ const form = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
+
+const accounts = computed<BudgetAccount[]>(() => budgetAccountsStore.availableAccounts);
+
+const mode = computed<'standard' | 'transfer'>({
+  get: () => form.value.isTransfer ? 'transfer' : 'standard',
+  set: (value) => { form.value.isTransfer = value === 'transfer'; },
+});
+
+const modeOptions = computed(() => [
+  {label: t('transactions.recurring.form.modeStandard'), value: 'standard'},
+  {label: t('transactions.recurring.form.modeTransfer'), value: 'transfer'},
+]);
+
+const typeOptions = computed(() => [
+  {label: t('transactions.form.typeIncome'), value: CategoryType.INCOME},
+  {label: t('transactions.form.typeExpense'), value: CategoryType.EXPENSE},
+]);
+
+function onCategoryPicked(cat: Category | undefined) {
+  if (cat && !userTouchedType.value) form.value.type = cat.type;
+}
+
+function onTypeChange(value: CategoryType) {
+  form.value.type = value;
+  userTouchedType.value = true;
+}
+
+const sourceAccount = computed<BudgetAccount | undefined>({
+  get: () => accounts.value.find(a => a.id === form.value.sourceAccountId),
+  set: (account) => { form.value.sourceAccountId = account?.id; },
+});
+const destinationAccount = computed<BudgetAccount | undefined>({
+  get: () => accounts.value.find(a => a.id === form.value.destinationAccountId),
+  set: (account) => { form.value.destinationAccountId = account?.id; },
+});
+
+const sourceCurrency = computed<Currency | undefined>(() => sourceAccount.value?.currency);
+const amountTrailing = computed(() => form.value.isTransfer ? (sourceCurrency.value ?? '') : form.value.currency);
 
 function advance(date: Date, freq: Frequency): Date {
   switch (freq) {
@@ -71,51 +110,75 @@ const upcomingOccurrences = computed<string[]>(() => {
 
 onMounted(() => {
   loadCategories();
-});
-
-defineExpose({
-  validate: () => useValidator().validateInputs([
-    amountInput,
-    descriptionInput,
-    categoryInput,
-    frequencyInput,
-    startDateInput,
-  ]),
+  if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
 });
 </script>
 
 <template>
   <div class="space-y-4">
-    <CategorySelect ref="categoryInput"
-                    v-model="form.category"
-                    :disabled="disabled"
-                    :options="categories"
-                    :label="t('transactions.recurring.form.category')"
-                    required/>
+    <AppRadioGroup v-model="mode"
+                   :disabled="disabled"
+                   :items="modeOptions"
+                   :legend="t('transactions.recurring.form.modeLegend')"
+                   orientation="horizontal"/>
 
-    <div v-if="form.category" class="flex items-center gap-2 text-sm">
-      <span class="text-neutral-500">{{ t('transactions.recurring.form.transactionType') }}</span>
-      <CategoryTypeBadge :type="form.category.type"/>
-    </div>
-
-    <UFormField :label="t('transactions.recurring.form.currency')" name="currency">
-      <CurrencySelect v-model="form.currency"
+    <!-- Standard (single-account) fields -->
+    <template v-if="!form.isTransfer">
+      <CategorySelect name="category"
+                      v-model="form.category"
                       :disabled="disabled"
-                      :placeholder="t('transactions.recurring.form.currencyPlaceholder')"/>
-    </UFormField>
+                      :options="categories"
+                      :label="t('transactions.recurring.form.category')"
+                      required
+                      @update:model-value="onCategoryPicked"/>
 
-    <BaseInput ref="amountInput"
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-neutral-500">{{ t('transactions.recurring.form.transactionType') }}</span>
+        <AppRadioGroup :model-value="form.type"
+                       :disabled="disabled"
+                       :items="typeOptions"
+                       orientation="horizontal"
+                       @update:model-value="onTypeChange"/>
+      </div>
+
+      <UFormField :label="t('transactions.recurring.form.currency')" name="currency">
+        <CurrencySelect v-model="form.currency"
+                        :disabled="disabled"
+                        :placeholder="t('transactions.recurring.form.currencyPlaceholder')"/>
+      </UFormField>
+    </template>
+
+    <!-- Transfer fields -->
+    <template v-else>
+      <AccountSelect name="sourceAccountId"
+                     v-model="sourceAccount"
+                     :options="accounts"
+                     :label="t('transactions.transfer.fromAccount')"
+                     :description="t('transactions.transfer.fromAccountHelp')"
+                     :disabled="disabled || sourceLocked"
+                     required/>
+
+      <AccountSelect name="destinationAccountId"
+                     v-model="destinationAccount"
+                     :options="accounts"
+                     :label="t('transactions.transfer.toAccount')"
+                     :description="t('transactions.transfer.toAccountHelp')"
+                     :disabled="disabled"
+                     required/>
+    </template>
+
+    <BaseInput name="amount"
                v-model="form.amount"
                :max="AMOUNT_INPUT.max"
                :min="AMOUNT_INPUT.min"
                :disabled="disabled"
                :label="t('transactions.recurring.form.amount')"
                :placeholder="t('transactions.recurring.form.amountPlaceholder')"
-               :trailing-text="form.currency"
+               :trailing-text="amountTrailing"
                required
                type="number"/>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -124,13 +187,13 @@ defineExpose({
                required
                type="text"/>
 
-    <FrequencySelect ref="frequencyInput"
+    <FrequencySelect name="frequency"
                      v-model="form.frequency"
                      :disabled="disabled"
                      :label="t('transactions.recurring.form.frequency')"
                      required/>
 
-    <DateInput ref="startDateInput"
+    <DateInput name="startDate"
                v-model="form.startDate"
                :description="t('transactions.recurring.form.startDateHelp')"
                :disabled="disabled"

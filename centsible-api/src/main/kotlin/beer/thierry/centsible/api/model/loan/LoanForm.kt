@@ -1,5 +1,6 @@
 package beer.thierry.centsible.api.model.loan
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Digits
@@ -11,6 +12,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class LoanForm(
+    /** Existing contact to lend to; when null a new contact is created from the [newContactFirstName]/[newContactLastName] fields. */
     var contactId: UUID? = null,
 
     @field:Size(max = 100, message = "{validation.firstName.tooLong}")
@@ -21,6 +23,7 @@ data class LoanForm(
 
     var accountId: UUID? = null,
 
+    /** When true the lending creates a transaction on [accountId]; when false the loan is tracking-only. */
     var affectBalance: Boolean = true,
 
     @field:NotNull(message = "{validation.loan.lent.required}")
@@ -34,6 +37,15 @@ data class LoanForm(
     @field:DecimalMax(value = "9999999.99", message = "{validation.loan.owed.tooLarge}")
     @field:Digits(integer = 7, fraction = 2, message = "{validation.loan.owed.fraction}")
     var owedAmount: BigDecimal = BigDecimal.ZERO,
+
+    /** Loan currency. When null the service defaults to the account currency (or the user's default). */
+    var currency: Currency? = null,
+
+    /** Optional annual interest as a percentage (e.g. 5.25). When set, owed = lent * (1 + rate/100). */
+    @field:DecimalMin(value = "0.0", message = "{validation.loan.interestRate.tooSmall}")
+    @field:DecimalMax(value = "999.99", message = "{validation.loan.interestRate.tooLarge}")
+    @field:Digits(integer = 3, fraction = 2, message = "{validation.loan.interestRate.fraction}")
+    var interestRate: BigDecimal? = null,
 
     @field:NotBlank(message = "{validation.description.required}")
     @field:Size(min = 1, max = 255, message = "{validation.description.range}")

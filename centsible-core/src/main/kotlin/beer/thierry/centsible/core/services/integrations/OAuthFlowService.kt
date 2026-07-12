@@ -68,7 +68,6 @@ class OAuthFlowService(
         val redirectUri = "${resolveBaseUrl()}/api/integrations/oauth/callback/${record.providerKey}"
         val state = stateStore.mint(authenticatedUser.id, connectionId, record.providerKey)
 
-        // HTTP call happens OUTSIDE any transaction — DB connection pool stays free.
         val started = module.buildAuthorizationUrl(
             OAuthStartRequest(
                 connectionId = connectionId,
@@ -107,8 +106,6 @@ class OAuthFlowService(
             return OAuthCompletionResult.Failure(stateRecord.connectionId, ERROR_PROVIDER_GONE)
         }
 
-        // Synthetic user scoped to the state's userId — repository.fetchById filters by user_id,
-        // so an attacker who somehow obtained a state for a different user cannot reach this row.
         val callbackUser = syntheticUser(stateRecord.userId)
         val record = repository.fetchById(callbackUser, stateRecord.connectionId)
             ?: return OAuthCompletionResult.Failure(stateRecord.connectionId, ERROR_CONNECTION_GONE)
@@ -137,8 +134,6 @@ class OAuthFlowService(
                 )
             )
         } catch (e: Exception) {
-            // Replayed callback on an already-ACTIVE connection: provider can't find pending
-            // state and throws. The connection is healthy; do NOT stamp a sync-error on it.
             if (alreadyActive) {
                 log.info(
                     "OAuth callback ignored for already-ACTIVE connection {} (provider={}): {}",
@@ -151,8 +146,6 @@ class OAuthFlowService(
                 stateRecord.connectionId,
                 "OAuth completion failed: ${e.message ?: e.javaClass.simpleName}",
             )
-            // Surface an opaque error code to the user — the raw provider message stays in
-            // server logs only, never in the browser-visible redirect URL.
             return OAuthCompletionResult.Failure(stateRecord.connectionId, ERROR_PROVIDER)
         }
 
@@ -188,8 +181,6 @@ class OAuthFlowService(
     }
 
     companion object {
-        // Opaque error codes carried in the post-callback redirect URL. UI translates these
-        // to localized strings; raw provider error messages never reach the browser.
         const val ERROR_STATE_INVALID = "state_invalid"
         const val ERROR_PROVIDER = "provider_error"
         const val ERROR_PROVIDER_GONE = "provider_gone"

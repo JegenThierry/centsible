@@ -16,10 +16,12 @@ import TransactionFilterBar from "~/components/_molecules/transactions/transacti
 import TransactionBulkActionBar from "~/components/_molecules/transactions/transaction-bulk-action-bar.vue";
 
 const EditTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transaction-modal.vue"));
+const EditTransferModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transfer-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
+const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
@@ -35,6 +37,7 @@ const {
   loading,
   loadingMore,
   hasMore,
+  error,
   loadTransactions
 } = useTransactionList(transactionService, budgetAccountsStore, 25, filters);
 
@@ -42,7 +45,9 @@ const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
+const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
+const isBulkDeleteOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const selectedIds = ref<Set<string>>(new Set());
@@ -59,12 +64,21 @@ function openCreateRule(transaction: Transaction) {
 
 function openEditModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
-  isEditModalOpen.value = true;
+  if (transaction.transferGroupId) {
+    isEditTransferModalOpen.value = true;
+  } else {
+    isEditModalOpen.value = true;
+  }
 }
 
 function openDeleteModal(transaction: Transaction) {
   selectedTransaction.value = transaction;
   isDeleteModalOpen.value = true;
+}
+
+async function onMutated() {
+  await budgetAccountsStore.updateActiveAccount();
+  await loadTransactions(true);
 }
 
 const allOnPageSelected = computed(() =>
@@ -88,8 +102,6 @@ function clearSelection() {
   selectedIds.value = new Set();
 }
 
-// Columns are built once. Header strings use thunks so locale changes still surface, and cell
-// closures read reactive state (currency, selection) lazily — TanStack calls them per render.
 const columns = createTransactionColumns({
   t,
   currency: () => currency.value,
@@ -105,7 +117,6 @@ const columns = createTransactionColumns({
 async function bulkDelete() {
   const ids = Array.from(selectedIds.value);
   if (ids.length === 0 || !budgetAccountsStore.activeAccount) return;
-  if (!confirm(t('transactions.bulk.deleteConfirm', {count: ids.length}))) return;
   try {
     await transactionService.bulkDelete(budgetAccountsStore.activeAccount.id, ids);
     toasts.success(t('transactions.bulk.deleteToastTitle'), t('transactions.bulk.deleteToastBody', {count: ids.length}));
@@ -157,15 +168,17 @@ watch(
   <TransactionBulkActionBar v-if="selectedIds.size > 0"
                             :count="selectedIds.size"
                             @recategorize="isBulkCategorizeOpen = true"
-                            @delete="bulkDelete"
+                            @delete="isBulkDeleteOpen = true"
                             @clear="clearSelection"/>
 
   <BaseTable :columns="columns"
              :data="transactions"
              :loading="loading"
+             :error="error"
              :empty-title="t('transactions.emptyTitle')"
              :loading-message="t('transactions.loadingMessage')"
-             class="flex-1 overflow-y-auto"/>
+             class="flex-1 overflow-y-auto"
+             @retry="loadTransactions(true)"/>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
     <LoadingAnimation v-if="loadingMore || loading"/>
@@ -175,22 +188,35 @@ watch(
 
   <CreateTransactionModal v-if="isCreateModalOpen"
                           v-model:open="isCreateModalOpen"
-                          @created="loadTransactions(true)"/>
+                          @created="onMutated"/>
 
   <EditTransactionModal v-if="isEditModalOpen && selectedTransaction !== null"
                         v-model:open="isEditModalOpen"
                         :transaction="selectedTransaction"
-                        @updated="loadTransactions(true)"/>
+                        @updated="onMutated"/>
+
+  <EditTransferModal v-if="isEditTransferModalOpen && selectedTransaction !== null"
+                     v-model:open="isEditTransferModalOpen"
+                     :transaction="selectedTransaction"
+                     @updated="onMutated"/>
 
   <DeleteTransactionModal v-if="isDeleteModalOpen"
                           v-model:open="isDeleteModalOpen"
                           :transaction="selectedTransaction"
-                          @deleted="loadTransactions(true)"/>
+                          @deleted="onMutated"/>
 
   <BulkCategorizeModal v-if="isBulkCategorizeOpen"
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <ConfirmationModal v-if="isBulkDeleteOpen"
+                     v-model:open="isBulkDeleteOpen"
+                     :title="t('common.confirmDelete.title')"
+                     :body="t('transactions.bulk.deleteConfirm', {count: selectedIds.size})"
+                     :confirm-label="t('transactions.bulk.delete')"
+                     :delete-callback="bulkDelete"
+                     :manage-toasts="false"/>
 
   <RuleModal v-if="isRuleModalOpen"
              v-model:open="isRuleModalOpen"

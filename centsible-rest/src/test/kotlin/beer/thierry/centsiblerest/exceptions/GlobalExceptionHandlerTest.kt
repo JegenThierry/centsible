@@ -13,8 +13,6 @@ import org.springframework.web.context.request.WebRequest
 
 class GlobalExceptionHandlerTest {
 
-    // Real (empty) message source: t(key) falls back to the key, which is a safe generic string and
-    // never the leaked exception message — exactly the property under test.
     private val handler = GlobalExceptionHandler(StaticMessageSource())
     private val request = mock(WebRequest::class.java)
 
@@ -23,7 +21,6 @@ class GlobalExceptionHandlerTest {
 
     @Test
     fun `catch-all handler does not leak the raw exception message to the client`() {
-        // A jOOQ/DataAccessException-style message: failing SQL + schema names.
         val secret = """ERROR: relation "users" does not exist; SELECT secret FROM users"""
         MDC.put(MDC_REQUEST_ID, "corr-123")
 
@@ -39,7 +36,6 @@ class GlobalExceptionHandlerTest {
 
     @Test
     fun `illegal-state handler does not surface the raw exception message as the client message`() {
-        // An IO/IllegalState message leaking a filesystem path.
         val secret = "/var/lib/centsible/attachments/3f2c/secret.png: write failed"
         MDC.put(MDC_REQUEST_ID, "corr-456")
 

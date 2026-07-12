@@ -23,7 +23,6 @@ class LendingsPerContactCsvRenderer(
         val loans = data.fetchLoansForContact(userId, contactId)
 
         val builder = CsvBuilder()
-        // Single-row summary header, then a blank line, then the loans table.
         builder.row("Contact", "Total Lent", "Total Owed", "Total Repaid", "Outstanding", "Open Loans")
         builder.row(
             summary.contactName,
@@ -51,5 +50,5 @@ class LendingsPerContactCsvRenderer(
     }
 
     override fun filenameStem(request: ExportRequest): String =
-        "lendings-${slug(request.lendingsPerContact.contactId)}"
+        lendingsPerContactStem(data, request)
 }

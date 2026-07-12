@@ -166,6 +166,26 @@ for dependency management.
 - `./gradlew :centsible-jooq:jooqCodegen`: Generate jOOQ classes from the database schema.
 - `./gradlew :centsible-proto:generateProto`: Regenerate protobuf classes from `centsible-proto/src/main/proto/export.proto`.
 
+## Releasing
+
+Releases are cut with the `centsible-releaser` helper — a Node ≥ 23.6 script that runs its TypeScript entrypoint directly. From a clean `develop` checkout:
+
+```bash
+cd centsible-releaser
+npm install                    # first time only
+node release.mts <version>     # e.g. 0.5.0 — add --dry-run to preview
+```
+
+It aborts unless the working tree is clean, the current branch is `develop`, and no `v<version>` tag exists yet. It then, in order:
+
+1. Creates the `release/<version>` branch.
+2. Bumps the version in `build.gradle.kts` and `centsible-ui/package.json`.
+3. Rolls every pending script from `centsible-db/migrations/snapshot/` into a new `centsible-db/migrations/<version>/` folder and appends `NN_SetVersion_<version>.sql`, which records the release in `system_information` (see [ADR-0013](docs/adr/0013-sql-migrations-and-jooq-codegen.md)).
+4. Verifies the backend (`./gradlew build -x test`) and frontend (`npm run build`) builds.
+5. Commits, tags `v<version>`, and pushes the branch and tag to `origin`.
+
+Promoting `release/<version>` to `main` (the deploy branch) is a separate step. Pass `--dry-run` to print the full plan without touching git, the filesystem, or the build.
+
 ## Tests
 
 - **Backend**: Run `./gradlew test` in the `centsible-rest` directory.

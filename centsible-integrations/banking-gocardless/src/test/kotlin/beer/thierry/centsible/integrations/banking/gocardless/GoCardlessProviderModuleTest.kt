@@ -24,7 +24,6 @@ class GoCardlessProviderModuleTest {
 
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
     private fun anyIntArg(): Int = org.mockito.ArgumentMatchers.anyInt()
-    // Kotlin's non-null types reject Mockito's eq() result for reference types — coalesce.
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
 
     private fun ctx(
@@ -77,7 +76,6 @@ class GoCardlessProviderModuleTest {
 
     @Test
     fun `testConnection accepts a valid country and institution`() {
-        // Pure validation — no HTTP call.
         newModule().testConnection(ctx())
     }
 
@@ -239,10 +237,7 @@ class GoCardlessProviderModuleTest {
             )
         )
 
-        // PSD2 consent flow: no real access token — we mark "delegated" so the orchestrator can
-        // tell apart "no credentials" from "credentials are managed upstream".
         assertEquals("delegated", result.envelope.accessToken)
-        // Pending markers must be cleared so a subsequent connect doesn't reuse them.
         assertNull(result.configPatch["pendingRequisitionId"])
         assertNull(result.configPatch["pendingAgreementId"])
         assertEquals("REQ-1", result.configPatch["requisitionId"])

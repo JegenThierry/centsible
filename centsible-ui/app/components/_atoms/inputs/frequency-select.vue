@@ -3,6 +3,7 @@ import {Frequency} from "~/models/recurring/recurring-transaction";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 const props = defineProps<{
+  name?: string;
   label: string;
   description?: string;
   hint?: string;
@@ -11,28 +12,16 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<Frequency>();
-const error = ref<string | undefined>(undefined);
 const {t} = useI18n();
 
 const options = computed(() => Object.values(Frequency).map(value => ({
   label: t(`transactions.recurring.frequency.${value}`),
   value,
 })));
-
-function validate(): boolean {
-  error.value = undefined;
-  if (props.required && !model.value) {
-    error.value = t('common.validation.required', {field: props.label});
-    return false;
-  }
-  return true;
-}
-
-defineExpose({validate});
 </script>
 
 <template>
-  <UFormField :error="error"
+  <UFormField :name="name"
               :help="description"
               :hint="hint"
               :label="label"

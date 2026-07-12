@@ -19,14 +19,22 @@ private val REGISTRATION_TOKEN_HASH = field("registration_token_hash", ByteArray
 private val REGISTRATION_TOKEN_EXPIRES_AT = field("registration_token_expires_at", OffsetDateTime::class.java)
 private val PASSWORD_RESET_TOKEN_HASH = field("password_reset_token_hash", ByteArray::class.java)
 private val PASSWORD_RESET_TOKEN_EXPIRES_AT = field("password_reset_token_expires_at", OffsetDateTime::class.java)
-// LOCALE isn't in the generated USERS metadata yet; declared manually until the next jOOQ regen.
-private val LOCALE = field("locale", String::class.java)
-private val USER_FIELDS: Array<Field<*>> = arrayOf(*USERS.fields(), LOCALE)
+private val USER_FIELDS: Array<Field<*>> = USERS.fields()
 private const val DEFAULT_LOCALE = "en"
 private val SUPPORTED_LOCALES = setOf("en", "fr", "de")
 
 private fun normaliseLocale(locale: String?): String =
     locale?.takeIf { it in SUPPORTED_LOCALES } ?: DEFAULT_LOCALE
+
+private const val DEFAULT_CURRENCY = "EUR"
+private val SUPPORTED_CURRENCIES = setOf(
+    "EUR", "USD", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD",
+    "SEK", "NOK", "DKK", "SGD", "KRW", "INR", "MXN", "BRL", "ZAR", "TRY",
+    "PLN", "PHP", "IDR",
+)
+
+private fun normaliseCurrency(currency: String?): String =
+    currency?.takeIf { it in SUPPORTED_CURRENCIES } ?: DEFAULT_CURRENCY
 
 private val NOTIFICATION_SETTINGS = field("notification_settings", JSONB::class.java)
 
@@ -80,7 +88,7 @@ class UserRepository(
             .set(USERS.FIRST_NAME, user.firstName)
             .set(USERS.LAST_NAME, user.lastName)
             .set(USERS.PASSWORD_HASH, passwordHash)
-            .set(LOCALE, normaliseLocale(user.locale))
+            .set(USERS.LOCALE, normaliseLocale(user.locale))
             .set(field("registered", Boolean::class.java), false)
             .set(REGISTRATION_TOKEN_HASH, registrationTokenHash)
             .set(REGISTRATION_TOKEN_EXPIRES_AT, registrationTokenExpiresAt)
@@ -120,11 +128,47 @@ class UserRepository(
 
     override fun updateUserLocale(id: UUID, locale: String): User? {
         return dsl.update(USERS)
-            .set(LOCALE, normaliseLocale(locale))
+            .set(USERS.LOCALE, normaliseLocale(locale))
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .returningResult(*USER_FIELDS)
             .fetchOneInto(User::class.java)
+    }
+
+    override fun updateDefaultCurrency(id: UUID, currency: String): User? {
+        return dsl.update(USERS)
+            .set(USERS.DEFAULT_CURRENCY, normaliseCurrency(currency))
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .returningResult(*USER_FIELDS)
+            .fetchOneInto(User::class.java)
+    }
+
+    override fun updatePassword(id: UUID, newPasswordHash: String): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.PASSWORD_HASH, newPasswordHash)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun incrementTokenVersion(id: UUID): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.TOKEN_VERSION, USERS.TOKEN_VERSION.plus(1))
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun fetchTokenVersion(id: UUID): Int? =
+        dsl.select(USERS.TOKEN_VERSION).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOKEN_VERSION)
+
+    override fun deleteUser(id: UUID): Boolean {
+        return dsl.deleteFrom(USERS)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
     }
 
     override fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean {
@@ -148,6 +192,7 @@ class UserRepository(
             .set(USERS.PASSWORD_HASH, newPasswordHash)
             .set(PASSWORD_RESET_TOKEN_HASH, null as ByteArray?)
             .set(PASSWORD_RESET_TOKEN_EXPIRES_AT, null as OffsetDateTime?)
+            .set(USERS.TOKEN_VERSION, USERS.TOKEN_VERSION.plus(1))
             .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0
@@ -182,4 +227,61 @@ class UserRepository(
             .execute()
         return settings
     }
+
+    override fun savePendingTotpSecret(id: UUID, encryptedSecret: ByteArray): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, encryptedSecret)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun getPendingTotpSecret(id: UUID): ByteArray? =
+        dsl.select(USERS.TOTP_PENDING_SECRET_ENCRYPTED).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOTP_PENDING_SECRET_ENCRYPTED)
+
+    override fun clearPendingTotpSecret(id: UUID): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun getActiveTotpSecret(id: UUID): ByteArray? =
+        dsl.select(USERS.TOTP_SECRET_ENCRYPTED).from(USERS)
+            .where(USERS.ID.eq(id).and(USERS.TOTP_ENABLED.isTrue))
+            .fetchOne(USERS.TOTP_SECRET_ENCRYPTED)
+
+    override fun activateTotp(id: UUID, encryptedSecret: ByteArray): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_SECRET_ENCRYPTED, encryptedSecret)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_ENABLED, true)
+            .set(USERS.TOTP_LAST_USED_STEP, null as Long?)
+            .set(USERS.TOTP_ENABLED_AT, OffsetDateTime.now())
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun disableTotp(id: UUID): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_PENDING_SECRET_ENCRYPTED, null as ByteArray?)
+            .set(USERS.TOTP_ENABLED, false)
+            .set(USERS.TOTP_LAST_USED_STEP, null as Long?)
+            .set(USERS.TOTP_ENABLED_AT, null as OffsetDateTime?)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+
+    override fun getTotpLastUsedStep(id: UUID): Long? =
+        dsl.select(USERS.TOTP_LAST_USED_STEP).from(USERS)
+            .where(USERS.ID.eq(id))
+            .fetchOne(USERS.TOTP_LAST_USED_STEP)
+
+    override fun updateTotpLastUsedStep(id: UUID, step: Long): Boolean =
+        dsl.update(USERS)
+            .set(USERS.TOTP_LAST_USED_STEP, step)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
 }

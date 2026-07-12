@@ -75,9 +75,11 @@
     },
     "category": {
       "system": "Système",
-      "outstanding": "En cours",
-      "loanCount": "{count} prêt",
-      "loansCount": "{count} prêts"
+      "outstanding": "En cours"
+    },
+    "system": {
+      "loadFailedTitle": "Échec du chargement des informations système",
+      "loadFailedBody": "Impossible de charger les informations système."
     }
   }
 }

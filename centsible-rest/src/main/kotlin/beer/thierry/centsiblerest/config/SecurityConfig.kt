@@ -34,8 +34,6 @@ class SecurityConfig(
                 configurationSource = corsConfig.corsConfigurationSource()
             }
 
-            // SameSite=Strict cookie + CORS allowlist defend against CSRF.
-            // Re-enable if SameSite is ever loosened or form-encoded writes are accepted.
             csrf { disable() }
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS
@@ -62,6 +60,7 @@ class SecurityConfig(
                 authorize("/api/auth/logout", permitAll)
                 authorize("/api/auth/forgot-password", permitAll)
                 authorize("/api/auth/reset-password", permitAll)
+                authorize("/api/auth/2fa/challenge", permitAll)
                 authorize("/api/system", permitAll)
                 authorize("/api/integrations/oauth/callback/**", permitAll)
                 authorize(EndpointRequest.to("health"), permitAll)

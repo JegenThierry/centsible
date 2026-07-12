@@ -8,7 +8,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
  *
  * Patterns covered:
  *  - JSON-style key/value pairs: "access_token":"…", "refresh_token":"…", "client_secret":"…",
- *    "secret_key":"…", "secret_id":"…", "api_key":"…", "password":"…", "authorization":"Bearer …"
+ *    "secret_key":"…", "secret_id":"…", "api_key":"…", "password":"…", "token":"…", "authorization":"Bearer …"
  *  - Querystring-style: access_token=…, refresh_token=…, client_secret=…
  *  - HTTP header values: Authorization: Bearer ABC… (case-insensitive)
  *
@@ -23,7 +23,7 @@ class SecretRedactingConverter : MessageConverter() {
         private const val REDACTED = "***REDACTED***"
 
         private val JSON_VALUE = Regex(
-            """("(?:access_token|refresh_token|client_secret|secret_key|secret_id|api_key|password)"\s*:\s*")[^"]*(")""",
+            """("(?:access_token|refresh_token|client_secret|secret_key|secret_id|api_key|password|token)"\s*:\s*")[^"]*(")""",
             RegexOption.IGNORE_CASE,
         )
         private val AUTH_HEADER_JSON = Regex(
@@ -31,7 +31,7 @@ class SecretRedactingConverter : MessageConverter() {
             RegexOption.IGNORE_CASE,
         )
         private val QUERY_PARAM = Regex(
-            """\b(access_token|refresh_token|client_secret|secret_key|secret_id|api_key|password)=([^&\s"]+)""",
+            """\b(access_token|refresh_token|client_secret|secret_key|secret_id|api_key|password|token)=([^&\s"]+)""",
             RegexOption.IGNORE_CASE,
         )
         private val AUTH_HEADER_PLAIN = Regex(

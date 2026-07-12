@@ -13,10 +13,12 @@ pebble = "3.2.4"
 playwright = "1.60.0"
 bucket4j = "8.10.1"
 caffeine = "3.1.8"
+totp = "1.7.1"
 commonsCsv = "1.12.0"
 resilience4j = "2.3.0"
 ofx4j = "1.39"
 guava = "33.6.0-jre"
+tika = "3.3.1"
 dependencyCheck = "12.1.0"
 
 [libraries]
@@ -47,10 +49,12 @@ pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version.ref = "bucket4j" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+totp = { module = "dev.samstevens.totp:totp", version.ref = "totp" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
 ofx4j = { module = "com.webcohesion.ofx4j:ofx4j", version.ref = "ofx4j" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika" }
 konvert-api = { module = "io.mcarle:konvert-api", version.ref = "konvert" }
 konvert-ksp = { module = "io.mcarle:konvert", version.ref = "konvert" }
 

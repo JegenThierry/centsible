@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import adze from 'adze'
+import ConfirmationModal from "~/components/_organisms/modals/confirmation-modal.vue";
 import type {Contact} from "~/models/contact/contact";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
 
 const props = defineProps<{
@@ -16,7 +15,6 @@ const emit = defineEmits<{
 
 const contactsStore = useContactsStore();
 const {t} = useI18n();
-const loading = ref(false);
 
 const description = computed(() => {
   if (props.contact?.name) {
@@ -25,32 +23,18 @@ const description = computed(() => {
   return t('contacts.delete.descriptionGeneric');
 });
 
-async function handleDelete() {
+async function deleteContact() {
   if (!props.contact?.id) return;
-
-  loading.value = true;
-  try {
-    await contactsStore.deleteContact(props.contact.id);
-    isOpen.value = false;
-    emit('deleted');
-  } catch (error) {
-    adze.ns('contacts').error('Delete contact failed', error);
-  } finally {
-    loading.value = false;
-  }
+  await contactsStore.deleteContact(props.contact.id);
+  emit('deleted');
 }
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
-          :description="description"
-          :title="t('contacts.delete.title')">
-    <template #footer>
-      <ModalFooterActions :loading="loading"
-                          :submit-label="t('contacts.delete.submit')"
-                          submit-color="error"
-                          @cancel="isOpen = false"
-                          @submit="handleDelete"/>
-    </template>
-  </UModal>
+  <ConfirmationModal v-model:open="isOpen"
+                     :title="t('contacts.delete.title')"
+                     :body="description"
+                     :confirm-label="t('contacts.delete.submit')"
+                     :manage-toasts="false"
+                     :delete-callback="deleteContact"/>
 </template>

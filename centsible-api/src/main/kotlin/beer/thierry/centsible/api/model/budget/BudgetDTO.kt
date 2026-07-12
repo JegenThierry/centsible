@@ -13,7 +13,7 @@ data class BudgetDTO(
     var category: CategoryDTO = CategoryDTO(),
     var amountLimit: BigDecimal = BigDecimal.ZERO,
     var amountSpent: BigDecimal = BigDecimal.ZERO,
-    var period: String? = null, // YYYY-MM (or window key)
+    var period: String? = null,
     var periodType: BudgetPeriodType = BudgetPeriodType.MONTHLY,
     var rolloverEnabled: Boolean = false,
     var rolloverAmount: BigDecimal = BigDecimal.ZERO,
@@ -21,6 +21,7 @@ data class BudgetDTO(
     var updatedAt: OffsetDateTime? = null,
 ) {
     companion object {
+        /** Canonical `period` key (`YYYY-MM`) for [yearMonth], used to scope a budget to its period. */
         fun periodKey(yearMonth: YearMonth): String = yearMonth.toString()
     }
 }

@@ -2,6 +2,7 @@ package beer.thierry.centsible.api.model.transaction
 
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
+import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Digits
@@ -33,4 +34,28 @@ data class TransactionForm(
     var type: CategoryType? = null,
 
     var currency: Currency? = null,
+
+    /**
+     * Optional per-category breakdown. When non-empty the transaction is a split: the service
+     * validates there are at least two entries whose amounts sum to the (converted) transaction
+     * amount, all in non-managed categories matching the transaction type. When null/empty the
+     * transaction keeps a single category ([categoryId]).
+     */
+    @field:Valid
+    var splits: List<TransactionSplitForm>? = null,
+)
+
+data class TransactionSplitForm(
+    @field:NotNull(message = "{validation.category.required}")
+    @field:Positive(message = "{validation.category.positive}")
+    var categoryId: Long = 0L,
+
+    @field:NotNull(message = "{validation.amount.required}")
+    @field:DecimalMin(value = "0.01", message = "{validation.amount.tooSmall}")
+    @field:DecimalMax(value = "999999999999.99", message = "{validation.amount.tooLarge}")
+    @field:Digits(integer = 12, fraction = 2, message = "{validation.amount.fraction}")
+    var amount: BigDecimal = BigDecimal.ZERO,
+
+    @field:Size(max = 255, message = "{validation.description.tooLong}")
+    var note: String? = null,
 )

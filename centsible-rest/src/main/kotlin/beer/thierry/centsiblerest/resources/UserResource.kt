@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
+import beer.thierry.centsible.api.model.user.DefaultCurrencyUpdateDTO
 import beer.thierry.centsible.api.model.user.LocaleUpdateDTO
 import beer.thierry.centsible.api.model.user.ProfileUpdateDTO
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -49,6 +50,16 @@ class UserResource(private val userService: IUserService) {
     ): ResponseEntity<UserDTO> {
         val updated = userService.updateUserLocale(user.id, body.locale)
         log.info("Updated user locale userId={} locale={}", user.id, body.locale)
+        return ResponseEntity.ok(updated)
+    }
+
+    @PutMapping("/default-currency")
+    fun updateDefaultCurrency(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody body: DefaultCurrencyUpdateDTO,
+    ): ResponseEntity<UserDTO> {
+        val updated = userService.updateDefaultCurrency(user.id, body.defaultCurrency)
+        log.info("Updated user default currency userId={} currency={}", user.id, body.defaultCurrency)
         return ResponseEntity.ok(updated)
     }
 

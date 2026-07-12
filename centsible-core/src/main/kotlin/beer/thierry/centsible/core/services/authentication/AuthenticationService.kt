@@ -4,9 +4,12 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
+import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.authentication.IAuthService
+import beer.thierry.centsible.api.services.authentication.ITotpService
 import beer.thierry.centsible.api.services.email.IPasswordResetEmailService
 import beer.thierry.centsible.api.services.email.IRegisterEmailService
 import io.jsonwebtoken.Jwts
@@ -32,6 +35,8 @@ private fun resolveEmailLocale(stored: String?): Locale {
 @Service
 class AuthenticationService(
     private val userRepository: IUserRepository,
+    private val twoFactorRepository: ITwoFactorRepository,
+    private val totpService: ITotpService,
     private val passwordEncoder: PasswordEncoder,
     private val registerEmailService: IRegisterEmailService,
     private val passwordResetEmailService: IPasswordResetEmailService,
@@ -50,7 +55,7 @@ class AuthenticationService(
         passwordEncoder.encode(DUMMY_PASSWORD) ?: error("password encoder returned a null hash")
     }
 
-    override fun authenticate(authRequest: AuthRequest): AuthResponse {
+    override fun authenticate(authRequest: AuthRequest): LoginResult {
         val user = userRepository.findUserByUsername(authRequest.username)
         if (user == null) {
             passwordEncoder.matches(authRequest.password, dummyPasswordHash)
@@ -68,7 +73,34 @@ class AuthenticationService(
             throw LocalizedException.Unauthorized("error.auth.emailNotConfirmed")
         }
 
+        if (user.totpEnabled) {
+            val rawToken = generateRegistrationToken()
+            val expiresAt = OffsetDateTime.now().plusMinutes(PRE_AUTH_TOKEN_TTL_MINUTES)
+            twoFactorRepository.deletePendingAuthForUser(user.id)
+            twoFactorRepository.createPendingAuth(user.id, sha256(rawToken), expiresAt)
+            log.info("Authentication step 1 ok; awaiting 2FA challenge userId={}", user.id)
+            return LoginResult.TwoFactorRequired(rawToken)
+        }
+
         log.info("Authentication successful: userId={}", user.id)
+        return LoginResult.Authenticated(generateJwt(user))
+    }
+
+    override fun completeTwoFactorChallenge(pendingToken: String, code: String): AuthResponse {
+        if (pendingToken.isBlank() || pendingToken.length > REGISTRATION_TOKEN_MAX_LENGTH) {
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+        val userId = twoFactorRepository.consumePendingAuth(sha256(pendingToken))
+            ?: throw LocalizedException.Unauthorized("error.totp.challengeExpired")
+
+        if (!totpService.verifyChallengeCode(userId, code)) {
+            log.warn("2FA challenge failed: bad code userId={}", userId)
+            throw LocalizedException.Unauthorized("error.totp.invalidCode")
+        }
+
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        log.info("2FA challenge passed; authentication successful userId={}", userId)
         return AuthResponse(generateJwt(user))
     }
 
@@ -99,8 +131,6 @@ class AuthenticationService(
             return AuthResponse(generateJwt(registeredUser))
         }
 
-        // Use the locale the user just chose during registration so the confirmation email
-        // arrives in their language, not whatever the calling request's Accept-Language said.
         registerEmailService.sendRegistrationEmail(registeredUser, rawToken, resolveEmailLocale(registeredUser.locale))
         return AuthResponse("")
     }
@@ -122,19 +152,12 @@ class AuthenticationService(
         return confirmed
     }
 
-    // Runs off the request thread so the controller can write its 204 with branch-independent latency.
-    // Otherwise a valid+confirmed username pays a full synchronous Resend round-trip (the token UPDATE
-    // plus the outbound email) while every other input returns near-instantly — a timing oracle that
-    // defeats the "always 204" enumeration defence. Fire-and-forget: failures are logged, never surfaced.
     @Async
     override fun requestPasswordReset(username: String) {
-        // Always silent: don't leak which usernames exist. Trim only — no other normalisation,
-        // since findUserByUsername is case-sensitive on the username column.
         val trimmed = username.trim().ifBlank { return }
         val user = userRepository.findUserByUsername(trimmed) ?: return
 
         if (!user.registered) {
-            // Only registered (email-confirmed) accounts can reset; otherwise the confirmation flow applies.
             log.info("Password reset requested for unconfirmed account username='{}'; skipping email", trimmed)
             return
         }
@@ -173,6 +196,70 @@ class AuthenticationService(
         return reset
     }
 
+    override fun changePassword(userId: UUID, currentPassword: String, newPassword: String): String {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+
+        if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
+            log.warn("Password change rejected: bad current password userId={}", userId)
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+
+        assertPasswordMatchesSecuritySettings(newPassword)
+
+        if (passwordEncoder.matches(newPassword, user.passwordHash)) {
+            throw LocalizedException.BadRequest("error.auth.passwordReused")
+        }
+
+        val passwordHash = passwordEncoder.encode(newPassword)
+            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        if (!userRepository.updatePassword(userId, passwordHash)) {
+            throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        }
+        userRepository.incrementTokenVersion(userId)
+        log.info("Password changed successfully; other sessions revoked userId={}", userId)
+        return issueFreshToken(userId)
+    }
+
+    override fun signOutOtherSessions(userId: UUID): String {
+        if (!userRepository.incrementTokenVersion(userId)) {
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+        log.info("Signed out all other sessions userId={}", userId)
+        return issueFreshToken(userId)
+    }
+
+    /** Mints a JWT reflecting the user's current persisted state (incl. token_version). */
+    private fun issueFreshToken(userId: UUID): String {
+        val refreshed = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        return generateJwt(refreshed)
+    }
+
+    override fun deleteAccount(userId: UUID, password: String, totpCode: String?) {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+
+        if (!passwordEncoder.matches(password, user.passwordHash)) {
+            log.warn("Account deletion rejected: bad password userId={}", userId)
+            throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        }
+
+        if (user.totpEnabled) {
+            val code = totpCode?.takeIf { it.isNotBlank() }
+                ?: throw LocalizedException.Unauthorized("error.totp.invalidCode")
+            if (!totpService.verifyChallengeCode(userId, code)) {
+                log.warn("Account deletion rejected: bad TOTP code userId={}", userId)
+                throw LocalizedException.Unauthorized("error.totp.invalidCode")
+            }
+        }
+
+        if (!userRepository.deleteUser(userId)) {
+            throw LocalizedException.InternalError("error.user.deleteFailed")
+        }
+        log.info("Account deleted userId={}", userId)
+    }
+
     private fun generateRegistrationToken(): String {
         val bytes = ByteArray(REGISTRATION_TOKEN_BYTES).also { SecureRandom().nextBytes(it) }
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
@@ -187,6 +274,7 @@ class AuthenticationService(
         private const val REGISTRATION_TOKEN_MAX_LENGTH = 64
         private const val REGISTRATION_TOKEN_TTL_HOURS = 24L
         private const val PASSWORD_RESET_TOKEN_TTL_MINUTES = 15L
+        private const val PRE_AUTH_TOKEN_TTL_MINUTES = 5L
         private val PASSWORD_REQUIREMENTS = Regex("""^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$""")
     }
 
@@ -202,6 +290,7 @@ class AuthenticationService(
             .claim("lastName", user.lastName)
             .claim("name", "${user.firstName} ${user.lastName}")
             .claim("locale", user.locale)
+            .claim("tv", user.tokenVersion)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(signingKey)

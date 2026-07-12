@@ -8,11 +8,6 @@ const toasts = useToasts();
 const providersStore = useProvidersStore();
 const {t, te} = useI18n();
 
-// The backend's IntegrationsResource never returns a free-text error message — only an opaque
-// `code` from a fixed vocabulary defined in OAuthFlowService.ERROR_*. The UI translates each
-// code to a localized string; unknown codes fall back to the generic error body. This is the
-// security boundary that prevents provider error bodies (which can contain IBAN fragments,
-// institution names, etc.) from leaking into browser history.
 function translateErrorCode(code: string | undefined): string {
   if (!code) return t('integrations.oauthReturn.errorBody');
   const key = `integrations.oauthReturn.errors.${code}`;
@@ -36,7 +31,6 @@ onMounted(async () => {
     }
     await providersStore.refresh();
   } finally {
-    // Always navigate, even if refresh() fails — otherwise the user is stranded on this page.
     router.replace('/integrations');
   }
 });

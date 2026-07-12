@@ -12,12 +12,14 @@ import beer.thierry.jooq.generated.indexes.UQ_CATEGORIES_SYSTEM_KEY
 import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES_PKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
-import beer.thierry.jooq.generated.keys.CATEGORIZATION_RULES__CATEGORIZATION_RULES_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.RULE_ACTIONS__RULE_ACTIONS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_SPLITS__TRANSACTION_SPLITS_CATEGORY_ID_FKEY
 import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
-import beer.thierry.jooq.generated.tables.CategorizationRules.CategorizationRulesPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
+import beer.thierry.jooq.generated.tables.RuleActions.RuleActionsPath
+import beer.thierry.jooq.generated.tables.TransactionSplits.TransactionSplitsPath
 import beer.thierry.jooq.generated.tables.Transactions.TransactionsPath
 import beer.thierry.jooq.generated.tables.Users.UsersPath
 import beer.thierry.jooq.generated.tables.records.CategoriesRecord
@@ -204,22 +206,6 @@ open class Categories(
     val budgets: BudgetsPath
         get(): BudgetsPath = budgets()
 
-    private lateinit var _categorizationRules: CategorizationRulesPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.categorization_rules</code> table
-     */
-    fun categorizationRules(): CategorizationRulesPath {
-        if (!this::_categorizationRules.isInitialized)
-            _categorizationRules = CategorizationRulesPath(this, null, CATEGORIZATION_RULES__CATEGORIZATION_RULES_CATEGORY_ID_FKEY.inverseKey)
-
-        return _categorizationRules;
-    }
-
-    val categorizationRules: CategorizationRulesPath
-        get(): CategorizationRulesPath = categorizationRules()
-
     private lateinit var _recurringTransactions: RecurringTransactionsPath
 
     /**
@@ -235,6 +221,38 @@ open class Categories(
 
     val recurringTransactions: RecurringTransactionsPath
         get(): RecurringTransactionsPath = recurringTransactions()
+
+    private lateinit var _ruleActions: RuleActionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.rule_actions</code> table
+     */
+    fun ruleActions(): RuleActionsPath {
+        if (!this::_ruleActions.isInitialized)
+            _ruleActions = RuleActionsPath(this, null, RULE_ACTIONS__RULE_ACTIONS_CATEGORY_ID_FKEY.inverseKey)
+
+        return _ruleActions;
+    }
+
+    val ruleActions: RuleActionsPath
+        get(): RuleActionsPath = ruleActions()
+
+    private lateinit var _transactionSplits: TransactionSplitsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_splits</code> table
+     */
+    fun transactionSplits(): TransactionSplitsPath {
+        if (!this::_transactionSplits.isInitialized)
+            _transactionSplits = TransactionSplitsPath(this, null, TRANSACTION_SPLITS__TRANSACTION_SPLITS_CATEGORY_ID_FKEY.inverseKey)
+
+        return _transactionSplits;
+    }
+
+    val transactionSplits: TransactionSplitsPath
+        get(): TransactionSplitsPath = transactionSplits()
 
     private lateinit var _transactions: TransactionsPath
 

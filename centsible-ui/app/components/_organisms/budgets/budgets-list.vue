@@ -9,21 +9,30 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
-const CreateBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/create-budget-modal.vue"));
-const EditBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/edit-budget-modal.vue"));
+const BudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {format, parseISO, subMonths} from 'date-fns';
+import {formatMonthYearLabel} from "~/utils/date";
 
 const MONTH_FMT = 'yyyy-MM';
 
 const store = useBudgetsStore();
 const {t} = useI18n();
+const localeTag = useLocaleTag();
+
+function monthLabel(m: string): string {
+  return formatMonthYearLabel(m, localeTag.value);
+}
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const selected = ref<Budget | null>(null);
+
+const existingCombos = computed(() =>
+  store.items.map((b) => ({categoryId: b.category.id, periodType: b.periodType})),
+);
 
 const currency = useActiveCurrency();
 
@@ -42,7 +51,7 @@ const historyMonths = computed(() =>
 const monthItems = computed(() =>
   Array.from({length: 24}, (_, i) => {
     const m = monthsBack(currentMonth, i);
-    return {label: m, value: m};
+    return {label: monthLabel(m), value: m};
   }),
 );
 
@@ -94,6 +103,20 @@ onMounted(() => refresh());
       <CardSkeleton v-for="i in 3" :key="i"/>
     </div>
 
+    <AppEmptyState v-else-if="store.error && store.items.length === 0"
+                   icon="i-lucide-triangle-alert"
+                   :title="t('common.states.error')">
+      <template #actions>
+        <AppButton class="w-full sm:w-auto justify-center"
+                   color="neutral"
+                   variant="soft"
+                   icon="i-lucide-refresh-cw"
+                   @click="refresh">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </template>
+    </AppEmptyState>
+
     <AppEmptyState v-else-if="store.items.length === 0 && !showHistory"
                    :description="t('budgets.list.emptyDescription')"
                    icon="i-lucide-target"
@@ -130,7 +153,7 @@ onMounted(() => refresh());
       <h2 class="text-base font-semibold text-highlighted">{{ t('budgets.list.historyHeading') }}</h2>
 
       <div v-for="period in store.history" :key="period.month" class="space-y-2">
-        <h3 class="text-sm font-medium text-muted">{{ period.month }}</h3>
+        <h3 class="text-sm font-medium text-muted capitalize">{{ monthLabel(period.month) }}</h3>
         <div v-if="period.budgets.length === 0" class="text-xs text-muted">
           {{ t('budgets.list.noBudgetsInPeriod') }}
         </div>
@@ -145,14 +168,15 @@ onMounted(() => refresh());
 
     <CreateFab @create="isCreateModalOpen = true"/>
 
-    <CreateBudgetModal v-if="isCreateModalOpen"
-                       v-model:open="isCreateModalOpen"
-                       @created="refresh"/>
+    <BudgetModal v-if="isCreateModalOpen"
+                 v-model:open="isCreateModalOpen"
+                 :existing-combos="existingCombos"
+                 @created="refresh"/>
 
-    <EditBudgetModal v-if="isEditModalOpen && selected"
-                     v-model:open="isEditModalOpen"
-                     :budget="selected"
-                     @updated="refresh"/>
+    <BudgetModal v-if="isEditModalOpen && selected"
+                 v-model:open="isEditModalOpen"
+                 :budget="selected"
+                 @updated="refresh"/>
 
     <DeleteBudgetModal v-if="isDeleteModalOpen"
                        v-model:open="isDeleteModalOpen"

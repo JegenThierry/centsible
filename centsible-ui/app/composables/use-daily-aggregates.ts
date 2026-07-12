@@ -12,6 +12,7 @@ function key(accountId: string, days: number): string {
   return `${accountId}|${days}`;
 }
 
+/** Warms the shared cache that [useDailyAggregates] reads, for [accountId] over [days]; swallows errors. */
 export async function prefetchDailyAggregates(
   service: TransactionService,
   accountId: string,

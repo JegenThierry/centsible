@@ -50,5 +50,5 @@ class LendingsPerContactJsonRenderer(
     }
 
     override fun filenameStem(request: ExportRequest): String =
-        "lendings-${slug(request.lendingsPerContact.contactId)}"
+        lendingsPerContactStem(data, request)
 }

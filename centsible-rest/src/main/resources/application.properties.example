@@ -25,6 +25,10 @@ jwt.secret=<Enter your token>
 # Skip the email-verification step on signup (development convenience).
 skip.email.verification=true
 
+# Two-factor (TOTP) secret encryption at rest — required once any user enables 2FA.
+mfa.encryption-key=${MFA_ENCRYPTION_KEY:}
+mfa.encryption-salt=${MFA_ENCRYPTION_SALT:}
+
 # CORS allow-list (comma-separated, no wildcards).
 cors.allowed-origins=http://localhost:3000
 

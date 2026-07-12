@@ -4,6 +4,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 const model = defineModel<string>({required: true});
 
 defineProps<{
+  name?: string;
   label?: string;
   required?: boolean;
   placeholder?: string;
@@ -11,15 +12,6 @@ defineProps<{
 
 const {t} = useI18n();
 
-const iconInputRef = ref<InstanceType<typeof BaseInput>>();
-
-function validate() {
-  return iconInputRef.value?.validate() ?? true;
-}
-
-defineExpose({
-  validate,
-});
 </script>
 
 <template>
@@ -27,7 +19,7 @@ defineExpose({
     <div class="flex items-end gap-2">
       <div class="flex-1">
         <BaseInput
-          ref="iconInputRef"
+          :name="name"
           v-model="model"
           :label="label || t('categories.form.iconLabel')"
           :max-length="50"

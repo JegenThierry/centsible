@@ -77,6 +77,20 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
         set(value): Unit = set(13, value)
         get(): String? = get(13) as String?
 
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @set:JvmName("setIsTransfer")
+    open var isTransfer: Boolean?
+        set(value): Unit = set(14, value)
+        get(): Boolean? = get(14) as Boolean?
+
+    open var destinationAccountId: UUID?
+        set(value): Unit = set(15, value)
+        get(): UUID? = get(15) as UUID?
+
+    open var type: String?
+        set(value): Unit = set(16, value)
+        get(): String? = get(16) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -86,7 +100,7 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
     /**
      * Create a detached, initialised RecurringTransactionsRecord
      */
-    constructor(id: UUID? = null, accountId: UUID? = null, categoryId: Long? = null, amount: BigDecimal? = null, description: String? = null, frequency: String? = null, startDate: LocalDate? = null, endDate: LocalDate? = null, nextRunAt: LocalDate? = null, active: Boolean? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null): this() {
+    constructor(id: UUID? = null, accountId: UUID? = null, categoryId: Long? = null, amount: BigDecimal? = null, description: String? = null, frequency: String? = null, startDate: LocalDate? = null, endDate: LocalDate? = null, nextRunAt: LocalDate? = null, active: Boolean? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null, isTransfer: Boolean? = null, destinationAccountId: UUID? = null, type: String? = null): this() {
         this.id = id
         this.accountId = accountId
         this.categoryId = categoryId
@@ -101,6 +115,9 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
         this.modifiedAt = modifiedAt
         this.originalAmount = originalAmount
         this.originalCurrency = originalCurrency
+        this.isTransfer = isTransfer
+        this.destinationAccountId = destinationAccountId
+        this.type = type
         resetChangedOnNotNull()
     }
 
@@ -123,6 +140,9 @@ open class RecurringTransactionsRecord() : UpdatableRecordImpl<RecurringTransact
             this.modifiedAt = value.modifiedAt
             this.originalAmount = value.originalAmount
             this.originalCurrency = value.originalCurrency
+            this.isTransfer = value.isTransfer
+            this.destinationAccountId = value.destinationAccountId
+            this.type = value.type
             resetChangedOnNotNull()
         }
     }

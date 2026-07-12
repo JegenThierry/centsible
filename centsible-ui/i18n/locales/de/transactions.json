@@ -3,8 +3,7 @@
     "pageTitle": "Transaktionen",
     "title": "Transaktionen",
     "description": "Transaktionen ansehen und verwalten",
-    "importCsvButton": "CSV importieren",
-    "advancedImportButton": "Datei importieren (CSV / OFX)",
+    "importButton": "Importieren",
     "exportLabel": "Transaktionen exportieren",
     "exportDefaultTitle": "Transaktionen {date}",
     "emptyTitle": "Keine Transaktionen gefunden.",
@@ -15,6 +14,7 @@
       "date": "Datum",
       "description": "Beschreibung",
       "category": "Kategorie",
+      "splitBadge": "Aufteilung · {count}",
       "amount": "Betrag",
       "actionsLabel": "Transaktionsaktionen",
       "actionEdit": "Bearbeiten",
@@ -52,6 +52,13 @@
       "toLabel": "Bis",
       "sortLabel": "Sortierung",
       "clear": "Zurücksetzen",
+      "amountMinPlaceholder": "Min",
+      "amountMaxPlaceholder": "Max",
+      "type": {
+        "all": "Alle Typen",
+        "income": "Einnahmen",
+        "expense": "Ausgaben"
+      },
       "sort": {
         "DATE_DESC": "Datum (neueste zuerst)",
         "DATE_ASC": "Datum (älteste zuerst)",
@@ -67,6 +74,10 @@
       }
     },
     "form": {
+      "tags": "Tags",
+      "noTags": "Noch keine Tags — leg sie unter Kategorien → Tags an.",
+      "tagsApplyFailedTitle": "Tags nicht angewendet",
+      "tagsApplyFailedBody": "Die Transaktion wurde gespeichert, aber ihre Tags konnten nicht aktualisiert werden.",
       "category": "Kategorie",
       "transactionType": "Transaktionstyp:",
       "typeLabel": "Transaktionstyp",
@@ -77,9 +88,26 @@
       "currency": "Währung",
       "currencyPlaceholder": "Währung auswählen",
       "conversionUnavailable": "Umrechnung nicht verfügbar",
+      "ruleHint": "Automatisch kategorisiert durch Regel „{rule}“",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Mittagessen, Einkauf usw.",
       "date": "Datum",
+      "split": {
+        "toggle": "Auf Kategorien aufteilen",
+        "hint": "Diese Transaktion auf mehrere Kategorien verteilen.",
+        "unavailableForeign": "Aufteilung ist für Fremdwährungstransaktionen nicht verfügbar.",
+        "category": "Kategorie",
+        "amount": "Betrag",
+        "add": "Aufteilung hinzufügen",
+        "remove": "Aufteilung entfernen",
+        "balanced": "Aufteilungen stimmen",
+        "remaining": "Verbleibend",
+        "invalidTitle": "Ungültige Aufteilung",
+        "error": {
+          "incomplete": "Füge mindestens zwei Aufteilungen mit jeweils einer Kategorie hinzu.",
+          "unbalanced": "Die Summe der Aufteilungen muss dem Transaktionsbetrag entsprechen."
+        }
+      },
       "modes": {
         "setBalance": {
           "newBalance": "Neuer Kontostand",
@@ -99,6 +127,7 @@
       "title": "Transaktion erstellen",
       "description": "Neue Transaktion für Ihr aktives Konto erstellen.",
       "modeStandard": "Standard",
+      "modeTransfer": "Überweisung",
       "modeLending": "Kredit",
       "modeSetBalance": "Saldo festlegen",
       "modeLegend": "Typ",
@@ -120,6 +149,26 @@
     "delete": {
       "entity": "Transaktion"
     },
+    "transfer": {
+      "fromAccount": "Quellkonto",
+      "fromAccountHelp": "Das Konto, von dem das Geld abgeht.",
+      "toAccount": "Zielkonto",
+      "toAccountHelp": "Das Konto, auf dem das Geld eingeht.",
+      "amount": "Betrag",
+      "badge": "Überweisung",
+      "entity": "Überweisung",
+      "sameAccountTitle": "Wählen Sie zwei verschiedene Konten.",
+      "sameAccountBody": "Eine Überweisung muss zwischen zwei verschiedenen Konten erfolgen.",
+      "toastSuccessTitle": "Überweisung erstellt.",
+      "toastSuccessBody": "Das Geld wurde zwischen Ihren Konten verschoben.",
+      "toastErrorTitle": "Überweisung fehlgeschlagen.",
+      "toastErrorBody": "Ihre Überweisung konnte nicht gespeichert werden, bitte versuchen Sie es erneut.",
+      "loadErrorBody": "Diese Überweisung konnte nicht geladen werden, bitte versuchen Sie es erneut.",
+      "editTitle": "Überweisung bearbeiten",
+      "editDescription": "Beim Bearbeiten werden beide Seiten der Überweisung aktualisiert.",
+      "editToastSuccessTitle": "Überweisung aktualisiert.",
+      "editToastSuccessBody": "Beide Seiten der Überweisung wurden aktualisiert."
+    },
     "confirm": {
       "title": "Löschen bestätigen",
       "questionPrefix": "Möchten Sie diese",
@@ -130,48 +179,19 @@
       "errorTitle": "Fehler {entity}.",
       "errorBody": "Ihre {entity} konnte nicht gelöscht werden, bitte versuchen Sie es erneut."
     },
-    "import": {
-      "titleUpload": "Transaktionen importieren",
-      "titleMap": "Spalten zuordnen",
-      "titleConfirm": "Import bestätigen",
-      "descUpload": "Laden Sie eine CSV-Datei aus Ihrer Bank hoch.",
-      "descMap": "Geben Sie an, welche Spalte was enthält.",
-      "descConfirm": "Überprüfen Sie die Zeilen, die erstellt werden.",
-      "uploadHint": "Die erste Zeile muss die Spaltenüberschriften enthalten. Spalten für Datum, Betrag und Beschreibung sind erforderlich. Im nächsten Schritt wählen Sie die Kategorie für alle importierten Zeilen.",
-      "assignCategoryLabel": "Kategorie zuweisen",
-      "assignCategoryHelp": "Alle importierten Zeilen verwenden diese Kategorie.",
-      "dateFormatLabel": "Datumsformat",
-      "dateFormatHelp": "So sind die Datumsangaben in Ihrer CSV geschrieben. Wählen Sie das richtige Format, um Tag und Monat nicht zu verwechseln.",
-      "dateFormat": {
-        "dayFirst": "Tag zuerst (31/12/2026)",
-        "monthFirst": "Monat zuerst (12/31/2026)",
-        "iso": "ISO (2026-12-31)",
-        "auto": "Automatisch erkennen (bestmöglich)"
-      },
-      "missingMappingsTitle": "Erforderliche Zuordnungen fehlen",
-      "missingMappingsDescription": "Markieren Sie, welche Spalten Datum, Betrag und Beschreibung enthalten.",
-      "readyToImport": "Bereit, {count} Zeile(n) zu importieren.",
-      "skippedRows": "{count} Zeile(n) übersprungen (fehlende/ungültige Daten)",
-      "previewExample": "z. B.",
-      "previewShowingFirst": "Anzeige der ersten 50 von {count} Zeilen. Alle werden importiert.",
-      "importRows": "{count} Zeile(n) importieren",
-      "fileEmptyTitle": "Leere CSV.",
-      "fileEmptyBody": "Es wurden keine Zeilen erkannt. Bitte überprüfen Sie die Datei.",
-      "fileErrorTitle": "Datei konnte nicht gelesen werden.",
-      "fileErrorBody": "Bitte laden Sie eine gültige CSV-Datei hoch.",
-      "successTitle": "Import abgeschlossen.",
-      "successBody": "{imported} importiert, {skipped} als Duplikate übersprungen.",
-      "errorTitle": "Import fehlgeschlagen.",
-      "errorBody": "Transaktionen konnten nicht importiert werden, bitte versuchen Sie es erneut.",
-      "columnFields": {
-        "date": "Datum",
-        "amount": "Betrag",
-        "description": "Beschreibung",
-        "category": "Kategorie (optional)",
-        "ignore": "Ignorieren"
-      }
-    },
     "advancedImport": {
+      "savedProfiles": {
+        "selectLabel": "Gespeichertes Profil",
+        "selectPlaceholder": "Gespeichertes Profil anwenden…",
+        "saveAction": "Als Profil speichern",
+        "nameLabel": "Profilname",
+        "namePlaceholder": "z. B. Meine Bank — Girokonto",
+        "hint": "Speichern Sie diese Spaltenzuordnung, um sie beim nächsten Import von derselben Bank wiederzuverwenden.",
+        "savedTitle": "Profil gespeichert",
+        "savedBody": "{name} kann wiederverwendet werden.",
+        "saveFailedTitle": "Profil konnte nicht gespeichert werden",
+        "saveFailedBody": "Das Profil konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      },
       "titleUpload": "Aus Datei importieren",
       "titleReview": "Überprüfen und importieren",
       "descUpload": "Lade eine von deiner Bank exportierte CSV- oder OFX-Datei hoch.",
@@ -186,7 +206,29 @@
       "successBody": "{imported} importiert, {skipped} als Duplikate übersprungen.",
       "errorTitle": "Import fehlgeschlagen.",
       "detectFailedBody": "Die Datei konnte nicht erkannt oder gelesen werden. Stelle sicher, dass es sich um eine unterstützte CSV- oder OFX-Datei handelt.",
-      "commitFailedBody": "Die geparsten Zeilen konnten nicht importiert werden. Bitte versuche es erneut."
+      "commitFailedBody": "Die geparsten Zeilen konnten nicht importiert werden. Bitte versuche es erneut.",
+      "titleMap": "Spalten zuordnen",
+      "descMap": "Gib an, welche Spalte was ist. Wir haben unsere beste Schätzung vorausgefüllt.",
+      "mappingHint": "Weise jeder Spalte eine Rolle zu. Datum, Beschreibung und ein Betrag (oder getrennte Soll-/Haben-Spalten) sind erforderlich.",
+      "columnPreview": "z. B.",
+      "roles": {
+        "date": "Datum",
+        "description": "Beschreibung",
+        "amount": "Betrag",
+        "debit": "Soll",
+        "credit": "Haben",
+        "currency": "Währung",
+        "counterparty": "Gegenpartei",
+        "category": "Kategorie",
+        "ignore": "Ignorieren"
+      },
+      "dateFormatLabel": "Datumsformat",
+      "dateFormatHelp": "Wie Daten in der Datei erscheinen, z. B. dd/MM/yyyy oder yyyy-MM-dd.",
+      "decimalSeparatorLabel": "Dezimaltrennzeichen",
+      "debitsArePositiveLabel": "Soll-Beträge sind positive Zahlen",
+      "debitsArePositiveHelp": "Aktivieren, wenn Ausgaben in der Datei kein Minuszeichen haben.",
+      "mappingInvalidTitle": "Zuordnung unvollständig",
+      "mappingInvalidBody": "Ordne eine Datums- und eine Beschreibungsspalte sowie einen Betrag (oder Soll und Haben) zu."
     },
     "recurring": {
       "pageTitle": "Wiederkehrend",
@@ -212,6 +254,9 @@
       "toastToggleErrorTitle": "Aktion fehlgeschlagen.",
       "toastToggleErrorBody": "Der Status der Regel konnte nicht geändert werden.",
       "form": {
+        "modeLegend": "Typ",
+        "modeStandard": "Standard",
+        "modeTransfer": "Überweisung",
         "category": "Kategorie",
         "transactionType": "Transaktionstyp:",
         "amount": "Betrag",

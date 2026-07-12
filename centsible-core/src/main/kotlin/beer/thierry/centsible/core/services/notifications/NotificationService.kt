@@ -113,7 +113,6 @@ class NotificationService(
         val threshold = settings.lowBalanceThreshold ?: return
         if (threshold.signum() <= 0) return
 
-        // One alert per (account, week) so a balance hovering below the line doesn't spam the user.
         val weekKey = currentWeekKey()
         val all = accounts.fetchAllAccounts(user)
         val scoped = if (accountIds == null) all else all.filter { it.id in accountIds }
@@ -153,10 +152,12 @@ class NotificationService(
 
             val contactName = loan.contact.name.takeIf { it.isNotBlank() } ?: "this contact"
             val outstanding = loan.outstanding.toPlainString()
+            val amount = "$outstanding ${loan.currency}"
+            val interestSuffix = loan.interestRate?.let { " (at ${it.toPlainString()}% interest)" } ?: ""
             val (title, body) = if (isOverdue) {
-                "Loan overdue from $contactName" to "A loan of $outstanding from $contactName was due on $due."
+                "Loan overdue from $contactName" to "A loan of $amount from $contactName was due on $due$interestSuffix."
             } else {
-                "Loan due soon from $contactName" to "A loan of $outstanding from $contactName is due on $due."
+                "Loan due soon from $contactName" to "A loan of $amount from $contactName is due on $due$interestSuffix."
             }
             emitIfNew(
                 user,
@@ -169,6 +170,8 @@ class NotificationService(
                     "contactId" to (loan.contact.id?.toString() ?: ""),
                     "dueDate" to due.toString(),
                     "outstanding" to outstanding,
+                    "currency" to loan.currency,
+                    "interestRate" to (loan.interestRate?.toPlainString() ?: ""),
                 ),
             )
         }

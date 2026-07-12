@@ -42,7 +42,6 @@ class RenderingHelpersTest {
         assertEquals("a@x", meta["userEmail"])
         assertEquals("USD", meta["currency"])
         assertEquals("en-GB", meta["locale"])
-        // generatedAt is wall-clock; just assert it's present and a String.
         assertTrue(meta["generatedAt"] is String)
     }
 
@@ -75,7 +74,6 @@ class RenderingHelpersTest {
     fun `formatDate uses the supplied pattern and locale`() {
         val date = java.time.LocalDate.of(2024, 3, 14)
         assertEquals("14 Mar 2024", formatDate(date, Locale.ENGLISH))
-        // Custom pattern is honored.
         assertEquals("2024-03-14", formatDate(date, Locale.ENGLISH, pattern = "yyyy-MM-dd"))
     }
 }

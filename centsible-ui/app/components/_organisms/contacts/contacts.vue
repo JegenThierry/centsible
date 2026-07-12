@@ -3,8 +3,7 @@ import adze from 'adze'
 import {useContactsStore} from "~/stores/contactsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-const CreateContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/create-contact-modal.vue"));
-const EditContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/edit-contact-modal.vue"));
+const ContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/contact-modal.vue"));
 const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
 const CreateLoanModal = defineAsyncComponent(() => import("~/components/_organisms/loans/modals/create-loan-modal.vue"));
 import ContactCard from "~/components/_molecules/cards/contact-card.vue";
@@ -136,8 +135,8 @@ const contactsEmpty = computed(() => contactsStore.contacts.length === 0);
                    @delete="openDelete"/>
     </div>
 
-    <CreateContactModal v-model:open="isCreateContactOpen"/>
-    <EditContactModal v-model:open="isEditContactOpen" :contact="selectedContact"/>
+    <ContactModal v-model:open="isCreateContactOpen"/>
+    <ContactModal v-model:open="isEditContactOpen" :contact="selectedContact"/>
     <DeleteContactModal v-model:open="isDeleteContactOpen" :contact="selectedContact"/>
     <CreateLoanModal v-if="isCreateLoanOpen" v-model:open="isCreateLoanOpen"/>
   </UContainer>

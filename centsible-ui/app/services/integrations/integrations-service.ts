@@ -43,6 +43,7 @@ export function useIntegrationsService(api: AxiosInstance) {
     );
   }
 
+  /** Begins the OAuth flow for connection [id]; caller redirects the user to the returned [OAuthStartResponse.authorizationUrl]. */
   async function startOAuth(id: string): Promise<OAuthStartResponse> {
     const response = await api.post<OAuthStartResponse>(
       `/integrations/connections/${encodeURIComponent(id)}/oauth/start`,
@@ -50,6 +51,7 @@ export function useIntegrationsService(api: AxiosInstance) {
     return validateRequest<OAuthStartResponse>(response);
   }
 
+  /** Server-side typeahead for a [SELECT_REMOTE] config field; [values] carries current form state for dependent fields. */
   async function searchProviderOptions(
     providerKey: string,
     fieldName: string,

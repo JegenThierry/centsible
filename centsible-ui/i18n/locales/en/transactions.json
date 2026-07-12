@@ -3,8 +3,7 @@
     "pageTitle": "Transactions",
     "title": "Transactions",
     "description": "View and manage your transactions",
-    "importCsvButton": "Import CSV",
-    "advancedImportButton": "Import file (CSV / OFX)",
+    "importButton": "Import",
     "exportLabel": "Export transactions",
     "exportDefaultTitle": "Transactions {date}",
     "emptyTitle": "No transactions found.",
@@ -15,6 +14,7 @@
       "date": "Date",
       "description": "Description",
       "category": "Category",
+      "splitBadge": "Split · {count}",
       "amount": "Amount",
       "actionsLabel": "Transaction actions",
       "actionEdit": "Edit",
@@ -52,6 +52,13 @@
       "toLabel": "To",
       "sortLabel": "Sort",
       "clear": "Clear",
+      "amountMinPlaceholder": "Min",
+      "amountMaxPlaceholder": "Max",
+      "type": {
+        "all": "All types",
+        "income": "Income",
+        "expense": "Expense"
+      },
       "sort": {
         "DATE_DESC": "Date (newest first)",
         "DATE_ASC": "Date (oldest first)",
@@ -67,6 +74,10 @@
       }
     },
     "form": {
+      "tags": "Tags",
+      "noTags": "No tags yet — create them under Categories → Tags.",
+      "tagsApplyFailedTitle": "Tags not applied",
+      "tagsApplyFailedBody": "The transaction was saved, but its tags couldn't be updated.",
       "category": "Category",
       "transactionType": "Transaction Type:",
       "typeLabel": "Transaction type",
@@ -77,9 +88,26 @@
       "currency": "Currency",
       "currencyPlaceholder": "Select a currency",
       "conversionUnavailable": "Conversion unavailable",
+      "ruleHint": "Auto-categorized by rule “{rule}”",
       "description": "Description",
       "descriptionPlaceholder": "Lunch, Groceries, etc.",
       "date": "Date",
+      "split": {
+        "toggle": "Split across categories",
+        "hint": "Divide this transaction between several categories.",
+        "unavailableForeign": "Splitting is unavailable for foreign-currency transactions.",
+        "category": "Category",
+        "amount": "Amount",
+        "add": "Add split",
+        "remove": "Remove split",
+        "balanced": "Splits add up",
+        "remaining": "Remaining",
+        "invalidTitle": "Invalid split",
+        "error": {
+          "incomplete": "Add at least two splits, each with a category.",
+          "unbalanced": "The split amounts must add up to the transaction total."
+        }
+      },
       "modes": {
         "setBalance": {
           "newBalance": "New account balance",
@@ -99,6 +127,7 @@
       "title": "Create Transaction",
       "description": "Create a new transaction for your active account.",
       "modeStandard": "Standard",
+      "modeTransfer": "Transfer",
       "modeLending": "Lending",
       "modeSetBalance": "Set balance",
       "modeLegend": "Type",
@@ -120,6 +149,26 @@
     "delete": {
       "entity": "transaction"
     },
+    "transfer": {
+      "fromAccount": "From account",
+      "fromAccountHelp": "The account the money leaves.",
+      "toAccount": "To account",
+      "toAccountHelp": "The account the money arrives in.",
+      "amount": "Amount",
+      "badge": "Transfer",
+      "entity": "transfer",
+      "sameAccountTitle": "Pick two different accounts.",
+      "sameAccountBody": "A transfer must be between two different accounts.",
+      "toastSuccessTitle": "Transfer created.",
+      "toastSuccessBody": "The money has been moved between your accounts.",
+      "toastErrorTitle": "Transfer failed.",
+      "toastErrorBody": "Your transfer could not be saved, please try again.",
+      "loadErrorBody": "This transfer could not be loaded, please try again.",
+      "editTitle": "Edit Transfer",
+      "editDescription": "Editing updates both sides of the transfer.",
+      "editToastSuccessTitle": "Transfer updated.",
+      "editToastSuccessBody": "Both sides of the transfer have been updated."
+    },
     "confirm": {
       "title": "Confirm Delete",
       "questionPrefix": "Are you sure you want to delete this",
@@ -130,48 +179,19 @@
       "errorTitle": "Error {entity}.",
       "errorBody": "Your {entity} could not be deleted, please try again."
     },
-    "import": {
-      "titleUpload": "Import transactions",
-      "titleMap": "Map columns",
-      "titleConfirm": "Confirm import",
-      "descUpload": "Upload a CSV exported from your bank.",
-      "descMap": "Tell us which column is which.",
-      "descConfirm": "Review the rows we'll create.",
-      "uploadHint": "The first row must contain column headers. Date, amount, and description columns are required. You'll pick the category to assign to all imported rows in the next step.",
-      "assignCategoryLabel": "Assign category",
-      "assignCategoryHelp": "All imported rows will use this category.",
-      "dateFormatLabel": "Date format",
-      "dateFormatHelp": "How dates are written in your CSV. Pick the right one to avoid swapping day and month.",
-      "dateFormat": {
-        "dayFirst": "Day first (31/12/2026)",
-        "monthFirst": "Month first (12/31/2026)",
-        "iso": "ISO (2026-12-31)",
-        "auto": "Auto-detect (best effort)"
-      },
-      "missingMappingsTitle": "Missing required mappings",
-      "missingMappingsDescription": "Mark which columns hold the date, amount, and description.",
-      "readyToImport": "Ready to import {count} row(s).",
-      "skippedRows": "{count} row(s) skipped (missing/invalid data)",
-      "previewExample": "e.g.",
-      "previewShowingFirst": "Showing first 50 of {count} rows. All will be imported.",
-      "importRows": "Import {count} row(s)",
-      "fileEmptyTitle": "Empty CSV.",
-      "fileEmptyBody": "No rows were detected. Please check the file.",
-      "fileErrorTitle": "Could not read file.",
-      "fileErrorBody": "Please upload a valid CSV file.",
-      "successTitle": "Import complete.",
-      "successBody": "{imported} imported, {skipped} skipped as duplicates.",
-      "errorTitle": "Import failed.",
-      "errorBody": "Could not import transactions, please try again.",
-      "columnFields": {
-        "date": "Date",
-        "amount": "Amount",
-        "description": "Description",
-        "category": "Category (optional)",
-        "ignore": "Ignore"
-      }
-    },
     "advancedImport": {
+      "savedProfiles": {
+        "selectLabel": "Saved profile",
+        "selectPlaceholder": "Apply a saved profile…",
+        "saveAction": "Save as profile",
+        "nameLabel": "Profile name",
+        "namePlaceholder": "e.g. My bank — checking",
+        "hint": "Save this column mapping to reuse it next time you import a file from the same bank.",
+        "savedTitle": "Profile saved",
+        "savedBody": "{name} is ready to reuse.",
+        "saveFailedTitle": "Couldn't save profile",
+        "saveFailedBody": "The profile could not be saved. Please try again."
+      },
       "titleUpload": "Import from file",
       "titleReview": "Review and import",
       "descUpload": "Upload a CSV or OFX exported from your bank.",
@@ -186,7 +206,29 @@
       "successBody": "{imported} imported, {skipped} skipped as duplicates.",
       "errorTitle": "Import failed.",
       "detectFailedBody": "Could not detect or parse the file. Make sure it's a supported CSV or OFX export.",
-      "commitFailedBody": "Could not import the parsed rows. Please try again."
+      "commitFailedBody": "Could not import the parsed rows. Please try again.",
+      "titleMap": "Map columns",
+      "descMap": "Tell us which column is which. We've pre-filled our best guess.",
+      "mappingHint": "Assign each column a role. A date, a description and an amount (or separate debit/credit columns) are required.",
+      "columnPreview": "e.g.",
+      "roles": {
+        "date": "Date",
+        "description": "Description",
+        "amount": "Amount",
+        "debit": "Debit",
+        "credit": "Credit",
+        "currency": "Currency",
+        "counterparty": "Counterparty",
+        "category": "Category",
+        "ignore": "Ignore"
+      },
+      "dateFormatLabel": "Date format",
+      "dateFormatHelp": "How dates look in the file, e.g. dd/MM/yyyy or yyyy-MM-dd.",
+      "decimalSeparatorLabel": "Decimal separator",
+      "debitsArePositiveLabel": "Debits are positive numbers",
+      "debitsArePositiveHelp": "Tick if outgoing amounts have no minus sign in the file.",
+      "mappingInvalidTitle": "Mapping incomplete",
+      "mappingInvalidBody": "Assign a Date and a Description column, plus an Amount (or both a Debit and a Credit)."
     },
     "recurring": {
       "pageTitle": "Recurring",
@@ -212,6 +254,9 @@
       "toastToggleErrorTitle": "Action failed.",
       "toastToggleErrorBody": "Could not change the rule status.",
       "form": {
+        "modeLegend": "Type",
+        "modeStandard": "Standard",
+        "modeTransfer": "Transfer",
         "category": "Category",
         "transactionType": "Transaction Type:",
         "amount": "Amount",

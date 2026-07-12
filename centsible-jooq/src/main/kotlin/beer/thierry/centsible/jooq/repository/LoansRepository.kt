@@ -1,9 +1,12 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.contact.ContactDTO
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.loan.LoanForm
+import beer.thierry.centsible.api.model.loan.LoanUpdateForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
@@ -38,23 +41,35 @@ class LoansRepository(
     override fun fetchLoanById(authenticatedUser: UserDTO, id: UUID): LoanDTO? =
         fetchLoansWhere(LOANS.USER_ID.eq(authenticatedUser.id).and(LOANS.ID.eq(id))).firstOrNull()
 
-    override fun createLoan(authenticatedUser: UserDTO, contactId: UUID, form: LoanForm): LoanDTO {
+    override fun createLoan(
+        authenticatedUser: UserDTO,
+        contactId: UUID,
+        form: LoanForm,
+        currency: Currency,
+        conversion: ConversionResult?,
+    ): LoanDTO {
         val now = OffsetDateTime.now()
         val transactionId: UUID? = if (form.affectBalance) {
             val accountId = form.accountId
                 ?: throw IllegalArgumentException("Account is required when the loan affects an account balance.")
             dsl.ensureAccountOwnedByUser(accountId, authenticatedUser.id)
+            requireNotNull(conversion) { "Conversion is required for a balance-affecting loan." }
 
             val lendingCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.LENDING)
                 ?: throw IllegalStateException("System Lending category not found. Migration may not have run.")
 
+            val fx = FxColumns.from(conversion)
             val newTransactionId = dsl.insertInto(TRANSACTIONS)
                 .set(TRANSACTIONS.ACCOUNT_ID, accountId)
                 .set(TRANSACTIONS.CATEGORY_ID, lendingCategoryId)
-                .set(TRANSACTIONS.AMOUNT, form.lentAmount)
+                .set(TRANSACTIONS.AMOUNT, conversion.convertedAmount)
                 .set(TRANSACTIONS.DESCRIPTION, form.description)
                 .set(TRANSACTIONS.TRANSACTION_DATE, form.transactionDate)
                 .set(TRANSACTIONS.TYPE, CategoryType.EXPENSE.value)
+                .set(TRANSACTIONS.ORIGINAL_AMOUNT, fx.originalAmount)
+                .set(TRANSACTIONS.ORIGINAL_CURRENCY, fx.originalCurrency)
+                .set(TRANSACTIONS.EXCHANGE_RATE, fx.rate)
+                .set(TRANSACTIONS.RATE_DATE, fx.rateDate)
                 .set(TRANSACTIONS.CREATED_AT, now)
                 .set(TRANSACTIONS.MODIFIED_AT, now)
                 .returning(TRANSACTIONS.ID)
@@ -62,8 +77,7 @@ class LoansRepository(
                 ?.get(TRANSACTIONS.ID)
                 ?: throw IllegalStateException("Failed to create lending transaction")
 
-            // Lending is an EXPENSE-typed managed category, so the cash leaves the account.
-            budgetAccountsRepository.updateBalance(accountId, form.lentAmount.negate(), authenticatedUser)
+            budgetAccountsRepository.updateBalance(accountId, conversion.convertedAmount.negate(), authenticatedUser)
 
             newTransactionId
         } else null
@@ -74,6 +88,8 @@ class LoansRepository(
             .set(LOANS.TRANSACTION_ID, transactionId)
             .set(LOANS.LENT_AMOUNT, form.lentAmount)
             .set(LOANS.OWED_AMOUNT, form.owedAmount)
+            .set(LOANS.CURRENCY, currency.name)
+            .set(LOANS.INTEREST_RATE, form.interestRate)
             .set(LOANS.LOAN_DATE, form.transactionDate)
             .set(LOANS.DESCRIPTION, form.description)
             .set(LOANS.DUE_DATE, form.dueDate)
@@ -89,6 +105,19 @@ class LoansRepository(
             ?: throw IllegalStateException("Created loan could not be retrieved")
     }
 
+    override fun updateLoan(authenticatedUser: UserDTO, id: UUID, form: LoanUpdateForm): LoanDTO? {
+        val updated = dsl.update(LOANS)
+            .set(LOANS.OWED_AMOUNT, form.owedAmount)
+            .set(LOANS.INTEREST_RATE, form.interestRate)
+            .set(LOANS.DESCRIPTION, form.description)
+            .set(LOANS.DUE_DATE, form.dueDate)
+            .set(LOANS.NOTES, form.notes)
+            .set(LOANS.MODIFIED_AT, OffsetDateTime.now())
+            .where(LOANS.ID.eq(id).and(LOANS.USER_ID.eq(authenticatedUser.id)))
+            .execute()
+        return if (updated > 0) fetchLoanById(authenticatedUser, id) else null
+    }
+
     override fun deleteLoan(authenticatedUser: UserDTO, id: UUID): Boolean {
         val record = dsl.select(LOANS.TRANSACTION_ID)
             .from(LOANS)
@@ -98,7 +127,6 @@ class LoansRepository(
 
         val loanTransactionId: UUID? = record[LOANS.TRANSACTION_ID]
 
-        // Lending tx originally decreased balance; reversal adds the amount back.
         val lendingReversal: Pair<UUID, BigDecimal>? = loanTransactionId?.let { txId ->
             dsl.select(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.AMOUNT)
                 .from(TRANSACTIONS)
@@ -107,9 +135,6 @@ class LoansRepository(
                 ?.let { it[TRANSACTIONS.ACCOUNT_ID]!! to (it[TRANSACTIONS.AMOUNT] ?: BigDecimal.ZERO) }
         }
 
-        // Repayment txs don't cascade-delete with the loan, so collect them first
-        // along with the data needed to reverse their balance impact (repayments
-        // originally increased balance, so reversal subtracts).
         val repaymentTxRows = dsl.select(TRANSACTIONS.ID, TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.AMOUNT)
             .from(LOAN_REPAYMENTS)
             .join(TRANSACTIONS).on(TRANSACTIONS.ID.eq(LOAN_REPAYMENTS.TRANSACTION_ID))
@@ -117,7 +142,6 @@ class LoansRepository(
             .fetch()
         val repaymentTransactionIds: List<UUID> = repaymentTxRows.map { it[TRANSACTIONS.ID]!! }
 
-        // Deleting the loan cascades to loan_repayments via FK.
         dsl.deleteFrom(LOANS).where(LOANS.ID.eq(id)).execute()
 
         val txIdsToDelete = (repaymentTransactionIds + listOfNotNull(loanTransactionId)).distinct()
@@ -137,32 +161,14 @@ class LoansRepository(
         return true
     }
 
-    override fun totalOutstanding(authenticatedUser: UserDTO): BigDecimal {
-        return dsl.select(
-            DSL.coalesce(DSL.sum(LOANS.OWED_AMOUNT), BigDecimal.ZERO)
-                .minus(
-                    DSL.coalesce(
-                        dsl.select(DSL.sum(LOAN_REPAYMENTS.AMOUNT))
-                            .from(LOAN_REPAYMENTS)
-                            .join(LOANS).on(LOAN_REPAYMENTS.LOAN_ID.eq(LOANS.ID))
-                            .where(LOANS.USER_ID.eq(authenticatedUser.id)),
-                        BigDecimal.ZERO
-                    )
-                )
-        )
-            .from(LOANS)
-            .where(LOANS.USER_ID.eq(authenticatedUser.id))
-            .fetchOne()
-            ?.value1()
-            ?: BigDecimal.ZERO
-    }
-
     private fun fetchLoansWhere(condition: Condition): List<LoanDTO> {
         val repaidTotal = repaidTotalField()
         return dsl.select(
             LOANS.ID,
             LOANS.LENT_AMOUNT,
             LOANS.OWED_AMOUNT,
+            LOANS.CURRENCY,
+            LOANS.INTEREST_RATE,
             LOANS.LOAN_DATE,
             LOANS.DESCRIPTION,
             LOANS.DUE_DATE,
@@ -223,6 +229,8 @@ class LoansRepository(
             owedAmount = owed,
             totalRepaid = repaid,
             outstanding = owed - repaid,
+            currency = record[LOANS.CURRENCY] ?: "EUR",
+            interestRate = record[LOANS.INTEREST_RATE],
             loanDate = record[LOANS.LOAN_DATE],
             description = record[LOANS.DESCRIPTION],
             dueDate = record[LOANS.DUE_DATE],

@@ -12,6 +12,7 @@ import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_CATEGORY_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_DATE
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_RECURRING_ID
+import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_TRANSFER_GROUP
 import beer.thierry.jooq.generated.indexes.UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY
@@ -21,13 +22,18 @@ import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_F
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_SPLITS__TRANSACTION_SPLITS_TRANSACTION_ID_FKEY
+import beer.thierry.jooq.generated.keys.TRANSACTION_TAGS__TRANSACTION_TAGS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.LoanRepayments.LoanRepaymentsPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
+import beer.thierry.jooq.generated.tables.Tags.TagsPath
 import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
+import beer.thierry.jooq.generated.tables.TransactionSplits.TransactionSplitsPath
+import beer.thierry.jooq.generated.tables.TransactionTags.TransactionTagsPath
 import beer.thierry.jooq.generated.tables.records.TransactionsRecord
 
 import java.math.BigDecimal
@@ -180,6 +186,11 @@ open class Transactions(
      */
     val RATE_DATE: TableField<TransactionsRecord, LocalDate?> = createField(DSL.name("rate_date"), SQLDataType.LOCALDATE, this, "")
 
+    /**
+     * The column <code>public.transactions.transfer_group_id</code>.
+     */
+    val TRANSFER_GROUP_ID: TableField<TransactionsRecord, UUID?> = createField(DSL.name("transfer_group_id"), SQLDataType.UUID, this, "")
+
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<TransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -212,7 +223,7 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_DATE, IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID, IDX_TRANSACTIONS_RECURRING_ID, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_DATE, IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID, IDX_TRANSACTIONS_RECURRING_ID, IDX_TRANSACTIONS_TRANSFER_GROUP, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
     override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
 
@@ -324,6 +335,45 @@ open class Transactions(
 
     val transactionAttachments: TransactionAttachmentsPath
         get(): TransactionAttachmentsPath = transactionAttachments()
+
+    private lateinit var _transactionSplits: TransactionSplitsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_splits</code> table
+     */
+    fun transactionSplits(): TransactionSplitsPath {
+        if (!this::_transactionSplits.isInitialized)
+            _transactionSplits = TransactionSplitsPath(this, null, TRANSACTION_SPLITS__TRANSACTION_SPLITS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionSplits;
+    }
+
+    val transactionSplits: TransactionSplitsPath
+        get(): TransactionSplitsPath = transactionSplits()
+
+    private lateinit var _transactionTags: TransactionTagsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.transaction_tags</code> table
+     */
+    fun transactionTags(): TransactionTagsPath {
+        if (!this::_transactionTags.isInitialized)
+            _transactionTags = TransactionTagsPath(this, null, TRANSACTION_TAGS__TRANSACTION_TAGS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _transactionTags;
+    }
+
+    val transactionTags: TransactionTagsPath
+        get(): TransactionTagsPath = transactionTags()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.tags</code>
+     * table
+     */
+    val tags: TagsPath
+        get(): TagsPath = transactionTags().tags()
     override fun getChecks(): List<Check<TransactionsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
     )

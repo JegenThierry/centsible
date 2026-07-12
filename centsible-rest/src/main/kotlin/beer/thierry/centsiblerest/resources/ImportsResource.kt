@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.imports.CsvColumnMappingDTO
@@ -43,9 +44,18 @@ class ImportsResource(
     fun detect(@RequestParam("file") file: MultipartFile): ResponseEntity<ImportDetection> {
         val bytes = readBoundedBytes(file)
         val detection = importService.detect(bytes, file.originalFilename ?: "upload", file.contentType)
-            ?: return ResponseEntity.unprocessableContent().build()
+            ?: throw LocalizedException.BadRequest("error.import.unsupportedFormat", supportedExtensionList())
         return ResponseEntity.ok(detection)
     }
+
+    /** Comma-separated, de-duplicated list of every extension a registered parser accepts (e.g. ".csv, .ofx"). */
+    private fun supportedExtensionList(): String =
+        registry.listParsers()
+            .flatMap { it.supportedExtensions }
+            .map { if (it.startsWith(".")) it else ".$it" }
+            .distinct()
+            .sorted()
+            .joinToString(", ")
 
     @PostMapping("/csv/probe", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun csvProbe(
@@ -56,32 +66,12 @@ class ImportsResource(
         val dialect = dialectJson?.let { objectMapper.readValue(it, CsvDialectDTO::class.java) }?.let(ImportMappersImpl::toCore)
         val probe = csvParser.probe(bytes, ParseHints(csvDialect = dialect))
         val suggested = registry.bestProfileMatch(probe.header, probe.sample)
-        val mapping = suggested?.toMapping()?.let {
-            CsvColumnMappingDTO(
-                dateColumn = it.dateColumn,
-                descriptionColumn = it.descriptionColumn,
-                amountColumn = it.amountColumn,
-                debitColumn = it.debitColumn,
-                creditColumn = it.creditColumn,
-                currencyColumn = it.currencyColumn,
-                counterpartyColumn = it.counterpartyColumn,
-                categoryColumn = it.categoryColumn,
-                dateFormat = it.dateFormat,
-                decimalSeparator = it.decimalSeparator,
-                thousandsSeparator = it.thousandsSeparator,
-                debitsArePositive = it.debitsArePositive,
-            )
-        }
+        val mapping = suggested?.toMapping()?.let { ImportMappersImpl.toDto(it) }
         return ResponseEntity.ok(
             CsvProbeResponse(
                 header = probe.header,
                 sample = probe.sample,
-                dialect = CsvDialectDTO(
-                    delimiter = probe.detectedDialect.delimiter,
-                    quote = probe.detectedDialect.quote,
-                    hasHeader = probe.detectedDialect.hasHeader,
-                    encoding = probe.detectedDialect.encoding,
-                ),
+                dialect = ImportMappersImpl.toDto(probe.detectedDialect),
                 suggestedProfileId = suggested?.id,
                 suggestedProfileVersion = suggested?.version,
                 suggestedMapping = mapping,

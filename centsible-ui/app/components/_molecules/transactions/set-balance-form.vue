@@ -5,7 +5,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
-import {BALANCE_INPUT} from "~/utils/money";
+import {BALANCE_INPUT, formatCurrency} from "~/utils/money";
 
 const props = defineProps<{
   currentBalance: number;
@@ -18,11 +18,6 @@ const form = defineModel<SetBalanceForm>({required: true});
 const {t} = useI18n();
 const localeTag = useLocaleTag();
 const categoriesStore = useCategoriesStore();
-
-const balanceInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref<InstanceType<typeof CategorySelect>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
 
 const delta = computed(() => {
   const next = Number(form.value.newBalance);
@@ -48,24 +43,18 @@ const previewKey = computed(() => {
 
 const previewText = computed(() => {
   const amount = Math.abs(deltaKind.value === 'none' ? props.currentBalance : delta.value);
-  const formatted = props.currency
-    ? new Intl.NumberFormat(localeTag.value, {style: 'currency', currency: props.currency}).format(amount)
-    : amount.toFixed(2);
+  const formatted = formatCurrency(amount, props.currency, localeTag.value);
   return t(previewKey.value, {amount: formatted});
 });
 
 onMounted(() => {
   if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
 });
-
-defineExpose({
-  validate: () => useValidator().validateInputs([balanceInput, descriptionInput, categoryInput, dateInput]),
-});
 </script>
 
 <template>
   <div class="space-y-4">
-    <BaseInput ref="balanceInput"
+    <BaseInput name="newBalance"
                v-model="form.newBalance"
                :max="BALANCE_INPUT.max"
                :min="BALANCE_INPUT.min"
@@ -78,14 +67,14 @@ defineExpose({
 
     <p class="text-sm text-neutral-500">{{ previewText }}</p>
 
-    <CategorySelect ref="categoryInput"
+    <CategorySelect name="category"
                     v-model="form.category"
                     :disabled="disabled"
                     :options="categoriesStore.categories"
                     :label="t('transactions.form.category')"
                     required/>
 
-    <BaseInput ref="descriptionInput"
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :disabled="disabled"
@@ -94,7 +83,7 @@ defineExpose({
                required
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="transactionDate"
                v-model="form.transactionDate"
                :disabled="disabled"
                :label="t('transactions.form.date')"

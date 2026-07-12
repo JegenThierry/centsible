@@ -1,6 +1,12 @@
 {
   "accounts": {
     "pageTitle": "Comptes",
+    "toasts": {
+      "updateFailedTitle": "Échec de la mise à jour des comptes",
+      "updateFailedBody": "Impossible de mettre à jour les comptes.",
+      "loadFailedTitle": "Échec du chargement du compte",
+      "loadFailedBody": "Impossible de charger le compte."
+    },
     "list": {
       "title": "Comptes",
       "description": "Sélectionnez un compte pour gérer votre budget",
@@ -24,8 +30,21 @@
       "totalBalanceLabel": "Solde total",
       "last30Days": "30 derniers jours"
     },
+    "types": {
+      "CHECKING": "Compte courant",
+      "SAVINGS": "Épargne",
+      "CASH": "Espèces",
+      "CREDIT_CARD": "Carte de crédit",
+      "INVESTMENT": "Investissement",
+      "ASSET": "Actif",
+      "LOAN": "Prêt",
+      "MORTGAGE": "Hypothèque",
+      "OTHER": "Autre"
+    },
     "modals": {
       "create": {
+        "fieldTypeLabel": "Type de compte",
+        "fieldTypePlaceholder": "Sélectionnez un type",
         "title": "Créer un compte budgétaire",
         "description": "Un compte vous permet de gérer votre budget.",
         "fieldNameLabel": "Nom du compte budgétaire",
@@ -62,9 +81,18 @@
       "recentTransactions": "Transactions récentes",
       "viewAll": "Tout voir",
       "noRecentTransactions": "Aucune transaction récente",
+      "recentLoadError": "Impossible de charger les transactions récentes.",
       "monthlyIncome": "Revenus du mois",
       "monthlyExpenses": "Dépenses du mois",
       "netSavings": "Épargne nette",
+      "safeToSpend": {
+        "title": "Reste à dépenser",
+        "subtitle": "Ce mois-ci · tous les comptes",
+        "perDay": "/jour · {days} jour(s) restant(s)",
+        "expectedIncome": "Revenus attendus",
+        "alreadySpent": "Déjà dépensé",
+        "upcomingExpenses": "Prélèvements à venir"
+      },
       "budgetsThisMonth": "Budgets ce mois-ci",
       "budgetsViewAll": "Tout voir",
       "activityTitle": "Activité",

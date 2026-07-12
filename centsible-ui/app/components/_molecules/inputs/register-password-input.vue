@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 
 defineProps<{
@@ -8,59 +7,17 @@ defineProps<{
 
 const {t} = useI18n();
 const password = defineModel<string>('password', {required: true});
-const passwordInput = ref<InstanceType<typeof PasswordInput>>();
-
 const confirmPassword = defineModel<string>('confirm-password', {required: true});
-const confirmPasswordInput = ref<InstanceType<typeof PasswordInput>>();
 
-const validationMessage = ref<string>();
-
-function arePasswordsEqual(): boolean {
-  return password.value === confirmPassword.value;
-}
-
-const passwordRules = computed(() => [
-  {label: t('auth.password.rules.length'), met: password.value.length >= 8},
-  {label: t('auth.password.rules.case'), met: /[A-Z]/.test(password.value) && /[a-z]/.test(password.value)},
-  {label: t('auth.password.rules.digit'), met: /\d/.test(password.value)},
-  {label: t('auth.password.rules.special'), met: /[@$!%*?&]/.test(password.value)}
-])
-
-function passwordMatchesSecuritySettings() {
-  return passwordRules.value.every(rule => rule.met)
-}
-
-function validatePasswordData() {
-  if (!arePasswordsEqual()) {
-    validationMessage.value = t('auth.password.doNotMatch');
-    return false;
-  }
-
-  if (!passwordMatchesSecuritySettings()) {
-    validationMessage.value = t('auth.password.doesNotMeetRequirements');
-    return false;
-  }
-
-  return true;
-}
-
-function validate(): boolean {
-  if (!passwordInput.value || !confirmPasswordInput.value) return false;
-  const passwordValid = passwordInput.value.validate();
-  const confirmPasswordValid = confirmPasswordInput.value.validate();
-  return passwordValid && confirmPasswordValid;
-}
-
-defineExpose({
-  validate,
-})
+const passwordRules = computed(() =>
+  PASSWORD_RULES.map((rule) => ({label: t(rule.labelKey), met: rule.test(password.value)})),
+)
 </script>
 
 <template>
-  <password-input ref="passwordInput"
+  <password-input name="password"
                   v-model="password"
-                  :additional-validation="validatePasswordData"
-                  :additional-validation-message="validationMessage"
+                  autocomplete="new-password"
                   :disabled="disabled"
                   :label="t('auth.fields.password')"
                   :placeholder="t('auth.placeholders.password')"
@@ -77,10 +34,9 @@ defineExpose({
     </div>
   </div>
 
-  <password-input ref="confirmPasswordInput"
+  <password-input name="confirmPassword"
                   v-model="confirmPassword"
-                  :additional-validation="validatePasswordData"
-                  :additional-validation-message="validationMessage"
+                  autocomplete="new-password"
                   :disabled="disabled"
                   :label="t('auth.fields.confirmPassword')"
                   :placeholder="t('auth.placeholders.confirmPassword')"

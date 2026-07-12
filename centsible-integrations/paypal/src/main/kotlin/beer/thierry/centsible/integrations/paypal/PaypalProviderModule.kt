@@ -14,6 +14,7 @@ import beer.thierry.centsible.api.services.integrations.IAccountProvider
 import beer.thierry.centsible.api.services.integrations.ITransactionImporter
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
 import org.slf4j.LoggerFactory
 import org.springframework.web.client.RestClientResponseException
 import java.io.IOException
@@ -90,10 +91,6 @@ class PaypalProviderModule(
     }
 
     override fun listExternalAccounts(ctx: ProviderContext): List<ExternalAccountDTO> {
-        // The userinfo endpoint requires "openid profile email" scopes on the merchant's REST
-        // app. Older / Personal apps may lack them, in which case the call 403s. Best-effort
-        // enrichment for the display name; the account id stays a stable constant. Catch only
-        // expected HTTP/IO errors — other Throwables propagate so real bugs are visible.
         val displayName = try {
             val (clientId, clientSecret, environment) = readCredentials(ctx)
             val token = client.obtainAccessToken(environment, clientId, clientSecret)
@@ -267,11 +264,7 @@ class PaypalProviderModule(
             return OffsetDateTime.parse(value, PAYPAL_DATE_FORMATTER)
         } catch (_: DateTimeParseException) {
         }
-        return try {
-            LocalDate.parse(value).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime()
-        } catch (_: DateTimeParseException) {
-            null
-        }
+        return parseDateOnlyAtUtc(value)
     }
 
     companion object {

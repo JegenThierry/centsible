@@ -7,7 +7,8 @@
     },
     "tabs": {
       "categories": "Kategorien",
-      "rules": "Regeln"
+      "rules": "Regeln",
+      "tags": "Tags"
     },
     "sections": {
       "yours": "Deine Kategorien",
@@ -51,31 +52,108 @@
       "title": "Kategorie löschen",
       "description": "Möchtest du die Kategorie „{name}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
     },
+    "toasts": {
+      "createdTitle": "Kategorie erstellt",
+      "createdBody": "Die neue Kategorie wurde hinzugefügt.",
+      "updatedTitle": "Kategorie aktualisiert",
+      "updatedBody": "Die Kategorie wurde aktualisiert.",
+      "deletedTitle": "Kategorie gelöscht",
+      "deletedBody": "Die Kategorie wurde entfernt.",
+      "fetchFailedTitle": "Kategorien konnten nicht abgerufen werden",
+      "fetchFailedBody": "Die Kategorien konnten nicht geladen werden.",
+      "createFailedTitle": "Kategorie konnte nicht erstellt werden",
+      "updateFailedTitle": "Kategorie konnte nicht aktualisiert werden",
+      "deleteFailedTitle": "Kategorie konnte nicht gelöscht werden",
+      "genericErrorBody": "Ein Fehler ist aufgetreten."
+    },
+    "tags": {
+      "newTag": "Neuer Tag",
+      "nameLabel": "Name",
+      "namePlaceholder": "z. B. erstattungsfähig, Urlaub",
+      "colorLabel": "Farbe",
+      "emptyTitle": "Noch keine Tags",
+      "emptyDescription": "Erstelle Tags, um Transaktionen kategorieübergreifend zu kennzeichnen — z. B. erstattungsfähig oder eine Reise.",
+      "entity": "Tag",
+      "editAria": "Tag bearbeiten",
+      "deleteAria": "Tag löschen",
+      "toastCreatedTitle": "Tag erstellt",
+      "toastCreatedBody": "{name} wurde hinzugefügt.",
+      "toastUpdatedTitle": "Tag aktualisiert",
+      "toastUpdatedBody": "{name} wurde gespeichert.",
+      "toastSaveFailedTitle": "Tag konnte nicht gespeichert werden",
+      "toastSaveFailedBody": "Der Tag konnte nicht gespeichert werden. Bitte versuche es erneut."
+    },
     "rules": {
       "newRule": "Neue Regel",
-      "emptyTitle": "Noch keine Kategorisierungsregeln",
-      "emptyDescription": "Erstelle eine Regel, um importierte und synchronisierte Transaktionen automatisch anhand ihrer Beschreibung zu kategorisieren.",
-      "patternLabel": "Suchtext",
-      "patternPlaceholder": "z. B. Migros, Netflix, SBB",
-      "matchLabel": "Vergleichsart",
-      "categoryLabel": "Kategorie zuweisen",
-      "priorityLabel": "Priorität",
-      "priorityDescription": "Regeln mit höherer Priorität werden zuerst angewendet.",
-      "createTitle": "Neue Regel",
-      "editTitle": "Regel bearbeiten",
-      "modalDescription": "Weise Transaktionen, deren Beschreibung übereinstimmt, automatisch eine Kategorie zu.",
-      "createSubmit": "Erstellen",
-      "editSubmit": "Speichern",
+      "emptyTitle": "Noch keine Regeln",
+      "emptyDescription": "Erstelle eine Regel, um importierte, synchronisierte und bestehende Transaktionen automatisch zu kategorisieren und zu taggen.",
       "entity": "Regel",
       "applyAria": "Regel auf bestehende Transaktionen anwenden",
       "editAria": "Regel bearbeiten",
       "deleteAria": "Regel löschen",
+      "removeAria": "Entfernen",
       "appliedTitle": "Regel angewendet",
-      "appliedBody": "{count} bestehende Transaktion(en) neu kategorisiert.",
-      "match": {
+      "appliedBody": "{count} bestehende Transaktion(en) aktualisiert.",
+      "disabledBadge": "Deaktiviert",
+      "nameLabel": "Regelname",
+      "namePlaceholder": "z. B. Netflix-Abo",
+      "matchModeLabel": "Übereinstimmung",
+      "matchAll": "Alle Bedingungen",
+      "matchAny": "Beliebige Bedingung",
+      "conditionsLabel": "Bedingungen",
+      "addCondition": "Bedingung hinzufügen",
+      "noConditions": "Füge mindestens eine Bedingung hinzu.",
+      "actionsLabel": "Aktionen",
+      "addAction": "Aktion hinzufügen",
+      "noActions": "Füge mindestens eine Aktion hinzu.",
+      "priorityLabel": "Priorität",
+      "priorityDescription": "Regeln mit höherer Priorität bestimmen die Kategorie.",
+      "enabledLabel": "Aktiviert",
+      "valuePlaceholder": "z. B. Migros, Netflix, SBB",
+      "selectCategory": "Kategorie wählen",
+      "selectTag": "Tag wählen",
+      "selectAccount": "Konto wählen",
+      "selectDirection": "Typ wählen",
+      "createTitle": "Neue Regel",
+      "editTitle": "Regel bearbeiten",
+      "modalDescription": "Transaktionen, die deinen Bedingungen entsprechen, automatisch kategorisieren und taggen.",
+      "createSubmit": "Erstellen",
+      "editSubmit": "Speichern",
+      "field": {
+        "DESCRIPTION": "Beschreibung",
+        "AMOUNT": "Betrag",
+        "DIRECTION": "Typ",
+        "ACCOUNT": "Konto"
+      },
+      "operator": {
         "CONTAINS": "enthält",
         "EQUALS": "ist gleich",
-        "STARTS_WITH": "beginnt mit"
+        "STARTS_WITH": "beginnt mit",
+        "GT": "größer als",
+        "GTE": "mindestens",
+        "LT": "kleiner als",
+        "LTE": "höchstens",
+        "IS": "ist"
+      },
+      "actionType": {
+        "SET_CATEGORY": "Kategorie setzen",
+        "ADD_TAG": "Tag hinzufügen"
+      },
+      "direction": {
+        "INCOME": "Einnahme",
+        "EXPENSE": "Ausgabe"
+      },
+      "toasts": {
+        "createdTitle": "Regel erstellt",
+        "createdBody": "Die Regel wurde hinzugefügt.",
+        "updatedTitle": "Regel aktualisiert",
+        "updatedBody": "Die Regel wurde gespeichert.",
+        "fetchFailedTitle": "Regeln konnten nicht abgerufen werden",
+        "fetchFailedBody": "Die Regeln konnten nicht geladen werden.",
+        "createFailedTitle": "Regel konnte nicht erstellt werden",
+        "updateFailedTitle": "Regel konnte nicht aktualisiert werden",
+        "applyFailedTitle": "Regel konnte nicht angewendet werden",
+        "genericErrorBody": "Ein Fehler ist aufgetreten."
       }
     }
   }

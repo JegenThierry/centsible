@@ -10,6 +10,7 @@ import beer.thierry.jooq.generated.keys.ACCOUNTS_PKEY
 import beer.thierry.jooq.generated.keys.ACCOUNTS__ACCOUNTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTION_ACCOUNTS__PROVIDER_CONNECTION_ACCOUNTS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY
+import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_DESTINATION_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts.ProviderConnectionAccountsPath
 import beer.thierry.jooq.generated.tables.RecurringTransactions.RecurringTransactionsPath
@@ -24,6 +25,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -116,6 +118,11 @@ open class Accounts(
     val CURRENCY: TableField<AccountsRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
 
     /**
+     * The column <code>public.accounts.type</code>.
+     */
+    val TYPE: TableField<AccountsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'CHECKING'::character varying"), SQLDataType.VARCHAR)), this, "")
+
+    /**
      * The column <code>public.accounts.created_at</code>.
      */
     val CREATED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
@@ -192,21 +199,39 @@ open class Accounts(
     val providerConnectionAccounts: ProviderConnectionAccountsPath
         get(): ProviderConnectionAccountsPath = providerConnectionAccounts()
 
-    private lateinit var _recurringTransactions: RecurringTransactionsPath
+    private lateinit var _recurringTransactionsAccountIdFkey: RecurringTransactionsPath
 
     /**
      * Get the implicit to-many join path to the
-     * <code>public.recurring_transactions</code> table
+     * <code>public.recurring_transactions</code> table, via the
+     * <code>recurring_transactions_account_id_fkey</code> key
      */
-    fun recurringTransactions(): RecurringTransactionsPath {
-        if (!this::_recurringTransactions.isInitialized)
-            _recurringTransactions = RecurringTransactionsPath(this, null, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY.inverseKey)
+    fun recurringTransactionsAccountIdFkey(): RecurringTransactionsPath {
+        if (!this::_recurringTransactionsAccountIdFkey.isInitialized)
+            _recurringTransactionsAccountIdFkey = RecurringTransactionsPath(this, null, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY.inverseKey)
 
-        return _recurringTransactions;
+        return _recurringTransactionsAccountIdFkey;
     }
 
-    val recurringTransactions: RecurringTransactionsPath
-        get(): RecurringTransactionsPath = recurringTransactions()
+    val recurringTransactionsAccountIdFkey: RecurringTransactionsPath
+        get(): RecurringTransactionsPath = recurringTransactionsAccountIdFkey()
+
+    private lateinit var _recurringTransactionsDestinationAccountIdFkey: RecurringTransactionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.recurring_transactions</code> table, via the
+     * <code>recurring_transactions_destination_account_id_fkey</code> key
+     */
+    fun recurringTransactionsDestinationAccountIdFkey(): RecurringTransactionsPath {
+        if (!this::_recurringTransactionsDestinationAccountIdFkey.isInitialized)
+            _recurringTransactionsDestinationAccountIdFkey = RecurringTransactionsPath(this, null, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_DESTINATION_ACCOUNT_ID_FKEY.inverseKey)
+
+        return _recurringTransactionsDestinationAccountIdFkey;
+    }
+
+    val recurringTransactionsDestinationAccountIdFkey: RecurringTransactionsPath
+        get(): RecurringTransactionsPath = recurringTransactionsDestinationAccountIdFkey()
 
     private lateinit var _transactions: TransactionsPath
 
@@ -223,6 +248,9 @@ open class Accounts(
 
     val transactions: TransactionsPath
         get(): TransactionsPath = transactions()
+    override fun getChecks(): List<Check<AccountsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("accounts_type_check"), "(((type)::text = ANY ((ARRAY['CHECKING'::character varying, 'SAVINGS'::character varying, 'CASH'::character varying, 'CREDIT_CARD'::character varying, 'INVESTMENT'::character varying, 'ASSET'::character varying, 'LOAN'::character varying, 'MORTGAGE'::character varying, 'OTHER'::character varying])::text[])))", true)
+    )
     override fun `as`(alias: String): Accounts = Accounts(DSL.name(alias), this)
     override fun `as`(alias: Name): Accounts = Accounts(alias, this)
     override fun `as`(alias: Table<*>): Accounts = Accounts(alias.qualifiedName, this)

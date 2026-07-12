@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const {t} = useI18n();
 const localeTag = useLocaleTag();
-const {isDark, tickColor, currencyFmt, successColor, errorColor} = useChartTheme(() => props.currency);
+const {isDark, tickColor, currencyFmt, successColor, errorColor, chartLegend} = useChartTheme(() => props.currency);
 const {window} = useDashboardPeriod();
 
 const resolvedMonths = computed(() => Math.max(1, Math.min(36, props.months ?? window.value.months)));
@@ -24,15 +24,8 @@ const {data: aggregates, loading} = useMonthlyAggregates(
   () => resolvedMonths.value,
 );
 
-function formatLabel(yearMonth: string): string {
-  const [year, month] = yearMonth.split('-');
-  if (!year || !month) return yearMonth;
-  const date = new Date(Number(year), Number(month) - 1, 1);
-  return date.toLocaleDateString(localeTag.value, {month: 'short', year: '2-digit'});
-}
-
 const chartData = computed<ChartData<'bar'>>(() => ({
-  labels: aggregates.value.map(a => formatLabel(a.yearMonth)),
+  labels: aggregates.value.map(a => formatMonthYearLabel(a.yearMonth, localeTag.value, {month: 'short', year: '2-digit'})),
   datasets: [
     {
       label: t('accounts.dashboard.income'),
@@ -50,7 +43,6 @@ const chartData = computed<ChartData<'bar'>>(() => ({
 }));
 
 const chartOptions = computed<ChartOptions<'bar'>>(() => {
-  // This chart uses a softer rgba grid (existing visual choice) instead of the shared gridColor.
   const softGrid = isDark.value ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const fmt = currencyFmt(2);
 
@@ -58,10 +50,7 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {color: tickColor.value, usePointStyle: true, font: {size: 11}},
-      },
+      legend: chartLegend(),
       tooltip: {
         callbacks: {
           label: (ctx) => `${ctx.dataset.label}: ${fmt.format(Number(ctx.parsed.y))}`,

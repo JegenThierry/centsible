@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.time.Duration
 
-// Per-IP rate limit on unauth auth endpoints. In-memory: replace with Redis/Hazelcast for
-// multi-replica. Behind a proxy, `server.forward-headers-strategy=framework` is required
-// or every request appears to come from the proxy IP.
 @Component
 class AuthRateLimitFilter : OncePerRequestFilter() {
     private val log = LoggerFactory.getLogger(AuthRateLimitFilter::class.java)
@@ -27,14 +24,9 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI ?: return true
         if (uri in RATE_LIMITED_PATHS) return false
-        // Integrations sync trigger and OAuth dance: defend against trigger floods + state
-        // brute-force on the public callback. Same bucket as auth.
         if (uri.startsWith("/api/integrations/oauth/")) return false
         if (uri.endsWith("/sync") && uri.startsWith("/api/integrations/connections/")) return false
         if (uri.endsWith("/oauth/start") && uri.startsWith("/api/integrations/connections/")) return false
-        // Remote-options forwards user-supplied queries to the provider's API (e.g. GoCardless
-        // listInstitutions) — without a limit any authenticated user could burn the operator's
-        // upstream quota.
         if (uri.startsWith("/api/integrations/providers/") && uri.contains("/options/")) return false
         return true
     }
@@ -73,6 +65,12 @@ class AuthRateLimitFilter : OncePerRequestFilter() {
             "/api/auth/confirm",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
+            "/api/auth/2fa/challenge",
+            "/api/auth/2fa/confirm",
+            "/api/auth/2fa/disable",
+            "/api/auth/2fa/enroll",
+            "/api/auth/change-password",
+            "/api/auth/account/delete",
         )
     }
 }

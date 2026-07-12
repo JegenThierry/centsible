@@ -1,5 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.centsible.api.model.budgetaccount.Currency
@@ -21,6 +22,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.BALANCE,
             ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
+            ACCOUNTS.TYPE,
         )
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
@@ -34,6 +36,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             ACCOUNTS.BALANCE,
             ACCOUNTS.INITIAL_BALANCE,
             ACCOUNTS.CURRENCY,
+            ACCOUNTS.TYPE,
         )
             .from(ACCOUNTS)
             .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id).and(ACCOUNTS.ID.eq(id)))
@@ -50,9 +53,10 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.BALANCE, createBudgetAccountRequest.initialBalance)
             .set(ACCOUNTS.INITIAL_BALANCE, createBudgetAccountRequest.initialBalance)
             .set(ACCOUNTS.CURRENCY, createBudgetAccountRequest.currency.toString())
+            .set(ACCOUNTS.TYPE, createBudgetAccountRequest.type.toString())
             .set(ACCOUNTS.CREATED_AT, OffsetDateTime.now())
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
-            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY)
+            .returning(ACCOUNTS.ID, ACCOUNTS.NAME, ACCOUNTS.BALANCE, ACCOUNTS.INITIAL_BALANCE, ACCOUNTS.CURRENCY, ACCOUNTS.TYPE)
             .fetchOneInto(BudgetAccountDTO::class.java)
             ?: throw IllegalStateException("Failed to retrieve generated Account")
     }
@@ -61,7 +65,7 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
         val account = dsl.select(ACCOUNTS.ID, ACCOUNTS.field("initial_balance", BigDecimal::class.java))
             .from(ACCOUNTS)
             .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
-            .fetchOne() ?: throw IllegalArgumentException("Account not found")
+            .fetchOne() ?: throw LocalizedException.NotFound("error.account.notFound")
 
         return account.get("initial_balance", BigDecimal::class.java) ?: BigDecimal.ZERO
     }
@@ -72,14 +76,13 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .set(ACCOUNTS.MODIFIED_AT, OffsetDateTime.now())
             .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
             .execute()
-        // Must throw, not no-op: @Transactional callers rely on this to roll back.
-        if (rows == 0) throw IllegalArgumentException("Account not found or not owned by user")
+        if (rows == 0) throw LocalizedException.NotFound("error.account.notFound")
     }
 
     override fun fetchAccountCurrency(accountId: UUID): Currency {
         val record = dsl.select(ACCOUNTS.CURRENCY).from(ACCOUNTS)
             .where(ACCOUNTS.ID.eq(accountId))
-            .fetchOne() ?: throw IllegalArgumentException("Account not found: $accountId")
+            .fetchOne() ?: throw LocalizedException.NotFound("error.account.notFound")
         return Currency.valueOf(record[ACCOUNTS.CURRENCY]!!)
     }
 }

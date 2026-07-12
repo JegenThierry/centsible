@@ -188,7 +188,5 @@ class ProviderSyncOrchestrator(
         put("displayName", account.name)
     }
 
-    private fun parseCurrency(code: String?): Currency =
-        if (code.isNullOrBlank()) Currency.EUR
-        else runCatching { Currency.valueOf(code.uppercase()) }.getOrElse { Currency.EUR }
+    private fun parseCurrency(code: String?): Currency = Currency.parseOrNull(code) ?: Currency.EUR
 }

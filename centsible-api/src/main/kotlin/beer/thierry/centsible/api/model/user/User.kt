@@ -11,8 +11,13 @@ data class User(
     val lastName: String = "",
     val passwordHash: String = "",
     val profilePicture: String? = null,
+    /** True once the user has completed sign-up (e.g. email verified); false while the account is still pending. */
     val registered: Boolean = false,
     val locale: String = "en",
+    val totpEnabled: Boolean = false,
+    val defaultCurrency: String = "EUR",
+    /** Incremented to invalidate every previously issued JWT (sign-out-everywhere). See [IUserRepository.incrementTokenVersion]. */
+    val tokenVersion: Int = 0,
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
     val modifiedAt: OffsetDateTime = OffsetDateTime.now(),
 )

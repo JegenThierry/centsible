@@ -8,7 +8,6 @@ import beer.thierry.jooq.generated.tables.AccountHistory
 import beer.thierry.jooq.generated.tables.Accounts
 import beer.thierry.jooq.generated.tables.Budgets
 import beer.thierry.jooq.generated.tables.Categories
-import beer.thierry.jooq.generated.tables.CategorizationRules
 import beer.thierry.jooq.generated.tables.ContactBalances
 import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExchangeRates
@@ -17,14 +16,22 @@ import beer.thierry.jooq.generated.tables.ExportPostProcessing
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
+import beer.thierry.jooq.generated.tables.MfaPendingAuth
 import beer.thierry.jooq.generated.tables.Notifications
 import beer.thierry.jooq.generated.tables.ProviderConnectionAccounts
 import beer.thierry.jooq.generated.tables.ProviderConnections
 import beer.thierry.jooq.generated.tables.RecurringTransactions
+import beer.thierry.jooq.generated.tables.RuleActions
+import beer.thierry.jooq.generated.tables.RuleConditions
+import beer.thierry.jooq.generated.tables.Rules
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
+import beer.thierry.jooq.generated.tables.Tags
 import beer.thierry.jooq.generated.tables.TransactionAttachments
+import beer.thierry.jooq.generated.tables.TransactionSplits
+import beer.thierry.jooq.generated.tables.TransactionTags
 import beer.thierry.jooq.generated.tables.Transactions
+import beer.thierry.jooq.generated.tables.UserRecoveryCodes
 import beer.thierry.jooq.generated.tables.Users
 
 
@@ -48,11 +55,6 @@ val BUDGETS: Budgets = Budgets.BUDGETS
  * The table <code>public.categories</code>.
  */
 val CATEGORIES: Categories = Categories.CATEGORIES
-
-/**
- * The table <code>public.categorization_rules</code>.
- */
-val CATEGORIZATION_RULES: CategorizationRules = CategorizationRules.CATEGORIZATION_RULES
 
 /**
  * The table <code>public.contact_balances</code>.
@@ -95,6 +97,11 @@ val LOAN_REPAYMENTS: LoanRepayments = LoanRepayments.LOAN_REPAYMENTS
 val LOANS: Loans = Loans.LOANS
 
 /**
+ * The table <code>public.mfa_pending_auth</code>.
+ */
+val MFA_PENDING_AUTH: MfaPendingAuth = MfaPendingAuth.MFA_PENDING_AUTH
+
+/**
  * The table <code>public.notifications</code>.
  */
 val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
@@ -115,6 +122,21 @@ val PROVIDER_CONNECTIONS: ProviderConnections = ProviderConnections.PROVIDER_CON
 val RECURRING_TRANSACTIONS: RecurringTransactions = RecurringTransactions.RECURRING_TRANSACTIONS
 
 /**
+ * The table <code>public.rule_actions</code>.
+ */
+val RULE_ACTIONS: RuleActions = RuleActions.RULE_ACTIONS
+
+/**
+ * The table <code>public.rule_conditions</code>.
+ */
+val RULE_CONDITIONS: RuleConditions = RuleConditions.RULE_CONDITIONS
+
+/**
+ * The table <code>public.rules</code>.
+ */
+val RULES: Rules = Rules.RULES
+
+/**
  * The table <code>public.schema_migrations</code>.
  */
 val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
@@ -125,14 +147,34 @@ val SCHEMA_MIGRATIONS: SchemaMigrations = SchemaMigrations.SCHEMA_MIGRATIONS
 val SYSTEM_INFORMATION: SystemInformation = SystemInformation.SYSTEM_INFORMATION
 
 /**
+ * The table <code>public.tags</code>.
+ */
+val TAGS: Tags = Tags.TAGS
+
+/**
  * The table <code>public.transaction_attachments</code>.
  */
 val TRANSACTION_ATTACHMENTS: TransactionAttachments = TransactionAttachments.TRANSACTION_ATTACHMENTS
 
 /**
+ * The table <code>public.transaction_splits</code>.
+ */
+val TRANSACTION_SPLITS: TransactionSplits = TransactionSplits.TRANSACTION_SPLITS
+
+/**
+ * The table <code>public.transaction_tags</code>.
+ */
+val TRANSACTION_TAGS: TransactionTags = TransactionTags.TRANSACTION_TAGS
+
+/**
  * The table <code>public.transactions</code>.
  */
 val TRANSACTIONS: Transactions = Transactions.TRANSACTIONS
+
+/**
+ * The table <code>public.user_recovery_codes</code>.
+ */
+val USER_RECOVERY_CODES: UserRecoveryCodes = UserRecoveryCodes.USER_RECOVERY_CODES
 
 /**
  * The table <code>public.users</code>.

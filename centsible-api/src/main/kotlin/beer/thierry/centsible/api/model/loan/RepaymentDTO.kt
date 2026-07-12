@@ -10,8 +10,10 @@ data class RepaymentDTO(
     var id: UUID? = null,
     var loanId: UUID? = null,
     var transaction: TransactionDTO? = null,
+    /** Whether the repayment is backed by a real account transaction (vs. tracking-only). */
     var affectsBalance: Boolean = true,
     var amount: BigDecimal = BigDecimal.ZERO,
+    var currency: String? = null,
     var repaidAt: LocalDate? = null,
     var createdAt: OffsetDateTime? = null,
 )

@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import adze from 'adze'
-import type {Loan, LoanForm, Repayment, RepaymentForm} from "~/models/loan/loan";
+import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm} from "~/models/loan/loan";
 import {useLoanService} from "~/services/loan/loan-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -10,12 +10,14 @@ export const useLoansStore = defineStore('loansStore', () => {
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const loanService = useLoanService(api);
   const contactsStore = useContactsStore();
 
   const loansByContact = ref<Record<string, Loan[]>>({});
   const repaymentsByLoan = ref<Record<string, Repayment[]>>({});
   const totalOutstanding = ref<number>(0);
+  const outstandingExcludedCount = ref<number>(0);
   const allLoans = ref<Loan[]>([]);
   const pending = ref(false);
   /**
@@ -31,7 +33,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       allLoans.value = await loanService.fetchLoans();
       allLoansLoaded.value = true;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.fetchFailedTitle'), t('contacts.loans.toasts.fetchFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -44,7 +46,7 @@ export const useLoansStore = defineStore('loansStore', () => {
       const loans = await loanService.fetchLoans(contactId);
       loansByContact.value = {...loansByContact.value, [contactId]: loans};
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch loans", "Loans could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.fetchFailedTitle'), t('contacts.loans.toasts.fetchFailedBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -56,14 +58,16 @@ export const useLoansStore = defineStore('loansStore', () => {
       const repayments = await loanService.fetchRepayments(loanId);
       repaymentsByLoan.value = {...repaymentsByLoan.value, [loanId]: repayments};
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch repayments", "Repayments could not be loaded");
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentsFailedTitle'), t('contacts.loans.toasts.repaymentsFailedBody'));
       throw error;
     }
   }
 
   async function refreshOutstanding() {
     try {
-      totalOutstanding.value = await loanService.fetchOutstanding();
+      const result = await loanService.fetchOutstanding();
+      totalOutstanding.value = result.outstanding;
+      outstandingExcludedCount.value = result.excludedCount;
       outstandingLoaded.value = true;
     } catch (error) {
       adze.ns('loans').error('Failed to fetch outstanding total', error);
@@ -74,7 +78,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       const loan = await loanService.createLoan(form);
-      toasts.success("Loan recorded", "Your loan has been recorded");
+      toasts.success(t('contacts.loans.toasts.recordedTitle'), t('contacts.loans.toasts.recordedBody'));
       await Promise.all([
         refreshOutstanding(),
         contactsStore.fetchContact(loan.contact.id),
@@ -82,7 +86,27 @@ export const useLoansStore = defineStore('loansStore', () => {
       ]);
       return loan;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to record loan", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.recordFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
+      throw error;
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  async function updateLoan(id: string, contactId: string, form: LoanUpdateForm): Promise<Loan | undefined> {
+    pending.value = true;
+    try {
+      const loan = await loanService.updateLoan(id, form);
+      toasts.success(t('contacts.loans.toasts.updatedTitle'), t('contacts.loans.toasts.updatedBody'));
+      await Promise.all([
+        refreshAllLoans(),
+        refreshOutstanding(),
+        refreshLoansForContact(contactId),
+        contactsStore.fetchContact(contactId),
+      ]);
+      return loan;
+    } catch (error) {
+      apiErrors.toastError(error, t('contacts.loans.toasts.updateFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -93,7 +117,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       await loanService.recordRepayment(loanId, form);
-      toasts.success("Repayment recorded", "The repayment has been recorded");
+      toasts.success(t('contacts.loans.toasts.repaymentRecordedTitle'), t('contacts.loans.toasts.repaymentRecordedBody'));
       await Promise.all([
         refreshLoansForContact(contactId),
         refreshRepayments(loanId),
@@ -101,10 +125,27 @@ export const useLoansStore = defineStore('loansStore', () => {
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      apiErrors.toastError(error, "Failed to record repayment", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
+    }
+  }
+
+  async function deleteRepayment(loanId: string, repaymentId: string, contactId: string) {
+    try {
+      await loanService.deleteRepayment(loanId, repaymentId);
+      toasts.success(t('contacts.loans.toasts.repaymentDeletedTitle'), t('contacts.loans.toasts.repaymentDeletedBody'));
+      await Promise.all([
+        refreshRepayments(loanId),
+        refreshLoansForContact(contactId),
+        refreshAllLoans(),
+        refreshOutstanding(),
+        contactsStore.fetchContact(contactId),
+      ]);
+    } catch (error) {
+      apiErrors.toastError(error, t('contacts.loans.toasts.repaymentDeleteFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
+      throw error;
     }
   }
 
@@ -112,14 +153,14 @@ export const useLoansStore = defineStore('loansStore', () => {
     pending.value = true;
     try {
       await loanService.deleteLoan(id);
-      toasts.success("Loan deleted", "The loan has been removed");
+      toasts.success(t('contacts.loans.toasts.deletedTitle'), t('contacts.loans.toasts.deletedBody'));
       await Promise.all([
         refreshLoansForContact(contactId),
         refreshOutstanding(),
         contactsStore.fetchContact(contactId),
       ]);
     } catch (error) {
-      apiErrors.toastError(error, "Failed to delete loan", "An error occurred");
+      apiErrors.toastError(error, t('contacts.loans.toasts.deleteFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -130,6 +171,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     loansByContact,
     repaymentsByLoan,
     totalOutstanding,
+    outstandingExcludedCount,
     allLoans,
     pending,
     allLoansLoaded,
@@ -139,7 +181,9 @@ export const useLoansStore = defineStore('loansStore', () => {
     refreshRepayments,
     refreshOutstanding,
     createLoan,
+    updateLoan,
     recordRepayment,
+    deleteRepayment,
     deleteLoan,
   }
 });

@@ -7,6 +7,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const api = useApi();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const accountService = useBudgetAccountService(api);
 
   const activeAccount = ref<BudgetAccount>();
@@ -18,7 +19,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     try {
       availableAccounts.value = await accountService.fetchAccounts();
     } catch (error) {
-      apiErrors.toastError(error, "Failed to update accounts", "Accounts could not be updated");
+      apiErrors.toastError(error, t('accounts.toasts.updateFailedTitle'), t('accounts.toasts.updateFailedBody'));
     } finally {
       pending.value = false;
     }
@@ -44,7 +45,7 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     try {
       activeAccount.value = await accountService.fetchAccount(accountId);
     } catch (error) {
-      apiErrors.toastError(error, "Failed to load account", "Account could not be loaded");
+      apiErrors.toastError(error, t('accounts.toasts.loadFailedTitle'), t('accounts.toasts.loadFailedBody'));
     } finally {
       pending.value = false;
     }

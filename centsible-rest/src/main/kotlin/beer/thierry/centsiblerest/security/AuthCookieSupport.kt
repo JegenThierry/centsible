@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 const val AUTH_COOKIE_NAME = "auth_token"
+const val PRE_AUTH_COOKIE_NAME = "pre_auth"
 
-// ProductionGuard enforces cookieSecure=true under the prod profile.
 @Component
 class AuthCookieIssuer(
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
@@ -35,4 +35,35 @@ class AuthCookieIssuer(
         .sameSite("Strict")
         .path("/")
         .also { if (cookieDomain.isNotBlank()) it.domain(cookieDomain) }
+}
+
+/**
+ * Issues the short-lived pre-auth cookie that bridges password-verify and the TOTP challenge.
+ * Distinct from the real session cookie: a different name, a path scoped to the auth endpoints,
+ * and a 5-minute lifetime. It carries no authority of its own — the JwtAuthenticationFilter never
+ * reads it — so it can never stand in for a real JWT.
+ */
+@Component
+class PreAuthCookieIssuer(
+    @Value("\${auth.cookie.secure:false}") private val cookieSecure: Boolean,
+    @Value("\${auth.cookie.domain:}") private val cookieDomain: String,
+) {
+    fun issue(response: HttpServletResponse, token: String) {
+        response.addHeader("Set-Cookie", baseBuilder(token).maxAge(PENDING_TTL).build().toString())
+    }
+
+    fun clear(response: HttpServletResponse) {
+        response.addHeader("Set-Cookie", baseBuilder("").maxAge(Duration.ZERO).build().toString())
+    }
+
+    private fun baseBuilder(value: String) = ResponseCookie.from(PRE_AUTH_COOKIE_NAME, value)
+        .httpOnly(true)
+        .secure(cookieSecure)
+        .sameSite("Strict")
+        .path("/api/auth")
+        .also { if (cookieDomain.isNotBlank()) it.domain(cookieDomain) }
+
+    private companion object {
+        val PENDING_TTL: Duration = Duration.ofMinutes(5)
+    }
 }

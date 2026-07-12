@@ -10,8 +10,7 @@ import RecurringRow from "~/components/_molecules/recurring/recurring-row.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-const CreateRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/create-recurring-modal.vue"));
-const EditRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/edit-recurring-modal.vue"));
+const RecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/recurring-modal.vue"));
 const DeleteRecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/delete-recurring-modal.vue"));
 import {useActiveCurrency} from "~/composables/use-active-currency";
 
@@ -58,6 +57,10 @@ async function toggle(rule: RecurringTransaction) {
 }
 
 watch(() => accountsStore.activeAccount?.id, () => refresh(), {immediate: true});
+
+onMounted(() => {
+  if (accountsStore.availableAccounts.length === 0) accountsStore.updateAvailableAccounts();
+});
 </script>
 
 <template>
@@ -89,14 +92,14 @@ watch(() => accountsStore.activeAccount?.id, () => refresh(), {immediate: true})
 
     <CreateFab @create="isCreateModalOpen = true"/>
 
-    <CreateRecurringModal v-if="isCreateModalOpen"
-                          v-model:open="isCreateModalOpen"
-                          @created="refresh"/>
+    <RecurringModal v-if="isCreateModalOpen"
+                    v-model:open="isCreateModalOpen"
+                    @created="refresh"/>
 
-    <EditRecurringModal v-if="isEditModalOpen && selected"
-                        v-model:open="isEditModalOpen"
-                        :rule="selected"
-                        @updated="refresh"/>
+    <RecurringModal v-if="isEditModalOpen && selected"
+                    v-model:open="isEditModalOpen"
+                    :rule="selected"
+                    @updated="refresh"/>
 
     <DeleteRecurringModal v-if="isDeleteModalOpen"
                           v-model:open="isDeleteModalOpen"

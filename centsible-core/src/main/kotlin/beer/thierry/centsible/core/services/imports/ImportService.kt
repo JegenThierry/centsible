@@ -76,7 +76,6 @@ class ImportService(
     }
 
     private companion object {
-        // Matches ImportTransactionsRequest.@Size(max = 1000); kept here for the clearer error message.
         const val MAX_ROWS_PER_IMPORT = 1000
     }
 }

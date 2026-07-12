@@ -2,6 +2,7 @@ import adze from 'adze'
 import {useReportsService} from "~/services/reports/reports-service";
 import {daysAgoIsoDate} from "~/utils/date";
 
+/** Loads each account's balance as of [days] ago, keyed by account id, for trend comparison against current balances. */
 export function useAccountBalanceTrends(days = 30) {
   const reportsService = useReportsService(useApi());
 

@@ -11,7 +11,9 @@ import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.BUDGETS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -23,21 +25,28 @@ import java.util.*
 @Repository
 class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
 
+    /**
+     * BUDGETS + joined CATEGORIES columns read by [mapToDTO], shared by both reads. Includes
+     * BUDGETS.CATEGORY_ID (needed by the spent-aggregation pass); it is a harmless unused extra
+     * column for the single-budget read.
+     */
+    private val budgetProjection: Array<Field<*>> = arrayOf(
+        BUDGETS.ID,
+        BUDGETS.AMOUNT_LIMIT,
+        BUDGETS.CREATED_AT,
+        BUDGETS.MODIFIED_AT,
+        BUDGETS.CATEGORY_ID,
+        CATEGORIES.ID,
+        CATEGORIES.NAME,
+        CATEGORIES.ICON,
+        CATEGORIES.TYPE,
+        CATEGORIES.COLOR,
+        BUDGETS.PERIOD_TYPE,
+        BUDGETS.ROLLOVER_ENABLED,
+    )
+
     override fun fetchAllWithSpentForMonth(authenticatedUser: UserDTO, yearMonth: YearMonth): List<BudgetDTO> {
-        val rows = dsl.select(
-            BUDGETS.ID,
-            BUDGETS.AMOUNT_LIMIT,
-            BUDGETS.CREATED_AT,
-            BUDGETS.MODIFIED_AT,
-            BUDGETS.CATEGORY_ID,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR,
-            BUDGETS.PERIOD_TYPE,
-            BUDGETS.ROLLOVER_ENABLED,
-        )
+        val rows = dsl.select(*budgetProjection)
             .from(BUDGETS)
             .join(CATEGORIES).on(
                 CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
@@ -83,34 +92,26 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         to: LocalDate,
     ): Map<Long, BigDecimal> {
         if (categoryIds.isEmpty()) return emptyMap()
-        val total = DSL.sum(TRANSACTIONS.AMOUNT)
-        return dsl.select(TRANSACTIONS.CATEGORY_ID, total)
+        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val categoryKey = effectiveCategoryId.`as`("category_id")
+        val total = DSL.sum(effectiveAmount).`as`("total")
+        return dsl.select(categoryKey, total)
             .from(TRANSACTIONS)
+            .leftJoin(TRANSACTION_SPLITS).on(TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
-                TRANSACTIONS.CATEGORY_ID.`in`(categoryIds)
+                effectiveCategoryId.`in`(categoryIds)
                     .and(ACCOUNTS.USER_ID.eq(user.id))
-                    .and(TRANSACTIONS.TRANSACTION_DATE.between(from, to))
+                    .and(expenseInPeriod(from, to))
             )
-            .groupBy(TRANSACTIONS.CATEGORY_ID)
+            .groupBy(effectiveCategoryId)
             .fetch()
-            .associate { it[TRANSACTIONS.CATEGORY_ID]!! to (it[total] ?: BigDecimal.ZERO) }
+            .associate { it[categoryKey]!! to (it[total] ?: BigDecimal.ZERO) }
     }
 
     override fun fetchById(id: UUID, authenticatedUser: UserDTO): BudgetDTO {
-        return dsl.select(
-            BUDGETS.ID,
-            BUDGETS.AMOUNT_LIMIT,
-            BUDGETS.CREATED_AT,
-            BUDGETS.MODIFIED_AT,
-            CATEGORIES.ID,
-            CATEGORIES.NAME,
-            CATEGORIES.ICON,
-            CATEGORIES.TYPE,
-            CATEGORIES.COLOR,
-            BUDGETS.PERIOD_TYPE,
-            BUDGETS.ROLLOVER_ENABLED,
-        )
+        return dsl.select(*budgetProjection)
             .from(BUDGETS)
             .join(CATEGORIES).on(
                 CATEGORIES.ID.eq(BUDGETS.CATEGORY_ID)
@@ -121,6 +122,19 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
                 val pt = parsePeriodType(record[BUDGETS.PERIOD_TYPE])
                 mapToDTO(record, null, BigDecimal.ZERO, pt, record[BUDGETS.ROLLOVER_ENABLED] == true, BigDecimal.ZERO)
             }
+    }
+
+    override fun existsForCategoryAndPeriod(
+        authenticatedUser: UserDTO,
+        categoryId: Long,
+        periodType: BudgetPeriodType,
+        excludeBudgetId: UUID?,
+    ): Boolean {
+        var condition = BUDGETS.USER_ID.eq(authenticatedUser.id)
+            .and(BUDGETS.CATEGORY_ID.eq(categoryId))
+            .and(BUDGETS.PERIOD_TYPE.eq(periodType.name))
+        if (excludeBudgetId != null) condition = condition.and(BUDGETS.ID.ne(excludeBudgetId))
+        return dsl.fetchExists(dsl.selectOne().from(BUDGETS).where(condition))
     }
 
     override fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO {

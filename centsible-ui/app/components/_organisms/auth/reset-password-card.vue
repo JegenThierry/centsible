@@ -2,9 +2,10 @@
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {z} from 'zod'
+import type {FormSubmitEvent} from '@nuxt/ui'
 import RegisterPasswordInput from "~/components/_molecules/inputs/register-password-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {useValidator} from "~/composables/use-validator";
 import {useApiErrors} from "~/composables/use-api-errors";
 
 const {t} = useI18n();
@@ -24,22 +25,23 @@ const loading = ref<boolean>(false);
 const completed = ref<boolean>(false);
 const linkInvalid = ref<boolean>(false);
 
-const passwordsInput = ref<InstanceType<typeof RegisterPasswordInput>>();
+const passwordLabel = t('auth.fields.password');
+const confirmPasswordLabel = t('auth.fields.confirmPassword');
 
-function validate(): boolean {
-  const valid = useValidator().validateInputs([passwordsInput]);
-  if (!valid) {
-    error(t('auth.resetPassword.toastValidationTitle'), t('auth.resetPassword.toastValidationBody'));
-  }
-  return valid;
-}
+const schema = z.object({
+  password: z.string()
+    .min(1, t('common.validation.required', {field: passwordLabel}))
+    .refine(isStrongPassword, t('auth.password.doesNotMeetRequirements')),
+  confirmPassword: z.string().min(1, t('common.validation.required', {field: confirmPasswordLabel})),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: t('auth.password.doNotMatch'),
+  path: ['confirmPassword'],
+})
+type Schema = z.output<typeof schema>
 
-function onSubmit() {
+function onSubmit(_event: FormSubmitEvent<Schema>) {
   if (tokenMissing.value) {
     linkInvalid.value = true;
-    return;
-  }
-  if (!validate()) {
     return;
   }
   loading.value = true;
@@ -103,9 +105,8 @@ const cardMeta = computed(() => {
       class="max-w-xl mx-auto"
       spotlight
       spotlight-color="primary">
-      <UForm v-if="cardState === 'form'" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
-        <RegisterPasswordInput ref="passwordsInput"
-                               v-model:confirm-password="state.confirmPassword"
+      <UForm v-if="cardState === 'form'" :schema="schema" :state="state" class="space-y-6 pt-4 flex flex-col" @submit="onSubmit">
+        <RegisterPasswordInput v-model:confirm-password="state.confirmPassword"
                                v-model:password="state.password"/>
 
         <AppButton :loading="loading" class="ml-auto" type="submit">

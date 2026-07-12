@@ -1,6 +1,7 @@
 import type {AxiosInstance} from "axios";
 import type {UserDto} from "~/models/user/user-dto";
 import type {NotificationSettings} from "~/models/notification/notification-settings";
+import type {Currency} from "~/models/budget-account/currency";
 import {postMultipart, validateRequest} from "~/composables/use-api";
 
 export function useUserService(api: AxiosInstance) {
@@ -23,6 +24,11 @@ export function useUserService(api: AxiosInstance) {
     return validateRequest(response);
   }
 
+  async function updateDefaultCurrency(defaultCurrency: Currency): Promise<UserDto> {
+    const response = await api.put<UserDto>('/users/default-currency', {defaultCurrency});
+    return validateRequest(response);
+  }
+
   async function fetchNotificationSettings(): Promise<NotificationSettings> {
     const response = await api.get<NotificationSettings>('/users/notification-settings');
     return validateRequest(response);
@@ -38,6 +44,7 @@ export function useUserService(api: AxiosInstance) {
     updateProfile,
     updateProfilePicture,
     updateLocale,
+    updateDefaultCurrency,
     fetchNotificationSettings,
     updateNotificationSettings,
   }

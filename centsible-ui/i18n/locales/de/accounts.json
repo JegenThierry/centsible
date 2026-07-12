@@ -1,6 +1,12 @@
 {
   "accounts": {
     "pageTitle": "Konten",
+    "toasts": {
+      "updateFailedTitle": "Konten konnten nicht aktualisiert werden",
+      "updateFailedBody": "Die Konten konnten nicht aktualisiert werden.",
+      "loadFailedTitle": "Konto konnte nicht geladen werden",
+      "loadFailedBody": "Das Konto konnte nicht geladen werden."
+    },
     "list": {
       "title": "Konten",
       "description": "Wählen Sie ein Konto, um Ihr Budget zu verwalten",
@@ -24,8 +30,21 @@
       "totalBalanceLabel": "Gesamtsaldo",
       "last30Days": "Letzte 30 Tage"
     },
+    "types": {
+      "CHECKING": "Girokonto",
+      "SAVINGS": "Sparkonto",
+      "CASH": "Bargeld",
+      "CREDIT_CARD": "Kreditkarte",
+      "INVESTMENT": "Investment",
+      "ASSET": "Vermögenswert",
+      "LOAN": "Darlehen",
+      "MORTGAGE": "Hypothek",
+      "OTHER": "Sonstiges"
+    },
     "modals": {
       "create": {
+        "fieldTypeLabel": "Kontotyp",
+        "fieldTypePlaceholder": "Typ auswählen",
         "title": "Budgetkonto erstellen",
         "description": "Mit einem Konto verwalten Sie Ihr Budget.",
         "fieldNameLabel": "Name des Budgetkontos",
@@ -62,9 +81,18 @@
       "recentTransactions": "Letzte Transaktionen",
       "viewAll": "Alle anzeigen",
       "noRecentTransactions": "Keine aktuellen Transaktionen",
+      "recentLoadError": "Aktuelle Transaktionen konnten nicht geladen werden.",
       "monthlyIncome": "Monatliche Einnahmen",
       "monthlyExpenses": "Monatliche Ausgaben",
       "netSavings": "Nettoersparnis",
+      "safeToSpend": {
+        "title": "Verfügbar zum Ausgeben",
+        "subtitle": "Diesen Monat · alle Konten",
+        "perDay": "/Tag · noch {days} Tag(e)",
+        "expectedIncome": "Erwartete Einnahmen",
+        "alreadySpent": "Bisher ausgegeben",
+        "upcomingExpenses": "Anstehende Zahlungen"
+      },
       "budgetsThisMonth": "Budgets diesen Monat",
       "budgetsViewAll": "Alle anzeigen",
       "activityTitle": "Aktivität",

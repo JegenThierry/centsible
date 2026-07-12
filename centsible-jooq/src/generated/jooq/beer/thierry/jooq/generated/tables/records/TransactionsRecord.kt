@@ -85,6 +85,10 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         set(value): Unit = set(15, value)
         get(): LocalDate? = get(15) as LocalDate?
 
+    open var transferGroupId: UUID?
+        set(value): Unit = set(16, value)
+        get(): UUID? = get(16) as UUID?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -94,7 +98,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
     /**
      * Create a detached, initialised TransactionsRecord
      */
-    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null, providerConnectionId: UUID? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null, exchangeRate: BigDecimal? = null, rateDate: LocalDate? = null): this() {
+    constructor(id: UUID? = null, categoryId: Long? = null, accountId: UUID? = null, amount: BigDecimal? = null, description: String? = null, transactionDate: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, recurringTransactionId: UUID? = null, importHash: String? = null, type: String? = null, providerConnectionId: UUID? = null, originalAmount: BigDecimal? = null, originalCurrency: String? = null, exchangeRate: BigDecimal? = null, rateDate: LocalDate? = null, transferGroupId: UUID? = null): this() {
         this.id = id
         this.categoryId = categoryId
         this.accountId = accountId
@@ -111,6 +115,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
         this.originalCurrency = originalCurrency
         this.exchangeRate = exchangeRate
         this.rateDate = rateDate
+        this.transferGroupId = transferGroupId
         resetChangedOnNotNull()
     }
 
@@ -135,6 +140,7 @@ open class TransactionsRecord() : UpdatableRecordImpl<TransactionsRecord>(Transa
             this.originalCurrency = value.originalCurrency
             this.exchangeRate = value.exchangeRate
             this.rateDate = value.rateDate
+            this.transferGroupId = value.transferGroupId
             resetChangedOnNotNull()
         }
     }

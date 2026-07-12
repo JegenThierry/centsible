@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import {assertStatus, validateRequest} from "~/composables/use-api";
-import type {Loan, LoanForm, Repayment, RepaymentForm} from "~/models/loan/loan";
+import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm} from "~/models/loan/loan";
 
 export function useLoanService(api: AxiosInstance) {
   async function fetchLoans(contactId?: string): Promise<Loan[]> {
@@ -17,6 +17,11 @@ export function useLoanService(api: AxiosInstance) {
 
   async function createLoan(form: LoanForm): Promise<Loan> {
     const response = await api.post<Loan>('/loans', form);
+    return validateRequest<Loan>(response);
+  }
+
+  async function updateLoan(id: string, form: LoanUpdateForm): Promise<Loan> {
+    const response = await api.put<Loan>(`/loans/${encodeURIComponent(id)}`, form);
     return validateRequest<Loan>(response);
   }
 
@@ -43,15 +48,17 @@ export function useLoanService(api: AxiosInstance) {
     ));
   }
 
-  async function fetchOutstanding(): Promise<number> {
-    const response = await api.get<{ outstanding: number }>('/loans/outstanding');
-    return validateRequest<{ outstanding: number }>(response).outstanding;
+  /** Total amount still owed across loans; [excludedCount] counts loans omitted from the sum. */
+  async function fetchOutstanding(): Promise<{ outstanding: number; excludedCount: number }> {
+    const response = await api.get<{ outstanding: number; excludedCount: number }>('/loans/outstanding');
+    return validateRequest<{ outstanding: number; excludedCount: number }>(response);
   }
 
   return {
     fetchLoans,
     fetchLoan,
     createLoan,
+    updateLoan,
     deleteLoan,
     fetchRepayments,
     recordRepayment,

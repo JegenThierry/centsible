@@ -1,16 +1,21 @@
 <script lang="ts" setup>
+import {z} from 'zod';
+import type {FormSubmitEvent} from '@nuxt/ui';
 import {type Transaction, type TransactionForm} from "~/models/transactions/transaction";
-import {transactionType} from "~/utils/transaction";
+import {resolveSplitPayload, transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
 import {Currency} from "~/models/budget-account/currency";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
+import {useTagService} from "~/services/tag/tag-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {todayIsoDate} from "~/utils/date";
+import {AMOUNT_INPUT} from "~/utils/money";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -23,6 +28,7 @@ const emit = defineEmits<{
 
 const api = useApi();
 const transactionService = useTransactionService(api);
+const tagService = useTagService(api);
 const toasts = useToasts();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
@@ -34,12 +40,33 @@ const form = ref<TransactionForm>({
   type: CategoryType.EXPENSE,
   transactionDate: todayIsoDate(),
   currency: Currency.EUR,
+  tagIds: [],
 });
 
-const formRef = ref<InstanceType<typeof TransactionFormFields>>();
 const loading = ref(false);
 const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
+
+const {
+  reset: resetRuleSuggestions,
+  markCategoryTouched,
+  appliedRule: ruleHint,
+} = useRuleSuggestions({
+  enabled: isOpen,
+  form,
+  accountId: computed(() => budgetAccountsStore.activeAccount?.id),
+});
+
+const schema = z.object({
+  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
+  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
+    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.form.amount'), min: AMOUNT_INPUT.min}))
+    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.form.amount'), max: AMOUNT_INPUT.max})),
+  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
+    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
+  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
+});
+type Schema = z.output<typeof schema>;
 
 function loadTransaction(transaction: Transaction) {
   form.value = {
@@ -49,6 +76,10 @@ function loadTransaction(transaction: Transaction) {
     type: transactionType(transaction),
     transactionDate: transaction.transactionDate.split('T')[0],
     currency: transaction.originalCurrency ?? activeCurrency.value ?? Currency.EUR,
+    tagIds: transaction.tags?.map((tg) => tg.id) ?? [],
+    splits: transaction.splits && transaction.splits.length > 0
+      ? transaction.splits.map((s) => ({category: s.category, amount: s.amount, note: s.note ?? undefined}))
+      : undefined,
   };
 }
 
@@ -56,15 +87,22 @@ const {requestClose} = useModalDirtyGuard({
   isOpen,
   loading,
   getSnapshot: () => form.value,
-  onResetOnOpen: () => loadTransaction(props.transaction),
+  onResetOnOpen: () => {
+    loadTransaction(props.transaction);
+    resetRuleSuggestions();
+  },
 });
 
-async function handleEdit() {
+async function handleEdit(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
-  if (!formRef.value?.validate()) return;
   if (!budgetAccountsStore.activeAccount?.id) return;
   if (props.transaction.id === undefined) return;
   if (!form.value.category?.id || !form.value.transactionDate) return;
+  const splitResolution = resolveSplitPayload(form.value);
+  if (splitResolution.error) {
+    toasts.error(t('transactions.form.split.invalidTitle'), t(`transactions.form.split.error.${splitResolution.error}`));
+    return;
+  }
 
   loading.value = true;
   try {
@@ -78,8 +116,14 @@ async function handleEdit() {
         transactionDate: form.value.transactionDate,
         type: form.value.type,
         currency: form.value.currency,
+        splits: splitResolution.splits,
       }
     );
+    try {
+      await tagService.setForTransaction(props.transaction.id, form.value.tagIds ?? []);
+    } catch {
+      toasts.error(t('transactions.form.tagsApplyFailedTitle'), t('transactions.form.tagsApplyFailedBody'));
+    }
     emit('updated');
     toasts.success(t('transactions.edit.toastSuccessTitle'), t('transactions.edit.toastSuccessBody'));
     isOpen.value = false;
@@ -98,12 +142,13 @@ async function handleEdit() {
           :title="t('transactions.edit.title')"
           @update:open="requestClose">
     <template #body>
-      <UForm :id="formId" :state="form" @submit="handleEdit">
-        <TransactionFormFields ref="formRef"
-                               v-model="form"
+      <UForm :id="formId" :schema="schema" :state="form" @submit="handleEdit">
+        <TransactionFormFields v-model="form"
                                :account-id="budgetAccountsStore.activeAccount?.id"
                                :account-currency="activeCurrency"
-                               :disabled="loading"/>
+                               :disabled="loading"
+                               :rule-hint="ruleHint"
+                               @manual-category="markCategoryTouched"/>
       </UForm>
       <div class="mt-6 border-t border-default pt-4">
         <TransactionAttachments :transaction-id="transaction.id"/>

@@ -80,7 +80,6 @@ class AuthCookieIssuerTest {
         val cookie = headers(response)
         assertNotNull(cookie)
         assertTrue(cookie.startsWith("$AUTH_COOKIE_NAME="))
-        // Value cleared and Max-Age=0 — the browser must drop it.
         assertEquals(true, cookie.contains("Max-Age=0"))
     }
 }

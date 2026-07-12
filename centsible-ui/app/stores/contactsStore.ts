@@ -9,6 +9,7 @@ export const useContactsStore = defineStore('contactsStore', () => {
   const api = useApi();
   const toasts = useToasts();
   const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const contactService = useContactService(api);
 
   const contacts = ref<Contact[]>([]);
@@ -21,7 +22,7 @@ export const useContactsStore = defineStore('contactsStore', () => {
     try {
       contacts.value = await contactService.fetchContacts();
     } catch (error) {
-      apiErrors.toastError(error, "Failed to fetch contacts", "Contacts could not be loaded");
+      apiErrors.toastError(error, t('contacts.toasts.fetchFailedTitle'), t('contacts.toasts.fetchFailedBody'));
     } finally {
       pending.value = false;
     }
@@ -33,7 +34,7 @@ export const useContactsStore = defineStore('contactsStore', () => {
       upsert(contact);
       return contact;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to load contact", "Contact could not be loaded");
+      apiErrors.toastError(error, t('contacts.toasts.loadDetailFailedTitle'), t('contacts.toasts.loadDetailFailedBody'));
       return undefined;
     }
   }
@@ -43,10 +44,10 @@ export const useContactsStore = defineStore('contactsStore', () => {
     try {
       const created = await contactService.createContact(form);
       upsert(created);
-      toasts.success("Contact created", "New contact has been added");
+      toasts.success(t('contacts.toasts.createdTitle'), t('contacts.toasts.createdBody'));
       return created;
     } catch (error) {
-      apiErrors.toastError(error, "Failed to create contact", "An error occurred");
+      apiErrors.toastError(error, t('contacts.toasts.createFailedTitle'), t('contacts.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -57,9 +58,9 @@ export const useContactsStore = defineStore('contactsStore', () => {
     pending.value = true;
     try {
       upsert(await contactService.updateContact(id, form));
-      toasts.success("Contact updated", "Contact has been updated");
+      toasts.success(t('contacts.toasts.updatedTitle'), t('contacts.toasts.updatedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to update contact", "An error occurred");
+      apiErrors.toastError(error, t('contacts.toasts.updateFailedTitle'), t('contacts.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -70,9 +71,9 @@ export const useContactsStore = defineStore('contactsStore', () => {
     pending.value = true;
     try {
       upsert(await contactService.updateContactPicture(id, file));
-      toasts.success("Picture updated", "Contact picture has been updated");
+      toasts.success(t('contacts.toasts.pictureUpdatedTitle'), t('contacts.toasts.pictureUpdatedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to update picture", "An error occurred");
+      apiErrors.toastError(error, t('contacts.toasts.pictureUpdateFailedTitle'), t('contacts.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -83,9 +84,9 @@ export const useContactsStore = defineStore('contactsStore', () => {
     pending.value = true;
     try {
       upsert(await contactService.removeContactPicture(id));
-      toasts.success("Picture removed", "Contact picture has been removed");
+      toasts.success(t('contacts.toasts.pictureRemovedTitle'), t('contacts.toasts.pictureRemovedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to remove picture", "An error occurred");
+      apiErrors.toastError(error, t('contacts.toasts.pictureRemoveFailedTitle'), t('contacts.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -97,9 +98,9 @@ export const useContactsStore = defineStore('contactsStore', () => {
     try {
       await contactService.deleteContact(id);
       contacts.value = contacts.value.filter(c => c.id !== id);
-      toasts.success("Contact deleted", "Contact has been removed");
+      toasts.success(t('contacts.toasts.deletedTitle'), t('contacts.toasts.deletedBody'));
     } catch (error) {
-      apiErrors.toastError(error, "Failed to delete contact", "An error occurred");
+      apiErrors.toastError(error, t('contacts.toasts.deleteFailedTitle'), t('contacts.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;

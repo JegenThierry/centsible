@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
-import {BUDGET_PERIOD_TYPES, type BudgetForm} from "~/models/budget/budget";
+import {BUDGET_PERIOD_TYPES, type BudgetForm, type BudgetPeriodType} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
@@ -10,6 +11,8 @@ import {useCategoryService} from "~/services/category/category-service";
 
 const props = defineProps<{
   modelValue: BudgetForm;
+  /** (category, period) pairs already budgeted — excluded from the picker to avoid a duplicate. */
+  existingCombos?: Array<{categoryId: number; periodType: BudgetPeriodType}>;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -18,9 +21,6 @@ const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
 const {t} = useI18n();
-
-const limitInput = ref<InstanceType<typeof BaseInput>>();
-const categoryInput = ref();
 
 async function loadCategories() {
   try {
@@ -40,24 +40,40 @@ const periodOptions = computed(() =>
   BUDGET_PERIOD_TYPES.map((value) => ({value, label: t(`budgets.periods.${value}`)})),
 );
 
-onMounted(() => loadCategories());
-
-defineExpose({
-  validate: () => useValidator().validateInputs([categoryInput, limitInput]),
+const excludedCategoryIds = computed(() => {
+  const selectedId = form.value.category?.id;
+  return new Set(
+    (props.existingCombos ?? [])
+      .filter(c => c.periodType === form.value.periodType && c.categoryId !== selectedId)
+      .map(c => c.categoryId),
+  );
 });
+
+const availableCategories = computed(() =>
+  categories.value.filter(c => !excludedCategoryIds.value.has(c.id)),
+);
+
+watch(() => form.value.periodType, (period) => {
+  const id = form.value.category?.id;
+  if (id === undefined) return;
+  const collides = (props.existingCombos ?? []).some(c => c.periodType === period && c.categoryId === id);
+  if (collides) form.value.category = undefined;
+});
+
+onMounted(() => loadCategories());
 </script>
 
 <template>
   <div class="space-y-4">
-    <CategorySelect ref="categoryInput"
+    <CategorySelect name="category"
                     v-model="form.category"
-                    :options="categories"
+                    :options="availableCategories"
                     :label="t('budgets.form.categoryLabel')"
                     required/>
 
-    <BaseInput ref="limitInput"
+    <BaseInput name="amountLimit"
                v-model="form.amountLimit"
-               :max="9999999.99"
+               :max="MONEY_FIELD_MAX"
                :min="0.01"
                :description="t('budgets.form.limitDescription')"
                :label="t('budgets.form.limitLabel')"

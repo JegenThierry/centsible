@@ -1,6 +1,7 @@
 import {computed, ref, watch} from 'vue';
 import {useApi} from "~/composables/use-api";
 import {useExportService} from "~/services/export/export-service";
+import {useToasts} from "~/services/toasts/toast-service";
 import type {CreateExportRequest, ExportJob} from "~/models/export/export-job";
 import {fingerprint} from "~/utils/fingerprint";
 
@@ -12,6 +13,8 @@ const jobFingerprint = (jobs: ExportJob[]) =>
 export function useExports() {
   const api = useApi();
   const service = useExportService(api);
+  const toasts = useToasts();
+  const {t} = useI18n();
 
   const exports = ref<ExportJob[]>([]);
   const loading = ref(false);
@@ -74,13 +77,25 @@ export function useExports() {
   }
 
   async function retrigger(jobId: string) {
-    const updated = await service.retriggerExport(jobId);
-    exports.value = exports.value.map((j) => (j.id === updated.id ? updated : j));
+    try {
+      const updated = await service.retriggerExport(jobId);
+      exports.value = exports.value.map((j) => (j.id === updated.id ? updated : j));
+      toasts.success(t('exports.toasts.retriggeredTitle'), t('exports.toasts.retriggeredBody'));
+    } catch (e) {
+      toasts.error(t('exports.toasts.retriggerFailedTitle'), t('exports.toasts.retriggerFailedBody'));
+      throw e;
+    }
   }
 
   async function remove(jobId: string) {
-    await service.deleteExport(jobId);
-    exports.value = exports.value.filter((j) => j.id !== jobId);
+    try {
+      await service.deleteExport(jobId);
+      exports.value = exports.value.filter((j) => j.id !== jobId);
+      toasts.success(t('exports.toasts.deletedTitle'), t('exports.toasts.deletedBody'));
+    } catch (e) {
+      toasts.error(t('exports.toasts.deleteFailedTitle'), t('exports.toasts.deleteFailedBody'));
+      throw e;
+    }
   }
 
   async function download(job: ExportJob) {

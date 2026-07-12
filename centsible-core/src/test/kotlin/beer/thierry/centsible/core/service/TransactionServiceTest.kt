@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
@@ -8,14 +9,19 @@ import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransactionSplitDTO
+import beer.thierry.centsible.api.model.transaction.TransactionSplitForm
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
+import beer.thierry.centsible.api.repository.TransferLeg
 import beer.thierry.centsible.api.repository.IAttachmentRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
+import beer.thierry.centsible.api.repository.ITagRepository
 import beer.thierry.centsible.api.repository.ITransactionRepository
-import beer.thierry.centsible.api.services.categorization.ICategorizationService
+import beer.thierry.centsible.api.services.rule.IRuleService
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.core.services.transactions.TransactionService
@@ -26,7 +32,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.lenient
 import org.mockito.Mockito.never
@@ -40,8 +45,6 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TransactionServiceTest {
 
-    // Helpers — Mockito's `any()` returns null which Kotlin's non-null types reject;
-    // these reify the type so the call sites read naturally.
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
 
@@ -64,7 +67,10 @@ class TransactionServiceTest {
     private lateinit var attachmentRepository: IAttachmentRepository
 
     @Mock
-    private lateinit var categorizationService: ICategorizationService
+    private lateinit var tagRepository: ITagRepository
+
+    @Mock
+    private lateinit var ruleService: IRuleService
 
     @Mock
     private lateinit var currencyConversionService: ICurrencyConversionService
@@ -78,12 +84,9 @@ class TransactionServiceTest {
     private val expenseCategory = CategoryDTO(1L, "Category", "icon", "#FF0000", CategoryType.EXPENSE)
     private val incomeCategory = CategoryDTO(2L, "Income Category", "icon", "#00FF00", CategoryType.INCOME)
 
-    // By default the account is EUR and conversions are same-currency no-ops echoing the amount, so the
-    // balance-math assertions below are unaffected. lenient() because delete/bulk tests never convert.
     @BeforeEach
     fun stubAccountAndConversion() {
         lenient().`when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(eurAccount)
-        // doAnswer (not when/thenAnswer) so a per-test re-stub of convert() doesn't re-trigger this answer.
         lenient().doAnswer { inv ->
             val amount = inv.getArgument<BigDecimal>(0)
             val from = inv.getArgument<Currency>(1)
@@ -177,13 +180,11 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Balance moves by the converted EUR amount, never the original 10 USD.
         verify(accountRepository).updateBalance(accountId, BigDecimal("-9.07"), user)
     }
 
     @Test
     fun `createTransaction with explicit type override beats category default`() {
-        // INCOME-typed category but user marks the transaction EXPENSE (e.g. a refund-style scenario).
         val form = TransactionForm(BigDecimal("75.00"), 2L, "Override", LocalDate.now(), type = CategoryType.EXPENSE)
         val transaction = TransactionDTO(
             id = UUID.randomUUID(),
@@ -199,7 +200,6 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Service must not mutate the caller's form.
         assertEquals(CategoryType.EXPENSE, form.type)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-75.00"), user)
     }
@@ -225,7 +225,6 @@ class TransactionServiceTest {
 
         service.createTransaction(accountId, form, user)
 
-        // Caller's form must not be mutated; the managed-type rule lives in the resolved copy.
         assertEquals(CategoryType.INCOME, form.type)
         verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"), user)
     }
@@ -263,7 +262,6 @@ class TransactionServiceTest {
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
-        // reverse old expense (+50) + apply new income (+100) = +150
         verify(accountRepository).updateBalance(accountId, BigDecimal("150.00"), user)
     }
 
@@ -310,12 +308,10 @@ class TransactionServiceTest {
     @Test
     fun `deleteTransaction with a mismatched account is rejected and never touches the balance`() {
         val transactionId = UUID.randomUUID()
-        // The guarded repository delete finds 0 rows for this (transaction, account) pair and throws,
-        // so the service must abort before adjusting any balance — the core of the fixed bug.
         `when`(transactionRepository.deleteTransaction(transactionId, accountId, user))
-            .thenThrow(IllegalArgumentException("Transaction not found or not owned by user"))
+            .thenThrow(LocalizedException.NotFound("error.transaction.notFound"))
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.deleteTransaction(transactionId, accountId, user)
         }
 
@@ -355,7 +351,6 @@ class TransactionServiceTest {
         val result = service.updateTransaction(transactionId, accountId, form, user)
 
         assertEquals(updatedTransaction, result)
-        // reverse old income (-120) + apply new expense (-80) = -200
         verify(accountRepository).updateBalance(accountId, BigDecimal("-200.00"), user)
     }
 
@@ -379,6 +374,7 @@ class TransactionServiceTest {
             ),
         )
 
+        stubCategoryType(newCategoryId, CategoryType.EXPENSE)
         `when`(transactionRepository.fetchTransactionsByIds(accountId, ids, user)).thenReturn(oldTransactions)
         `when`(
             transactionRepository.updateCategoryForTransactions(accountId, ids, newCategoryId, user)
@@ -388,6 +384,19 @@ class TransactionServiceTest {
 
         assertEquals(2, updated)
         verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `bulkUpdateCategory rejects a managed target category`() {
+        val ids = listOf(UUID.randomUUID())
+        val managedCategoryId = 9L
+        stubCategoryType(managedCategoryId, CategoryType.EXPENSE, isManaged = true)
+
+        assertThrows(LocalizedException::class.java) {
+            service.bulkUpdateCategory(accountId, ids, managedCategoryId, user)
+        }
+        verify(transactionRepository, never())
+            .updateCategoryForTransactions(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyLong(), anyArg())
     }
 
     @Test
@@ -451,6 +460,139 @@ class TransactionServiceTest {
     }
 
     @Test
+    fun `createTransfer moves money out of source and into destination`() {
+        val destAccountId = UUID.randomUUID()
+        val destAccount = BudgetAccountDTO(destAccountId, "Savings", BigDecimal("0.00"), BigDecimal("0.00"), Currency.EUR)
+        lenient().`when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(destAccount)
+        val form = TransferForm(BigDecimal("100.00"), destAccountId, "Move", LocalDate.now())
+        val legs = listOf(
+            TransactionDTO(id = UUID.randomUUID(), type = CategoryType.EXPENSE, amount = BigDecimal("100.00")),
+            TransactionDTO(id = UUID.randomUUID(), type = CategoryType.INCOME, amount = BigDecimal("100.00")),
+        )
+        `when`(transactionRepository.insertTransfer(eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(legs)
+
+        val result = service.createTransfer(accountId, form, user)
+
+        assertEquals(2, result.size)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("100.00"), user)
+    }
+
+    @Test
+    fun `createTransfer converts the destination leg across currencies`() {
+        val destAccountId = UUID.randomUUID()
+        val usdAccount = BudgetAccountDTO(destAccountId, "USD", BigDecimal("0.00"), BigDecimal("0.00"), Currency.USD)
+        `when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(usdAccount)
+        doReturn(
+            ConversionResult(BigDecimal("110.00"), BigDecimal("100.00"), Currency.EUR, Currency.USD, BigDecimal("1.10"), LocalDate.now(), false)
+        ).`when`(currencyConversionService).convert(eqArg(BigDecimal("100.00")), eqArg(Currency.EUR), eqArg(Currency.USD), anyArg())
+        val form = TransferForm(BigDecimal("100.00"), destAccountId, "FX move", LocalDate.now())
+        `when`(transactionRepository.insertTransfer(eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(listOf(TransactionDTO(id = UUID.randomUUID()), TransactionDTO(id = UUID.randomUUID())))
+
+        service.createTransfer(accountId, form, user)
+
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("110.00"), user)
+    }
+
+    @Test
+    fun `createTransfer rejects identical source and destination`() {
+        val form = TransferForm(BigDecimal("10.00"), accountId, "Self", LocalDate.now())
+
+        assertThrows(LocalizedException::class.java) {
+            service.createTransfer(accountId, form, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `deleteTransaction removes both transfer legs and reverses both balances`() {
+        val groupId = UUID.randomUUID()
+        val legTxId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        val deletedLeg = TransactionDTO(id = legTxId, type = CategoryType.EXPENSE, amount = BigDecimal("100.00"), transferGroupId = groupId)
+        `when`(transactionRepository.deleteTransaction(legTxId, accountId, user)).thenReturn(deletedLeg)
+        `when`(transactionRepository.fetchTransferLegs(groupId, user)).thenReturn(
+            listOf(TransferLeg(UUID.randomUUID(), destAccountId, CategoryType.INCOME, BigDecimal("110.00")))
+        )
+        `when`(transactionRepository.deleteTransactionsByIds(anyArg(), eqArg(user))).thenReturn(1)
+
+        service.deleteTransaction(legTxId, accountId, user)
+
+        verify(accountRepository).updateBalance(accountId, BigDecimal("100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("-110.00"), user)
+    }
+
+    @Test
+    fun `updateTransfer mutates both legs in place and re-applies balance deltas`() {
+        val groupId = UUID.randomUUID()
+        val sourceLegId = UUID.randomUUID()
+        val destLegId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        val destAccount = BudgetAccountDTO(destAccountId, "Savings", BigDecimal("0.00"), BigDecimal("0.00"), Currency.EUR)
+        lenient().`when`(accountRepository.fetchAccountById(destAccountId, user)).thenReturn(destAccount)
+
+        val existing = TransactionDTO(id = sourceLegId, type = CategoryType.EXPENSE, amount = BigDecimal("100.00"), transferGroupId = groupId)
+        `when`(transactionRepository.fetchTransactionById(sourceLegId, user)).thenReturn(existing)
+        `when`(transactionRepository.fetchTransferLegs(groupId, user)).thenReturn(
+            listOf(
+                TransferLeg(sourceLegId, accountId, CategoryType.EXPENSE, BigDecimal("100.00")),
+                TransferLeg(destLegId, destAccountId, CategoryType.INCOME, BigDecimal("100.00")),
+            )
+        )
+        val newLegs = listOf(
+            TransactionDTO(id = sourceLegId, type = CategoryType.EXPENSE, amount = BigDecimal("80.00"), transferGroupId = groupId),
+            TransactionDTO(id = destLegId, type = CategoryType.INCOME, amount = BigDecimal("80.00"), transferGroupId = groupId),
+        )
+        `when`(
+            transactionRepository.updateTransfer(
+                eqArg(sourceLegId), eqArg(destLegId), eqArg(accountId), eqArg(destAccountId), anyArg(), anyArg(), eqArg(user)
+            )
+        ).thenReturn(newLegs)
+
+        val form = TransferForm(BigDecimal("80.00"), destAccountId, "Adjusted", LocalDate.now())
+        val result = service.updateTransfer(sourceLegId, accountId, form, user)
+
+        assertEquals(2, result.size)
+        assertEquals(sourceLegId, result[0].id)
+        assertEquals(destLegId, result[1].id)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("100.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("-100.00"), user)
+        verify(accountRepository).updateBalance(accountId, BigDecimal("-80.00"), user)
+        verify(accountRepository).updateBalance(destAccountId, BigDecimal("80.00"), user)
+        verify(transactionRepository, never()).deleteTransactionsByIds(anyArg(), eqArg(user))
+        verify(transactionRepository, never()).insertTransfer(anyArg(), anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `updateTransfer rejects identical source and destination`() {
+        val form = TransferForm(BigDecimal("10.00"), accountId, "Self", LocalDate.now())
+
+        assertThrows(LocalizedException::class.java) {
+            service.updateTransfer(UUID.randomUUID(), accountId, form, user)
+        }
+
+        verify(accountRepository, never()).updateBalance(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `updateTransfer rejects a non-transfer transaction`() {
+        val txId = UUID.randomUUID()
+        val destAccountId = UUID.randomUUID()
+        `when`(transactionRepository.fetchTransactionById(txId, user)).thenReturn(
+            TransactionDTO(id = txId, type = CategoryType.EXPENSE, amount = BigDecimal("10.00"), transferGroupId = null)
+        )
+        val form = TransferForm(BigDecimal("10.00"), destAccountId, "Not a transfer", LocalDate.now())
+
+        assertThrows(LocalizedException::class.java) {
+            service.updateTransfer(txId, accountId, form, user)
+        }
+    }
+
+    @Test
     fun `createBalanceAdjustment with newBalance equal to current throws`() {
         val form = SetBalanceForm(
             newBalance = BigDecimal("100.00"),
@@ -462,8 +604,123 @@ class TransactionServiceTest {
 
         `when`(accountRepository.fetchAccountById(accountId, user)).thenReturn(account)
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(LocalizedException::class.java) {
             service.createBalanceAdjustment(accountId, form, user)
         }
+    }
+
+    @Test
+    fun `createTransaction persists splits, updates balance, and alerts on split categories`() {
+        val household = CategoryDTO(3L, "Household", "icon", "#0000FF", CategoryType.EXPENSE)
+        val splits = listOf(
+            TransactionSplitForm(categoryId = 1L, amount = BigDecimal("60.00")),
+            TransactionSplitForm(categoryId = 3L, amount = BigDecimal("20.00")),
+        )
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "Groceries run",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE, splits = splits,
+        )
+        val txId = UUID.randomUUID()
+        val created = TransactionDTO(
+            id = txId, category = expenseCategory, type = CategoryType.EXPENSE,
+            amount = BigDecimal("80.00"), description = "Groceries run", transactionDate = LocalDate.now(),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.EXPENSE, false),
+            )
+        )
+        `when`(transactionRepository.createTransaction(eqArg(accountId), anyArg(), anyArg(), eqArg(user)))
+            .thenReturn(created)
+        `when`(transactionRepository.fetchSplitsByTransactionIds(user, listOf(txId))).thenReturn(
+            mapOf(
+                txId to listOf(
+                    TransactionSplitDTO(UUID.randomUUID(), expenseCategory, BigDecimal("60.00")),
+                    TransactionSplitDTO(UUID.randomUUID(), household, BigDecimal("20.00")),
+                )
+            )
+        )
+
+        val result = service.createTransaction(accountId, form, user)
+
+        verify(transactionRepository).replaceSplits(eqArg(txId), eqArg(splits), eqArg(user))
+        verify(accountRepository).updateBalance(accountId, BigDecimal("80.00").negate(), user)
+        verify(notificationService).maybeRaiseBudgetAlerts(user, listOf(1L, 3L))
+        assertEquals(2, result.splits.size)
+    }
+
+    @Test
+    fun `createTransaction with a single split is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(TransactionSplitForm(1L, BigDecimal("80.00"))),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split amounts not summing to the total is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("10.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split into a managed category is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("20.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.EXPENSE, true),
+            )
+        )
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `createTransaction split into a wrong-type category is rejected`() {
+        val form = TransactionForm(
+            amount = BigDecimal("80.00"), categoryId = 1L, description = "x",
+            transactionDate = LocalDate.now(), type = CategoryType.EXPENSE,
+            splits = listOf(
+                TransactionSplitForm(1L, BigDecimal("60.00")),
+                TransactionSplitForm(3L, BigDecimal("20.00")),
+            ),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchCategoryClassifications(eqArg(user), eqArg(setOf(1L, 3L)))).thenReturn(
+            mapOf(
+                1L to CategoryClassification(CategoryType.EXPENSE, false),
+                3L to CategoryClassification(CategoryType.INCOME, false),
+            )
+        )
+
+        assertThrows(LocalizedException::class.java) { service.createTransaction(accountId, form, user) }
+        verify(transactionRepository, never()).createTransaction(anyArg(), anyArg(), anyArg(), anyArg())
     }
 }

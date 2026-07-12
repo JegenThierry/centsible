@@ -6,10 +6,12 @@ package beer.thierry.jooq.generated.tables
 
 import beer.thierry.jooq.generated.Public
 import beer.thierry.jooq.generated.indexes.IDX_RECURRING_ACCOUNT_ID
+import beer.thierry.jooq.generated.indexes.IDX_RECURRING_DESTINATION_ACCOUNT
 import beer.thierry.jooq.generated.indexes.IDX_RECURRING_DUE
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS_PKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY
+import beer.thierry.jooq.generated.keys.RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_DESTINATION_ACCOUNT_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.tables.Accounts.AccountsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
@@ -99,7 +101,7 @@ open class RecurringTransactions(
     /**
      * The column <code>public.recurring_transactions.category_id</code>.
      */
-    val CATEGORY_ID: TableField<RecurringTransactionsRecord, Long?> = createField(DSL.name("category_id"), SQLDataType.BIGINT.nullable(false), this, "")
+    val CATEGORY_ID: TableField<RecurringTransactionsRecord, Long?> = createField(DSL.name("category_id"), SQLDataType.BIGINT, this, "")
 
     /**
      * The column <code>public.recurring_transactions.amount</code>.
@@ -156,6 +158,22 @@ open class RecurringTransactions(
      */
     val ORIGINAL_CURRENCY: TableField<RecurringTransactionsRecord, String?> = createField(DSL.name("original_currency"), SQLDataType.VARCHAR(3), this, "")
 
+    /**
+     * The column <code>public.recurring_transactions.is_transfer</code>.
+     */
+    val IS_TRANSFER: TableField<RecurringTransactionsRecord, Boolean?> = createField(DSL.name("is_transfer"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
+    /**
+     * The column
+     * <code>public.recurring_transactions.destination_account_id</code>.
+     */
+    val DESTINATION_ACCOUNT_ID: TableField<RecurringTransactionsRecord, UUID?> = createField(DSL.name("destination_account_id"), SQLDataType.UUID, this, "")
+
+    /**
+     * The column <code>public.recurring_transactions.type</code>.
+     */
+    val TYPE: TableField<RecurringTransactionsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(10), this, "")
+
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<RecurringTransactionsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -190,24 +208,25 @@ open class RecurringTransactions(
         override fun `as`(alias: Table<*>): RecurringTransactionsPath = RecurringTransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_RECURRING_ACCOUNT_ID, IDX_RECURRING_DUE)
+    override fun getIndexes(): List<Index> = listOf(IDX_RECURRING_ACCOUNT_ID, IDX_RECURRING_DESTINATION_ACCOUNT, IDX_RECURRING_DUE)
     override fun getPrimaryKey(): UniqueKey<RecurringTransactionsRecord> = RECURRING_TRANSACTIONS_PKEY
-    override fun getReferences(): List<ForeignKey<RecurringTransactionsRecord, *>> = listOf(RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<RecurringTransactionsRecord, *>> = listOf(RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_CATEGORY_ID_FKEY, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_DESTINATION_ACCOUNT_ID_FKEY)
 
-    private lateinit var _accounts: AccountsPath
+    private lateinit var _recurringTransactionsAccountIdFkey: AccountsPath
 
     /**
-     * Get the implicit join path to the <code>public.accounts</code> table.
+     * Get the implicit join path to the <code>public.accounts</code> table, via
+     * the <code>recurring_transactions_account_id_fkey</code> key.
      */
-    fun accounts(): AccountsPath {
-        if (!this::_accounts.isInitialized)
-            _accounts = AccountsPath(this, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY, null)
+    fun recurringTransactionsAccountIdFkey(): AccountsPath {
+        if (!this::_recurringTransactionsAccountIdFkey.isInitialized)
+            _recurringTransactionsAccountIdFkey = AccountsPath(this, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_ACCOUNT_ID_FKEY, null)
 
-        return _accounts;
+        return _recurringTransactionsAccountIdFkey;
     }
 
-    val accounts: AccountsPath
-        get(): AccountsPath = accounts()
+    val recurringTransactionsAccountIdFkey: AccountsPath
+        get(): AccountsPath = recurringTransactionsAccountIdFkey()
 
     private lateinit var _categories: CategoriesPath
 
@@ -223,6 +242,22 @@ open class RecurringTransactions(
 
     val categories: CategoriesPath
         get(): CategoriesPath = categories()
+
+    private lateinit var _recurringTransactionsDestinationAccountIdFkey: AccountsPath
+
+    /**
+     * Get the implicit join path to the <code>public.accounts</code> table, via
+     * the <code>recurring_transactions_destination_account_id_fkey</code> key.
+     */
+    fun recurringTransactionsDestinationAccountIdFkey(): AccountsPath {
+        if (!this::_recurringTransactionsDestinationAccountIdFkey.isInitialized)
+            _recurringTransactionsDestinationAccountIdFkey = AccountsPath(this, RECURRING_TRANSACTIONS__RECURRING_TRANSACTIONS_DESTINATION_ACCOUNT_ID_FKEY, null)
+
+        return _recurringTransactionsDestinationAccountIdFkey;
+    }
+
+    val recurringTransactionsDestinationAccountIdFkey: AccountsPath
+        get(): AccountsPath = recurringTransactionsDestinationAccountIdFkey()
 
     private lateinit var _transactions: TransactionsPath
 
@@ -241,8 +276,10 @@ open class RecurringTransactions(
         get(): TransactionsPath = transactions()
     override fun getChecks(): List<Check<RecurringTransactionsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("chk_recurring_end_after_start"), "(((end_date IS NULL) OR (end_date >= start_date)))", true),
+        Internal.createCheck(this, DSL.name("chk_recurring_transfer"), "((((is_transfer = false) AND (category_id IS NOT NULL) AND (destination_account_id IS NULL)) OR ((is_transfer = true) AND (destination_account_id IS NOT NULL) AND (destination_account_id <> account_id))))", true),
         Internal.createCheck(this, DSL.name("recurring_transactions_amount_check"), "((amount > (0)::numeric))", true),
-        Internal.createCheck(this, DSL.name("recurring_transactions_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true)
+        Internal.createCheck(this, DSL.name("recurring_transactions_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true),
+        Internal.createCheck(this, DSL.name("recurring_transactions_type_check"), "(((type)::text = ANY ((ARRAY['INCOME'::character varying, 'EXPENSE'::character varying])::text[])))", true)
     )
     override fun `as`(alias: String): RecurringTransactions = RecurringTransactions(DSL.name(alias), this)
     override fun `as`(alias: Name): RecurringTransactions = RecurringTransactions(alias, this)

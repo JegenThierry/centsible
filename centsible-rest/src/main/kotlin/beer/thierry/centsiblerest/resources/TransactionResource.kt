@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.DailyAggregateDTO
@@ -12,6 +13,8 @@ import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
 import beer.thierry.centsible.api.model.transaction.TransactionSort
+import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import jakarta.validation.Valid
@@ -44,6 +47,9 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(required = false) categoryIds: List<Long>?,
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
+        @RequestParam(required = false) type: CategoryType?,
+        @RequestParam(required = false) amountMin: BigDecimal?,
+        @RequestParam(required = false) amountMax: BigDecimal?,
         @RequestParam(required = false) sort: TransactionSort?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<TransactionDTO>> {
@@ -52,9 +58,11 @@ class TransactionResource(private val transactionService: ITransactionService) {
             categoryIds = categoryIds,
             from = fromDate,
             to = toDate,
+            type = type,
+            amountMin = amountMin,
+            amountMax = amountMax,
             sort = sort ?: TransactionSort.DATE_DESC,
         )
-        // Service contract is 1-based; Spring's Pageable is 0-based — translate at the boundary.
         val page = pageable.pageNumber + 1
         return ResponseEntity.ok(
             transactionService.fetchTransactions(accountId, authenticatedUser, page, pageable.pageSize, filters)
@@ -83,6 +91,36 @@ class TransactionResource(private val transactionService: ITransactionService) {
         log.info("Updated transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
         return ResponseEntity.ok(updated)
     }
+
+    @PostMapping("/{accountId}/transfer")
+    fun createTransfer(
+        @PathVariable accountId: UUID,
+        @Valid @RequestBody form: TransferForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<TransactionDTO>> {
+        val legs = transactionService.createTransfer(accountId, form, authenticatedUser)
+        log.info("Created transfer sourceAccountId={} userId={} legs={}", accountId, authenticatedUser.id, legs.size)
+        return ResponseEntity.ok(legs)
+    }
+
+    @PutMapping("/{accountId}/transfer/{transactionId}")
+    fun updateTransfer(
+        @PathVariable accountId: UUID,
+        @PathVariable transactionId: UUID,
+        @Valid @RequestBody form: TransferForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<TransactionDTO>> {
+        val legs = transactionService.updateTransfer(transactionId, accountId, form, authenticatedUser)
+        log.info("Updated transfer txId={} sourceAccountId={} userId={}", transactionId, accountId, authenticatedUser.id)
+        return ResponseEntity.ok(legs)
+    }
+
+    @GetMapping("/transfer/{transactionId}")
+    fun fetchTransfer(
+        @PathVariable transactionId: UUID,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<TransferDetailsDTO> =
+        ResponseEntity.ok(transactionService.fetchTransfer(transactionId, authenticatedUser))
 
     @GetMapping("/{accountId}/aggregates/by-category")
     fun aggregateByCategory(

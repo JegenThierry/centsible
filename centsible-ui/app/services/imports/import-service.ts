@@ -8,6 +8,8 @@ import type {
   ParseHints,
   ParserSummary,
   CsvProfileSummary,
+  ImportMappingTemplate,
+  ImportMappingTemplateForm,
 } from "~/models/imports/imports";
 
 /**
@@ -64,6 +66,26 @@ export function useImportService(api: AxiosInstance) {
     return validateRequest<ParserSummary[]>(response);
   }
 
+  /** User-saved CSV import profiles (column mapping + dialect), reusable across imports. */
+  async function listTemplates(): Promise<ImportMappingTemplate[]> {
+    const response = await api.get<ImportMappingTemplate[]>(`/imports/templates`);
+    return validateRequest<ImportMappingTemplate[]>(response);
+  }
+
+  async function createTemplate(form: ImportMappingTemplateForm): Promise<ImportMappingTemplate> {
+    const response = await api.post<ImportMappingTemplate>(`/imports/templates`, form);
+    return validateRequest<ImportMappingTemplate>(response);
+  }
+
+  async function updateTemplate(id: string, form: ImportMappingTemplateForm): Promise<ImportMappingTemplate> {
+    const response = await api.put<ImportMappingTemplate>(`/imports/templates/${encodeURIComponent(id)}`, form);
+    return validateRequest<ImportMappingTemplate>(response);
+  }
+
+  async function deleteTemplate(id: string): Promise<void> {
+    await api.delete(`/imports/templates/${encodeURIComponent(id)}`);
+  }
+
   return {
     detect,
     csvProbe,
@@ -71,5 +93,9 @@ export function useImportService(api: AxiosInstance) {
     commit,
     listProfiles,
     listParsers,
+    listTemplates,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate,
   };
 }

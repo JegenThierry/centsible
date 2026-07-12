@@ -19,8 +19,6 @@ class ManualProviderModuleTest {
 
     @Test
     fun `descriptor declares no auth and no capabilities`() {
-        // ManualProviderModule is the reference no-op provider; advertising a capability would
-        // make the sync orchestrator route real work to it and fail.
         assertEquals(AuthType.NONE, module.descriptor.authType)
         assertTrue(module.descriptor.capabilities.isEmpty())
     }
@@ -42,7 +40,6 @@ class ManualProviderModuleTest {
 
     @Test
     fun `no field is marked as secret`() {
-        // Manual entry has no credentials to encrypt; nothing should be marked secret=true.
         assertTrue(module.descriptor.configFields.none { it.secret })
     }
 }

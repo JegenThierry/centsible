@@ -23,12 +23,12 @@ import beer.thierry.centsible.api.services.integrations.OAuthCallbackResult
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.banking.gocardless.GoCardlessHttpClient.Companion.PROVIDER
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 class GoCardlessProviderModule(
@@ -168,8 +168,6 @@ class GoCardlessProviderModule(
             "OAuth complete provider={} userId={} connectionId={} requisitionId={} accounts={}",
             PROVIDER, request.userId, request.connectionId, requisitionId, requisition.accounts.size,
         )
-        // GoCardless end-user agreements last 90 days; the connection's stored expiry mirrors that
-        // so TokenRefreshGuard surfaces an expired consent rather than silently failing on sync.
         val expiresAt = Instant.now().plusSeconds(CONSENT_LIFETIME_SECONDS)
         val envelope = OAuthCredentialEnvelope(
             accessToken = "delegated",
@@ -181,7 +179,6 @@ class GoCardlessProviderModule(
                 "requisitionId" to requisitionId,
                 "accountIds" to requisition.accounts,
                 "consentExpiresAt" to expiresAt.toString(),
-                // Clear the pending markers; the requisition has been confirmed.
                 "pendingRequisitionId" to null,
                 "pendingAgreementId" to null,
             ),
@@ -337,11 +334,7 @@ class GoCardlessProviderModule(
             }
         }
         val dateStr = tx.bookingDate ?: tx.valueDate ?: return null
-        return try {
-            LocalDate.parse(dateStr).atStartOfDay().atOffset(ZoneOffset.UTC)
-        } catch (_: DateTimeParseException) {
-            null
-        }
+        return parseDateOnlyAtUtc(dateStr)
     }
 
     private fun extractAccountIds(raw: Any?): List<String> = when (raw) {

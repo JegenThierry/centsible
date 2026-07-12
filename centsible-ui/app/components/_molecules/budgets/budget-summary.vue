@@ -1,20 +1,19 @@
 <script lang="ts" setup>
-import type {Budget} from "~/models/budget/budget";
+import {type Budget, budgetBarColor, effectiveLimit} from "~/models/budget/budget";
 import {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import {formatMonthYearLabel} from "~/utils/date";
 
 const props = defineProps<{
   budgets: Budget[];
   currency?: Currency;
-  month: string; // yyyy-MM
+  month: string;
 }>();
 
 const {t} = useI18n();
 const localeTag = useLocaleTag();
 
 const resolvedCurrency = computed(() => props.currency ?? Currency.EUR);
-
-const effectiveLimit = (b: Budget) => b.amountLimit + (b.rolloverAmount ?? 0);
 
 const totalBudgeted = computed(() => props.budgets.reduce((sum, b) => sum + effectiveLimit(b), 0));
 const totalSpent = computed(() => props.budgets.reduce((sum, b) => sum + b.amountSpent, 0));
@@ -24,21 +23,12 @@ const absRemaining = computed(() => Math.abs(remaining.value));
 const ratio = computed(() => totalBudgeted.value > 0 ? totalSpent.value / totalBudgeted.value : 0);
 const rawPercent = computed(() => Math.round(ratio.value * 100));
 const barPercent = computed(() => Math.min(100, rawPercent.value));
-const overBudget = computed(() => ratio.value > 1);
 
 const overCount = computed(() => props.budgets.filter(b => b.amountSpent > effectiveLimit(b)).length);
 
-const barColor = computed(() => {
-  if (overBudget.value) return 'bg-error';
-  if (ratio.value >= 0.85) return 'bg-warning';
-  return 'bg-success';
-});
+const barColor = computed(() => budgetBarColor(ratio.value));
 
-const monthLabel = computed(() => {
-  const [year, month] = props.month.split('-').map(Number);
-  return new Intl.DateTimeFormat(localeTag.value, {month: 'long', year: 'numeric'})
-    .format(new Date(year, month - 1, 1));
-});
+const monthLabel = computed(() => formatMonthYearLabel(props.month, localeTag.value));
 </script>
 
 <template>

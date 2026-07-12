@@ -1,22 +1,27 @@
 <script lang="ts" setup>
+import {MONEY_FIELD_MAX} from "~/utils/money";
 import type {RepaymentForm} from "~/models/loan/loan";
 import type {BudgetAccount} from "~/models/budget-account/budget-account";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import AccountSelect from "~/components/_atoms/inputs/account-select.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
+import type {Currency} from "~/models/budget-account/currency";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {useValidator} from "~/composables/use-validator";
+import {useConversionPreview} from "~/composables/use-conversion-preview";
 
 const props = defineProps<{
   modelValue: RepaymentForm;
   maxAmount?: number;
+  currency?: string;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
 
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
+const localeTag = useLocaleTag();
 
 const form = computed({
   get: () => props.modelValue,
@@ -28,14 +33,20 @@ const selectedAccount = computed<BudgetAccount | undefined>({
   set: (a) => { form.value = {...form.value, accountId: a?.id}; },
 });
 
-const accountSelect = ref<InstanceType<typeof AccountSelect>>();
-const amountInput = ref<InstanceType<typeof BaseInput>>();
-const descriptionInput = ref<InstanceType<typeof BaseInput>>();
-const dateInput = ref<InstanceType<typeof DateInput>>();
+const accountCurrency = computed<Currency | undefined>(() => selectedAccount.value?.currency);
+
+const {converted: previewAmount, failed: previewFailed, isForeign: previewIsForeign} = useConversionPreview({
+  accountId: computed(() => form.value.affectBalance ? form.value.accountId : undefined),
+  accountCurrency: computed(() => form.value.affectBalance ? accountCurrency.value : undefined),
+  amount: computed(() => Number(form.value.amount)),
+  currency: computed(() => props.currency as Currency | undefined),
+  date: computed(() => form.value.repaidAt),
+});
 
 const amountDescription = computed(() => {
   if (props.maxAmount === undefined) return undefined;
-  return t('contacts.loans.repayment.form.outstandingHelp', {amount: props.maxAmount.toFixed(2)});
+  const formatted = formatCurrency(props.maxAmount, props.currency, localeTag.value);
+  return t('contacts.loans.repayment.form.outstandingHelp', {amount: formatted});
 });
 
 onMounted(async () => {
@@ -46,14 +57,6 @@ onMounted(async () => {
     form.value = {...form.value, accountId: budgetAccountsStore.activeAccount.id};
   }
 });
-
-defineExpose({
-  validate: () => {
-    const inputs = [amountInput, descriptionInput, dateInput];
-    if (form.value.affectBalance) inputs.push(accountSelect);
-    return useValidator().validateInputs(inputs);
-  },
-});
 </script>
 
 <template>
@@ -63,31 +66,38 @@ defineExpose({
                :description="t('contacts.loans.repayment.form.affectBalanceDescription')"/>
 
     <AccountSelect v-if="form.affectBalance"
-                   ref="accountSelect"
+                   name="accountId"
                    v-model="selectedAccount"
                    :options="budgetAccountsStore.availableAccounts"
                    :description="t('contacts.loans.repayment.form.toAccountDescription')"
                    :label="t('contacts.loans.repayment.form.toAccountLabel')"
                    required/>
 
-    <BaseInput ref="amountInput"
+    <BaseInput name="amount"
                v-model="form.amount"
                :description="amountDescription"
-               :max="maxAmount ?? 9999999.99"
+               :max="maxAmount ?? MONEY_FIELD_MAX"
                :min="0.01"
                :label="t('contacts.loans.repayment.form.amountLabel')"
                :placeholder="t('contacts.loans.repayment.form.amountPlaceholder')"
+               :trailing-text="currency"
                required
                type="number"/>
 
-    <BaseInput ref="descriptionInput"
+    <ConversionPreviewHint :foreign="previewIsForeign"
+                           :amount="Number(form.amount)"
+                           :converted="previewAmount"
+                           :failed="previewFailed"
+                           :currency="accountCurrency"/>
+
+    <BaseInput name="description"
                v-model="form.description"
                :max-length="255"
                :label="t('contacts.loans.repayment.form.descriptionLabel')"
                :placeholder="t('contacts.loans.repayment.form.descriptionPlaceholder')"
                type="text"/>
 
-    <DateInput ref="dateInput"
+    <DateInput name="repaidAt"
                v-model="form.repaidAt"
                :label="t('contacts.loans.repayment.form.dateLabel')"
                required/>

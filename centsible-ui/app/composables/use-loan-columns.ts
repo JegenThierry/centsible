@@ -1,10 +1,10 @@
 import {h, resolveComponent} from 'vue';
 import type {TableColumn} from '@nuxt/ui';
 import type {Loan} from "~/models/loan/loan";
+import {Currency} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoanStatusBadge from "~/components/_atoms/loans/loan-status-badge.vue";
-import {useActiveCurrency} from "~/composables/use-active-currency";
 
 /**
  * Shared column builders for loan tables. Each table composes a different subset; this composable
@@ -12,11 +12,10 @@ import {useActiveCurrency} from "~/composables/use-active-currency";
  */
 export function useLoanColumns() {
   const {t} = useI18n();
-  const currency = useActiveCurrency();
   const UBadge = resolveComponent('UBadge');
 
-  function balanceCell(value: number) {
-    return h(BalanceNumberFormat, {balance: value, currency: currency.value, format: 'de-De'});
+  function balanceCell(value: number, currency: Currency) {
+    return h(BalanceNumberFormat, {balance: value, currency});
   }
 
   function moneyColumn(key: keyof Loan, headerKey: string, tdClass: string): TableColumn<Loan> {
@@ -24,7 +23,7 @@ export function useLoanColumns() {
       accessorKey: key,
       header: t(headerKey),
       meta: {class: {th: 'text-right', td: `text-right ${tdClass}`}},
-      cell: ({row}) => balanceCell(Number(row.original[key])),
+      cell: ({row}) => balanceCell(Number(row.original[key]), row.original.currency ?? Currency.EUR),
     };
   }
 
@@ -43,11 +42,16 @@ export function useLoanColumns() {
     header: t('contacts.loans.table.description'),
     cell: ({row}) => {
       const text = row.original.description || '—';
-      if (row.original.affectsBalance) return text;
-      return h('div', {class: 'flex items-center gap-2'}, [
-        h('span', text),
-        h(UBadge, {color: 'neutral', variant: 'subtle', size: 'xs'}, () => t('contacts.loans.table.trackingOnly')),
-      ]);
+      const badges = [];
+      if (!row.original.affectsBalance) {
+        badges.push(h(UBadge, {color: 'neutral', variant: 'subtle', size: 'xs'}, () => t('contacts.loans.table.trackingOnly')));
+      }
+      if (row.original.interestRate != null) {
+        badges.push(h(UBadge, {color: 'info', variant: 'subtle', size: 'xs'},
+          () => t('contacts.loans.table.interestBadge', {rate: row.original.interestRate})));
+      }
+      if (badges.length === 0) return text;
+      return h('div', {class: 'flex items-center gap-2'}, [h('span', text), ...badges]);
     },
   };
 
@@ -57,7 +61,8 @@ export function useLoanColumns() {
     meta: {class: {th: 'text-right', td: 'text-right font-semibold'}},
     cell: ({row}) => {
       const value = Number(row.original.outstanding);
-      return h('span', {class: value > 0 ? 'text-warning' : 'text-muted'}, [balanceCell(value)]);
+      const cls = value > 0 ? 'text-warning' : 'text-muted';
+      return h('span', {class: cls}, [balanceCell(value, row.original.currency ?? Currency.EUR)]);
     },
   };
 
@@ -69,7 +74,6 @@ export function useLoanColumns() {
 
   return {
     t,
-    currency,
     balanceCell,
     moneyColumn,
     dateColumn,

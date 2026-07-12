@@ -7,7 +7,8 @@
     },
     "tabs": {
       "categories": "Categories",
-      "rules": "Rules"
+      "rules": "Rules",
+      "tags": "Tags"
     },
     "sections": {
       "yours": "Your categories",
@@ -51,31 +52,108 @@
       "title": "Delete category",
       "description": "Are you sure you want to delete the category '{name}'? This action cannot be undone."
     },
+    "toasts": {
+      "createdTitle": "Category created",
+      "createdBody": "New category has been added.",
+      "updatedTitle": "Category updated",
+      "updatedBody": "Category has been updated.",
+      "deletedTitle": "Category deleted",
+      "deletedBody": "Category has been removed.",
+      "fetchFailedTitle": "Failed to fetch categories",
+      "fetchFailedBody": "Categories could not be loaded.",
+      "createFailedTitle": "Failed to create category",
+      "updateFailedTitle": "Failed to update category",
+      "deleteFailedTitle": "Failed to delete category",
+      "genericErrorBody": "An error occurred."
+    },
+    "tags": {
+      "newTag": "New tag",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. reimbursable, vacation",
+      "colorLabel": "Color",
+      "emptyTitle": "No tags yet",
+      "emptyDescription": "Create tags to label transactions across categories — e.g. reimbursable or a trip.",
+      "entity": "tag",
+      "editAria": "Edit tag",
+      "deleteAria": "Delete tag",
+      "toastCreatedTitle": "Tag created",
+      "toastCreatedBody": "{name} has been added.",
+      "toastUpdatedTitle": "Tag updated",
+      "toastUpdatedBody": "{name} has been saved.",
+      "toastSaveFailedTitle": "Couldn't save tag",
+      "toastSaveFailedBody": "The tag could not be saved. Please try again."
+    },
     "rules": {
       "newRule": "New rule",
-      "emptyTitle": "No categorization rules yet",
-      "emptyDescription": "Create a rule to automatically categorize imported and synced transactions by their description.",
-      "patternLabel": "Text to match",
-      "patternPlaceholder": "e.g. Migros, Netflix, SBB",
-      "matchLabel": "Match type",
-      "categoryLabel": "Assign category",
-      "priorityLabel": "Priority",
-      "priorityDescription": "Higher priority rules are applied first.",
-      "createTitle": "New rule",
-      "editTitle": "Edit rule",
-      "modalDescription": "Automatically assign a category to transactions whose description matches.",
-      "createSubmit": "Create",
-      "editSubmit": "Save",
+      "emptyTitle": "No rules yet",
+      "emptyDescription": "Create a rule to automatically categorize and tag imported, synced, and existing transactions.",
       "entity": "rule",
       "applyAria": "Apply rule to existing transactions",
       "editAria": "Edit rule",
       "deleteAria": "Delete rule",
+      "removeAria": "Remove",
       "appliedTitle": "Rule applied",
-      "appliedBody": "Re-categorized {count} existing transaction(s).",
-      "match": {
+      "appliedBody": "Updated {count} existing transaction(s).",
+      "disabledBadge": "Disabled",
+      "nameLabel": "Rule name",
+      "namePlaceholder": "e.g. Netflix subscription",
+      "matchModeLabel": "Match",
+      "matchAll": "All conditions",
+      "matchAny": "Any condition",
+      "conditionsLabel": "Conditions",
+      "addCondition": "Add condition",
+      "noConditions": "Add at least one condition.",
+      "actionsLabel": "Actions",
+      "addAction": "Add action",
+      "noActions": "Add at least one action.",
+      "priorityLabel": "Priority",
+      "priorityDescription": "Higher priority rules win the category.",
+      "enabledLabel": "Enabled",
+      "valuePlaceholder": "e.g. Migros, Netflix, SBB",
+      "selectCategory": "Select category",
+      "selectTag": "Select tag",
+      "selectAccount": "Select account",
+      "selectDirection": "Select type",
+      "createTitle": "New rule",
+      "editTitle": "Edit rule",
+      "modalDescription": "Automatically categorize and tag transactions that match your conditions.",
+      "createSubmit": "Create",
+      "editSubmit": "Save",
+      "field": {
+        "DESCRIPTION": "Description",
+        "AMOUNT": "Amount",
+        "DIRECTION": "Type",
+        "ACCOUNT": "Account"
+      },
+      "operator": {
         "CONTAINS": "contains",
         "EQUALS": "equals",
-        "STARTS_WITH": "starts with"
+        "STARTS_WITH": "starts with",
+        "GT": "greater than",
+        "GTE": "at least",
+        "LT": "less than",
+        "LTE": "at most",
+        "IS": "is"
+      },
+      "actionType": {
+        "SET_CATEGORY": "Set category",
+        "ADD_TAG": "Add tag"
+      },
+      "direction": {
+        "INCOME": "Income",
+        "EXPENSE": "Expense"
+      },
+      "toasts": {
+        "createdTitle": "Rule created",
+        "createdBody": "The rule has been added.",
+        "updatedTitle": "Rule updated",
+        "updatedBody": "The rule has been saved.",
+        "fetchFailedTitle": "Failed to fetch rules",
+        "fetchFailedBody": "Rules could not be loaded.",
+        "createFailedTitle": "Failed to create rule",
+        "updateFailedTitle": "Failed to update rule",
+        "applyFailedTitle": "Failed to apply rule",
+        "genericErrorBody": "An error occurred."
       }
     }
   }

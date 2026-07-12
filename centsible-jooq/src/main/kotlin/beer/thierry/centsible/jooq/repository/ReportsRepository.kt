@@ -11,6 +11,7 @@ import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.ACCOUNT_HISTORY
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
@@ -49,7 +50,9 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         endDate: LocalDate,
         authenticatedUser: UserDTO,
     ): List<CategorySpendingSeriesDTO> {
-        val total = DSL.sum(TRANSACTIONS.AMOUNT)
+        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val total = DSL.sum(effectiveAmount)
 
         val rows = dsl.select(
             CATEGORIES.ID,
@@ -59,12 +62,12 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             total,
         )
             .from(TRANSACTIONS)
+            .leftJoin(TRANSACTION_SPLITS).on(TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID))
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
-            .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
+            .join(CATEGORIES).on(CATEGORIES.ID.eq(effectiveCategoryId))
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
-                    .and(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value))
-                    .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
+                    .and(expenseInPeriod(startDate, endDate))
             )
             .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, TXN_MONTH_KEY)
             .fetch()
@@ -98,6 +101,7 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             .where(
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
             .groupBy(TXN_MONTH_KEY, TRANSACTIONS.TYPE)
             .fetch()

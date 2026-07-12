@@ -64,10 +64,58 @@
       "loadFailedTitle": "Failed to load contacts",
       "loadFailedBody": "Please refresh the page to try again.",
       "loadDetailFailedTitle": "Failed to load contact",
+      "loadDetailFailedBody": "Contact could not be loaded.",
       "removedTitle": "Contact removed",
-      "removedBody": "Returning to contacts list."
+      "removedBody": "Returning to contacts list.",
+      "createdTitle": "Contact created",
+      "createdBody": "New contact has been added.",
+      "updatedTitle": "Contact updated",
+      "updatedBody": "Contact has been updated.",
+      "pictureUpdatedTitle": "Picture updated",
+      "pictureUpdatedBody": "Contact picture has been updated.",
+      "pictureRemovedTitle": "Picture removed",
+      "pictureRemovedBody": "Contact picture has been removed.",
+      "deletedTitle": "Contact deleted",
+      "deletedBody": "Contact has been removed.",
+      "fetchFailedTitle": "Failed to fetch contacts",
+      "fetchFailedBody": "Contacts could not be loaded.",
+      "createFailedTitle": "Failed to create contact",
+      "updateFailedTitle": "Failed to update contact",
+      "pictureUpdateFailedTitle": "Failed to update picture",
+      "pictureRemoveFailedTitle": "Failed to remove picture",
+      "deleteFailedTitle": "Failed to delete contact",
+      "genericErrorBody": "An error occurred."
     },
     "loans": {
+      "toasts": {
+        "recordedTitle": "Loan recorded",
+        "recordedBody": "Your loan has been recorded.",
+        "updatedTitle": "Loan updated",
+        "updatedBody": "Your changes have been saved.",
+        "repaymentRecordedTitle": "Repayment recorded",
+        "repaymentRecordedBody": "The repayment has been recorded.",
+        "repaymentDeletedTitle": "Repayment removed",
+        "repaymentDeletedBody": "The repayment has been removed.",
+        "deletedTitle": "Loan deleted",
+        "deletedBody": "The loan has been removed.",
+        "fetchFailedTitle": "Failed to fetch loans",
+        "fetchFailedBody": "Loans could not be loaded.",
+        "repaymentsFailedTitle": "Failed to fetch repayments",
+        "repaymentsFailedBody": "Repayments could not be loaded.",
+        "recordFailedTitle": "Failed to record loan",
+        "updateFailedTitle": "Failed to update loan",
+        "repaymentFailedTitle": "Failed to record repayment",
+        "repaymentDeleteFailedTitle": "Failed to remove repayment",
+        "deleteFailedTitle": "Failed to delete loan",
+        "genericErrorBody": "An error occurred."
+      },
+      "repayments": {
+        "title": "Repayments",
+        "viewAction": "View repayments",
+        "empty": "No repayments recorded yet.",
+        "deleteConfirm": "Remove this repayment? This cannot be undone.",
+        "deleteAria": "Delete repayment"
+      },
       "table": {
         "date": "Date",
         "description": "Description",
@@ -78,12 +126,14 @@
         "status": "Status",
         "actionsAria": "Loan actions",
         "trackingOnly": "Tracking only",
+        "interestBadge": "{rate}% interest",
         "statusSettled": "Settled",
         "statusPartial": "Partially paid",
         "statusOpen": "Open",
         "recordRepayment": "Record repayment",
         "deleteLoan": "Delete loan",
-        "empty": "No loans yet."
+        "empty": "No loans yet.",
+        "editLoan": "Edit loan"
       },
       "form": {
         "modeLegend": "Contact",
@@ -106,12 +156,26 @@
         "owedPlaceholder": "0.00",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "What was the loan for?",
-        "dateLabel": "Date"
+        "dateLabel": "Date",
+        "currencyLabel": "Currency",
+        "currencyDescription": "The currency this loan is in. Defaults to the account or your default currency.",
+        "interestRateLabel": "Interest rate",
+        "interestRateDescription": "Optional. When set, the amount owed is calculated as lent × (1 + rate/100).",
+        "interestRatePlaceholder": "0.00",
+        "owedComputedDescription": "Calculated from the lent amount and interest rate.",
+        "dueDateLabel": "Due date (optional)",
+        "notesLabel": "Notes (optional)",
+        "notesPlaceholder": "Anything worth remembering about this loan"
       },
       "create": {
         "title": "Record lending",
         "description": "Record money you've lent to someone.",
         "submit": "Record"
+      },
+      "edit": {
+        "title": "Edit loan",
+        "description": "Update this loan's details.",
+        "submit": "Save"
       },
       "delete": {
         "title": "Delete loan",
@@ -151,7 +215,8 @@
       "stats": {
         "totalOutstanding": "Outstanding total",
         "openLoans": "Open loans",
-        "contactsWithLoans": "Contacts with loans"
+        "contactsWithLoans": "Contacts with loans",
+        "excludedHint": "Approximate — {count} loan excluded (no exchange rate) | Approximate — {count} loans excluded (no exchange rate)"
       },
       "table": {
         "contact": "Contact"
@@ -162,7 +227,8 @@
       "outstanding": "Outstanding",
       "openCount": "{count} open loan | {count} open loans",
       "viewAll": "View all loans",
-      "empty": "No outstanding loans."
+      "empty": "No outstanding loans.",
+      "excludedHint": "Approximate — {count} loan excluded (no exchange rate) | Approximate — {count} loans excluded (no exchange rate)"
     }
   }
 }

@@ -18,7 +18,7 @@ dependencyCheck {
 
     nvd.apiKey = (findProperty("nvdApiKey") as String?)
         ?: System.getenv("NVD_API_KEY")
-        ?: ""
+            ?: ""
 
     val suppression = file("dependency-check-suppression.xml")
     if (suppression.exists()) {
@@ -45,7 +45,7 @@ val guavaVersion = libs.versions.guava.get()
 
 allprojects {
     group = "beer.thierry"
-    version = "0.4.0"
+    version = "0.5.0"
 
     repositories {
         mavenCentral()
@@ -62,8 +62,10 @@ subprojects {
         imports {
             mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) {
                 // Override BOM versions to pull CVE fixes ahead of the next Spring Boot release.
-                bomProperty("tomcat.version", "11.0.22")          // CVE-2026-43512, CVE-2026-41293, et al.
-                bomProperty("postgresql.version", "42.7.11")      // CVE-2026-42198 (SCRAM PBKDF2 DoS)
+                // tomcat 11.0.22: CVE-2026-43512, CVE-2026-41293, et al.
+                bomProperty("tomcat.version", "11.0.22")
+                // postgresql 42.7.11: CVE-2026-42198 (SCRAM PBKDF2 DoS)
+                bomProperty("postgresql.version", "42.7.11")
             }
         }
     }
@@ -94,6 +96,7 @@ subprojects {
 
 tasks.register("dependencyReportAll") {
     group = "reporting"
-    description = "Generates HTML dependency reports for every subproject under each module's build/reports/project/dependencies/."
+    description =
+        "Generates HTML dependency reports for every subproject under each module's build/reports/project/dependencies/."
     dependsOn(subprojects.map { "${it.path}:htmlDependencyReport" })
 }

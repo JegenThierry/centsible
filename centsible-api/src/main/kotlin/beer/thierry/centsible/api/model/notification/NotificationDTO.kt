@@ -19,6 +19,7 @@ data class NotificationDTO(
     val type: NotificationType,
     val title: String,
     val body: String,
+    /** Structured payload whose keys depend on [type] (e.g. the related account or budget id). */
     val data: Map<String, String> = emptyMap(),
     val readAt: OffsetDateTime? = null,
     val createdAt: OffsetDateTime,

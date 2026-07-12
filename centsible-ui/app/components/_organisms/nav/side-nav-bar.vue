@@ -14,7 +14,6 @@ const {t} = useI18n();
 const items = computed(() => {
   const accountId = accountStore.activeAccount?.id;
 
-  // Primary: the account list plus, when an account is active, its scoped views.
   const primary: any[] = [
     {label: t('nav.sidebar.accounts'), to: '/accounts', icon: 'i-lucide-wallet', target: '_self'},
   ];
@@ -36,7 +35,6 @@ const items = computed(() => {
     );
   }
 
-  // Secondary sections — grouped with labels (hidden automatically when the sidebar collapses to icons).
   const manage: any[] = [
     {label: t('nav.sidebar.sections.manage'), type: 'label'},
     {label: t('nav.sidebar.reports'), to: '/reports', icon: 'i-lucide-trending-up', target: '_self'},

@@ -91,7 +91,6 @@ async function submitCategories() {
     const all = [...expenseSuggestions.map((s) => ({...s, type: CategoryType.EXPENSE})),
                  ...incomeSuggestions.map((s) => ({...s, type: CategoryType.INCOME}))];
     const toCreate = all.filter((s) => selectedCategories.value.has(s.name));
-    // allSettled: a duplicate-name rejection should not stop the others.
     await Promise.allSettled(toCreate.map((c) => categoryService.createCategory(c)));
     await categoriesStore.updateCategories();
     step.value = 3;

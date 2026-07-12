@@ -36,7 +36,6 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
     try {
       unreadCount.value = await service.unreadCount();
     } catch {
-      /* Polling may fire pre-auth; swallow to avoid noisy console spam. */
     }
   }
 

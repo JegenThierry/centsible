@@ -33,6 +33,11 @@ const format = ref<ExportFormat>('PDF');
 
 const userEmail = computed(() => authStore.user?.email ?? '');
 const supportsDateRange = computed(() => props.type === 'TRANSACTIONS');
+
+const customRangeInvalid = computed(() =>
+  supportsDateRange.value && preset.value === 'CUSTOM'
+  && (!customFrom.value || !customTo.value || customFrom.value > customTo.value),
+);
 const presetOptions = computed(() =>
   DATE_RANGE_PRESETS.map((value) => ({value, label: t(`exports.options.presets.${value}`)}))
 );
@@ -72,6 +77,7 @@ function buildParams(): ExportRequestParams {
 }
 
 function submit() {
+  if (customRangeInvalid.value) return;
   const payload: CreateExportRequest = {
     type: props.type,
     title: title.value || props.defaultTitle,
@@ -116,6 +122,7 @@ function submit() {
             <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ t('exports.options.toLabel') }}</label>
             <AppInput v-model="customTo" class="w-full mt-1" type="date"/>
           </div>
+          <p v-if="customRangeInvalid" class="col-span-2 text-xs text-error">{{ t('exports.options.rangeInvalid') }}</p>
         </div>
 
         <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3">
@@ -130,7 +137,7 @@ function submit() {
 
         <div class="flex justify-end gap-2 pt-2">
           <AppButton color="neutral" variant="ghost" @click="open = false">{{ t('exports.options.cancel') }}</AppButton>
-          <AppButton :loading="pending" color="primary" @click="submit">{{ t('exports.options.start') }}</AppButton>
+          <AppButton :loading="pending" :disabled="customRangeInvalid" color="primary" @click="submit">{{ t('exports.options.start') }}</AppButton>
         </div>
       </div>
     </template>

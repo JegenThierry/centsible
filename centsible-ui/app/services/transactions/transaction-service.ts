@@ -1,19 +1,22 @@
 import type {AxiosInstance} from "axios";
 import type {
-  CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest
+  CategoryAggregate, ConversionPreview, DailyAggregate, MonthlyAggregate, SetBalanceRequest, Transaction, TransactionRequest, TransferDetails, TransferRequest
 } from "~/models/transactions/transaction";
 import type {Currency} from "~/models/budget-account/currency";
-import type {ImportPayloadRow, ImportResult} from "~/models/transactions/csv-import";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {assertStatus, validateRequest} from "~/composables/use-api";
 
 export function useTransactionService(api: AxiosInstance) {
+  /** Fetches a page of transactions for [accountId]; [page] is 1-based. */
   async function fetchTransactions(accountId: string, page: number = 1, size: number = 25, filters: TransactionFilters = {},): Promise<Transaction[]> {
     const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
     if (filters.search) params.search = filters.search;
     if (filters.categoryIds?.length) params.categoryIds = filters.categoryIds.join(',');
     if (filters.fromDate) params.fromDate = filters.fromDate;
     if (filters.toDate) params.toDate = filters.toDate;
+    if (filters.type) params.type = filters.type;
+    if (filters.amountMin != null) params.amountMin = filters.amountMin;
+    if (filters.amountMax != null) params.amountMax = filters.amountMax;
     if (filters.sort) params.sort = filters.sort;
     const response = await api.get<Transaction[]>(`/transactions/${encodeURIComponent(accountId)}`, {params});
     return validateRequest<Transaction[]>(response);
@@ -31,6 +34,21 @@ export function useTransactionService(api: AxiosInstance) {
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
     assertStatus(await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`,));
+  }
+
+  async function createTransfer(sourceAccountId: string, payload: TransferRequest): Promise<Transaction[]> {
+    const response = await api.post<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer`, payload);
+    return validateRequest<Transaction[]>(response);
+  }
+
+  async function updateTransfer(sourceAccountId: string, transactionId: string, payload: TransferRequest): Promise<Transaction[]> {
+    const response = await api.put<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer/${encodeURIComponent(transactionId)}`, payload);
+    return validateRequest<Transaction[]>(response);
+  }
+
+  async function fetchTransfer(transactionId: string): Promise<TransferDetails> {
+    const response = await api.get<TransferDetails>(`/transactions/transfer/${encodeURIComponent(transactionId)}`);
+    return validateRequest<TransferDetails>(response);
   }
 
   async function aggregateByCategory(accountId: string, options?: {
@@ -70,11 +88,6 @@ export function useTransactionService(api: AxiosInstance) {
     return validateRequest<{ affected: number }>(response).affected;
   }
 
-  async function importBatch(accountId: string, rows: ImportPayloadRow[]): Promise<ImportResult> {
-    const response = await api.post<ImportResult>(`/transactions/${encodeURIComponent(accountId)}/import`, {rows});
-    return validateRequest<ImportResult>(response);
-  }
-
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
     return validateRequest<Transaction>(response);
@@ -92,12 +105,14 @@ export function useTransactionService(api: AxiosInstance) {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    createTransfer,
+    updateTransfer,
+    fetchTransfer,
     bulkDelete,
     bulkCategorize,
     aggregateByCategory,
     aggregateByMonth,
     aggregateByDay,
-    importBatch,
     setAccountBalance,
     previewConversion,
   }

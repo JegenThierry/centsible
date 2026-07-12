@@ -24,6 +24,8 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
 
     override fun userExists(id: UUID): Boolean = userRepository.findUserById(id) != null
 
+    override fun currentTokenVersion(id: UUID): Int? = userRepository.fetchTokenVersion(id)
+
     override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
         val dto = persistProfile(
             userId = userId,
@@ -54,6 +56,13 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         val updated = userRepository.updateUserLocale(userId, locale)
             ?: throw LocalizedException.NotFound("error.user.notFound")
         log.info("Updated user locale userId={} locale={}", userId, locale)
+        return mapToDTO(updated)
+    }
+
+    override fun updateDefaultCurrency(userId: UUID, currency: String): UserDTO {
+        val updated = userRepository.updateDefaultCurrency(userId, currency)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        log.info("Updated user default currency userId={} currency={}", userId, currency)
         return mapToDTO(updated)
     }
 
@@ -92,5 +101,6 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         name = "${user.firstName} ${user.lastName}",
         profilePicture = user.profilePicture,
         locale = user.locale,
+        defaultCurrency = user.defaultCurrency,
     )
 }

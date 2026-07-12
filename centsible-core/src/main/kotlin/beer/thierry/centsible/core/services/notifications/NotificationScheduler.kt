@@ -29,7 +29,6 @@ class NotificationScheduler(
                 return
             }
         for (id in ids) {
-            // The scheduler only needs the UUID; the rest of UserDTO isn't consulted by the checks.
             val proxy = UserDTO(id = id)
             try {
                 notificationService.runScheduledChecks(proxy)

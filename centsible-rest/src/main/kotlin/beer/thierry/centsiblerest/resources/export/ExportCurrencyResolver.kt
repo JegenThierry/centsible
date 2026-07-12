@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.resources.export
 
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 
+/** Picks the most frequent currency (ties broken by lowest [Currency] ordinal), defaulting to [Currency.EUR] when empty. */
 fun primaryCurrencyOf(accountCurrencies: List<Currency>): String =
     accountCurrencies
         .groupingBy { it }

@@ -64,10 +64,58 @@
       "loadFailedTitle": "Échec du chargement des contacts",
       "loadFailedBody": "Veuillez actualiser la page pour réessayer.",
       "loadDetailFailedTitle": "Échec du chargement du contact",
+      "loadDetailFailedBody": "Impossible de charger le contact.",
       "removedTitle": "Contact supprimé",
-      "removedBody": "Retour à la liste des contacts."
+      "removedBody": "Retour à la liste des contacts.",
+      "createdTitle": "Contact créé",
+      "createdBody": "Le nouveau contact a été ajouté.",
+      "updatedTitle": "Contact mis à jour",
+      "updatedBody": "Le contact a été mis à jour.",
+      "pictureUpdatedTitle": "Photo mise à jour",
+      "pictureUpdatedBody": "La photo du contact a été mise à jour.",
+      "pictureRemovedTitle": "Photo supprimée",
+      "pictureRemovedBody": "La photo du contact a été supprimée.",
+      "deletedTitle": "Contact supprimé",
+      "deletedBody": "Le contact a été supprimé.",
+      "fetchFailedTitle": "Échec du chargement des contacts",
+      "fetchFailedBody": "Impossible de charger les contacts.",
+      "createFailedTitle": "Échec de la création du contact",
+      "updateFailedTitle": "Échec de la mise à jour du contact",
+      "pictureUpdateFailedTitle": "Échec de la mise à jour de la photo",
+      "pictureRemoveFailedTitle": "Échec de la suppression de la photo",
+      "deleteFailedTitle": "Échec de la suppression du contact",
+      "genericErrorBody": "Une erreur est survenue."
     },
     "loans": {
+      "toasts": {
+        "recordedTitle": "Prêt enregistré",
+        "recordedBody": "Votre prêt a été enregistré.",
+        "updatedTitle": "Prêt mis à jour",
+        "updatedBody": "Vos modifications ont été enregistrées.",
+        "repaymentRecordedTitle": "Remboursement enregistré",
+        "repaymentRecordedBody": "Le remboursement a été enregistré.",
+        "repaymentDeletedTitle": "Remboursement supprimé",
+        "repaymentDeletedBody": "Le remboursement a été supprimé.",
+        "deletedTitle": "Prêt supprimé",
+        "deletedBody": "Le prêt a été supprimé.",
+        "fetchFailedTitle": "Échec du chargement des prêts",
+        "fetchFailedBody": "Impossible de charger les prêts.",
+        "repaymentsFailedTitle": "Échec du chargement des remboursements",
+        "repaymentsFailedBody": "Impossible de charger les remboursements.",
+        "recordFailedTitle": "Échec de l'enregistrement du prêt",
+        "updateFailedTitle": "Échec de la mise à jour du prêt",
+        "repaymentFailedTitle": "Échec de l'enregistrement du remboursement",
+        "repaymentDeleteFailedTitle": "Échec de la suppression du remboursement",
+        "deleteFailedTitle": "Échec de la suppression du prêt",
+        "genericErrorBody": "Une erreur est survenue."
+      },
+      "repayments": {
+        "title": "Remboursements",
+        "viewAction": "Voir les remboursements",
+        "empty": "Aucun remboursement enregistré.",
+        "deleteConfirm": "Supprimer ce remboursement ? Cette action est irréversible.",
+        "deleteAria": "Supprimer le remboursement"
+      },
       "table": {
         "date": "Date",
         "description": "Description",
@@ -78,12 +126,14 @@
         "status": "Statut",
         "actionsAria": "Actions du prêt",
         "trackingOnly": "Suivi uniquement",
+        "interestBadge": "{rate}% d'intérêt",
         "statusSettled": "Soldé",
         "statusPartial": "Partiellement remboursé",
         "statusOpen": "Ouvert",
         "recordRepayment": "Enregistrer un remboursement",
         "deleteLoan": "Supprimer le prêt",
-        "empty": "Aucun prêt pour le moment."
+        "empty": "Aucun prêt pour le moment.",
+        "editLoan": "Modifier le prêt"
       },
       "form": {
         "modeLegend": "Contact",
@@ -106,11 +156,25 @@
         "owedPlaceholder": "0,00",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "À quoi servait ce prêt ?",
-        "dateLabel": "Date"
+        "dateLabel": "Date",
+        "currencyLabel": "Devise",
+        "currencyDescription": "La devise de ce prêt. Par défaut, celle du compte ou votre devise par défaut.",
+        "interestRateLabel": "Taux d'intérêt",
+        "interestRateDescription": "Facultatif. Si défini, le montant dû est calculé comme prêté × (1 + taux/100).",
+        "interestRatePlaceholder": "0,00",
+        "owedComputedDescription": "Calculé à partir du montant prêté et du taux d'intérêt.",
+        "dueDateLabel": "Date d'échéance (facultatif)",
+        "notesLabel": "Notes (facultatif)",
+        "notesPlaceholder": "Tout ce qui mérite d’être noté sur ce prêt"
       },
       "create": {
         "title": "Enregistrer un prêt",
         "description": "Enregistrez de l'argent que vous avez prêté à quelqu'un.",
+        "submit": "Enregistrer"
+      },
+      "edit": {
+        "title": "Modifier le prêt",
+        "description": "Mettez à jour les détails de ce prêt.",
         "submit": "Enregistrer"
       },
       "delete": {
@@ -151,7 +215,8 @@
       "stats": {
         "totalOutstanding": "Total en attente",
         "openLoans": "Prêts ouverts",
-        "contactsWithLoans": "Contacts avec prêts"
+        "contactsWithLoans": "Contacts avec prêts",
+        "excludedHint": "Approximatif — {count} prêt exclu (pas de taux de change) | Approximatif — {count} prêts exclus (pas de taux de change)"
       },
       "table": {
         "contact": "Contact"
@@ -162,7 +227,8 @@
       "outstanding": "En attente",
       "openCount": "{count} prêt ouvert | {count} prêts ouverts",
       "viewAll": "Voir tous les prêts",
-      "empty": "Aucun prêt en cours."
+      "empty": "Aucun prêt en cours.",
+      "excludedHint": "Approximatif — {count} prêt exclu (pas de taux de change) | Approximatif — {count} prêts exclus (pas de taux de change)"
     }
   }
 }

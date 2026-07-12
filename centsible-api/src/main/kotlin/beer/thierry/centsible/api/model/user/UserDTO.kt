@@ -5,6 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.util.*
 
+/** Authenticated principal: the [UserDetails] carried through Spring Security; password is intentionally absent. */
 data class UserDTO(
     var id: UUID = UUID.randomUUID(),
     @get:JvmName("getUsernameValue")
@@ -15,6 +16,7 @@ data class UserDTO(
     var name: String = "",
     var profilePicture: String? = null,
     var locale: String = "en",
+    var defaultCurrency: String = "EUR",
     var authoritiesList: Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
 ) : UserDetails {

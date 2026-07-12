@@ -1,8 +1,99 @@
 {
   "profile": {
     "page": {
-      "title": "Profil",
-      "description": "Verwalte deine Kontoeinstellungen und Profilinformationen"
+      "title": "Einstellungen",
+      "description": "Verwalte dein Konto, die Sicherheit, Benachrichtigungen und das Erscheinungsbild."
+    },
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "appearance": "Darstellung"
+    },
+    "currency": {
+      "title": "Standardwährung",
+      "description": "Wird als Standard beim Anlegen neuer Konten und für kontoübergreifende Gesamtsummen verwendet. Bestehende Konten behalten ihre eigene Währung.",
+      "toasts": {
+        "savedTitle": "Standardwährung aktualisiert",
+        "savedBody": "Neue Konten und Summen verwenden diese Währung.",
+        "errorTitle": "Währung konnte nicht aktualisiert werden",
+        "errorBody": "Bitte versuche es erneut."
+      }
+    },
+    "password": {
+      "title": "Passwort",
+      "description": "Ändere das Passwort, mit dem du dich anmeldest.",
+      "currentLabel": "Aktuelles Passwort",
+      "currentPlaceholder": "Gib dein aktuelles Passwort ein",
+      "newLabel": "Neues Passwort",
+      "newPlaceholder": "Gib ein neues Passwort ein",
+      "newHint": "Mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Zeichen aus {'@'}$!%*?&.",
+      "confirmLabel": "Neues Passwort bestätigen",
+      "confirmPlaceholder": "Gib dein neues Passwort erneut ein",
+      "submit": "Passwort aktualisieren",
+      "validation": {
+        "tooWeak": "Dieses Passwort ist zu schwach. Verwende mindestens 8 Zeichen mit Groß- und Kleinbuchstaben, einer Ziffer und einem Symbol.",
+        "mustDiffer": "Dein neues Passwort muss sich vom aktuellen unterscheiden.",
+        "mustMatch": "Die beiden Passwörter stimmen nicht überein."
+      },
+      "toasts": {
+        "successTitle": "Passwort aktualisiert",
+        "successBody": "Verwende dein neues Passwort bei der nächsten Anmeldung. Deine anderen Geräte wurden abgemeldet.",
+        "currentIncorrectTitle": "Aktuelles Passwort falsch",
+        "currentIncorrectBody": "Das eingegebene aktuelle Passwort ist falsch. Bitte versuche es erneut.",
+        "errorTitle": "Passwort konnte nicht aktualisiert werden",
+        "errorBody": "Etwas ist schiefgelaufen. Bitte versuche es später erneut."
+      }
+    },
+    "sessions": {
+      "title": "Aktive Sitzungen",
+      "description": "Melde alle anderen Geräte ab, auf denen du gerade angemeldet bist. Dieses Gerät bleibt angemeldet.",
+      "signOutEverywhere": "Andere Geräte abmelden",
+      "confirm": {
+        "title": "Andere Geräte abmelden?",
+        "body": "Alle anderen bei deinem Konto angemeldeten Geräte werden abgemeldet. Hier bleibst du angemeldet."
+      },
+      "toasts": {
+        "successTitle": "Andere Geräte abgemeldet",
+        "successBody": "Alle deine anderen Sitzungen wurden beendet.",
+        "errorTitle": "Andere Geräte konnten nicht abgemeldet werden",
+        "errorBody": "Etwas ist schiefgelaufen. Bitte versuche es später erneut."
+      }
+    },
+    "dangerZone": {
+      "title": "Gefahrenzone",
+      "description": "Unwiderrufliche Aktionen, die dein gesamtes Konto betreffen.",
+      "delete": {
+        "title": "Konto löschen",
+        "description": "Lösche dein Konto und alle zugehörigen Daten dauerhaft, einschließlich Konten, Transaktionen, Darlehen und Exporte.",
+        "warning": "Diese Aktion ist endgültig und kann nicht rückgängig gemacht werden. Alle deine Daten werden sofort gelöscht.",
+        "button": "Mein Konto löschen",
+        "confirmTitle": "Konto wirklich löschen?",
+        "confirmBody": "Dadurch werden dein Konto und alle Daten dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "passwordLabel": "Bestätige dein Passwort",
+        "passwordPlaceholder": "Gib zur Bestätigung dein Passwort ein",
+        "passwordHint": "Gib dein Passwort erneut ein, um die Löschung deines Kontos zu bestätigen.",
+        "totpLabel": "Zwei-Faktor-Code",
+        "totpHint": "Gib einen aktuellen Code aus deiner Authenticator-App oder einen Wiederherstellungscode ein.",
+        "confirmTextLabel": "Gib deinen Benutzernamen ein, um zu bestätigen",
+        "confirmTextHint": "Gib unten {username} ein, um das Löschen zu aktivieren.",
+        "confirmButton": "Endgültig löschen",
+        "toasts": {
+          "successTitle": "Konto gelöscht",
+          "successBody": "Dein Konto und alle Daten wurden entfernt.",
+          "passwordIncorrectTitle": "Überprüfung fehlgeschlagen",
+          "passwordIncorrectBody": "Wir konnten dein Passwort oder deinen Code nicht überprüfen. Dein Konto wurde nicht gelöscht.",
+          "errorTitle": "Konto konnte nicht gelöscht werden",
+          "errorBody": "Etwas ist schiefgelaufen. Dein Konto wurde nicht gelöscht. Bitte versuche es erneut."
+        }
+      }
+    },
+    "dataExport": {
+      "title": "Daten exportieren",
+      "description": "Lade deine Transaktionen und Kontodaten herunter. Große Exporte werden im Hintergrund erstellt.",
+      "defaultTitle": "Datenexport {date}",
+      "trigger": "Daten exportieren",
+      "viewAll": "Meine Dokumente anzeigen"
     },
     "avatar": {
       "alt": "Profilbild",
@@ -63,6 +154,59 @@
         "savedBody": "Deine Einstellungen gelten für neue Hinweise.",
         "errorTitle": "Einstellungen konnten nicht gespeichert werden.",
         "errorBody": "Bitte erneut versuchen."
+      }
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "description": "Fügen Sie der Anmeldung einen zweiten Schritt mit einer Authenticator-App (TOTP) hinzu.",
+      "enable": "Zwei-Faktor-Authentifizierung aktivieren",
+      "status": {
+        "offTitle": "Zwei-Faktor-Authentifizierung ist deaktiviert",
+        "offDescription": "Schützen Sie Ihr Konto, indem Sie bei der Anmeldung einen Einmalcode verlangen.",
+        "onTitle": "Zwei-Faktor-Authentifizierung ist aktiviert",
+        "onDescription": "Bei jeder Anmeldung ist ein Code aus Ihrer Authenticator-App erforderlich."
+      },
+      "enroll": {
+        "scanInstruction": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App (z. B. Google Authenticator, Aegis, 1Password).",
+        "manualInstruction": "Kein Scannen möglich? Geben Sie dieses Geheimnis manuell ein:",
+        "codeLabel": "Bestätigungscode",
+        "codeHint": "Geben Sie den 6-stelligen Code aus Ihrer App ein",
+        "verify": "Überprüfen & aktivieren"
+      },
+      "disable": {
+        "codeLabel": "Bestätigungscode",
+        "codeHint": "Geben Sie einen aktuellen Code oder einen Wiederherstellungscode ein, um 2FA zu deaktivieren",
+        "submit": "Zwei-Faktor-Authentifizierung deaktivieren"
+      },
+      "recovery": {
+        "title": "Speichern Sie Ihre Wiederherstellungscodes",
+        "description": "Bewahren Sie diese sicher auf. Jeder Code funktioniert einmal und ermöglicht die Anmeldung, falls Sie Ihre App verlieren. Sie werden nicht erneut angezeigt.",
+        "copy": "Codes kopieren",
+        "done": "Ich habe sie gespeichert",
+        "copiedTitle": "Wiederherstellungscodes kopiert",
+        "copiedBody": "Sie befinden sich in Ihrer Zwischenablage — bewahren Sie sie sicher auf.",
+        "download": "Als .txt herunterladen",
+        "savedConfirm": "Ich habe diese Wiederherstellungscodes sicher gespeichert",
+        "regenerate": "Neu erzeugen",
+        "regenerateTitle": "Wiederherstellungscodes neu erzeugen",
+        "regenerateDescription": "Dies ersetzt alle vorhandenen Wiederherstellungscodes. Gib einen aktuellen Code aus deiner App (oder einen ungenutzten Wiederherstellungscode) ein, um fortzufahren.",
+        "regenerateSubmit": "Codes neu erzeugen",
+        "regeneratedTitle": "Wiederherstellungscodes neu erzeugt",
+        "regeneratedBody": "Deine alten Codes funktionieren nicht mehr. Speichere die neuen.",
+        "remainingTitle": "Wiederherstellungscodes",
+        "remainingCount": "{count} ungenutzter Code übrig | {count} ungenutzte Codes übrig",
+        "copyFailedTitle": "Kopieren fehlgeschlagen",
+        "copyFailedBody": "Kopiere die Codes manuell — sie werden oben angezeigt."
+      },
+      "toasts": {
+        "enrollErrorTitle": "Einrichtung konnte nicht gestartet werden",
+        "enrollErrorBody": "Bitte versuchen Sie es in einem Moment erneut.",
+        "enabledTitle": "Zwei-Faktor-Authentifizierung aktiviert",
+        "enabledBody": "Bei der nächsten Anmeldung werden Sie nach einem Code gefragt.",
+        "invalidCodeTitle": "Ungültiger Code",
+        "invalidCodeBody": "Dieser Code ist falsch oder abgelaufen. Bitte versuchen Sie es erneut.",
+        "disabledTitle": "Zwei-Faktor-Authentifizierung deaktiviert",
+        "disabledBody": "Ihr Konto erfordert keinen Einmalcode mehr."
       }
     },
     "theme": {

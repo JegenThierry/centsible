@@ -12,11 +12,16 @@ data class LoanDTO(
     var contact: ContactDTO = ContactDTO(),
     var transaction: TransactionDTO? = null,
     var accountId: UUID? = null,
+    /** Whether the loan is backed by a real account transaction (vs. tracking-only). */
     var affectsBalance: Boolean = true,
     var lentAmount: BigDecimal = BigDecimal.ZERO,
+    /** Total expected back, i.e. [lentAmount] plus any interest. */
     var owedAmount: BigDecimal = BigDecimal.ZERO,
     var totalRepaid: BigDecimal = BigDecimal.ZERO,
+    /** Still due, i.e. [owedAmount] minus [totalRepaid]. */
     var outstanding: BigDecimal = BigDecimal.ZERO,
+    var currency: String = "EUR",
+    var interestRate: BigDecimal? = null,
     var loanDate: LocalDate? = null,
     var description: String? = null,
     var dueDate: LocalDate? = null,

@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.security
 
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.users.IUserService
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -19,6 +20,7 @@ import java.util.UUID
 @Component
 class JwtAuthenticationFilter(
     @Value($$"${jwt.secret}") private val secret: String,
+    private val userService: IUserService,
 ) : OncePerRequestFilter() {
     private val key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret))
 
@@ -36,7 +38,6 @@ class JwtAuthenticationFilter(
     }
 
     private fun extractToken(request: HttpServletRequest): String? {
-        // Cookie for browsers; Authorization header for curl/Bruno.
         val cookieToken = request.cookies?.firstOrNull { it.name == AUTH_COOKIE_NAME }?.value
         if (!cookieToken.isNullOrBlank()) return cookieToken
 
@@ -60,12 +61,15 @@ class JwtAuthenticationFilter(
         val firstName = claims["firstName"] as? String ?: ""
         val lastName = claims["lastName"] as? String ?: ""
         val name = claims["name"] as? String ?: ""
-        // Pre-locale tokens won't carry the claim; default to English so legacy sessions still work.
         val locale = claims["locale"] as? String ?: "en"
 
-        // Profile picture is intentionally not in the JWT — base64 images would
-        // bloat every request and overflow Tomcat's response header buffer at login.
-        // Anything that needs the avatar fetches /api/users/myself.
+        val tokenVersion = (claims["tv"] as? Number)?.toInt() ?: 0
+        val currentVersion = userService.currentTokenVersion(UUID.fromString(userId))
+        if (currentVersion == null || currentVersion != tokenVersion) {
+            logger.warn("JWT rejected: token version mismatch (token=$tokenVersion current=$currentVersion)")
+            return null
+        }
+
         UserDTO(
             id = UUID.fromString(userId),
             username = username,

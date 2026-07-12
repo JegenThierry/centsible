@@ -20,8 +20,7 @@ export interface CategoryForm {
   type: CategoryType;
 }
 
-// Stable identifiers used by system categories that other code resolves at
-// runtime. Set in the DB by migrations (see migration 28).
+/** Stable [systemKey] values for system categories, used to resolve them at runtime. */
 export const CategorySystemKey = {
   BalanceAdjustment: 'BALANCE_ADJUSTMENT',
 } as const;

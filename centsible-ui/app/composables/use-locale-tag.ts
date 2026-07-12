@@ -1,3 +1,4 @@
+/** Reactive BCP-47 language tag for the active locale, falling back to the locale code. */
 export function useLocaleTag() {
   const {locale, locales} = useI18n();
   return computed(() => {

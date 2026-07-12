@@ -2,12 +2,16 @@ package beer.thierry.centsible.core.service
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRequest
+import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.user.User
+import beer.thierry.centsible.api.repository.ITwoFactorRepository
 import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.authentication.ITotpService
 import beer.thierry.centsible.api.services.email.IPasswordResetEmailService
 import beer.thierry.centsible.api.services.email.IRegisterEmailService
 import beer.thierry.centsible.core.services.authentication.AuthenticationService
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -30,15 +34,18 @@ import java.util.UUID
 class AuthenticationServiceTest {
 
     @Mock private lateinit var userRepository: IUserRepository
+    @Mock private lateinit var twoFactorRepository: ITwoFactorRepository
+    @Mock private lateinit var totpService: ITotpService
     @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var registerEmailService: IRegisterEmailService
     @Mock private lateinit var passwordResetEmailService: IPasswordResetEmailService
 
-    // 32 zero bytes, Base64-encoded — a valid HS256 (256-bit) signing key so generateJwt() works.
     private val validJwtSecret = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
     private fun service() = AuthenticationService(
         userRepository = userRepository,
+        twoFactorRepository = twoFactorRepository,
+        totpService = totpService,
         passwordEncoder = passwordEncoder,
         registerEmailService = registerEmailService,
         passwordResetEmailService = passwordResetEmailService,
@@ -48,11 +55,12 @@ class AuthenticationServiceTest {
         registrationEnabled = false,
     )
 
-    private fun user(registered: Boolean) = User(
+    private fun user(registered: Boolean, totpEnabled: Boolean = false) = User(
         username = "alice",
         email = "alice@example.com",
         passwordHash = "\$2a\$12\$storedhashstoredhashstoredhashstoredhashstor",
         registered = registered,
+        totpEnabled = totpEnabled,
     )
 
     @Test
@@ -63,9 +71,7 @@ class AuthenticationServiceTest {
         val ex = assertThrows(LocalizedException.Unauthorized::class.java) {
             service().authenticate(AuthRequest("ghost", "whatever"))
         }
-        // Generic message — identical to the wrong-password case, so the body reveals nothing.
         assertEquals("error.auth.invalidCredentials", ex.messageKey)
-        // The equalizing hash MUST have run, otherwise the missing-user path returns measurably faster.
         verify(passwordEncoder).matches(eq("whatever"), anyString())
     }
 
@@ -88,22 +94,36 @@ class AuthenticationServiceTest {
         val ex = assertThrows(LocalizedException.Unauthorized::class.java) {
             service().authenticate(AuthRequest("alice", "correct"))
         }
-        // The helpful "confirm your email" hint is preserved, but only the holder of the correct
-        // password can ever observe it — so it cannot be used to enumerate accounts pre-auth.
         assertEquals("error.auth.emailNotConfirmed", ex.messageKey)
     }
 
     @Test
-    fun `valid credentials for a confirmed account return a token`() {
+    fun `valid credentials for a confirmed account without 2FA return a token`() {
         `when`(userRepository.findUserByUsername("alice")).thenReturn(user(registered = true))
         `when`(passwordEncoder.matches(eq("correct"), anyString())).thenReturn(true)
 
-        val response = service().authenticate(AuthRequest("alice", "correct"))
-        assertTrue(response.token.isNotBlank())
+        val result = service().authenticate(AuthRequest("alice", "correct"))
+        val authenticated = assertInstanceOf(LoginResult.Authenticated::class.java, result)
+        assertTrue(authenticated.token.isNotBlank())
+        verifyNoInteractions(twoFactorRepository)
     }
 
-    // requestPasswordReset is @Async in production so the controller's 204 latency is branch-independent;
-    // these run it synchronously to lock the per-branch behaviour the async dispatch decouples from timing.
+    @Test
+    fun `valid credentials for a 2FA account issue a pre-auth token instead of a JWT`() {
+        val twoFa = user(registered = true, totpEnabled = true)
+        `when`(userRepository.findUserByUsername("alice")).thenReturn(twoFa)
+        `when`(passwordEncoder.matches(eq("correct"), anyString())).thenReturn(true)
+
+        val result = service().authenticate(AuthRequest("alice", "correct"))
+        val pending = assertInstanceOf(LoginResult.TwoFactorRequired::class.java, result)
+        assertTrue(pending.pendingToken.isNotBlank())
+        verify(twoFactorRepository).deletePendingAuthForUser(twoFa.id)
+        verify(twoFactorRepository).createPendingAuth(
+            anyArg(UUID::class.java, twoFa.id),
+            anyArg(ByteArray::class.java, ByteArray(0)),
+            anyArg(OffsetDateTime::class.java, OffsetDateTime.now()),
+        )
+    }
 
     @Test
     fun `requestPasswordReset stays silent and does no work for an unknown username`() {
@@ -111,8 +131,6 @@ class AuthenticationServiceTest {
 
         service().requestPasswordReset("ghost")
 
-        // Only the lookup happens; no token is persisted and no email goes out (so the response would
-        // have the same near-instant latency as any other unknown/unconfirmed input).
         verify(userRepository).findUserByUsername("ghost")
         verifyNoMoreInteractions(userRepository)
         verifyNoInteractions(passwordResetEmailService)
@@ -139,9 +157,44 @@ class AuthenticationServiceTest {
         )
     }
 
-    // Plain mockito's any() returns null, which trips Kotlin's non-null parameter types; this registers
-    // the "any of this type" matcher and returns a non-null dummy (ignored by Mockito) so the call
-    // type-checks at runtime. Mirrors what mockito-kotlin's any() does internally.
+    @Test
+    fun `changePassword bumps the token version and returns a fresh token for the caller`() {
+        val u = user(registered = true)
+        `when`(userRepository.findUserById(u.id)).thenReturn(u)
+        `when`(passwordEncoder.matches(eq("OldPass1!"), anyString())).thenReturn(true)
+        `when`(passwordEncoder.matches(eq("NewPass1!"), anyString())).thenReturn(false)
+        `when`(passwordEncoder.encode("NewPass1!")).thenReturn("newhash")
+        `when`(userRepository.updatePassword(u.id, "newhash")).thenReturn(true)
+
+        val token = service().changePassword(u.id, "OldPass1!", "NewPass1!")
+
+        assertTrue(token.isNotBlank())
+        verify(userRepository).updatePassword(u.id, "newhash")
+        verify(userRepository).incrementTokenVersion(u.id)
+    }
+
+    @Test
+    fun `signOutOtherSessions bumps the version and returns a fresh token`() {
+        val u = user(registered = true)
+        `when`(userRepository.incrementTokenVersion(u.id)).thenReturn(true)
+        `when`(userRepository.findUserById(u.id)).thenReturn(u)
+
+        val token = service().signOutOtherSessions(u.id)
+
+        assertTrue(token.isNotBlank())
+        verify(userRepository).incrementTokenVersion(u.id)
+    }
+
+    @Test
+    fun `signOutOtherSessions throws when the user no longer exists`() {
+        val id = UUID.randomUUID()
+        `when`(userRepository.incrementTokenVersion(id)).thenReturn(false)
+
+        assertThrows(LocalizedException.Unauthorized::class.java) {
+            service().signOutOtherSessions(id)
+        }
+    }
+
     private fun <T : Any> anyArg(clazz: Class<T>, dummy: T): T {
         any(clazz)
         return dummy

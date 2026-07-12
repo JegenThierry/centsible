@@ -8,6 +8,7 @@ import type {useTransactionService} from '~/services/transactions/transaction-se
 type TransactionService = ReturnType<typeof useTransactionService>
 type BudgetAccountsStore = ReturnType<typeof useBudgetAccountsStore>
 
+/** Paginated transaction list for the active account; appends pages and reloads on [filters] change. */
 export function useTransactionList(
   transactionService: TransactionService,
   budgetAccountsStore: BudgetAccountsStore,
@@ -20,10 +21,12 @@ export function useTransactionList(
   const loading = ref(false)
   const loadingMore = ref(false)
   const hasMore = ref(true)
+  const error = ref(false)
 
   async function loadTransactions(reset = false) {
     if (!budgetAccountsStore.activeAccount?.id) return
 
+    error.value = false
     if (reset) {
       page.value = 1
       hasMore.value = true
@@ -47,8 +50,9 @@ export function useTransactionList(
 
       transactions.value = [...transactions.value, ...data]
       page.value++
-    } catch (error) {
-      adze.ns('transactions').error('Failed to fetch transactions', error)
+    } catch (err) {
+      error.value = true
+      adze.ns('transactions').error('Failed to fetch transactions', err)
     } finally {
       loading.value = false
       loadingMore.value = false
@@ -56,13 +60,10 @@ export function useTransactionList(
   }
 
   if (filters) {
-    // Track only the fields that actually affect the server query. A deep watch fires once per
-    // nested mutation (e.g. categoryIds array push), causing duplicate reloads while the user
-    // is mid-interaction in the filter bar.
     watch(
       () => {
         const f = filters.value
-        return [f.search, f.sort, f.fromDate, f.toDate, (f.categoryIds ?? []).join(',')] as const
+        return [f.search, f.sort, f.fromDate, f.toDate, f.type, f.amountMin, f.amountMax, (f.categoryIds ?? []).join(',')] as const
       },
       () => {
         if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
@@ -75,6 +76,7 @@ export function useTransactionList(
     loading,
     loadingMore,
     hasMore,
+    error,
     loadTransactions
   }
 }

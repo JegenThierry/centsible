@@ -30,6 +30,7 @@ export function useUnsavedChangesGuard(dirty: Ref<boolean>, message?: MaybeRef<s
   });
 }
 
+/** Tracks edits to a modal via JSON snapshots; [requestClose]`(false)` confirms discard when dirty, `(true)` opens it. */
 export function useModalDirtyGuard(options: {
   isOpen: Ref<boolean>;
   loading: Ref<boolean>;

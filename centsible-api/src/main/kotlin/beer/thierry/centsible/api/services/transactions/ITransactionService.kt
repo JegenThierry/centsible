@@ -13,6 +13,8 @@ import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionFilters
 import beer.thierry.centsible.api.model.transaction.TransactionForm
+import beer.thierry.centsible.api.model.transaction.TransferDetailsDTO
+import beer.thierry.centsible.api.model.transaction.TransferForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,8 +39,20 @@ interface ITransactionService {
 
     fun deleteTransaction(transactionId: UUID, accountId: UUID, authenticatedUser: UserDTO): TransactionDTO
 
+    fun createTransfer(sourceAccountId: UUID, form: TransferForm, authenticatedUser: UserDTO): List<TransactionDTO>
+
+    fun updateTransfer(
+        transactionId: UUID,
+        sourceAccountId: UUID,
+        form: TransferForm,
+        authenticatedUser: UserDTO,
+    ): List<TransactionDTO>
+
+    fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO
+
     fun bulkDelete(accountId: UUID, ids: List<UUID>, authenticatedUser: UserDTO): Int
 
+    /** Reassigns [ids] to [categoryId] without touching balances; rejects system-managed target categories. Returns rows updated. */
     fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO): Int
 
     fun aggregateByCategory(
@@ -79,12 +93,14 @@ interface ITransactionService {
         authenticatedUser: UserDTO,
     ): ImportResult
 
+    /** Records an income/expense adjustment transaction bringing the account to the form's target balance; rejects a no-op delta. */
     fun createBalanceAdjustment(
         accountId: UUID,
         form: SetBalanceForm,
         authenticatedUser: UserDTO,
     ): TransactionDTO
 
+    /** Computes how [amount] in [currency] would convert into the account's currency on [date], without persisting anything. */
     fun previewConversion(
         accountId: UUID,
         amount: BigDecimal,

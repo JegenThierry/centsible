@@ -49,9 +49,6 @@ class PaypalProviderModuleTest {
 
     @Test
     fun `clientSecret is the only secret field`() {
-        // secret=true marks fields routed into the encrypted credentials store. PayPal's only
-        // true secret is clientSecret — anything else slipping in here would silently bypass
-        // the cipher.
         val module = PaypalProviderModule(client = mock(PaypalHttpClient::class.java))
 
         val secrets = module.descriptor.configFields.filter { it.secret }.map { it.name }
@@ -83,8 +80,6 @@ class PaypalProviderModuleTest {
 
     @Test
     fun `testConnection throws when clientSecret is missing from credentials`() {
-        // Falling back to ctx.config for a secret field would defeat the cipher — the module
-        // must refuse to start.
         val client = mock(PaypalHttpClient::class.java)
         val module = PaypalProviderModule(client)
 
@@ -135,10 +130,6 @@ class PaypalProviderModuleTest {
 
     @Test
     fun `listExternalAccounts falls back to PayPal label when userinfo HTTP call fails`() {
-        // The production code has two catch arms: RestClientResponseException (4xx/5xx) and
-        // IOException (network failure). Stubbing IOException via Mockito requires a `throws`
-        // declaration the Kotlin method does not have; the RestClientResponseException arm is
-        // equally representative of "userinfo failed → fall back to default name".
         val client = mock(PaypalHttpClient::class.java)
         `when`(client.obtainAccessToken(anyArg(), anyArg(), anyArg()))
             .thenReturn(TokenResponse(accessToken = "tok"))
@@ -174,7 +165,6 @@ class PaypalProviderModuleTest {
 
     @Test
     fun `importSince returns empty page with nextCursor when configured start is in the future`() {
-        // start > end (now - safety margin) — the loop short-circuits without calling fetchTransactions.
         val futureStart = Instant.now().plusSeconds(86_400).toString().substring(0, 10)
         val client = mock(PaypalHttpClient::class.java)
         `when`(client.obtainAccessToken(anyArg(), anyArg(), anyArg()))
@@ -202,9 +192,6 @@ class PaypalProviderModuleTest {
         val client = mock(PaypalHttpClient::class.java)
         `when`(client.obtainAccessToken(anyArg(), anyArg(), anyArg()))
             .thenReturn(TokenResponse(accessToken = "tok"))
-        // The orchestrator pages through one chunk: page 1 returns totalPages=2 so the loop calls
-        // page 2 next. Using thenReturn(first, second) keeps the test agnostic of how Mockito
-        // resolves int-eq matchers — we just verify the in-order responses are honored.
         `when`(client.fetchTransactions(anyArg(), anyArg(), anyArg(), anyArg(), anyIntArg())).thenReturn(
             TransactionsResponse(
                 transactionDetails = listOf(

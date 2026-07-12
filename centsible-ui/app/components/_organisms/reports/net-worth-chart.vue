@@ -2,6 +2,7 @@
 import type {NetWorthPoint} from "~/models/reports/net-worth-point";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceLineChart from "~/components/_molecules/charts/balance-line-chart.vue";
+import {useChartTheme} from "~/composables/use-chart-theme";
 
 const props = defineProps<{
   points: NetWorthPoint[],
@@ -13,6 +14,9 @@ const emit = defineEmits<{
 }>();
 
 const {t} = useI18n();
+const {primaryColor, withAlpha} = useChartTheme(() => props.currency);
+const lineColor = computed(() => primaryColor.value);
+const lineFillColor = computed(() => withAlpha(primaryColor.value, 0.12));
 </script>
 
 <template>
@@ -30,8 +34,8 @@ const {t} = useI18n();
       :currency="currency"
       :legend-label="t('reports.netWorth.legend')"
       :points="props.points"
-      color="#ee387e"
-      fill-color="rgba(238, 56, 126, 0.12)"
+      :color="lineColor"
+      :fill-color="lineFillColor"
       height-class="h-72"
       @point-click="(d: string) => emit('point-click', d)"
     />

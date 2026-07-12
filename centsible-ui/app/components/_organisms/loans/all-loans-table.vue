@@ -13,6 +13,8 @@ defineProps<{
 
 const emit = defineEmits<{
   repay: [loan: Loan];
+  repayments: [loan: Loan];
+  edit: [loan: Loan];
   delete: [loan: Loan];
   openContact: [loan: Loan];
 }>();
@@ -62,6 +64,17 @@ const columns = computed<TableColumn<Loan>[]>(() => [
           icon: 'i-lucide-hand-helping',
           disabled: Number(row.original.outstanding) <= 0,
           onSelect: () => emit('repay', row.original),
+        },
+        {
+          label: t('contacts.loans.repayments.viewAction'),
+          icon: 'i-lucide-history',
+          disabled: Number(row.original.totalRepaid) <= 0,
+          onSelect: () => emit('repayments', row.original),
+        },
+        {
+          label: t('contacts.loans.table.editLoan'),
+          icon: 'i-lucide-pencil',
+          onSelect: () => emit('edit', row.original),
         },
         {
           label: t('contacts.loans.table.deleteLoan'),

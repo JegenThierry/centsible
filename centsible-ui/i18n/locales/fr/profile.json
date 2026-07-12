@@ -1,8 +1,99 @@
 {
   "profile": {
     "page": {
-      "title": "Profil",
-      "description": "Gérez les paramètres de votre compte et vos informations personnelles"
+      "title": "Paramètres",
+      "description": "Gérez votre compte, la sécurité, les notifications et l'apparence."
+    },
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "notifications": "Notifications",
+      "appearance": "Apparence"
+    },
+    "currency": {
+      "title": "Devise par défaut",
+      "description": "Utilisée par défaut lors de la création de nouveaux comptes et pour les totaux récapitulatifs entre comptes. Les comptes existants conservent leur propre devise.",
+      "toasts": {
+        "savedTitle": "Devise par défaut mise à jour",
+        "savedBody": "Les nouveaux comptes et les totaux utiliseront cette devise.",
+        "errorTitle": "Impossible de mettre à jour la devise",
+        "errorBody": "Veuillez réessayer."
+      }
+    },
+    "password": {
+      "title": "Mot de passe",
+      "description": "Modifiez le mot de passe que vous utilisez pour vous connecter.",
+      "currentLabel": "Mot de passe actuel",
+      "currentPlaceholder": "Saisissez votre mot de passe actuel",
+      "newLabel": "Nouveau mot de passe",
+      "newPlaceholder": "Saisissez un nouveau mot de passe",
+      "newHint": "Au moins 8 caractères avec majuscules et minuscules, un chiffre et un caractère parmi {'@'}$!%*?&.",
+      "confirmLabel": "Confirmer le nouveau mot de passe",
+      "confirmPlaceholder": "Saisissez à nouveau votre nouveau mot de passe",
+      "submit": "Mettre à jour le mot de passe",
+      "validation": {
+        "tooWeak": "Ce mot de passe est trop faible. Utilisez au moins 8 caractères avec majuscules, minuscules, un chiffre et un symbole.",
+        "mustDiffer": "Votre nouveau mot de passe doit être différent de l'actuel.",
+        "mustMatch": "Les deux mots de passe ne correspondent pas."
+      },
+      "toasts": {
+        "successTitle": "Mot de passe mis à jour",
+        "successBody": "Utilisez votre nouveau mot de passe lors de votre prochaine connexion. Vos autres appareils ont été déconnectés.",
+        "currentIncorrectTitle": "Mot de passe actuel incorrect",
+        "currentIncorrectBody": "Le mot de passe actuel saisi est erroné. Veuillez réessayer.",
+        "errorTitle": "Impossible de mettre à jour le mot de passe",
+        "errorBody": "Une erreur s'est produite. Veuillez réessayer plus tard."
+      }
+    },
+    "sessions": {
+      "title": "Sessions actives",
+      "description": "Déconnectez tous les autres appareils où vous êtes actuellement connecté. Celui-ci reste connecté.",
+      "signOutEverywhere": "Déconnecter les autres appareils",
+      "confirm": {
+        "title": "Déconnecter les autres appareils ?",
+        "body": "Tous les autres appareils connectés à votre compte seront déconnectés. Vous resterez connecté ici."
+      },
+      "toasts": {
+        "successTitle": "Autres appareils déconnectés",
+        "successBody": "Toutes vos autres sessions ont été fermées.",
+        "errorTitle": "Impossible de déconnecter les autres appareils",
+        "errorBody": "Une erreur est survenue. Veuillez réessayer plus tard."
+      }
+    },
+    "dangerZone": {
+      "title": "Zone de danger",
+      "description": "Actions irréversibles qui affectent l'ensemble de votre compte.",
+      "delete": {
+        "title": "Supprimer le compte",
+        "description": "Supprimez définitivement votre compte et toutes les données associées, y compris les comptes, transactions, prêts et exports.",
+        "warning": "Cette action est définitive et irréversible. Toutes vos données seront supprimées immédiatement.",
+        "button": "Supprimer mon compte",
+        "confirmTitle": "Supprimer votre compte ?",
+        "confirmBody": "Cela supprimera définitivement votre compte et toutes ses données. Cette action est irréversible.",
+        "passwordLabel": "Confirmez votre mot de passe",
+        "passwordPlaceholder": "Saisissez votre mot de passe pour confirmer",
+        "passwordHint": "Saisissez à nouveau votre mot de passe pour confirmer la suppression de votre compte.",
+        "totpLabel": "Code à deux facteurs",
+        "totpHint": "Saisissez un code actuel de votre application d'authentification ou un code de récupération.",
+        "confirmTextLabel": "Saisissez votre nom d'utilisateur pour confirmer",
+        "confirmTextHint": "Saisissez {username} ci-dessous pour activer la suppression.",
+        "confirmButton": "Supprimer définitivement",
+        "toasts": {
+          "successTitle": "Compte supprimé",
+          "successBody": "Votre compte et toutes ses données ont été supprimés.",
+          "passwordIncorrectTitle": "Échec de la vérification",
+          "passwordIncorrectBody": "Nous n'avons pas pu vérifier votre mot de passe ou votre code. Votre compte n'a pas été supprimé.",
+          "errorTitle": "Impossible de supprimer le compte",
+          "errorBody": "Une erreur s'est produite. Votre compte n'a pas été supprimé. Veuillez réessayer."
+        }
+      }
+    },
+    "dataExport": {
+      "title": "Exporter vos données",
+      "description": "Téléchargez vos transactions et les données de vos comptes. Les exports volumineux sont préparés en arrière-plan.",
+      "defaultTitle": "Export de données {date}",
+      "trigger": "Exporter les données",
+      "viewAll": "Voir mes documents"
     },
     "avatar": {
       "alt": "Photo de profil",
@@ -63,6 +154,59 @@
         "savedBody": "Vos préférences s'appliqueront aux prochaines alertes.",
         "errorTitle": "Impossible d'enregistrer les paramètres.",
         "errorBody": "Veuillez réessayer."
+      }
+    },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs",
+      "description": "Ajoutez une seconde étape à la connexion avec une application d'authentification (TOTP).",
+      "enable": "Activer l'authentification à deux facteurs",
+      "status": {
+        "offTitle": "L'authentification à deux facteurs est désactivée",
+        "offDescription": "Protégez votre compte en exigeant un code à usage unique lors de la connexion.",
+        "onTitle": "L'authentification à deux facteurs est activée",
+        "onDescription": "Un code de votre application d'authentification est requis à chaque connexion."
+      },
+      "enroll": {
+        "scanInstruction": "Scannez ce QR code avec votre application d'authentification (par ex. Google Authenticator, Aegis, 1Password).",
+        "manualInstruction": "Impossible de scanner ? Saisissez ce secret manuellement :",
+        "codeLabel": "Code de vérification",
+        "codeHint": "Saisissez le code à 6 chiffres affiché dans votre application",
+        "verify": "Vérifier et activer"
+      },
+      "disable": {
+        "codeLabel": "Code de vérification",
+        "codeHint": "Saisissez un code actuel ou un code de récupération pour désactiver la 2FA",
+        "submit": "Désactiver l'authentification à deux facteurs"
+      },
+      "recovery": {
+        "title": "Enregistrez vos codes de récupération",
+        "description": "Conservez-les en lieu sûr. Chaque code fonctionne une seule fois et vous permet de vous connecter si vous perdez votre application. Ils ne seront plus affichés.",
+        "copy": "Copier les codes",
+        "done": "Je les ai enregistrés",
+        "copiedTitle": "Codes de récupération copiés",
+        "copiedBody": "Ils sont dans votre presse-papiers — conservez-les en lieu sûr.",
+        "download": "Télécharger .txt",
+        "savedConfirm": "J'ai enregistré ces codes de récupération en lieu sûr",
+        "regenerate": "Régénérer",
+        "regenerateTitle": "Régénérer les codes de récupération",
+        "regenerateDescription": "Cela remplace tous vos codes de récupération existants. Saisissez un code actuel de votre application (ou un code de récupération inutilisé) pour continuer.",
+        "regenerateSubmit": "Régénérer les codes",
+        "regeneratedTitle": "Codes de récupération régénérés",
+        "regeneratedBody": "Vos anciens codes ne fonctionnent plus. Enregistrez les nouveaux.",
+        "remainingTitle": "Codes de récupération",
+        "remainingCount": "{count} code inutilisé restant | {count} codes inutilisés restants",
+        "copyFailedTitle": "Copie impossible",
+        "copyFailedBody": "Copiez les codes manuellement — ils sont affichés ci-dessus."
+      },
+      "toasts": {
+        "enrollErrorTitle": "Impossible de démarrer l'enrôlement",
+        "enrollErrorBody": "Veuillez réessayer dans un instant.",
+        "enabledTitle": "Authentification à deux facteurs activée",
+        "enabledBody": "Un code vous sera demandé lors de votre prochaine connexion.",
+        "invalidCodeTitle": "Code invalide",
+        "invalidCodeBody": "Ce code est incorrect ou a expiré. Veuillez réessayer.",
+        "disabledTitle": "Authentification à deux facteurs désactivée",
+        "disabledBody": "Votre compte ne nécessite plus de code à usage unique."
       }
     },
     "theme": {

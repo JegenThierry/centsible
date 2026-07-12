@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.repository.IContactsRepository
 import beer.thierry.jooq.generated.tables.references.CONTACTS
 import beer.thierry.jooq.generated.tables.references.CONTACT_BALANCES
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.Record
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -16,20 +17,23 @@ import java.util.UUID
 @Repository
 class ContactsRepository(private val dsl: DSLContext) : IContactsRepository {
 
+    /** CONTACTS + left-joined CONTACT_BALANCES columns read by [mapToDTO]; shared by both reads. */
+    private val contactProjection: Array<Field<*>> = arrayOf(
+        CONTACTS.ID,
+        CONTACTS.FIRST_NAME,
+        CONTACTS.LAST_NAME,
+        CONTACTS.PICTURE,
+        CONTACTS.CREATED_AT,
+        CONTACT_BALANCES.TOTAL_LENT,
+        CONTACT_BALANCES.TOTAL_OWED,
+        CONTACT_BALANCES.TOTAL_REPAID,
+        CONTACT_BALANCES.OUTSTANDING,
+        CONTACT_BALANCES.OPEN_LOAN_COUNT,
+        CONTACT_BALANCES.LAST_ACTIVITY_AT,
+    )
+
     override fun fetchAllContacts(authenticatedUser: UserDTO): List<ContactDTO> {
-        return dsl.select(
-            CONTACTS.ID,
-            CONTACTS.FIRST_NAME,
-            CONTACTS.LAST_NAME,
-            CONTACTS.PICTURE,
-            CONTACTS.CREATED_AT,
-            CONTACT_BALANCES.TOTAL_LENT,
-            CONTACT_BALANCES.TOTAL_OWED,
-            CONTACT_BALANCES.TOTAL_REPAID,
-            CONTACT_BALANCES.OUTSTANDING,
-            CONTACT_BALANCES.OPEN_LOAN_COUNT,
-            CONTACT_BALANCES.LAST_ACTIVITY_AT,
-        )
+        return dsl.select(*contactProjection)
             .from(CONTACTS)
             .leftJoin(CONTACT_BALANCES).on(CONTACT_BALANCES.CONTACT_ID.eq(CONTACTS.ID))
             .where(CONTACTS.USER_ID.eq(authenticatedUser.id))
@@ -38,19 +42,7 @@ class ContactsRepository(private val dsl: DSLContext) : IContactsRepository {
     }
 
     override fun fetchContactById(authenticatedUser: UserDTO, id: UUID): ContactDTO? {
-        return dsl.select(
-            CONTACTS.ID,
-            CONTACTS.FIRST_NAME,
-            CONTACTS.LAST_NAME,
-            CONTACTS.PICTURE,
-            CONTACTS.CREATED_AT,
-            CONTACT_BALANCES.TOTAL_LENT,
-            CONTACT_BALANCES.TOTAL_OWED,
-            CONTACT_BALANCES.TOTAL_REPAID,
-            CONTACT_BALANCES.OUTSTANDING,
-            CONTACT_BALANCES.OPEN_LOAN_COUNT,
-            CONTACT_BALANCES.LAST_ACTIVITY_AT,
-        )
+        return dsl.select(*contactProjection)
             .from(CONTACTS)
             .leftJoin(CONTACT_BALANCES).on(CONTACT_BALANCES.CONTACT_ID.eq(CONTACTS.ID))
             .where(CONTACTS.USER_ID.eq(authenticatedUser.id).and(CONTACTS.ID.eq(id)))

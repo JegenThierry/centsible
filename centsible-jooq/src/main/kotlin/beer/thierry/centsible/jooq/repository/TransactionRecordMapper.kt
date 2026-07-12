@@ -31,6 +31,7 @@ internal object TransactionRecordMapper {
         TRANSACTIONS.ORIGINAL_CURRENCY,
         TRANSACTIONS.EXCHANGE_RATE,
         TRANSACTIONS.RATE_DATE,
+        TRANSACTIONS.TRANSFER_GROUP_ID,
         CATEGORIES.ID,
         CATEGORIES.NAME,
         CATEGORIES.ICON,
@@ -52,6 +53,7 @@ internal object TransactionRecordMapper {
         originalCurrency = record[TRANSACTIONS.ORIGINAL_CURRENCY]?.let { Currency.valueOf(it) },
         exchangeRate = record[TRANSACTIONS.EXCHANGE_RATE],
         rateDate = record[TRANSACTIONS.RATE_DATE],
+        transferGroupId = record[TRANSACTIONS.TRANSFER_GROUP_ID],
     )
 
     fun mapTransactionOrNull(record: Record): TransactionDTO? =

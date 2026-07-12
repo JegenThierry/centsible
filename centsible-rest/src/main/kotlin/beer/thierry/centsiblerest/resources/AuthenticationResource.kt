@@ -3,12 +3,19 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
+import beer.thierry.centsible.api.model.auth.LoginResponse
+import beer.thierry.centsible.api.model.auth.LoginResult
+import beer.thierry.centsible.api.model.auth.PasswordChangeRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetConfirmRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetRequest
+import beer.thierry.centsible.api.model.auth.TotpChallengeRequest
+import beer.thierry.centsible.api.model.user.AccountDeletionRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.authentication.IAuthService
 import beer.thierry.centsible.api.services.users.IUserService
 import beer.thierry.centsiblerest.security.AuthCookieIssuer
+import beer.thierry.centsiblerest.security.PRE_AUTH_COOKIE_NAME
+import beer.thierry.centsiblerest.security.PreAuthCookieIssuer
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -23,19 +30,51 @@ class AuthenticationResource(
     private val authService: IAuthService,
     private val userService: IUserService,
     private val authCookieIssuer: AuthCookieIssuer,
+    private val preAuthCookieIssuer: PreAuthCookieIssuer,
 ) {
     private val log = LoggerFactory.getLogger(AuthenticationResource::class.java)
 
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: AuthRequest, response: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val authResult = try {
+    fun login(@Valid @RequestBody request: AuthRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
+        val result = try {
             authService.authenticate(request)
         } catch (ex: RuntimeException) {
             log.warn("Login failed for username={}", request.username)
             throw ex
         }
+        return when (result) {
+            is LoginResult.Authenticated -> {
+                authCookieIssuer.issue(response, result.token)
+                log.info("Login succeeded for username={}", request.username)
+                ResponseEntity.ok(LoginResponse(twoFactorRequired = false, token = result.token))
+            }
+            is LoginResult.TwoFactorRequired -> {
+                preAuthCookieIssuer.issue(response, result.pendingToken)
+                log.info("Login step 1 ok for username={}; 2FA challenge required", request.username)
+                ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginResponse(twoFactorRequired = true))
+            }
+        }
+    }
+
+    @PostMapping("/2fa/challenge")
+    fun twoFactorChallenge(
+        @Valid @RequestBody request: TotpChallengeRequest,
+        @CookieValue(name = PRE_AUTH_COOKIE_NAME, required = false) pendingToken: String?,
+        response: HttpServletResponse,
+    ): ResponseEntity<AuthResponse> {
+        if (pendingToken.isNullOrBlank()) {
+            log.warn("2FA challenge rejected: missing pre-auth cookie")
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+        val authResult = try {
+            authService.completeTwoFactorChallenge(pendingToken, request.code)
+        } catch (ex: RuntimeException) {
+            preAuthCookieIssuer.clear(response)
+            throw ex
+        }
+        preAuthCookieIssuer.clear(response)
         authCookieIssuer.issue(response, authResult.token)
-        log.info("Login succeeded for username={}", request.username)
+        log.info("2FA challenge succeeded; session issued")
         return ResponseEntity.ok(authResult)
     }
 
@@ -50,7 +89,6 @@ class AuthenticationResource(
             log.warn("Registration failed for username={}", form.username)
             throw ex
         }
-        // Token is blank when registration is pending email confirmation; skip cookie in that case.
         if (authResult.token.isNotBlank()) authCookieIssuer.issue(response, authResult.token)
         log.info(
             "Registration accepted for username={} pendingConfirmation={}",
@@ -79,7 +117,6 @@ class AuthenticationResource(
         return ResponseEntity.noContent().build()
     }
 
-    // Always 204 regardless of whether the username exists — prevents account enumeration.
     @PostMapping("/forgot-password")
     fun forgotPassword(@Valid @RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
         authService.requestPasswordReset(request.username)
@@ -99,13 +136,46 @@ class AuthenticationResource(
         else ResponseEntity.badRequest().build()
     }
 
+    @PostMapping("/change-password")
+    fun changePassword(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: PasswordChangeRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<Void> {
+        val token = authService.changePassword(user.id, request.currentPassword, request.newPassword)
+        authCookieIssuer.issue(response, token)
+        log.info("Password changed and other sessions revoked userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/sign-out-everywhere")
+    fun signOutEverywhere(
+        @AuthenticationPrincipal user: UserDTO,
+        response: HttpServletResponse,
+    ): ResponseEntity<Void> {
+        val token = authService.signOutOtherSessions(user.id)
+        authCookieIssuer.issue(response, token)
+        log.info("Signed out all other sessions userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/account/delete")
+    fun deleteAccount(
+        @AuthenticationPrincipal user: UserDTO,
+        @Valid @RequestBody request: AccountDeletionRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<Void> {
+        authService.deleteAccount(user.id, request.password, request.totpCode)
+        authCookieIssuer.clear(response)
+        log.info("Account deleted and session cleared userId={}", user.id)
+        return ResponseEntity.noContent().build()
+    }
+
     @GetMapping("/verify")
     fun verify(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
         response: HttpServletResponse,
     ): ResponseEntity<String> {
-        // The JWT filter rebuilds the principal from claims alone, so a valid token can
-        // outlive the user. Reject — and clear the cookie — when that happens.
         if (userService.userExists(authenticatedUser.id)) return ResponseEntity.ok("ok")
         authCookieIssuer.clear(response)
         log.warn("Verify failed: account no longer exists userId={}", authenticatedUser.id)

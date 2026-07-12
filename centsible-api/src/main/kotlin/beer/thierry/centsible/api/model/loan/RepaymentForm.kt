@@ -12,6 +12,7 @@ import java.util.UUID
 data class RepaymentForm(
     var accountId: UUID? = null,
 
+    /** When true the repayment creates a transaction on [accountId]; when false it is tracking-only. */
     var affectBalance: Boolean = true,
 
     @field:NotNull(message = "{validation.amount.required}")

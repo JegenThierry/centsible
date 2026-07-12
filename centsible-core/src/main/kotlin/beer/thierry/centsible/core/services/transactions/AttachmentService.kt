@@ -33,7 +33,6 @@ class AttachmentService(
     }
 
     override fun list(user: UserDTO, transactionId: UUID): List<AttachmentDTO> {
-        // Ownership gate — throws if the transaction isn't owned by the user.
         transactions.fetchTransactionById(transactionId, user)
         return attachments.listForTransaction(user, transactionId)
     }

@@ -68,21 +68,33 @@ onMounted(async () => {
       </template>
     </PageHeader>
 
-    <ChartCardSkeleton v-if="reportsStore.pending"/>
-    <NetWorthChart v-else
-                   :currency="displayCurrency"
-                   :points="reportsStore.netWorth"
-                   @point-click="onNetWorthPointClick"/>
+    <template v-if="reportsStore.pending">
+      <ChartCardSkeleton/>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ChartCardSkeleton/>
+        <ChartCardSkeleton/>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ChartCardSkeleton/>
+        <ChartCardSkeleton/>
+      </div>
+    </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <CashFlowChart :currency="displayCurrency" :points="reportsStore.cashFlow"/>
-      <CategorySpendingChart :currency="displayCurrency" :series="reportsStore.categorySpending"/>
-    </div>
+    <template v-else>
+      <NetWorthChart :currency="displayCurrency"
+                     :points="reportsStore.netWorth"
+                     @point-click="onNetWorthPointClick"/>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <YearOverYearCard :currency="displayCurrency" :data="reportsStore.yearOverYear"/>
-      <BudgetVsActualCard :currency="displayCurrency" :periods="reportsStore.budgetVsActual"/>
-    </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <CashFlowChart :currency="displayCurrency" :points="reportsStore.cashFlow"/>
+        <CategorySpendingChart :currency="displayCurrency" :series="reportsStore.categorySpending"/>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <YearOverYearCard :currency="displayCurrency" :data="reportsStore.yearOverYear"/>
+        <BudgetVsActualCard :currency="displayCurrency" :periods="reportsStore.budgetVsActual"/>
+      </div>
+    </template>
 
     <NetWorthBreakdownSlideover v-model:open="breakdownOpen" :date="breakdownDate"/>
   </UContainer>

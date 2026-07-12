@@ -79,3 +79,22 @@ export interface ParserSummary {
   requiresMapping: boolean;
   extensions: string[];
 }
+
+export interface ImportMappingTemplate {
+  id: string;
+  name: string;
+  sourceProfileId: string | null;
+  sourceProfileVersion: number | null;
+  mapping: CsvColumnMapping;
+  dialect: CsvDialect;
+  createdAt: string | null;
+  modifiedAt: string | null;
+}
+
+export interface ImportMappingTemplateForm {
+  name: string;
+  sourceProfileId?: string | null;
+  sourceProfileVersion?: number | null;
+  mapping: CsvColumnMapping;
+  dialect: CsvDialect;
+}

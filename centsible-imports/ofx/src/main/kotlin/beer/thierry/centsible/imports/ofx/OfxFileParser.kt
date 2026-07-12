@@ -5,6 +5,9 @@ import beer.thierry.centsible.imports.core.FileFormatParser
 import beer.thierry.centsible.imports.core.ParseHints
 import beer.thierry.centsible.imports.core.ParseWarning
 import beer.thierry.centsible.imports.core.ParsedFile
+import beer.thierry.centsible.imports.core.importRow
+import beer.thierry.centsible.imports.core.logWarningSummary
+import beer.thierry.centsible.imports.core.requireDefaultCategoryId
 import com.webcohesion.ofx4j.OFXException
 import com.webcohesion.ofx4j.domain.data.ResponseEnvelope
 import com.webcohesion.ofx4j.domain.data.banking.BankingResponseMessageSet
@@ -49,9 +52,7 @@ class OfxFileParser : FileFormatParser {
     override fun parse(bytes: ByteArray, hints: ParseHints): ParsedFile {
         log.debug("Parsing OFX file bytes={}", bytes.size)
         try {
-            val defaultCategoryId = requireNotNull(hints.defaultCategoryId) {
-                "OfxFileParser requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
-            }
+            val defaultCategoryId = requireDefaultCategoryId(hints, "OfxFileParser")
 
             val envelope = try {
                 AggregateUnmarshaller(ResponseEnvelope::class.java).unmarshal(ByteArrayInputStream(bytes))
@@ -94,23 +95,12 @@ class OfxFileParser : FileFormatParser {
                 }
             }
 
-            logWarningSummary(warnings)
+            logWarningSummary("OFX", warnings, log)
             log.info("Parsed file format=ofx rows={} warnings={}", rows.size, warnings.size)
             return ParsedFile(rows = rows, warnings = warnings, detectedCurrency = detectedCurrency?.uppercase())
         } catch (ex: Exception) {
             log.error("Failed to parse OFX file bytes={}", bytes.size, ex)
             throw ex
-        }
-    }
-
-    /**
-     * Logged once per distinct warning code as a summary — OFX statements can produce 10k+
-     * per-row warnings on malformed files; per-row WARN would drown out other signal.
-     */
-    private fun logWarningSummary(warnings: List<ParseWarning>) {
-        if (warnings.isEmpty()) return
-        warnings.groupingBy { it.code }.eachCount().forEach { (code, count) ->
-            log.warn("OFX parse warning code={} count={}", code, count)
         }
     }
 
@@ -136,13 +126,7 @@ class OfxFileParser : FileFormatParser {
         val payee = tx.payee?.name?.takeIf { it.isNotBlank() }
         val description = listOfNotNull(name, payee, memo).firstOrNull()?.take(255) ?: "(no description)"
 
-        return ImportTransactionRow(
-            amount = amount.abs(),
-            categoryId = defaultCategoryId,
-            description = description,
-            transactionDate = date,
-            type = null,
-        )
+        return importRow(amount, description, date, defaultCategoryId)
     }
 
     private data class StatementBlock(

@@ -10,6 +10,7 @@ data class BudgetAccountDTO(
     var balance: BigDecimal = BigDecimal.ZERO,
     var initialBalance: BigDecimal = BigDecimal.ZERO,
     var currency: Currency = Currency.EUR,
+    var type: AccountType = AccountType.CHECKING,
 )
 
 data class BudgetAccountSnapshotDTO(
