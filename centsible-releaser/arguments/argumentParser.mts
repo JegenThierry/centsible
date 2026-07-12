@@ -1,7 +1,6 @@
 export interface Arguments {
   version: string;
   isDryRun: boolean;
-  isPush: boolean;
 }
 
 export function useArgumentParser(args: string[]): Arguments {
@@ -12,7 +11,7 @@ export function useArgumentParser(args: string[]): Arguments {
   function getVersion(): string {
     const version = positional[0];
     if (!version) {
-      console.error(`Version was not provided aborting`);
+      console.error("Version was not provided, aborting.");
       process.exit(1);
     }
 
@@ -23,21 +22,11 @@ export function useArgumentParser(args: string[]): Arguments {
       process.exit(1);
     }
 
-    console.log(`Releasing version ${version}`);
     return version;
-  }
-
-  function isDryRun(): boolean {
-    return flags.includes("--dry-run");
-  }
-
-  function isPush(): boolean {
-    return flags.includes("--push");
   }
 
   return {
     version: getVersion(),
-    isDryRun: isDryRun(),
-    isPush: isPush(),
+    isDryRun: flags.includes("--dry-run"),
   };
 }
