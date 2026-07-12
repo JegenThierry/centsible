@@ -21,19 +21,19 @@ const {t} = useI18n();
 
 <template>
   <UCard
-    class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+    class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all h-full"
     @click="$emit('click')"
   >
     <template #header>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <CurrencyBadge :currency="account.currency"/>
-          <span class="font-semibold text-base sm:text-lg">{{ account.name }}</span>
-          <UBadge v-if="account.type" color="neutral" variant="subtle">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <CurrencyBadge class="shrink-0" :currency="account.currency"/>
+          <span class="font-semibold text-base sm:text-lg truncate min-w-0" :title="account.name">{{ account.name }}</span>
+          <UBadge v-if="account.type" class="shrink-0 whitespace-nowrap" color="neutral" variant="subtle">
             {{ t(`accounts.types.${account.type}`) }}
           </UBadge>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 shrink-0">
           <EditDeleteActions
             :edit-aria-label="t('accounts.actions.editAria', {name: account.name})"
             :delete-aria-label="t('accounts.actions.deleteAria', {name: account.name})"
