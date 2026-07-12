@@ -1,9 +1,11 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.model.budgetaccount.AccountType
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.centsible.api.model.budgetaccount.CreateBudgetAccountRequest
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.budgetaccount.UpdateBudgetAccountRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountHistoryRepository
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
@@ -50,6 +52,32 @@ class BudgetAccountServiceTest {
 
         assertEquals(account, result)
         verify(accountRepository).createAccount(user, request)
+    }
+
+    @Test
+    fun `updateAccount should update editable fields and return updated account`() {
+        val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User", "Name", "User Name", null)
+        val accountId = UUID.randomUUID()
+        val request = UpdateBudgetAccountRequest("Renamed", AccountType.SAVINGS)
+        val updated =
+            BudgetAccountDTO(accountId, "Renamed", BigDecimal("100.00"), BigDecimal("100.00"), Currency.EUR, AccountType.SAVINGS)
+
+        `when`(accountRepository.updateAccount(accountId, request, user)).thenReturn(updated)
+
+        val result = service.updateAccount(accountId.toString(), request, user)
+
+        assertEquals(updated, result)
+        verify(accountRepository).updateAccount(accountId, request, user)
+    }
+
+    @Test
+    fun `deleteAccount should delegate to repository`() {
+        val user = UserDTO(UUID.randomUUID(), "user", "user@example.com", "User", "Name", "User Name", null)
+        val accountId = UUID.randomUUID()
+
+        service.deleteAccount(accountId.toString(), user)
+
+        verify(accountRepository).deleteAccount(accountId, user)
     }
 
     @Test

@@ -1,4 +1,6 @@
-import {saveAs} from 'file-saver';
+import fileSaver from 'file-saver';
+
+const {saveAs} = fileSaver;
 
 const BLOB_PREVIEW_REVOKE_DELAY_MS = 5 * 60_000;
 

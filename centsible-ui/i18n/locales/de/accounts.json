@@ -41,6 +41,10 @@
       "MORTGAGE": "Hypothek",
       "OTHER": "Sonstiges"
     },
+    "actions": {
+      "editAria": "{name} bearbeiten",
+      "deleteAria": "{name} löschen"
+    },
     "modals": {
       "create": {
         "fieldTypeLabel": "Kontotyp",
@@ -60,6 +64,28 @@
         "toastSuccessBody": "Ihr Konto: {name} wurde erstellt",
         "toastErrorTitle": "Budgetkonto nicht erstellt.",
         "toastErrorBody": "Das Konto konnte nicht erstellt werden, bitte versuchen Sie es erneut."
+      },
+      "edit": {
+        "title": "Konto bearbeiten",
+        "description": "Aktualisieren Sie Namen und Typ Ihres Kontos.",
+        "fieldNameLabel": "Kontoname",
+        "fieldNamePlaceholder": "Kontoname",
+        "fieldTypeLabel": "Kontotyp",
+        "fieldTypePlaceholder": "Typ auswählen",
+        "fieldCurrencyLabel": "Währung",
+        "currencyLocked": "Die Währung kann nach der Erstellung eines Kontos nicht mehr geändert werden.",
+        "submit": "Änderungen speichern",
+        "validationErrorTitle": "Validierungsfehler",
+        "validationErrorBody": "Bitte korrigieren Sie die markierten Felder.",
+        "toastSuccessTitle": "Konto aktualisiert",
+        "toastSuccessBody": "Ihr Konto: {name} wurde aktualisiert",
+        "toastErrorTitle": "Konto nicht aktualisiert",
+        "toastErrorBody": "Das Konto konnte nicht aktualisiert werden, bitte versuchen Sie es erneut."
+      },
+      "delete": {
+        "title": "Konto löschen",
+        "body": "„{name}“ löschen? Alle Transaktionen und wiederkehrenden Einträge dieses Kontos werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.",
+        "submit": "Konto löschen"
       }
     },
     "dashboard": {

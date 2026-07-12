@@ -41,6 +41,10 @@
       "MORTGAGE": "Mortgage",
       "OTHER": "Other"
     },
+    "actions": {
+      "editAria": "Edit {name}",
+      "deleteAria": "Delete {name}"
+    },
     "modals": {
       "create": {
         "fieldTypeLabel": "Account type",
@@ -60,6 +64,28 @@
         "toastSuccessBody": "Your account: {name} has been created",
         "toastErrorTitle": "BudgetAccount not created.",
         "toastErrorBody": "Account could not be created, please try again."
+      },
+      "edit": {
+        "title": "Edit account",
+        "description": "Update your account's name and type.",
+        "fieldNameLabel": "Account name",
+        "fieldNamePlaceholder": "Account name",
+        "fieldTypeLabel": "Account type",
+        "fieldTypePlaceholder": "Select a type",
+        "fieldCurrencyLabel": "Currency",
+        "currencyLocked": "Currency can't be changed after an account is created.",
+        "submit": "Save changes",
+        "validationErrorTitle": "Validation errors",
+        "validationErrorBody": "Please correct the highlighted fields.",
+        "toastSuccessTitle": "Account updated",
+        "toastSuccessBody": "Your account: {name} has been updated",
+        "toastErrorTitle": "Account not updated",
+        "toastErrorBody": "Account could not be updated, please try again."
+      },
+      "delete": {
+        "title": "Delete account",
+        "body": "Delete \"{name}\"? All transactions and recurring entries for this account will be permanently removed. This cannot be undone.",
+        "submit": "Delete account"
       }
     },
     "dashboard": {

@@ -35,9 +35,8 @@ export function useBudgetAccountService(api: AxiosInstance) {
     return validateRequest<BudgetAccount>(response);
   }
 
-  async function deleteAccount(id: string): Promise<BudgetAccount> {
-    const response = await api.delete<BudgetAccount>(`/budget-accounts/${encodeURIComponent(id)}`);
-    return validateRequest<BudgetAccount>(response);
+  async function deleteAccount(id: string): Promise<void> {
+    await api.delete(`/budget-accounts/${encodeURIComponent(id)}`);
   }
 
   return {

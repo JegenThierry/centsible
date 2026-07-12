@@ -3,6 +3,7 @@ import type {BudgetAccount} from '~/models/budget-account/budget-account'
 import CurrencyBadge from "~/components/_molecules/badges/currency-badge.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import BalanceChangeBadge from "~/components/_molecules/badges/balance-change-badge.vue";
+import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
 
 defineProps<{
   account: BudgetAccount
@@ -11,6 +12,8 @@ defineProps<{
 
 defineEmits<{
   (e: 'click'): void
+  (e: 'edit'): void
+  (e: 'delete'): void
 }>()
 
 const {t} = useI18n();
@@ -30,7 +33,15 @@ const {t} = useI18n();
             {{ t(`accounts.types.${account.type}`) }}
           </UBadge>
         </div>
-        <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right"/>
+        <div class="flex items-center gap-1">
+          <EditDeleteActions
+            :edit-aria-label="t('accounts.actions.editAria', {name: account.name})"
+            :delete-aria-label="t('accounts.actions.deleteAria', {name: account.name})"
+            @edit="$emit('edit')"
+            @delete="$emit('delete')"
+          />
+          <UIcon class="w-5 h-5 text-neutral-400" name="i-lucide-chevron-right"/>
+        </div>
       </div>
     </template>
 
