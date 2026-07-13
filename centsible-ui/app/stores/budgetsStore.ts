@@ -9,6 +9,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const history = ref<{month: string; budgets: Budget[]}[]>([]);
   const loading = ref(false);
   const error = ref(false);
+  const historyError = ref(false);
 
   async function fetchCurrentMonth() {
     loading.value = true;
@@ -40,6 +41,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
 
   async function fetchHistory(months: string[]) {
     loading.value = true;
+    historyError.value = false;
     try {
       history.value = await Promise.all(
         months.map(async (m) => ({month: m, budgets: await service.fetchAll(m)})),
@@ -47,10 +49,11 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     } catch (e) {
       adze.ns('budgets').error('Failed to fetch budget history', e);
       history.value = [];
+      historyError.value = true;
     } finally {
       loading.value = false;
     }
   }
 
-  return {items, history, loading, error, fetchCurrentMonth, fetchForMonth, fetchHistory};
+  return {items, history, loading, error, historyError, fetchCurrentMonth, fetchForMonth, fetchHistory};
 });

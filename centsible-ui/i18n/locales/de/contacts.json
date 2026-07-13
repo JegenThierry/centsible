@@ -20,7 +20,8 @@
       "loanCount": "{count} Verleih | {count} Verleihungen",
       "outstanding": "Offen",
       "editAria": "Kontakt bearbeiten",
-      "deleteAria": "Kontakt löschen"
+      "deleteAria": "Kontakt löschen",
+      "openAria": "Kontakt {name} öffnen"
     },
     "detail": {
       "back": "Zurück zu den Kontakten",

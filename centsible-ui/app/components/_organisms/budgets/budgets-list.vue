@@ -152,6 +152,20 @@ onMounted(() => refresh());
     <section v-if="showHistory" class="space-y-4 pt-4 border-t border-default">
       <h2 class="text-base font-semibold text-highlighted">{{ t('budgets.list.historyHeading') }}</h2>
 
+      <AppEmptyState v-if="store.historyError"
+                     icon="i-lucide-triangle-alert"
+                     :title="t('common.states.error')">
+        <template #actions>
+          <AppButton class="w-full sm:w-auto justify-center"
+                     color="neutral"
+                     variant="soft"
+                     icon="i-lucide-refresh-cw"
+                     @click="store.fetchHistory(historyMonths)">
+            {{ t('common.actions.retry') }}
+          </AppButton>
+        </template>
+      </AppEmptyState>
+
       <div v-for="period in store.history" :key="period.month" class="space-y-2">
         <h3 class="text-sm font-medium text-muted capitalize">{{ monthLabel(period.month) }}</h3>
         <div v-if="period.budgets.length === 0" class="text-xs text-muted">

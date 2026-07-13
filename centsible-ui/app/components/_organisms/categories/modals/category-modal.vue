@@ -9,6 +9,7 @@ import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {categorySchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
@@ -46,8 +47,11 @@ function syncForm() {
     : blankForm();
 }
 
-watch(isOpen, (open) => {
-  if (open) syncForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: syncForm,
 });
 watch(() => props.category, () => {
   if (isOpen.value) syncForm();
@@ -72,9 +76,10 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t(isEdit ? 'categories.edit.description' : 'categories.create.description')"
-          :title="t(isEdit ? 'categories.edit.title' : 'categories.create.title')">
+          :title="t(isEdit ? 'categories.edit.title' : 'categories.create.title')"
+          @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
         <AppRadioGroup v-model="form.type"
@@ -104,7 +109,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
       <ModalFooterActions :form="formId"
                           :loading="loading"
                           :submit-label="t(isEdit ? 'categories.edit.submit' : 'categories.create.submit')"
-                          @cancel="isOpen = false"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

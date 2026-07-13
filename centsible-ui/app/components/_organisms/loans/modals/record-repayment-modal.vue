@@ -7,6 +7,7 @@ import type {Loan, RepaymentForm as RepaymentFormModel} from "~/models/loan/loan
 import RepaymentForm from "~/components/_molecules/loans/repayment-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 
 const props = defineProps<{
@@ -65,8 +66,11 @@ function makeBlankForm(): RepaymentFormModel {
   };
 }
 
-watch(isOpen, (open) => {
-  if (open) form.value = makeBlankForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: () => form.value = makeBlankForm(),
 });
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
@@ -86,9 +90,10 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="description"
-          :title="t('contacts.loans.repayment.title')">
+          :title="t('contacts.loans.repayment.title')"
+          @update:open="requestClose">
     <template #body>
       <UForm v-if="loan" :id="formId" :schema="schema" :state="form" @submit="handleSave">
         <RepaymentForm v-model="form" :max-amount="Number(loan.outstanding)" :currency="loan.currency"/>
@@ -99,7 +104,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
       <ModalFooterActions :form="formId"
                           :loading="loading"
                           :submit-label="t('contacts.loans.repayment.submit')"
-                          @cancel="isOpen = false"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

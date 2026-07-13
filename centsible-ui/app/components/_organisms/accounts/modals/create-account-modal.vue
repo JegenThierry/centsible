@@ -9,6 +9,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const emit = defineEmits<{
   (e: 'created'): void;
@@ -31,6 +32,20 @@ const state = reactive<{
   currency: Currency.EUR,
   type: AccountType.CHECKING,
 })
+
+function resetState() {
+  state.name = '';
+  state.initialBalance = undefined;
+  state.currency = Currency.EUR;
+  state.type = AccountType.CHECKING;
+}
+
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => ({...state}),
+  onResetOnOpen: resetState,
+});
 
 const nameLabel = t('accounts.modals.create.fieldNameLabel');
 const balanceLabel = t('accounts.modals.create.fieldBalanceLabel');
@@ -78,23 +93,19 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
     loading.value = false;
   }
 }
-
-function onCloseModal() {
-  isOpen.value = false
-}
 </script>
 
 <template>
   <UModal
-    v-model:open="isOpen"
+    :open="isOpen"
     :close="{
         color: 'primary',
         variant: 'outline',
         class: 'rounded-full',
-        onClick: onCloseModal,
       }"
     :description="t('accounts.modals.create.description')"
     :title="t('accounts.modals.create.title')"
+    @update:open="requestClose"
   >
     <template #body>
       <UForm id="account-form" :schema="schema" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit" @error="onValidationError">
@@ -136,7 +147,7 @@ function onCloseModal() {
       <ModalFooterActions form="account-form"
                           :loading="loading"
                           :submit-label="t('accounts.modals.create.submit')"
-                          @cancel="onCloseModal"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

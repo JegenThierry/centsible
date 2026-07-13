@@ -20,7 +20,8 @@
     },
     "card": {
       "currentBalance": "Current Balance",
-      "last30Days": "Last 30 days"
+      "last30Days": "Last 30 days",
+      "openAria": "Open {name}"
     },
     "breakdown": {
       "title": "Balance by account"

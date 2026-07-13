@@ -21,8 +21,13 @@ const {t} = useI18n();
 
 <template>
   <UCard
-    class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all h-full"
+    role="button"
+    :tabindex="0"
+    :aria-label="t('accounts.card.openAria', {name: account.name})"
+    class="cursor-pointer hover:ring-2 hover:ring-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none transition-all h-full"
     @click="$emit('click')"
+    @keydown.enter.self="$emit('click')"
+    @keydown.space.self.prevent="$emit('click')"
   >
     <template #header>
       <div class="flex items-center justify-between gap-2">

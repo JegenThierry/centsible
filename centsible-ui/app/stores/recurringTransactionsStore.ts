@@ -7,14 +7,17 @@ export const useRecurringTransactionsStore = defineStore('recurringTransactionsS
   const service = useRecurringTransactionService(useApi());
   const items = ref<RecurringTransaction[]>([]);
   const loading = ref(false);
+  const error = ref(false);
 
   async function fetchForAccount(accountId: string) {
     loading.value = true;
+    error.value = false;
     try {
       items.value = await service.fetchAll(accountId);
-    } catch (error) {
-      adze.ns('recurring').error('Failed to fetch recurring transactions', error);
+    } catch (e) {
+      adze.ns('recurring').error('Failed to fetch recurring transactions', e);
       items.value = [];
+      error.value = true;
     } finally {
       loading.value = false;
     }
@@ -22,11 +25,13 @@ export const useRecurringTransactionsStore = defineStore('recurringTransactionsS
 
   function reset() {
     items.value = [];
+    error.value = false;
   }
 
   return {
     items,
     loading,
+    error,
     fetchForAccount,
     reset,
   };

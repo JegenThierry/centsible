@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import adze from 'adze'
 import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import {useApi} from "~/composables/use-api";
 import {useAuthService} from "~/services/auth/auth-service";
 import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import PasswordInput from "~/components/_atoms/inputs/password-input.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
@@ -12,7 +12,7 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const {success, error} = useToasts();
+const {success} = useToasts();
 const {t} = useI18n();
 
 const state = reactive({
@@ -44,8 +44,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
       success(t('auth.login.toastSuccessTitle'), t('auth.login.toastSuccessBody'));
     })
     .catch((err) => {
-      adze.ns('auth').error('Login failed', err);
-      error(t('auth.login.toastErrorTitle'), t('auth.login.toastErrorBody'));
+      useApiErrors().toastError(err, t('auth.login.toastErrorTitle'), t('auth.login.toastErrorGeneric'));
     })
     .finally(() => loading.value = false);
 }

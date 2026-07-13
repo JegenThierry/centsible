@@ -20,7 +20,8 @@
     },
     "card": {
       "currentBalance": "Aktueller Saldo",
-      "last30Days": "Letzte 30 Tage"
+      "last30Days": "Letzte 30 Tage",
+      "openAria": "{name} öffnen"
     },
     "breakdown": {
       "title": "Saldo pro Konto"

@@ -28,12 +28,12 @@ const model = defineModel<string | number>();
 
 <template>
   <UFormField :name="name"
-              :autofocus="autofocus"
               :help="description"
               :hint="hint"
               :label="label"
               :required="required">
     <AppInput v-model="model"
+            :autofocus="autofocus"
             :disabled="disabled"
             :placeholder="placeholder"
             :type="type"
