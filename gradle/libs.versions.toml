@@ -2,7 +2,7 @@
 kotlin = "2.3.10"
 ksp = "2.3.6"
 konvert = "4.5.0"
-springBoot = "4.0.7"
+springBoot = "4.0.6"
 dependencyManagement = "1.1.7"
 jjwt = "0.12.6"
 jooq = "3.19.29"
