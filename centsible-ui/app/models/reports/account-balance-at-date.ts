@@ -5,5 +5,8 @@ export interface AccountBalanceAtDate {
   accountName: string;
   currency: Currency;
   balance: number;
+  /** balance converted into targetCurrency (the user's default); null when no FX rate could be resolved. */
+  convertedBalance: number | null;
+  targetCurrency: Currency;
   date: string;
 }

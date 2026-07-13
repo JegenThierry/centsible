@@ -10,5 +10,8 @@ data class AccountBalanceAtDateDTO(
     val accountName: String,
     val currency: Currency,
     val balance: BigDecimal,
+    /** [balance] converted into [targetCurrency] (the user's default); null when no FX rate could be resolved. */
+    val convertedBalance: BigDecimal?,
+    val targetCurrency: Currency,
     val date: LocalDate,
 )

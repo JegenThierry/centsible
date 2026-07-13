@@ -1,0 +1,49 @@
+{
+  "admin": {
+    "page": {
+      "title": "Administration",
+      "description": "Gérez les comptes de cette instance Centsible."
+    },
+    "users": {
+      "columns": {
+        "user": "Utilisateur",
+        "status": "Statut",
+        "accounts": "Comptes",
+        "transactions": "Transactions",
+        "createdAt": "Inscrit le",
+        "lastSeen": "Dernière visite",
+        "lastTransaction": "Dernière transaction"
+      },
+      "status": {
+        "registered": "Inscrit",
+        "pending": "En attente de confirmation",
+        "twoFactor": "2FA",
+        "you": "Vous",
+        "inactive": "Inactif"
+      },
+      "never": "Jamais",
+      "actions": {
+        "resend": "Renvoyer l'e-mail de vérification",
+        "delete": "Supprimer l'utilisateur"
+      },
+      "delete": {
+        "title": "Supprimer cet utilisateur ?",
+        "body": "Cette action supprime définitivement le compte de {username} et toutes ses données. Elle est irréversible.",
+        "submit": "Supprimer l'utilisateur"
+      },
+      "empty": "Aucun utilisateur trouvé.",
+      "errorTitle": "Impossible de charger les utilisateurs."
+    },
+    "toasts": {
+      "fetchFailedTitle": "Échec du chargement",
+      "fetchFailedBody": "La liste des utilisateurs n'a pas pu être chargée.",
+      "deletedTitle": "Utilisateur supprimé",
+      "deletedBody": "Le compte et toutes ses données ont été supprimés.",
+      "deleteFailedTitle": "Échec de la suppression",
+      "resendTitle": "E-mail envoyé",
+      "resendBody": "Un nouvel e-mail de vérification est en route.",
+      "resendFailedTitle": "Échec de l'envoi",
+      "genericErrorBody": "Une erreur s'est produite. Veuillez réessayer."
+    }
+  }
+}

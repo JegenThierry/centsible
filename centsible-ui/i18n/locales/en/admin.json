@@ -1,0 +1,49 @@
+{
+  "admin": {
+    "page": {
+      "title": "Admin",
+      "description": "Manage the accounts on this Centsible instance."
+    },
+    "users": {
+      "columns": {
+        "user": "User",
+        "status": "Status",
+        "accounts": "Accounts",
+        "transactions": "Transactions",
+        "createdAt": "Joined",
+        "lastSeen": "Last seen",
+        "lastTransaction": "Last transaction"
+      },
+      "status": {
+        "registered": "Registered",
+        "pending": "Pending confirmation",
+        "twoFactor": "2FA",
+        "you": "You",
+        "inactive": "Inactive"
+      },
+      "never": "Never",
+      "actions": {
+        "resend": "Resend verification email",
+        "delete": "Delete user"
+      },
+      "delete": {
+        "title": "Delete this user?",
+        "body": "This permanently deletes the account of {username} and all of their data. This cannot be undone.",
+        "submit": "Delete user"
+      },
+      "empty": "No users found.",
+      "errorTitle": "Could not load users."
+    },
+    "toasts": {
+      "fetchFailedTitle": "Loading failed",
+      "fetchFailedBody": "The user list could not be loaded.",
+      "deletedTitle": "User deleted",
+      "deletedBody": "The account and all of its data were removed.",
+      "deleteFailedTitle": "Deletion failed",
+      "resendTitle": "Email sent",
+      "resendBody": "A new verification email is on its way.",
+      "resendFailedTitle": "Sending failed",
+      "genericErrorBody": "Something went wrong. Please try again."
+    }
+  }
+}

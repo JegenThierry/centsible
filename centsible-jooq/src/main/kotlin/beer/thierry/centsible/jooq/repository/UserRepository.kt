@@ -38,6 +38,9 @@ private fun normaliseCurrency(currency: String?): String =
 
 private val NOTIFICATION_SETTINGS = field("notification_settings", JSONB::class.java)
 
+/** last_seen_at is only rewritten when older than this, so per-request stamping stays cheap. */
+private const val LAST_SEEN_THROTTLE_MINUTES = 15L
+
 private val log = LoggerFactory.getLogger(UserRepository::class.java)
 
 @Repository
@@ -167,6 +170,35 @@ class UserRepository(
 
     override fun deleteUser(id: UUID): Boolean {
         return dsl.deleteFrom(USERS)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun touchLastLogin(id: UUID): Boolean {
+        val now = OffsetDateTime.now()
+        return dsl.update(USERS)
+            .set(USERS.LAST_LOGIN_AT, now)
+            .set(USERS.LAST_SEEN_AT, now)
+            .where(USERS.ID.eq(id))
+            .execute() > 0
+    }
+
+    override fun touchLastSeen(id: UUID): Boolean {
+        return dsl.update(USERS)
+            .set(USERS.LAST_SEEN_AT, OffsetDateTime.now())
+            .where(USERS.ID.eq(id))
+            .and(
+                USERS.LAST_SEEN_AT.isNull
+                    .or(USERS.LAST_SEEN_AT.lt(OffsetDateTime.now().minusMinutes(LAST_SEEN_THROTTLE_MINUTES))),
+            )
+            .execute() > 0
+    }
+
+    override fun setRegistrationToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean {
+        return dsl.update(USERS)
+            .set(REGISTRATION_TOKEN_HASH, tokenHash)
+            .set(REGISTRATION_TOKEN_EXPIRES_AT, expiresAt)
+            .set(USERS.MODIFIED_AT, OffsetDateTime.now())
             .where(USERS.ID.eq(id))
             .execute() > 0
     }

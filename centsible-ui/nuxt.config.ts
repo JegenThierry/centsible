@@ -30,9 +30,9 @@ export default defineNuxtConfig({
     strategy: 'no_prefix',
     defaultLocale: 'en',
     locales: [
-      {code: 'en', name: 'English', language: 'en-US', files: ['en/common.json', 'en/nav.json', 'en/auth.json', 'en/landing.json', 'en/accounts.json', 'en/transactions.json', 'en/budgets.json', 'en/categories.json', 'en/contacts.json', 'en/profile.json', 'en/exports.json', 'en/integrations.json', 'en/notifications.json', 'en/onboarding.json', 'en/reports.json', 'en/attachments.json']},
-      {code: 'fr', name: 'Français', language: 'fr-FR', files: ['fr/common.json', 'fr/nav.json', 'fr/auth.json', 'fr/landing.json', 'fr/accounts.json', 'fr/transactions.json', 'fr/budgets.json', 'fr/categories.json', 'fr/contacts.json', 'fr/profile.json', 'fr/exports.json', 'fr/integrations.json', 'fr/notifications.json', 'fr/onboarding.json', 'fr/reports.json', 'fr/attachments.json']},
-      {code: 'de', name: 'Deutsch', language: 'de-DE', files: ['de/common.json', 'de/nav.json', 'de/auth.json', 'de/landing.json', 'de/accounts.json', 'de/transactions.json', 'de/budgets.json', 'de/categories.json', 'de/contacts.json', 'de/profile.json', 'de/exports.json', 'de/integrations.json', 'de/notifications.json', 'de/onboarding.json', 'de/reports.json', 'de/attachments.json']},
+      {code: 'en', name: 'English', language: 'en-US', files: ['en/common.json', 'en/nav.json', 'en/auth.json', 'en/landing.json', 'en/accounts.json', 'en/transactions.json', 'en/budgets.json', 'en/categories.json', 'en/contacts.json', 'en/profile.json', 'en/exports.json', 'en/integrations.json', 'en/notifications.json', 'en/onboarding.json', 'en/reports.json', 'en/attachments.json', 'en/admin.json']},
+      {code: 'fr', name: 'Français', language: 'fr-FR', files: ['fr/common.json', 'fr/nav.json', 'fr/auth.json', 'fr/landing.json', 'fr/accounts.json', 'fr/transactions.json', 'fr/budgets.json', 'fr/categories.json', 'fr/contacts.json', 'fr/profile.json', 'fr/exports.json', 'fr/integrations.json', 'fr/notifications.json', 'fr/onboarding.json', 'fr/reports.json', 'fr/attachments.json', 'fr/admin.json']},
+      {code: 'de', name: 'Deutsch', language: 'de-DE', files: ['de/common.json', 'de/nav.json', 'de/auth.json', 'de/landing.json', 'de/accounts.json', 'de/transactions.json', 'de/budgets.json', 'de/categories.json', 'de/contacts.json', 'de/profile.json', 'de/exports.json', 'de/integrations.json', 'de/notifications.json', 'de/onboarding.json', 'de/reports.json', 'de/attachments.json', 'de/admin.json']},
     ],
     detectBrowserLanguage: {
       useCookie: true,

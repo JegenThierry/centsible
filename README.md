@@ -181,7 +181,7 @@ It aborts unless the working tree is clean, the current branch is `develop`, and
 1. Creates the `release/<version>` branch.
 2. Bumps the version in `build.gradle.kts` and `centsible-ui/package.json`.
 3. Rolls every pending script from `centsible-db/migrations/snapshot/` into a new `centsible-db/migrations/<version>/` folder and appends `NN_SetVersion_<version>.sql`, which records the release in `system_information` (see [ADR-0013](docs/adr/0013-sql-migrations-and-jooq-codegen.md)).
-4. Verifies the backend (`./gradlew build -x test`) and frontend (`npm run build`) builds.
+4. Verifies the backend (`./gradlew build`, which runs the DB-free unit tests) and frontend (`npm run build`) builds.
 5. Commits, tags `v<version>`, and pushes the branch and tag to `origin`.
 
 Promoting `release/<version>` to `main` (the deploy branch) is a separate step. Pass `--dry-run` to print the full plan without touching git, the filesystem, or the build.
@@ -239,6 +239,8 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 | `SPRING_PROFILES_ACTIVE`            | Set to `prod` for public deployments to activate `ProductionGuard` invariant checks                                                                  | empty                            |
 | `CORS_ALLOWED_ORIGINS`              | Comma-separated origin allowlist for the UI. Never use wildcards                                                                                     | `http://localhost:3000`          |
 | `REGISTRATION_ENABLED`              | Kill switch for `POST /api/auth/register`. Flip `true` to create your account, then back to `false`                                                  | `false`                          |
+| `ADMIN_ENABLED`                     | Kill switch for the admin area (`/api/admin` + the UI's Admin view). When `true`, `ADMIN_USERNAME` must be set (ProductionGuard enforces under prod)  | `false`                          |
+| `ADMIN_USERNAME`                    | Username of the account granted the admin view (list/delete users, resend verification emails). Changing it requires a restart                       | empty                            |
 | `AUTH_COOKIE_SECURE`                | Sets the `Secure` flag on the auth cookie. MUST be `true` in prod (ProductionGuard enforces under `prod` profile)                                    | `false`                          |
 | `AUTH_COOKIE_DOMAIN`                | Cookie `Domain` attribute. Set when UI and API share a parent domain                                                                                 | empty                            |
 | `SERVER_FORWARD_HEADERS_STRATEGY`   | `framework` honours `X-Forwarded-*` from a trusted proxy. Use `none` if no proxy — otherwise the rate-limit client-IP becomes spoofable              | `framework`                      |
@@ -257,6 +259,7 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 |:-------------------------------|:---------------------------------------------------------------------------------------------|:-----------------------|
 | `EXPORT_POLL_INTERVAL_MS`      | How often the worker polls for queued jobs (ms)                                              | `2000`                 |
 | `EXPORT_LEASE_TIMEOUT_SECONDS` | Worker lease TTL — jobs leased but not finished within this window are reclaimable by others | `300`                  |
+| `EXPORT_RENDER_TIMEOUT_MS`     | Playwright timeout for a single PDF render — a hung render fails the job instead of stalling the worker | `60000`                |
 | `EXPORT_JAVA_OPTS`             | JVM options for the export container                                                         | `-Xms256m -Xmx512m`    |
 
 ### Integrations (provider plugins — only required if storing third-party credentials)

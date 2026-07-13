@@ -1,13 +1,12 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.web.multipart.MultipartFile
-import org.springframework.web.server.ResponseStatusException
 
 class UploadValidationTest {
 
@@ -23,40 +22,36 @@ class UploadValidationTest {
     ): MultipartFile = MockMultipartFile("file", filename, contentType, bytes)
 
     @Test
-    fun `rejects empty uploads with 400`() {
-        val ex = assertThrows<ResponseStatusException> {
-            upload(ByteArray(0)).validateContentType(allowed, maxBytes = 1000, tooLargeMessage = "too big")
+    fun `rejects empty uploads with a localized 400`() {
+        val ex = assertThrows<LocalizedException.BadRequest> {
+            upload(ByteArray(0)).validateContentType(allowed, maxBytes = 1000)
         }
-        assertEquals(HttpStatus.BAD_REQUEST, ex.statusCode)
-        assertTrue(ex.reason!!.contains("Empty"))
+        assertEquals("error.upload.empty", ex.messageKey)
     }
 
     @Test
-    fun `rejects over-size uploads with 413`() {
-        val data = pngBytes + ByteArray(2000)
-        val ex = assertThrows<ResponseStatusException> {
-            upload(data).validateContentType(allowed, maxBytes = 100, tooLargeMessage = "too big — limit 100B")
+    fun `rejects over-size uploads with the limit in MB as message arg`() {
+        val data = pngBytes + ByteArray(3 * 1024 * 1024)
+        val ex = assertThrows<LocalizedException.BadRequest> {
+            upload(data).validateContentType(allowed, maxBytes = 2L * 1024 * 1024)
         }
-        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ex.statusCode)
-        assertEquals("too big — limit 100B", ex.reason)
+        assertEquals("error.upload.tooLarge", ex.messageKey)
+        assertEquals(2L, ex.args.single())
     }
 
     @Test
-    fun `rejects content whose detected type is not in the allowlist with 415`() {
-        val ex = assertThrows<ResponseStatusException> {
-            upload("just plain text".toByteArray()).validateContentType(
-                allowed, maxBytes = 1000, tooLargeMessage = "too big",
-                unsupportedTypeMessage = { "no parser for $it" },
-            )
+    fun `rejects content whose detected type is not in the allowlist`() {
+        val ex = assertThrows<LocalizedException.BadRequest> {
+            upload("just plain text".toByteArray()).validateContentType(allowed, maxBytes = 1000)
         }
-        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.statusCode)
-        assertEquals("no parser for text/plain", ex.reason)
+        assertEquals("error.upload.unsupportedType", ex.messageKey)
+        assertEquals("text/plain", ex.args.single())
     }
 
     @Test
     fun `ignores a spoofed declared content type and detects the real one`() {
         val (type, bytes) = upload(pdfBytes, contentType = "image/png")
-            .validateContentType(allowed, maxBytes = 1000, tooLargeMessage = "too big")
+            .validateContentType(allowed, maxBytes = 1000)
         assertEquals("application/pdf", type)
         assertTrue(bytes.contentEquals(pdfBytes))
     }
@@ -65,7 +60,7 @@ class UploadValidationTest {
     fun `returns the detected content type and bytes on success`() {
         val data = pngBytes + byteArrayOf(1, 2, 3)
         val (type, bytes) = upload(data, contentType = "Image/PNG")
-            .validateContentType(allowed, maxBytes = 1000, tooLargeMessage = "too big")
+            .validateContentType(allowed, maxBytes = 1000)
         assertEquals("image/png", type)
         assertTrue(bytes.contentEquals(data))
     }

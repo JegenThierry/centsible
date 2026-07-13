@@ -1,9 +1,8 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import org.apache.tika.Tika
-import org.springframework.http.HttpStatus
 import org.springframework.web.multipart.MultipartFile
-import org.springframework.web.server.ResponseStatusException
 
 private val TIKA = Tika()
 
@@ -13,21 +12,20 @@ private val TIKA = Tika()
  * for the decision — it is trivially spoofable — so whatever passes is genuinely one of
  * [allowedTypes].
  *
- * Throws [ResponseStatusException] on every failure mode; returns the detected content type and the
- * file bytes on success so callers don't re-read the stream.
+ * Throws [LocalizedException.BadRequest] (message-bundle keys, per ADR-0004) on every failure
+ * mode; returns the detected content type and the file bytes on success so callers don't re-read
+ * the stream.
  */
 internal fun MultipartFile.validateContentType(
     allowedTypes: Set<String>,
     maxBytes: Long,
-    tooLargeMessage: String,
-    unsupportedTypeMessage: (String) -> String = { "Unsupported type: $it" },
 ): Pair<String, ByteArray> {
-    if (isEmpty) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Empty file")
-    if (size > maxBytes) throw ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, tooLargeMessage)
+    if (isEmpty) throw LocalizedException.BadRequest("error.upload.empty")
+    if (size > maxBytes) throw LocalizedException.BadRequest("error.upload.tooLarge", maxBytes / (1024 * 1024))
     val data = bytes
     val detected = TIKA.detect(data).lowercase()
     if (detected !in allowedTypes) {
-        throw ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, unsupportedTypeMessage(detected))
+        throw LocalizedException.BadRequest("error.upload.unsupportedType", detected)
     }
     return detected to data
 }

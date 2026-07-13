@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue';
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useUserStore} from "~/stores/userStore";
 import {useSidebar} from "~/composables/use-sidebar";
 import BrandMark from "~/components/_atoms/brand/brand-mark.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
@@ -8,6 +9,7 @@ import AccountSwitcher from "~/components/_organisms/nav/account-switcher.vue";
 import SidebarUserMenu from "~/components/_organisms/nav/sidebar-user-menu.vue";
 
 const accountStore = useBudgetAccountsStore();
+const userStore = useUserStore();
 const {open} = useSidebar();
 const {t} = useI18n();
 
@@ -49,7 +51,14 @@ const items = computed(() => {
     {label: t('nav.sidebar.integrations'), to: '/integrations', icon: 'i-lucide-plug', target: '_self'},
   ];
 
-  return [primary, manage, data];
+  if (!userStore.user?.admin) return [primary, manage, data];
+
+  const admin: any[] = [
+    {label: t('nav.sidebar.sections.admin'), type: 'label'},
+    {label: t('nav.sidebar.admin'), to: '/admin', icon: 'i-lucide-shield', target: '_self'},
+  ];
+
+  return [primary, manage, data, admin];
 })
 </script>
 

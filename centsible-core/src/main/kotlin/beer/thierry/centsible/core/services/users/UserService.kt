@@ -6,13 +6,17 @@ import beer.thierry.centsible.api.model.user.ProfileUpdateDTO
 import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.admin.IAdminAccessService
 import beer.thierry.centsible.api.services.users.IUserService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class UserService(private val userRepository: IUserRepository) : IUserService {
+class UserService(
+    private val userRepository: IUserRepository,
+    private val adminAccessService: IAdminAccessService,
+) : IUserService {
 
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
@@ -25,6 +29,10 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
     override fun userExists(id: UUID): Boolean = userRepository.findUserById(id) != null
 
     override fun currentTokenVersion(id: UUID): Int? = userRepository.fetchTokenVersion(id)
+
+    override fun recordUserActivity(id: UUID) {
+        userRepository.touchLastSeen(id)
+    }
 
     override fun updateUserProfile(userId: UUID, profile: ProfileUpdateDTO): UserDTO {
         val dto = persistProfile(
@@ -102,5 +110,6 @@ class UserService(private val userRepository: IUserRepository) : IUserService {
         profilePicture = user.profilePicture,
         locale = user.locale,
         defaultCurrency = user.defaultCurrency,
+        admin = adminAccessService.isAdmin(user.username),
     )
 }

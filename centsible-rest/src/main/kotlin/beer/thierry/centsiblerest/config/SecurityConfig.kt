@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.config
 
 import beer.thierry.centsiblerest.security.AuthRateLimitFilter
 import beer.thierry.centsiblerest.security.JwtAuthenticationFilter
+import jakarta.servlet.DispatcherType
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher
 
 
 @Configuration
@@ -54,6 +56,10 @@ class SecurityConfig(
             }
 
             authorizeHttpRequests {
+                // Container-internal ERROR dispatch (to /error) runs the chain again without the
+                // caller's authentication; without this, every security-produced 403 is rewritten
+                // to 401 by the entry point. Clients cannot spoof the dispatch type.
+                authorize(DispatcherTypeRequestMatcher(DispatcherType.ERROR), permitAll)
                 authorize("/api/auth/register", permitAll)
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/auth/confirm", permitAll)
@@ -64,6 +70,8 @@ class SecurityConfig(
                 authorize("/api/system", permitAll)
                 authorize("/api/integrations/oauth/callback/**", permitAll)
                 authorize(EndpointRequest.to("health"), permitAll)
+                // Defense in depth: the service layer re-checks the caller against admin.username.
+                authorize("/api/admin/**", hasRole("ADMIN"))
                 authorize(anyRequest, authenticated)
             }
 

@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.auth.AuthRegisterRequest
 import beer.thierry.centsible.api.model.auth.AuthRequest
 import beer.thierry.centsible.api.model.auth.AuthResponse
@@ -101,13 +102,12 @@ class AuthenticationResource(
     @GetMapping("/confirm")
     fun confirm(@RequestParam token: String): ResponseEntity<String> {
         val confirmed = authService.confirmRegistration(token)
-        if (confirmed) {
-            log.info("Registration confirmation succeeded")
-        } else {
+        if (!confirmed) {
             log.warn("Registration confirmation rejected (invalid or expired token)")
+            throw LocalizedException.BadRequest("error.auth.confirmInvalid")
         }
-        return if (confirmed) ResponseEntity.ok("Account confirmed successfully")
-        else ResponseEntity.badRequest().body("Invalid confirmation token")
+        log.info("Registration confirmation succeeded")
+        return ResponseEntity.ok("ok")
     }
 
     @PostMapping("/logout")
@@ -179,6 +179,6 @@ class AuthenticationResource(
         if (userService.userExists(authenticatedUser.id)) return ResponseEntity.ok("ok")
         authCookieIssuer.clear(response)
         log.warn("Verify failed: account no longer exists userId={}", authenticatedUser.id)
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account no longer exists")
+        throw LocalizedException.Unauthorized("error.auth.accountGone")
     }
 }

@@ -39,6 +39,18 @@ interface IUserRepository {
     /** Hard-deletes the user; all owned rows are removed via ON DELETE CASCADE foreign keys. */
     fun deleteUser(id: UUID): Boolean
 
+    /** Stamps last_login_at (and last_seen_at) with the current time. Called on every successful login. */
+    fun touchLastLogin(id: UUID): Boolean
+
+    /**
+     * Stamps last_seen_at with the current time, throttled in SQL — a no-op while the previous
+     * stamp is recent. Safe to call on every authenticated request.
+     */
+    fun touchLastSeen(id: UUID): Boolean
+
+    /** Stores a fresh hashed registration token + expiry on the user, replacing any existing one. */
+    fun setRegistrationToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean
+
     /** Stores a hashed password reset token + expiry on the user, replacing any existing one. */
     fun setPasswordResetToken(id: UUID, tokenHash: ByteArray, expiresAt: OffsetDateTime): Boolean
 

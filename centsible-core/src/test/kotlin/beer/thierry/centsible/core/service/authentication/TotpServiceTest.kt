@@ -27,6 +27,11 @@ import java.util.UUID
 @ExtendWith(MockitoExtension::class)
 class TotpServiceTest {
 
+    // Raw ArgumentMatchers.eq()/any() return null, which trips Kotlin's not-null assertion on
+    // non-null parameters — these helpers erase the platform type (same pattern as the sibling tests).
+    private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
+    private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
+
     @Mock private lateinit var userRepository: IUserRepository
     @Mock private lateinit var twoFactorRepository: ITwoFactorRepository
     @Mock private lateinit var cipher: TotpSecretCipher
@@ -90,7 +95,7 @@ class TotpServiceTest {
         val u = user(totpEnabled = false)
         `when`(userRepository.findUserById(u.id)).thenReturn(u)
         `when`(cipher.encrypt(ArgumentMatchers.anyString())).thenReturn(encryptedSecret)
-        `when`(userRepository.savePendingTotpSecret(ArgumentMatchers.eq(u.id), ArgumentMatchers.eq(encryptedSecret))).thenReturn(true)
+        `when`(userRepository.savePendingTotpSecret(eqArg(u.id), eqArg(encryptedSecret))).thenReturn(true)
 
         val result = service().beginEnrollment(u.id, u.email)
 
@@ -126,8 +131,8 @@ class TotpServiceTest {
         `when`(userRepository.getPendingTotpSecret(u.id)).thenReturn(encryptedSecret)
         `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
         `when`(cipher.encrypt(testSecret)).thenReturn(encryptedSecret)
-        `when`(userRepository.activateTotp(ArgumentMatchers.eq(u.id), ArgumentMatchers.eq(encryptedSecret))).thenReturn(true)
-        `when`(userRepository.updateTotpLastUsedStep(ArgumentMatchers.eq(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
+        `when`(userRepository.activateTotp(eqArg(u.id), eqArg(encryptedSecret))).thenReturn(true)
+        `when`(userRepository.updateTotpLastUsedStep(eqArg(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
         `when`(passwordEncoder.encode(ArgumentMatchers.anyString())).thenReturn("\$2a\$12\$recoveryHash")
 
         val validCode = computeValidCode(testSecret)
@@ -135,13 +140,13 @@ class TotpServiceTest {
 
         assertNotNull(result.recoveryCodes)
         assertEquals(16, result.recoveryCodes.size)
-        verify(twoFactorRepository).replaceRecoveryCodes(ArgumentMatchers.eq(u.id), ArgumentMatchers.anyList())
-        verify(userRepository).activateTotp(ArgumentMatchers.eq(u.id), ArgumentMatchers.eq(encryptedSecret))
+        verify(twoFactorRepository).replaceRecoveryCodes(eqArg(u.id), ArgumentMatchers.anyList())
+        verify(userRepository).activateTotp(eqArg(u.id), eqArg(encryptedSecret))
     }
 
     @Test
     fun `confirmEnrollment throws when there is no pending secret`() {
-        `when`(userRepository.getPendingTotpSecret(ArgumentMatchers.any(UUID::class.java))).thenReturn(null)
+        `when`(userRepository.getPendingTotpSecret(anyArg<UUID>())).thenReturn(null)
 
         assertThrows(LocalizedException.BadRequest::class.java) {
             service().confirmEnrollment(UUID.randomUUID(), "123456")
@@ -167,7 +172,7 @@ class TotpServiceTest {
         `when`(userRepository.getActiveTotpSecret(u.id)).thenReturn(encryptedSecret)
         `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
         `when`(twoFactorRepository.fetchUnusedRecoveryCodeHashes(u.id)).thenReturn(listOf("hash1"))
-        `when`(passwordEncoder.matches(ArgumentMatchers.eq(recoveryCode), ArgumentMatchers.eq("hash1"))).thenReturn(true)
+        `when`(passwordEncoder.matches(eqArg(recoveryCode), eqArg("hash1"))).thenReturn(true)
         `when`(twoFactorRepository.markRecoveryCodeUsed(u.id, "hash1")).thenReturn(true)
         `when`(userRepository.disableTotp(u.id)).thenReturn(true)
         `when`(twoFactorRepository.deleteRecoveryCodes(u.id)).thenReturn(1)
@@ -227,14 +232,14 @@ class TotpServiceTest {
         `when`(userRepository.getActiveTotpSecret(u.id)).thenReturn(encryptedSecret)
         `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
         `when`(twoFactorRepository.fetchUnusedRecoveryCodeHashes(u.id)).thenReturn(listOf("hashA"))
-        `when`(passwordEncoder.matches(ArgumentMatchers.eq(recoveryCode), ArgumentMatchers.eq("hashA"))).thenReturn(true)
+        `when`(passwordEncoder.matches(eqArg(recoveryCode), eqArg("hashA"))).thenReturn(true)
         `when`(twoFactorRepository.markRecoveryCodeUsed(u.id, "hashA")).thenReturn(true)
         `when`(passwordEncoder.encode(ArgumentMatchers.anyString())).thenReturn("\$2a\$12\$newRecoveryHash")
 
         val result = service().regenerateRecoveryCodes(u.id, recoveryCode)
 
         assertEquals(16, result.recoveryCodes.size)
-        verify(twoFactorRepository).replaceRecoveryCodes(ArgumentMatchers.eq(u.id), ArgumentMatchers.anyList())
+        verify(twoFactorRepository).replaceRecoveryCodes(eqArg(u.id), ArgumentMatchers.anyList())
     }
 
     @Test
@@ -266,13 +271,13 @@ class TotpServiceTest {
         `when`(userRepository.getActiveTotpSecret(u.id)).thenReturn(encryptedSecret)
         `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
         `when`(userRepository.getTotpLastUsedStep(u.id)).thenReturn(null)
-        `when`(userRepository.updateTotpLastUsedStep(ArgumentMatchers.eq(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
+        `when`(userRepository.updateTotpLastUsedStep(eqArg(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
 
         val validCode = computeValidCode(testSecret)
         val result = service().verifyChallengeCode(u.id, validCode)
 
         assertTrue(result)
-        verify(userRepository).updateTotpLastUsedStep(ArgumentMatchers.eq(u.id), ArgumentMatchers.anyLong())
+        verify(userRepository).updateTotpLastUsedStep(eqArg(u.id), ArgumentMatchers.anyLong())
     }
 
     @Test
@@ -309,7 +314,7 @@ class TotpServiceTest {
         val result = service().verifyChallengeCode(u.id, validCode)
 
         assertFalse(result)
-        verify(userRepository, never()).updateTotpLastUsedStep(ArgumentMatchers.any(UUID::class.java), ArgumentMatchers.anyLong())
+        verify(userRepository, never()).updateTotpLastUsedStep(anyArg<UUID>(), ArgumentMatchers.anyLong())
     }
 
     @Test
@@ -319,7 +324,7 @@ class TotpServiceTest {
         `when`(userRepository.getActiveTotpSecret(u.id)).thenReturn(encryptedSecret)
         `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
         `when`(twoFactorRepository.fetchUnusedRecoveryCodeHashes(u.id)).thenReturn(listOf("hashX"))
-        `when`(passwordEncoder.matches(ArgumentMatchers.eq(recoveryCode), ArgumentMatchers.eq("hashX"))).thenReturn(true)
+        `when`(passwordEncoder.matches(eqArg(recoveryCode), eqArg("hashX"))).thenReturn(true)
         `when`(twoFactorRepository.markRecoveryCodeUsed(u.id, "hashX")).thenReturn(true)
 
         val result = service().verifyChallengeCode(u.id, recoveryCode)

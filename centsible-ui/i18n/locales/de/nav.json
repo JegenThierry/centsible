@@ -18,9 +18,11 @@
       "documents": "Dokumente",
       "integrations": "Integrationen",
       "profile": "Profil",
+      "admin": "Benutzer",
       "sections": {
         "manage": "Verwalten",
-        "data": "Daten"
+        "data": "Daten",
+        "admin": "Administration"
       }
     },
     "switcher": {

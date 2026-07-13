@@ -104,21 +104,56 @@ class TransactionService(
         authenticatedUser: UserDTO
     ): TransactionDTO {
         val (conversion, splits, resolvedForm) = prepareTransaction(accountId, transactionForm, authenticatedUser)
-        val transaction = transactionRepository.createTransaction(accountId, resolvedForm, conversion, authenticatedUser)
+        val (finalForm, ruleTagIds) = applyRuleEffects(accountId, resolvedForm, splits, conversion, authenticatedUser)
+        val transaction = transactionRepository.createTransaction(accountId, finalForm, conversion, authenticatedUser)
         if (splits != null) {
             transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
             transaction.splits =
                 transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transaction.id!!))[transaction.id] ?: emptyList()
         }
+        if (ruleTagIds.isNotEmpty()) {
+            tagRepository.setTransactionTags(authenticatedUser, transaction.id!!, ruleTagIds.toList())
+            transaction.tags = tagRepository.fetchTagsForTransaction(authenticatedUser, transaction.id!!)
+        }
         val adjustment = calculateAdjustment(transaction.type, transaction.amount)
         accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, splits?.map { it.categoryId }?.distinct() ?: listOf(resolvedForm.categoryId))
+        checkBudgetAlerts(authenticatedUser, splits?.map { it.categoryId }?.distinct() ?: listOf(finalForm.categoryId))
         checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
         log.info(
             "Created transaction id={} accountId={} userId={} type={} amount={}",
             transaction.id, accountId, authenticatedUser.id, transaction.type, transaction.amount,
         )
         return transaction
+    }
+
+    /**
+     * Mirrors the import paths: a manual transaction left in the UNCATEGORIZED system category is
+     * auto-categorized/tagged by the user's rules. An explicitly chosen category is never
+     * overridden, and split transactions carry their own categories so they are skipped.
+     */
+    private fun applyRuleEffects(
+        accountId: UUID,
+        form: TransactionForm,
+        splits: List<TransactionSplitForm>?,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): Pair<TransactionForm, Set<Long>> {
+        if (splits != null) return form to emptySet()
+        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
+            ?: return form to emptySet()
+        if (form.categoryId != fallbackCategoryId) return form to emptySet()
+        val type = form.type ?: return form to emptySet()
+
+        val effects = RuleMatching.evaluate(
+            ruleService.list(authenticatedUser),
+            RuleContext(form.description, conversion.convertedAmount, type, accountId),
+        )
+        if (!effects.hasEffect) return form to emptySet()
+        log.info(
+            "Applied rules to manual transaction userId={} categoryId={} tagCount={}",
+            authenticatedUser.id, effects.categoryId, effects.tagIds.size,
+        )
+        return form.copy(categoryId = effects.categoryId ?: form.categoryId) to effects.tagIds
     }
 
     @Transactional

@@ -5,6 +5,7 @@ export type TransactionTypeFilter = 'INCOME' | 'EXPENSE';
 export interface TransactionFilters {
   search?: string;
   categoryIds?: number[];
+  tagIds?: number[];
   fromDate?: string;
   toDate?: string;
   type?: TransactionTypeFilter;

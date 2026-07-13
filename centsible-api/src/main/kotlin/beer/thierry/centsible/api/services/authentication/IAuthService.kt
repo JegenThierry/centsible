@@ -25,6 +25,13 @@ interface IAuthService {
     fun confirmRegistration(token: String): Boolean
 
     /**
+     * Regenerates the registration token (replacing any previous one) and resends the verification
+     * email for an unconfirmed account. Throws [LocalizedException.BadRequest] when the account is
+     * already confirmed. Used by the admin area for stuck sign-ups.
+     */
+    fun resendRegistrationEmail(userId: UUID)
+
+    /**
      * Triggers a password reset for the account identified by [username]. Always succeeds
      * silently from the caller's perspective — unknown usernames must not be distinguishable
      * from known ones to avoid leaking account existence. If the account exists, a one-time

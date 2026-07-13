@@ -45,6 +45,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PageableDefault(size = 25) pageable: Pageable,
         @RequestParam(required = false) search: String?,
         @RequestParam(required = false) categoryIds: List<Long>?,
+        @RequestParam(required = false) tagIds: List<Long>?,
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
         @RequestParam(required = false) type: CategoryType?,
@@ -56,6 +57,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
         val filters = TransactionFilters(
             search = search,
             categoryIds = categoryIds,
+            tagIds = tagIds,
             from = fromDate,
             to = toDate,
             type = type,

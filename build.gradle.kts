@@ -82,8 +82,24 @@ subprojects {
         }
     }
 
-    tasks.withType<Test> {
-        useJUnitPlatform()
+    // `test` runs only DB-free unit tests (what CI runs); Postgres-backed tests are tagged
+    // `integration` and run via `./gradlew integrationTest` against a local database.
+    tasks.withType<Test>().matching { it.name != "integrationTest" }.configureEach {
+        useJUnitPlatform {
+            excludeTags("integration")
+        }
+    }
+
+    tasks.register<Test>("integrationTest") {
+        group = "verification"
+        description = "Runs Postgres-backed integration tests (JUnit tag 'integration')."
+        val testSourceSet = extensions.getByType<SourceSetContainer>()["test"]
+        testClassesDirs = testSourceSet.output.classesDirs
+        classpath = testSourceSet.runtimeClasspath
+        useJUnitPlatform {
+            includeTags("integration")
+        }
+        shouldRunAfter("test")
     }
 
     dependencies {

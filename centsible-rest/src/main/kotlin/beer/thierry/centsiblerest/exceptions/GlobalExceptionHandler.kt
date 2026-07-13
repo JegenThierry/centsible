@@ -87,7 +87,9 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
     fun handleMalformedJson(ex: HttpMessageNotReadableException, request: WebRequest): ResponseEntity<ErrorResponse> {
         val cause = ex.mostSpecificCause.message?.lineSequence()?.firstOrNull().orEmpty()
         log.warn("Malformed request body: {}", cause.ifBlank { ex.message })
-        return error(HttpStatus.BAD_REQUEST, t("error.request.malformed"), request, details = cause.ifBlank { null })
+        // The parser cause stays in the logs only — it can echo request payload fragments and
+        // internal class names (ADR-0004). The correlation id lets an operator find it.
+        return error(HttpStatus.BAD_REQUEST, t("error.request.malformed"), request, details = MDC.get(MDC_REQUEST_ID))
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
@@ -115,7 +117,9 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ErrorResponse> {
         log.warn("IllegalArgumentException: {}", ex.message)
-        return error(HttpStatus.BAD_REQUEST, ex.message ?: t("error.request.invalid"), request)
+        // `require(...)` messages are developer-facing English precondition text, not localized
+        // user copy (ADR-0004) — the client gets the generic key, the log keeps the specifics.
+        return error(HttpStatus.BAD_REQUEST, t("error.request.invalid"), request, details = MDC.get(MDC_REQUEST_ID))
     }
 
     @ExceptionHandler(IllegalStateException::class)

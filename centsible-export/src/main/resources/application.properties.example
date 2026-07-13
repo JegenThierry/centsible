@@ -15,6 +15,13 @@ spring.autoconfigure.exclude=\
 export.worker.id=${random.uuid}
 export.worker.poll-interval-ms=${EXPORT_POLL_INTERVAL_MS:2000}
 export.worker.lease-timeout-seconds=${EXPORT_LEASE_TIMEOUT_SECONDS:300}
+# Playwright default timeout for the render page (setContent/waitForLoadState) — keep well below
+# the lease timeout so a hung render fails the job instead of losing the lease mid-flight.
+export.render.timeout-ms=${EXPORT_RENDER_TIMEOUT_MS:60000}
+
+# Two pollers (@Scheduled export + post-processing) share this pool; Spring's default single
+# thread would let one slow render also stall post-processing.
+spring.task.scheduling.pool.size=2
 
 # --- Graceful shutdown ---
 # Drain on SIGTERM instead of severing (Spring's default is IMMEDIATE). server.shutdown drains the

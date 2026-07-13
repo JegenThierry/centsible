@@ -12,7 +12,7 @@ import PasswordChangeSection from '~/components/_organisms/user/password-change-
 import SessionsSection from '~/components/_organisms/user/sessions-section.vue';
 import DangerZoneSection from '~/components/_organisms/user/danger-zone-section.vue';
 import {useUserNotifications} from "~/components/_organisms/user/notifications";
-import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import ProfileSkeleton from "~/components/_molecules/skeletons/profile-skeleton.vue";
 import NotificationSettingsCard from "~/components/_organisms/user/notification-settings-card.vue";
 import type {UserProfileForm} from "~/models/user/user-profile-form";
 
@@ -84,8 +84,10 @@ async function onLanguageChange(code: string) {
     <PageHeader :description="t('profile.page.description')"
                 :title="t('profile.page.title')"/>
 
-    <div v-if="userStore.pending && !userStore.user" class="flex justify-center py-8">
-      <LoadingAnimation/>
+    <div v-if="userStore.pending && !userStore.user" class="max-w-2xl mx-auto mt-4">
+      <UCard>
+        <ProfileSkeleton/>
+      </UCard>
     </div>
 
     <div v-else-if="userStore.user" class="max-w-2xl mx-auto">

@@ -6,7 +6,6 @@ springBoot = "4.0.6"
 dependencyManagement = "1.1.7"
 jjwt = "0.12.6"
 jooq = "3.19.29"
-postgresql = "42.7.5" # Adding explicit version for jooqCodegen if needed, though Spring Boot BOM handles it
 protobuf = "4.35.0"
 protobufPlugin = "0.9.5"
 pebble = "3.2.4"

@@ -12,6 +12,7 @@ export function useTransactionService(api: AxiosInstance) {
     const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
     if (filters.search) params.search = filters.search;
     if (filters.categoryIds?.length) params.categoryIds = filters.categoryIds.join(',');
+    if (filters.tagIds?.length) params.tagIds = filters.tagIds.join(',');
     if (filters.fromDate) params.fromDate = filters.fromDate;
     if (filters.toDate) params.toDate = filters.toDate;
     if (filters.type) params.type = filters.type;

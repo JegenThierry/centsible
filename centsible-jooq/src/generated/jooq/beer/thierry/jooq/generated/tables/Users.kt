@@ -229,6 +229,16 @@ open class Users(
      */
     val TOKEN_VERSION: TableField<UsersRecord, Int?> = createField(DSL.name("token_version"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "")
 
+    /**
+     * The column <code>public.users.last_login_at</code>.
+     */
+    val LAST_LOGIN_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("last_login_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
+    /**
+     * The column <code>public.users.last_seen_at</code>.
+     */
+    val LAST_SEEN_AT: TableField<UsersRecord, OffsetDateTime?> = createField(DSL.name("last_seen_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<UsersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<UsersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

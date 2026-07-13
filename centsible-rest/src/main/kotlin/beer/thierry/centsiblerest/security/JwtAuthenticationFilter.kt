@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.security
 
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.services.admin.IAdminAccessService
 import beer.thierry.centsible.api.services.users.IUserService
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
@@ -21,6 +22,7 @@ import java.util.UUID
 class JwtAuthenticationFilter(
     @Value($$"${jwt.secret}") private val secret: String,
     private val userService: IUserService,
+    private val adminAccessService: IAdminAccessService,
 ) : OncePerRequestFilter() {
     private val key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret))
 
@@ -31,8 +33,10 @@ class JwtAuthenticationFilter(
     ) {
         extractToken(request)
             ?.let(::parseUserDTO)
-            ?.let { user -> buildAuthentication(user, request) }
-            ?.also { SecurityContextHolder.getContext().authentication = it }
+            ?.also { user ->
+                SecurityContextHolder.getContext().authentication = buildAuthentication(user, request)
+                userService.recordUserActivity(user.id)
+            }
 
         filterChain.doFilter(request, response)
     }
@@ -79,6 +83,7 @@ class JwtAuthenticationFilter(
             name = name,
             profilePicture = null,
             locale = locale,
+            admin = adminAccessService.isAdmin(username),
         )
     } catch (ex: JwtException) {
         logger.warn("JWT validation failed: ${ex.message}")
