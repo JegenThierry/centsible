@@ -45,7 +45,7 @@ val guavaVersion = libs.versions.guava.get()
 
 allprojects {
     group = "beer.thierry"
-    version = "0.5.3"
+    version = "0.6.0"
 
     repositories {
         mavenCentral()
@@ -62,10 +62,13 @@ subprojects {
         imports {
             mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES) {
                 // Override BOM versions to pull CVE fixes ahead of the next Spring Boot release.
-                // tomcat 11.0.22: CVE-2026-43512, CVE-2026-41293, et al.
-                bomProperty("tomcat.version", "11.0.22")
-                // postgresql 42.7.11: CVE-2026-42198 (SCRAM PBKDF2 DoS)
-                bomProperty("postgresql.version", "42.7.11")
+                // tomcat 11.0.24: CVE-2026-50229 (default-servlet authz bypass), CVE-2026-55956, et al.
+                bomProperty("tomcat.version", "11.0.24")
+                // postgresql 42.7.12: CVE-2026-54291 (channelBinding=require SCRAM downgrade)
+                bomProperty("postgresql.version", "42.7.12")
+                // jackson 2.x 2.21.5: CVE-2026-54515 (@JsonIgnoreProperties case-insensitive bypass);
+                // Boot 4.0.7 manages 2.21.4, which fixes CVE-2026-54512 but not 54515.
+                bomProperty("jackson-2-bom.version", "2.21.5")
             }
         }
     }
