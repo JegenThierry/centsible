@@ -33,6 +33,7 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
   const service = useTransactionService(useApi());
   const data = ref<MonthlyAggregate[]>([]);
   const loading = ref(false);
+  const error = ref(false);
 
   async function load() {
     const id = accountId();
@@ -42,11 +43,13 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
       return;
     }
     loading.value = true;
+    error.value = false;
     try {
       data.value = await cache.loadOrCache(key(id, m), () => service.aggregateByMonth(id, m));
     } catch (e) {
       adze.ns('dashboard').error('Failed to load monthly aggregates', e);
       data.value = [];
+      error.value = true;
     } finally {
       loading.value = false;
     }
@@ -54,7 +57,7 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
 
   watch([accountId, months], load, {immediate: true});
 
-  return {data, loading, reload: load};
+  return {data, loading, error, reload: load};
 }
 
 export function invalidateMonthlyAggregates() {

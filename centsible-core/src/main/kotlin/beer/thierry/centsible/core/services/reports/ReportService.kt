@@ -2,6 +2,7 @@ package beer.thierry.centsible.core.services.reports
 
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetPeriodType
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualEntryDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
@@ -15,9 +16,13 @@ import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.IReportsRepository
+import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.IReportService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
@@ -30,7 +35,11 @@ class ReportService(
     private val reportsRepository: IReportsRepository,
     private val accountsRepository: IBudgetAccountsRepository,
     private val budgetRepository: IBudgetRepository,
+    private val currencyConversionService: ICurrencyConversionService,
+    private val userRepository: IUserRepository,
 ) : IReportService {
+
+    private val log = LoggerFactory.getLogger(ReportService::class.java)
 
     override fun fetchNetWorthOverTime(
         startDate: LocalDate,
@@ -41,6 +50,7 @@ class ReportService(
 
         val endOffset = OffsetDateTime.of(endDate, LocalTime.MAX, ZoneOffset.UTC)
         val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(endOffset, authenticatedUser)
+        val rates = accountRatesFor(authenticatedUser)
 
         val accountBalances = mutableMapOf<UUID, BigDecimal>()
         val pointByDate = sortedMapOf<LocalDate, BigDecimal>()
@@ -49,21 +59,21 @@ class ReportService(
         for (snapshot in snapshots) {
             val date = snapshot.createdAt.toLocalDate()
             if (!crossedStart && !date.isBefore(startDate)) {
-                pointByDate[startDate] = totalOf(accountBalances)
+                pointByDate[startDate] = totalOf(accountBalances, rates)
                 crossedStart = true
             }
             accountBalances[snapshot.accountId] = snapshot.balance
             if (!date.isBefore(startDate)) {
-                pointByDate[date] = totalOf(accountBalances)
+                pointByDate[date] = totalOf(accountBalances, rates)
             }
         }
 
         if (pointByDate.isEmpty()) {
-            val total = totalOf(accountBalances)
+            val total = totalOf(accountBalances, rates)
             pointByDate[startDate] = total
             pointByDate[endDate] = total
         } else if (pointByDate.lastKey().isBefore(endDate)) {
-            pointByDate[endDate] = totalOf(accountBalances)
+            pointByDate[endDate] = totalOf(accountBalances, rates)
         }
 
         return pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
@@ -76,6 +86,7 @@ class ReportService(
         val asOf = OffsetDateTime.of(date, LocalTime.MAX, ZoneOffset.UTC)
         val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(asOf, authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
+        val rates = accountRatesFor(authenticatedUser)
         val balances = mutableMapOf<UUID, BigDecimal>()
         for (s in snapshots) balances[s.accountId] = s.balance
 
@@ -86,6 +97,8 @@ class ReportService(
                 accountName = acc.name,
                 currency = acc.currency,
                 balance = raw,
+                convertedBalance = rates.byAccount[acc.id]?.let { raw.multiply(it).setScale(2, RoundingMode.HALF_UP) },
+                targetCurrency = rates.target,
                 date = date,
             )
         }
@@ -189,6 +202,42 @@ class ReportService(
         spent = b.amountSpent,
     )
 
-    private fun totalOf(balances: Map<UUID, BigDecimal>): BigDecimal =
-        balances.values.fold(BigDecimal.ZERO, BigDecimal::add)
+    private data class ConversionRates(val target: Currency, val byAccount: Map<UUID, BigDecimal?>)
+
+    /**
+     * Today's FX multiplier into the user's default currency, per account. Accounts whose rate
+     * cannot be resolved map to null and are excluded from totals (mirrors LoanService.totalOutstanding).
+     */
+    private fun accountRatesFor(authenticatedUser: UserDTO): ConversionRates {
+        // The JWT principal doesn't carry defaultCurrency (it would go stale anyway) — re-fetch,
+        // mirroring LoanService.totalOutstanding.
+        val target = Currency.parseOrNull(
+            userRepository.findUserById(authenticatedUser.id)?.defaultCurrency ?: authenticatedUser.defaultCurrency
+        ) ?: Currency.EUR
+        val today = LocalDate.now()
+        val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
+        val rateByCurrency = accounts.map { it.currency }.distinct().associateWith { currency ->
+            if (currency == target) {
+                BigDecimal.ONE
+            } else {
+                runCatching { currencyConversionService.convert(BigDecimal.ONE, currency, target, today).rate }
+                    .getOrElse {
+                        log.warn("Excluding {} accounts from net worth: FX {}->{} unavailable", currency, currency, target, it)
+                        null
+                    }
+            }
+        }
+        return ConversionRates(target, accounts.associate { it.id to rateByCurrency[it.currency] })
+    }
+
+    private fun totalOf(balances: Map<UUID, BigDecimal>, rates: ConversionRates): BigDecimal =
+        balances.entries
+            .sumOf { (accountId, balance) ->
+                // Unknown account (e.g. since deleted) keeps face value; unresolvable FX is excluded.
+                when (val rate = rates.byAccount.getOrDefault(accountId, BigDecimal.ONE)) {
+                    null -> BigDecimal.ZERO
+                    else -> balance.multiply(rate)
+                }
+            }
+            .setScale(2, RoundingMode.HALF_UP)
 }

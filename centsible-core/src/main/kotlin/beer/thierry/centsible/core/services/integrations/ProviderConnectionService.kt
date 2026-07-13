@@ -72,7 +72,7 @@ class ProviderConnectionService(
             ?: throw IllegalArgumentException("Provider '${existing.providerKey}' is no longer registered")
         val (newConfig, submittedSecrets) = splitAndValidate(module.descriptor, form.values, partial = true)
         val existingSecrets = cipher.decrypt(repository.fetchEncryptedCredentialsById(authenticatedUser, id))
-        val mergedSecrets = existingSecrets.mergedWith(submittedSecrets)
+        val mergedSecrets = existingSecrets + submittedSecrets
         runProviderTest(module, authenticatedUser.id, existing.id, form.displayName, newConfig, mergedSecrets)
         val updated = repository.update(
             authenticatedUser = authenticatedUser,

@@ -136,8 +136,10 @@ class ImportsResource(
         )
 
     private fun readBoundedBytes(file: MultipartFile): ByteArray {
-        require(!file.isEmpty) { "Uploaded file is empty." }
-        require(file.size <= MAX_IMPORT_BYTES) { "Uploaded file exceeds 5 MB limit." }
+        if (file.isEmpty) throw LocalizedException.BadRequest("error.upload.empty")
+        if (file.size > MAX_IMPORT_BYTES) {
+            throw LocalizedException.BadRequest("error.upload.tooLarge", MAX_IMPORT_BYTES / (1024 * 1024))
+        }
         return file.bytes
     }
 

@@ -84,7 +84,7 @@ class TransactionsRenderer(
     }
 
     private fun List<ExportTransactionRow>.sumAmount(): BigDecimal =
-        fold(BigDecimal.ZERO) { acc, row -> acc + row.amount }
+        sumOf { it.amount }
 
     private fun ExportTransactionRow.asTemplateMap(locale: Locale): Map<String, Any?> = mapOf(
         "date" to formatDate(transactionDate, locale),

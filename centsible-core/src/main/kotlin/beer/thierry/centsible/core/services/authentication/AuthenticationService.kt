@@ -82,6 +82,7 @@ class AuthenticationService(
             return LoginResult.TwoFactorRequired(rawToken)
         }
 
+        userRepository.touchLastLogin(user.id)
         log.info("Authentication successful: userId={}", user.id)
         return LoginResult.Authenticated(generateJwt(user))
     }
@@ -100,6 +101,7 @@ class AuthenticationService(
 
         val user = userRepository.findUserById(userId)
             ?: throw LocalizedException.Unauthorized("error.auth.invalidCredentials")
+        userRepository.touchLastLogin(user.id)
         log.info("2FA challenge passed; authentication successful userId={}", userId)
         return AuthResponse(generateJwt(user))
     }
@@ -150,6 +152,23 @@ class AuthenticationService(
             log.info("Confirmed user registration userId={}", user.id)
         }
         return confirmed
+    }
+
+    override fun resendRegistrationEmail(userId: UUID) {
+        val user = userRepository.findUserById(userId)
+            ?: throw LocalizedException.NotFound("error.user.notFound")
+        if (user.registered) {
+            throw LocalizedException.BadRequest("error.auth.alreadyConfirmed")
+        }
+
+        val rawToken = generateRegistrationToken()
+        val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
+        if (!userRepository.setRegistrationToken(user.id, sha256(rawToken), tokenExpiresAt)) {
+            throw LocalizedException.InternalError("error.auth.verificationResendFailed")
+        }
+
+        registerEmailService.sendRegistrationEmail(user, rawToken, resolveEmailLocale(user.locale))
+        log.info("Resent registration email userId={}", user.id)
     }
 
     @Async

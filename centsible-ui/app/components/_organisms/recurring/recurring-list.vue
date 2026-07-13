@@ -69,6 +69,20 @@ onMounted(() => {
       <CardSkeleton v-for="i in 3" :key="i"/>
     </div>
 
+    <AppEmptyState v-else-if="store.error && store.items.length === 0"
+                   icon="i-lucide-triangle-alert"
+                   :title="t('common.states.error')">
+      <template #actions>
+        <AppButton class="w-full sm:w-auto justify-center"
+                   color="neutral"
+                   variant="soft"
+                   icon="i-lucide-refresh-cw"
+                   @click="refresh">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </template>
+    </AppEmptyState>
+
     <AppEmptyState v-else-if="store.items.length === 0"
                    :description="t('transactions.recurring.emptyDescription')"
                    icon="i-lucide-repeat"

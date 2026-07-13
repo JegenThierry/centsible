@@ -10,6 +10,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const props = defineProps<{
   account: BudgetAccount | undefined;
@@ -34,12 +35,16 @@ const state = reactive<{
 })
 
 // Re-seed the form whenever the modal is (re)opened for a given account.
-watch(isOpen, (open) => {
-  if (open && props.account) {
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => ({...state}),
+  onResetOnOpen: () => {
+    if (!props.account) return;
     state.name = props.account.name;
     state.type = props.account.type;
-  }
-})
+  },
+});
 
 const nameLabel = t('accounts.modals.edit.fieldNameLabel');
 
@@ -73,23 +78,19 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
     loading.value = false;
   }
 }
-
-function onCloseModal() {
-  isOpen.value = false
-}
 </script>
 
 <template>
   <UModal
-    v-model:open="isOpen"
+    :open="isOpen"
     :close="{
         color: 'primary',
         variant: 'outline',
         class: 'rounded-full',
-        onClick: onCloseModal,
       }"
     :description="t('accounts.modals.edit.description')"
     :title="t('accounts.modals.edit.title')"
+    @update:open="requestClose"
   >
     <template #body>
       <UForm id="edit-account-form" :schema="schema" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit" @error="onValidationError">
@@ -124,7 +125,7 @@ function onCloseModal() {
       <ModalFooterActions form="edit-account-form"
                           :loading="loading"
                           :submit-label="t('accounts.modals.edit.submit')"
-                          @cancel="onCloseModal"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

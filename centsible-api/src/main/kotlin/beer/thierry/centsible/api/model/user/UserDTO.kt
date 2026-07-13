@@ -17,7 +17,11 @@ data class UserDTO(
     var profilePicture: String? = null,
     var locale: String = "en",
     var defaultCurrency: String = "EUR",
-    var authoritiesList: Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
+    /** True when this user is the instance admin designated by configuration (admin.enabled + admin.username). */
+    var admin: Boolean = false,
+    var authoritiesList: Collection<GrantedAuthority> =
+        if (admin) listOf(SimpleGrantedAuthority("ROLE_USER"), SimpleGrantedAuthority("ROLE_ADMIN"))
+        else listOf(SimpleGrantedAuthority("ROLE_USER"))
 
 ) : UserDetails {
     override fun getAuthorities() = authoritiesList

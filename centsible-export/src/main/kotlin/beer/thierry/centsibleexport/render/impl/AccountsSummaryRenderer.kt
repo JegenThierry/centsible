@@ -7,7 +7,6 @@ import beer.thierry.centsibleexport.render.ExportRenderer
 import beer.thierry.centsibleexport.render.PdfRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
@@ -31,7 +30,7 @@ class AccountsSummaryRenderer(
             .map { (currency, accs) ->
                 mapOf(
                     "currency" to currency,
-                    "totalBalance" to accs.fold(BigDecimal.ZERO) { acc, a -> acc + a.balance },
+                    "totalBalance" to accs.sumOf { it.balance },
                     "accounts" to accs.map { a ->
                         mapOf(
                             "name" to a.name,

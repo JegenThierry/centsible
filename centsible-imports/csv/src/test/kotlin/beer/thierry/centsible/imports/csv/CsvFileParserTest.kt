@@ -54,4 +54,46 @@ class CsvFileParserTest {
         assertTrue(parser.sniff("a;b;c\n1;2;3".toByteArray(), "f.csv"))
         assertTrue(parser.sniff("a\tb\tc\n1\t2\t3".toByteArray(), "f.tsv"))
     }
+
+    @Test
+    fun `probe strips a UTF-8 BOM so the first header cell stays clean`() {
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val csv = bom + "Date;Description;Amount\n2026-01-01;Test;1.23".toByteArray()
+
+        val probe = parser.probe(csv, ParseHints())
+
+        assertEquals(listOf("Date", "Description", "Amount"), probe.header)
+        assertEquals("UTF-8", probe.detectedDialect.encoding)
+    }
+
+    @Test
+    fun `parses a windows-1252 encoded file without mangling umlauts`() {
+        val csv = "Datum;Beschreibung;Betrag\n15.01.2026;Bäckerei Müller;-3,50"
+            .toByteArray(charset("windows-1252"))
+
+        val hints = ParseHints(
+            defaultCategoryId = 42L,
+            csvMapping = CsvColumnMapping(
+                dateColumn = 0,
+                descriptionColumn = 1,
+                amountColumn = 2,
+                dateFormat = "dd.MM.yyyy",
+                decimalSeparator = ',',
+            ),
+        )
+
+        val result = parser.parse(csv, hints)
+
+        assertEquals(1, result.rows.size)
+        assertEquals("Bäckerei Müller", result.rows[0].description)
+        assertEquals(BigDecimal("3.50"), result.rows[0].amount)
+    }
+
+    @Test
+    fun `probe detects windows-1252 for non-UTF8 bytes`() {
+        val csv = "Datum;Beschreibung;Betrag\n15.01.2026;Bäckerei;-3,50".toByteArray(charset("windows-1252"))
+        val probe = parser.probe(csv, ParseHints())
+        assertEquals("windows-1252", probe.detectedDialect.encoding)
+        assertEquals(listOf("Datum", "Beschreibung", "Betrag"), probe.header)
+    }
 }

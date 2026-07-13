@@ -13,9 +13,12 @@ defineProps<{
   emptyIcon?: string;
   emptyTitle?: string;
   loadingMessage?: string;
+  /** When true, an empty result set means "no matches for the active filters", not "no data yet". */
+  filtered?: boolean;
+  filteredTitle?: string;
 }>();
 
-const emit = defineEmits<{ retry: [] }>();
+const emit = defineEmits<{ retry: [], clearFilters: [] }>();
 
 const slots = defineSlots<Record<string, (scope: any) => any>>();
 const {t} = useI18n();
@@ -39,6 +42,13 @@ const {t} = useI18n();
         <p v-if="errorMessage" class="text-sm text-muted">{{ errorMessage }}</p>
         <AppButton color="neutral" variant="soft" icon="i-lucide-refresh-cw" size="sm" @click="emit('retry')">
           {{ t('common.actions.retry') }}
+        </AppButton>
+      </div>
+      <div v-else-if="filtered" class="flex flex-col items-center justify-center py-10 gap-3">
+        <UIcon class="w-8 h-8 text-dimmed" name="i-lucide-search-x"/>
+        <p class="text-sm text-muted">{{ filteredTitle ?? t('common.states.noResults') }}</p>
+        <AppButton color="neutral" variant="soft" icon="i-lucide-x" size="sm" @click="emit('clearFilters')">
+          {{ t('common.actions.clearFilters') }}
         </AppButton>
       </div>
       <div v-else class="flex flex-col items-center justify-center py-10 gap-3">

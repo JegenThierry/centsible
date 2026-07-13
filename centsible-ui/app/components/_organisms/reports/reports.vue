@@ -8,6 +8,8 @@ import YearOverYearCard from "~/components/_organisms/reports/year-over-year-car
 import BudgetVsActualCard from "~/components/_organisms/reports/budget-vs-actual-card.vue";
 import ChartCardSkeleton from "~/components/_molecules/skeletons/chart-card-skeleton.vue";
 import DateRangePicker from "~/components/_molecules/reports/date-range-picker.vue";
+import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useReportsStore} from "~/stores/reportsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {Currency} from "~/models/budget-account/currency";
@@ -33,6 +35,7 @@ function onNetWorthPointClick(date: string) {
 
 async function refresh() {
   if (isCustom.value && !isCustomValid.value) return;
+  reportsStore.error = false;
   const range = isCustom.value
     ? {startDate: resolved.value.startDate, endDate: resolved.value.endDate}
     : resolved.value.months;
@@ -79,6 +82,20 @@ onMounted(async () => {
         <ChartCardSkeleton/>
       </div>
     </template>
+
+    <AppEmptyState v-else-if="reportsStore.error"
+                   icon="i-lucide-triangle-alert"
+                   :title="t('common.states.error')">
+      <template #actions>
+        <AppButton class="w-full sm:w-auto justify-center"
+                   color="neutral"
+                   variant="soft"
+                   icon="i-lucide-refresh-cw"
+                   @click="refresh">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </template>
+    </AppEmptyState>
 
     <template v-else>
       <NetWorthChart :currency="displayCurrency"

@@ -28,7 +28,8 @@
       "no": "No",
       "open": "Open",
       "view": "View",
-      "more": "More"
+      "more": "More",
+      "clearFilters": "Clear filters"
     },
     "validation": {
       "required": "{field} is required.",
@@ -80,6 +81,13 @@
     "system": {
       "loadFailedTitle": "Failed to load system information",
       "loadFailedBody": "Could not load system information."
+    },
+    "errorPage": {
+      "notFoundTitle": "Page not found",
+      "notFoundDescription": "The page you are looking for doesn't exist or has moved.",
+      "errorTitle": "Something went wrong",
+      "errorDescription": "An unexpected error occurred. Please try again.",
+      "backHome": "Back to home"
     }
   }
 }

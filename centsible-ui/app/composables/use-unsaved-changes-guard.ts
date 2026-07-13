@@ -1,4 +1,4 @@
-import {type Ref, computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch} from 'vue';
+import {type Ref, computed, nextTick, ref, unref, watch} from 'vue';
 import {onBeforeRouteLeave} from 'vue-router';
 
 type MaybeRef<T> = T | Ref<T>;
@@ -10,18 +10,10 @@ export function useUnsavedChangesGuard(dirty: Ref<boolean>, message?: MaybeRef<s
     return unref(message) ?? t('common.unsavedChanges.confirmLeave');
   }
 
-  function onBeforeUnload(event: BeforeUnloadEvent) {
+  useEventListener('beforeunload', (event: BeforeUnloadEvent) => {
     if (!dirty.value) return;
     event.preventDefault();
     event.returnValue = '';
-  }
-
-  onMounted(() => {
-    window.addEventListener('beforeunload', onBeforeUnload);
-  });
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('beforeunload', onBeforeUnload);
   });
 
   onBeforeRouteLeave(() => {

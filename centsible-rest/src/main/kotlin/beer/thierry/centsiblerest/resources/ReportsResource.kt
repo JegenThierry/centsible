@@ -1,5 +1,6 @@
 package beer.thierry.centsiblerest.resources
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
 import beer.thierry.centsible.api.model.reports.CashFlowPointDTO
@@ -63,7 +64,7 @@ class ReportsResource(private val reportService: IReportService) {
         @RequestParam(defaultValue = "6") periods: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<BudgetVsActualPeriodDTO>> {
-        if (periods !in 1..24) return ResponseEntity.badRequest().build()
+        if (periods !in 1..24) throw LocalizedException.BadRequest("error.report.periodsOutOfRange")
         return ResponseEntity.ok(reportService.fetchBudgetVsActualHistory(periods, authenticatedUser))
     }
 }

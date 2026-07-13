@@ -28,7 +28,8 @@
       "no": "Nein",
       "open": "Öffnen",
       "view": "Anzeigen",
-      "more": "Mehr"
+      "more": "Mehr",
+      "clearFilters": "Filter zurücksetzen"
     },
     "validation": {
       "required": "{field} ist erforderlich.",
@@ -80,6 +81,13 @@
     "system": {
       "loadFailedTitle": "Systeminformationen konnten nicht geladen werden",
       "loadFailedBody": "Die Systeminformationen konnten nicht geladen werden."
+    },
+    "errorPage": {
+      "notFoundTitle": "Seite nicht gefunden",
+      "notFoundDescription": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "errorDescription": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      "backHome": "Zurück zur Startseite"
     }
   }
 }

@@ -1,0 +1,49 @@
+{
+  "admin": {
+    "page": {
+      "title": "Administration",
+      "description": "Verwalten Sie die Konten dieser Centsible-Instanz."
+    },
+    "users": {
+      "columns": {
+        "user": "Benutzer",
+        "status": "Status",
+        "accounts": "Konten",
+        "transactions": "Transaktionen",
+        "createdAt": "Registriert am",
+        "lastSeen": "Zuletzt gesehen",
+        "lastTransaction": "Letzte Transaktion"
+      },
+      "status": {
+        "registered": "Registriert",
+        "pending": "Bestätigung ausstehend",
+        "twoFactor": "2FA",
+        "you": "Sie",
+        "inactive": "Inaktiv"
+      },
+      "never": "Nie",
+      "actions": {
+        "resend": "Bestätigungs-E-Mail erneut senden",
+        "delete": "Benutzer löschen"
+      },
+      "delete": {
+        "title": "Diesen Benutzer löschen?",
+        "body": "Dadurch werden das Konto von {username} und alle zugehörigen Daten dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "submit": "Benutzer löschen"
+      },
+      "empty": "Keine Benutzer gefunden.",
+      "errorTitle": "Benutzer konnten nicht geladen werden."
+    },
+    "toasts": {
+      "fetchFailedTitle": "Laden fehlgeschlagen",
+      "fetchFailedBody": "Die Benutzerliste konnte nicht geladen werden.",
+      "deletedTitle": "Benutzer gelöscht",
+      "deletedBody": "Das Konto und alle zugehörigen Daten wurden entfernt.",
+      "deleteFailedTitle": "Löschen fehlgeschlagen",
+      "resendTitle": "E-Mail gesendet",
+      "resendBody": "Eine neue Bestätigungs-E-Mail ist unterwegs.",
+      "resendFailedTitle": "Senden fehlgeschlagen",
+      "genericErrorBody": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
+  }
+}

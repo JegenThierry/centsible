@@ -99,12 +99,14 @@ class AuthenticationServiceTest {
 
     @Test
     fun `valid credentials for a confirmed account without 2FA return a token`() {
-        `when`(userRepository.findUserByUsername("alice")).thenReturn(user(registered = true))
+        val alice = user(registered = true)
+        `when`(userRepository.findUserByUsername("alice")).thenReturn(alice)
         `when`(passwordEncoder.matches(eq("correct"), anyString())).thenReturn(true)
 
         val result = service().authenticate(AuthRequest("alice", "correct"))
         val authenticated = assertInstanceOf(LoginResult.Authenticated::class.java, result)
         assertTrue(authenticated.token.isNotBlank())
+        verify(userRepository).touchLastLogin(alice.id)
         verifyNoInteractions(twoFactorRepository)
     }
 

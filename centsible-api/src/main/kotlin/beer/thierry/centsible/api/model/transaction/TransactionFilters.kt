@@ -11,6 +11,8 @@ enum class TransactionSort {
 data class TransactionFilters(
     val search: String? = null,
     val categoryIds: List<Long>? = null,
+    /** Matches transactions carrying at least one of these tags. */
+    val tagIds: List<Long>? = null,
     val from: LocalDate? = null,
     val to: LocalDate? = null,
     val type: CategoryType? = null,

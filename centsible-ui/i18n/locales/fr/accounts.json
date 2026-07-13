@@ -20,7 +20,8 @@
     },
     "card": {
       "currentBalance": "Solde courant",
-      "last30Days": "30 derniers jours"
+      "last30Days": "30 derniers jours",
+      "openAria": "Ouvrir {name}"
     },
     "breakdown": {
       "title": "Solde par compte"

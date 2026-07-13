@@ -6,6 +6,7 @@ import com.microsoft.playwright.options.LoadState
 import com.microsoft.playwright.options.Margin
 import io.pebbletemplates.pebble.PebbleEngine
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.StringWriter
 
@@ -13,6 +14,9 @@ import java.io.StringWriter
 class PdfRenderer(
     private val pebbleEngine: PebbleEngine,
     private val browser: Browser,
+    // Bounds setContent/waitForLoadState so a template that references an unreachable resource
+    // (NETWORKIDLE would otherwise block forever) cannot pin the shared scheduler thread past the lease.
+    @param:Value("\${export.render.timeout-ms:60000}") private val renderTimeoutMs: Double,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,6 +43,7 @@ class PdfRenderer(
     }
 
     private fun htmlToPdfBytes(html: String): ByteArray = browser.newPage().use { page ->
+        page.setDefaultTimeout(renderTimeoutMs)
         page.setContent(html)
         page.waitForLoadState(LoadState.NETWORKIDLE)
         page.pdf(

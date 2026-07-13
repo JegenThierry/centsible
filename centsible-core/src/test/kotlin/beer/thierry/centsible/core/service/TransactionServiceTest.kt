@@ -6,6 +6,13 @@ import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.currency.ConversionResult
+import beer.thierry.centsible.api.model.rule.RuleActionDTO
+import beer.thierry.centsible.api.model.rule.RuleActionType
+import beer.thierry.centsible.api.model.rule.RuleConditionDTO
+import beer.thierry.centsible.api.model.rule.RuleDTO
+import beer.thierry.centsible.api.model.rule.RuleField
+import beer.thierry.centsible.api.model.rule.RuleOperator
+import beer.thierry.centsible.api.model.tag.TagDTO
 import beer.thierry.centsible.api.model.transaction.SetBalanceForm
 import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.transaction.TransactionForm
@@ -123,6 +130,76 @@ class TransactionServiceTest {
 
         assertEquals(transaction, result)
         verify(accountRepository).updateBalance(accountId, BigDecimal("50.00"), user)
+    }
+
+    @Test
+    fun `createTransaction applies rules when the category is the uncategorized fallback`() {
+        val uncategorized = CategoryDTO(99L, "Uncategorized", "icon", "#999999", CategoryType.EXPENSE)
+        val form = TransactionForm(BigDecimal("12.99"), 99L, "Netflix subscription", LocalDate.now())
+        val rule = RuleDTO(
+            id = UUID.randomUUID(),
+            name = "netflix",
+            matchAll = true,
+            enabled = true,
+            priority = 0,
+            conditions = listOf(
+                RuleConditionDTO(field = RuleField.DESCRIPTION, operator = RuleOperator.CONTAINS, value = "netflix")
+            ),
+            actions = listOf(
+                RuleActionDTO(type = RuleActionType.SET_CATEGORY, category = expenseCategory),
+                RuleActionDTO(type = RuleActionType.ADD_TAG, tag = TagDTO(id = 7L, name = "streaming")),
+            ),
+            createdAt = java.time.OffsetDateTime.now(),
+            updatedAt = java.time.OffsetDateTime.now(),
+        )
+        val transaction = TransactionDTO(
+            id = UUID.randomUUID(),
+            category = expenseCategory,
+            type = CategoryType.EXPENSE,
+            amount = BigDecimal("12.99"),
+            description = "Netflix subscription",
+            transactionDate = LocalDate.now(),
+        )
+        stubCategoryType(99L, CategoryType.EXPENSE, isManaged = true)
+        `when`(categoriesRepository.fetchSystemCategoryByKey("UNCATEGORIZED")).thenReturn(uncategorized)
+        `when`(ruleService.list(user)).thenReturn(listOf(rule))
+        `when`(
+            transactionRepository.createTransaction(
+                eqArg(accountId), eqArg(form.copy(type = CategoryType.EXPENSE, categoryId = 1L)), anyArg(), eqArg(user)
+            )
+        ).thenReturn(transaction)
+
+        val result = service.createTransaction(accountId, form, user)
+
+        assertEquals(transaction, result)
+        verify(tagRepository).setTransactionTags(user, transaction.id!!, listOf(7L))
+    }
+
+    @Test
+    fun `createTransaction never overrides an explicitly chosen category with rules`() {
+        val uncategorized = CategoryDTO(99L, "Uncategorized", "icon", "#999999", CategoryType.EXPENSE)
+        val form = TransactionForm(BigDecimal("12.99"), 1L, "Netflix subscription", LocalDate.now())
+        val transaction = TransactionDTO(
+            id = UUID.randomUUID(),
+            category = expenseCategory,
+            type = CategoryType.EXPENSE,
+            amount = BigDecimal("12.99"),
+            description = "Netflix subscription",
+            transactionDate = LocalDate.now(),
+        )
+        stubCategoryType(1L, CategoryType.EXPENSE)
+        `when`(categoriesRepository.fetchSystemCategoryByKey("UNCATEGORIZED")).thenReturn(uncategorized)
+        `when`(
+            transactionRepository.createTransaction(
+                eqArg(accountId), eqArg(form.copy(type = CategoryType.EXPENSE)), anyArg(), eqArg(user)
+            )
+        ).thenReturn(transaction)
+
+        val result = service.createTransaction(accountId, form, user)
+
+        assertEquals(transaction, result)
+        verify(ruleService, never()).list(anyArg())
+        verify(tagRepository, never()).setTransactionTags(anyArg(), anyArg(), anyArg())
     }
 
     @Test

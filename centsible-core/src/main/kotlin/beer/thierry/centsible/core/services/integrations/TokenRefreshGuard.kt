@@ -42,7 +42,7 @@ class TokenRefreshGuard(
             persistRevoked(ctx.userId, ctx.connectionId, "Token refresh failed: ${e.message ?: e.javaClass.simpleName}")
             throw e
         }
-        val rotatedCredentials = ctx.credentials.mergedWith(refreshed.toMap())
+        val rotatedCredentials = ctx.credentials + refreshed.toMap()
         persistRotatedCredentials(ctx.userId, ctx.connectionId, rotatedCredentials, ctx.config)
         return ctx.copy(credentials = rotatedCredentials)
     }

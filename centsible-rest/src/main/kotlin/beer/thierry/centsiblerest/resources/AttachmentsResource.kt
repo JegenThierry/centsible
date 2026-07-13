@@ -39,7 +39,6 @@ class AttachmentsResource(private val service: IAttachmentService) {
         val (detected, bytes) = file.validateContentType(
             allowedTypes = ALLOWED_ATTACHMENT_TYPES,
             maxBytes = MAX_ATTACHMENT_BYTES,
-            tooLargeMessage = "Attachment must be ≤ 10MB",
         )
         val filename = sanitiseFilename(file.originalFilename ?: "attachment")
         val saved = service.store(user, transactionId, filename, detected, file.size, bytes)

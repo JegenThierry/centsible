@@ -28,7 +28,8 @@
       "no": "Non",
       "open": "Ouvrir",
       "view": "Voir",
-      "more": "Plus"
+      "more": "Plus",
+      "clearFilters": "Effacer les filtres"
     },
     "validation": {
       "required": "{field} est requis.",
@@ -80,6 +81,13 @@
     "system": {
       "loadFailedTitle": "Échec du chargement des informations système",
       "loadFailedBody": "Impossible de charger les informations système."
+    },
+    "errorPage": {
+      "notFoundTitle": "Page introuvable",
+      "notFoundDescription": "La page que vous recherchez n'existe pas ou a été déplacée.",
+      "errorTitle": "Une erreur est survenue",
+      "errorDescription": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+      "backHome": "Retour à l'accueil"
     }
   }
 }

@@ -2,12 +2,18 @@
 import {useReportsStore} from "~/stores/reportsStore";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const reportsStore = useReportsStore();
 const {t} = useI18n();
 
 const s = computed(() => reportsStore.safeToSpend);
 const positive = computed(() => (s.value?.safeToSpend ?? 0) >= 0);
+
+function retry() {
+  reportsStore.safeToSpendError = false;
+  reportsStore.fetchSafeToSpend();
+}
 </script>
 
 <template>
@@ -52,5 +58,26 @@ const positive = computed(() => (s.value?.safeToSpend ?? 0) >= 0);
     </div>
 
     <p class="text-xs text-dimmed mt-3">{{ t('accounts.dashboard.safeToSpend.subtitle') }}</p>
+  </UCard>
+  <UCard v-else-if="reportsStore.safeToSpendError">
+    <div class="flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs text-muted uppercase tracking-widest font-medium">
+          {{ t('accounts.dashboard.safeToSpend.title') }}
+        </p>
+        <p class="text-sm text-muted mt-2">{{ t('common.states.error') }}</p>
+        <AppButton class="mt-3"
+                   color="neutral"
+                   variant="soft"
+                   size="sm"
+                   icon="i-lucide-refresh-cw"
+                   @click="retry">
+          {{ t('common.actions.retry') }}
+        </AppButton>
+      </div>
+      <div class="p-3 rounded-full shrink-0 bg-primary-100 dark:bg-primary-900/30 text-primary">
+        <UIcon name="i-lucide-wallet" class="w-6 h-6 flex my-auto"/>
+      </div>
+    </div>
   </UCard>
 </template>

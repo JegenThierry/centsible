@@ -123,8 +123,7 @@ class RuleRepository(private val dsl: DSLContext) : IRuleRepository {
 
     private fun fetchActions(ruleIds: List<UUID>): Map<UUID, List<RuleActionDTO>> {
         if (ruleIds.isEmpty()) return emptyMap()
-        val result = LinkedHashMap<UUID, MutableList<RuleActionDTO>>()
-        dsl.select(
+        return dsl.select(
             RULE_ACTIONS.ID, RULE_ACTIONS.RULE_ID, RULE_ACTIONS.ACTION_TYPE,
             CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.ICON, CATEGORIES.COLOR,
             CATEGORIES.TYPE, CATEGORIES.USER_ID, CATEGORIES.SYSTEM_KEY,
@@ -135,11 +134,8 @@ class RuleRepository(private val dsl: DSLContext) : IRuleRepository {
             .leftJoin(TAGS).on(TAGS.ID.eq(RULE_ACTIONS.TAG_ID))
             .where(RULE_ACTIONS.RULE_ID.`in`(ruleIds))
             .orderBy(RULE_ACTIONS.ID.asc())
-            .forEach { r ->
-                val ruleId = r[RULE_ACTIONS.RULE_ID] ?: return@forEach
-                result.getOrPut(ruleId) { mutableListOf() }.add(mapAction(r))
-            }
-        return result
+            .filter { it[RULE_ACTIONS.RULE_ID] != null }
+            .groupBy({ it[RULE_ACTIONS.RULE_ID]!! }, ::mapAction)
     }
 
     private fun mapAction(r: Record): RuleActionDTO {

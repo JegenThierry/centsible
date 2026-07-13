@@ -1,12 +1,13 @@
 package beer.thierry.centsiblerest.config
 
+import beer.thierry.centsible.core.services.authentication.TotpSecretCipher
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
-/** Hard-fails boot under the `prod` profile when a secret is left at its `.env.example` placeholder or unsafe config (insecure cookies, skipped email verification) is set. */
+/** Hard-fails boot under the `prod` profile when a secret is left at its `.env.example` placeholder, is missing entirely, or unsafe config (insecure cookies, skipped email verification) is set. */
 @Component
 class ProductionGuard(
     private val environment: Environment,
@@ -18,6 +19,9 @@ class ProductionGuard(
     @Value("\${mfa.encryption-key:}") private val mfaEncryptionKey: String = "",
     @Value("\${mfa.encryption-salt:}") private val mfaEncryptionSalt: String = "",
     @Value("\${spring.datasource.password:}") private val datasourcePassword: String = "",
+    @Value("\${admin.enabled:false}") private val adminEnabled: Boolean = false,
+    @Value("\${admin.username:}") private val adminUsername: String = "",
+    private val totpSecretCipher: TotpSecretCipher? = null,
 ) {
     private val log = LoggerFactory.getLogger(ProductionGuard::class.java)
 
@@ -41,6 +45,15 @@ class ProductionGuard(
             rejectPlaceholder("MFA_ENCRYPTION_KEY", "mfa.encryption-key", mfaEncryptionKey, PLACEHOLDER_ENCRYPTION_KEY)
             rejectPlaceholder("MFA_ENCRYPTION_SALT", "mfa.encryption-salt", mfaEncryptionSalt, PLACEHOLDER_ENCRYPTION_SALT)
             rejectPlaceholder("POSTGRES_PASSWORD", "spring.datasource.password", datasourcePassword, PLACEHOLDER_DB_PASSWORD)
+            if (adminEnabled) {
+                require(adminUsername.isNotBlank()) {
+                    "ADMIN_ENABLED=true requires ADMIN_USERNAME (admin.username) to be set — " +
+                        "otherwise the admin area is switched on but nobody can reach it."
+                }
+            }
+            // Force the lazy MFA cipher to build now so a malformed key/salt fails boot rather
+            // than the first 2FA enrollment (CredentialCipher already self-validates at boot).
+            totpSecretCipher?.ensureReady()
         }
         if (skipEmailVerification) {
             log.warn("skip.email.verification=true — accounts will be auto-confirmed without email verification. Never enable this in production.")
@@ -48,6 +61,10 @@ class ProductionGuard(
     }
 
     private fun rejectPlaceholder(envName: String, property: String, actual: String, placeholder: String) {
+        require(actual.isNotBlank()) {
+            "$envName ($property) is empty. Every secret must be set under the prod profile — " +
+                "an unset value would only fail on first use (or silently weaken security)."
+        }
         require(actual != placeholder) {
             "$envName ($property) is still set to the placeholder value shipped in .env.example. " +
                 "That value is committed to a public repository and is NOT secret — generate a fresh " +

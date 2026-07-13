@@ -15,8 +15,6 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
   const unreadCount = ref(0);
   const loading = ref(false);
 
-  let pollTimer: ReturnType<typeof setInterval> | null = null;
-
   async function refresh() {
     loading.value = true;
     try {
@@ -66,17 +64,11 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
     }
   }
 
-  function startPolling() {
-    if (pollTimer) return;
-    pollTimer = setInterval(() => refreshCount(), POLL_INTERVAL_MS);
-  }
-
-  function stopPolling() {
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
-  }
+  const {resume: startPolling, pause: stopPolling} = useIntervalFn(
+    () => refreshCount(),
+    POLL_INTERVAL_MS,
+    {immediate: false},
+  );
 
   return {
     notifications,

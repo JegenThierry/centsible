@@ -21,8 +21,13 @@ const currency = useActiveCurrency();
 
 <template>
   <UCard
-    class="group transition-all cursor-pointer hover:border-primary-300 dark:hover:border-primary-700"
+    role="button"
+    :tabindex="0"
+    :aria-label="t('contacts.card.openAria', {name: contact.name})"
+    class="group transition-all cursor-pointer hover:border-primary-300 dark:hover:border-primary-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
     @click="emit('open', contact)"
+    @keydown.enter.self="emit('open', contact)"
+    @keydown.space.self.prevent="emit('open', contact)"
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">

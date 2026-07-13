@@ -35,6 +35,9 @@ class TotpSecretCipher(
         }
     }
 
+    /** Forces the lazy encryptor to build so misconfiguration surfaces at boot (see ProductionGuard). */
+    fun ensureReady() = encryptor.ensureReady()
+
     fun encrypt(secret: String): ByteArray = encryptor.encrypt(secret.toByteArray(Charsets.UTF_8))
 
     fun decrypt(ciphertext: ByteArray): String = String(encryptor.decrypt(ciphertext), Charsets.UTF_8)

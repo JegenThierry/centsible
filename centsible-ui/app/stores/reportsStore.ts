@@ -20,6 +20,10 @@ export const useReportsStore = defineStore('reportsStore', () => {
   const safeToSpend = ref<SafeToSpend | null>(null);
   const inflight = ref(0);
   const pending = computed(() => inflight.value > 0);
+  // Set when a report load fails so consumers can show an error state with retry instead of an
+  // empty chart that reads as "no data yet". Cleared by the consumer before it refetches.
+  const error = ref(false);
+  const safeToSpendError = ref(false);
 
   /**
    * Accepts a months-back number for back-compat with the original preset-only flow, or an
@@ -47,7 +51,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "net worth report",
       async () => { netWorth.value = await reportsService.fetchNetWorth(startDate, endDate); },
-      () => { netWorth.value = []; },
+      () => { netWorth.value = []; error.value = true; },
     );
   }
 
@@ -60,7 +64,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "category spending report",
       async () => { categorySpending.value = await reportsService.fetchCategorySpending(startDate, endDate); },
-      () => { categorySpending.value = []; },
+      () => { categorySpending.value = []; error.value = true; },
     );
   }
 
@@ -69,7 +73,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "cash flow report",
       async () => { cashFlow.value = await reportsService.fetchCashFlow(startDate, endDate); },
-      () => { cashFlow.value = []; },
+      () => { cashFlow.value = []; error.value = true; },
     );
   }
 
@@ -77,7 +81,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "year-over-year report",
       async () => { yearOverYear.value = await reportsService.fetchYearOverYear(); },
-      () => { yearOverYear.value = null; },
+      () => { yearOverYear.value = null; error.value = true; },
     );
   }
 
@@ -85,7 +89,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "budget-vs-actual report",
       async () => { budgetVsActual.value = await reportsService.fetchBudgetVsActual(periods); },
-      () => { budgetVsActual.value = []; },
+      () => { budgetVsActual.value = []; error.value = true; },
     );
   }
 
@@ -93,7 +97,7 @@ export const useReportsStore = defineStore('reportsStore', () => {
     await runFetch(
       "safe-to-spend",
       async () => { safeToSpend.value = await reportsService.fetchSafeToSpend(); },
-      () => { safeToSpend.value = null; },
+      () => { safeToSpend.value = null; safeToSpendError.value = true; },
     );
   }
 
@@ -105,6 +109,8 @@ export const useReportsStore = defineStore('reportsStore', () => {
     budgetVsActual,
     safeToSpend,
     pending,
+    error,
+    safeToSpendError,
     fetchNetWorth,
     fetchNetWorthBreakdown,
     fetchCategorySpending,

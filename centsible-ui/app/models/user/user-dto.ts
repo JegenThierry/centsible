@@ -10,4 +10,6 @@ export interface UserDto {
   profilePicture?: string;
   locale: string;
   defaultCurrency: Currency;
+  /** True when this user is the instance admin designated by the server configuration. */
+  admin?: boolean;
 }

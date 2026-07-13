@@ -6,6 +6,7 @@ import type {Contact, ContactForm as ContactFormModel} from "~/models/contact/co
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useContactsStore} from "~/stores/contactsStore";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {contactSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
@@ -33,8 +34,11 @@ function syncForm() {
     : {firstName: '', lastName: ''};
 }
 
-watch(isOpen, (open) => {
-  if (open) syncForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: syncForm,
 });
 watch(() => props.contact, () => {
   if (isOpen.value) syncForm();
@@ -59,9 +63,10 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t(isEdit ? 'contacts.edit.description' : 'contacts.create.description')"
-          :title="t(isEdit ? 'contacts.edit.title' : 'contacts.create.title')">
+          :title="t(isEdit ? 'contacts.edit.title' : 'contacts.create.title')"
+          @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
         <ContactForm v-model="form"/>
@@ -72,7 +77,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
       <ModalFooterActions :form="formId"
                           :loading="loading"
                           :submit-label="t(isEdit ? 'contacts.edit.submit' : 'contacts.create.submit')"
-                          @cancel="isOpen = false"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

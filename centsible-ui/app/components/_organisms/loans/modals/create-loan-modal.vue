@@ -7,6 +7,7 @@ import {type LoanForm as LoanFormModel, cleanOptionalNumber} from "~/models/loan
 import LoanForm from "~/components/_organisms/loans/loan-form.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import {useLoansStore} from "~/stores/loansStore";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 
 const props = defineProps<{
@@ -94,8 +95,11 @@ function makeBlankForm(): LoanFormModel {
   };
 }
 
-watch(isOpen, (open) => {
-  if (open) form.value = makeBlankForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: () => form.value = makeBlankForm(),
 });
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
@@ -113,9 +117,10 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t('contacts.loans.create.description')"
-          :title="t('contacts.loans.create.title')">
+          :title="t('contacts.loans.create.title')"
+          @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
         <LoanForm v-model="form" :lock-contact="!!contactId"/>
@@ -126,7 +131,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
       <ModalFooterActions :form="formId"
                           :loading="loading"
                           :submit-label="t('contacts.loans.create.submit')"
-                          @cancel="isOpen = false"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

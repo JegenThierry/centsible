@@ -27,6 +27,7 @@ const NuxtLink = resolveComponent('NuxtLink');
 
 const items = ref<EnrichedAttachment[]>([]);
 const loading = ref(false);
+const error = ref(false);
 const hasMore = ref(true);
 const page = ref(1);
 const fileToDelete = ref<EnrichedAttachment | null>(null);
@@ -44,14 +45,16 @@ async function load(reset = false) {
 
   if (loading.value || !hasMore.value) return;
   loading.value = true;
+  error.value = false;
 
   try {
     const fetched = await service.listForUser(page.value, PAGE_SIZE);
     items.value = reset ? fetched : [...items.value, ...fetched];
     hasMore.value = fetched.length === PAGE_SIZE;
     if (hasMore.value) page.value += 1;
-  } catch (error) {
-    toastError(error, t('attachments.errors.loadTitle'), t('attachments.errors.loadBody'));
+  } catch (err) {
+    error.value = true;
+    toastError(err, t('attachments.errors.loadTitle'), t('attachments.errors.loadBody'));
   } finally {
     loading.value = false;
   }
@@ -165,8 +168,10 @@ onMounted(() => load(true));
                :data="items"
                :empty-icon="'i-lucide-paperclip'"
                :empty-title="t('attachments.empty')"
+               :error="error && items.length === 0"
                :loading="showInitialLoading"
-               :loading-message="t('attachments.loading')"/>
+               :loading-message="t('attachments.loading')"
+               @retry="load(true)"/>
 
     <div v-if="hasMore && items.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
       <LoadingAnimation v-if="showLoadMoreSpinner"/>

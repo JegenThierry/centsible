@@ -7,6 +7,7 @@ import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
 import {useBudgetService} from "~/services/budget/budget-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {budgetSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
@@ -53,8 +54,11 @@ function syncForm() {
   form.value = props.budget ? toForm(props.budget) : makeBlank();
 }
 
-watch(isOpen, (open) => {
-  if (open) syncForm();
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => form.value,
+  onResetOnOpen: syncForm,
 });
 watch(() => props.budget, () => {
   if (isOpen.value) syncForm();
@@ -91,9 +95,10 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t(isEdit ? 'budgets.edit.description' : 'budgets.create.description')"
-          :title="t(isEdit ? 'budgets.edit.title' : 'budgets.create.title')">
+          :title="t(isEdit ? 'budgets.edit.title' : 'budgets.create.title')"
+          @update:open="requestClose">
     <template #body>
       <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
         <BudgetFormFields v-model="form" :existing-combos="existingCombos"/>
@@ -104,7 +109,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
       <ModalFooterActions :form="formId"
                           :loading="loading"
                           :submit-label="t(isEdit ? 'budgets.edit.submit' : 'budgets.create.submit')"
-                          @cancel="isOpen = false"/>
+                          @cancel="requestClose(false)"/>
     </template>
   </UModal>
 </template>

@@ -81,8 +81,7 @@ class TagRepository(private val dsl: DSLContext) : ITagRepository {
         transactionIds: List<UUID>,
     ): Map<UUID, List<TagDTO>> {
         if (transactionIds.isEmpty()) return emptyMap()
-        val result = LinkedHashMap<UUID, MutableList<TagDTO>>()
-        dsl.select(
+        return dsl.select(
             TRANSACTION_TAGS.TRANSACTION_ID,
             TAGS.ID, TAGS.NAME, TAGS.COLOR, TAGS.CREATED_AT, TAGS.MODIFIED_AT,
         )
@@ -90,11 +89,8 @@ class TagRepository(private val dsl: DSLContext) : ITagRepository {
             .join(TAGS).on(TAGS.ID.eq(TRANSACTION_TAGS.TAG_ID))
             .where(TRANSACTION_TAGS.TRANSACTION_ID.`in`(transactionIds).and(TAGS.USER_ID.eq(authenticatedUser.id)))
             .orderBy(DSL.lower(TAGS.NAME).asc())
-            .forEach { rec ->
-                val txnId = rec[TRANSACTION_TAGS.TRANSACTION_ID] ?: return@forEach
-                result.getOrPut(txnId) { mutableListOf() }.add(mapToDTO(rec))
-            }
-        return result
+            .filter { it[TRANSACTION_TAGS.TRANSACTION_ID] != null }
+            .groupBy({ it[TRANSACTION_TAGS.TRANSACTION_ID]!! }, ::mapToDTO)
     }
 
     override fun setTransactionTags(authenticatedUser: UserDTO, transactionId: UUID, tagIds: List<Long>): Boolean {

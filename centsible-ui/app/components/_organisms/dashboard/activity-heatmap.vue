@@ -33,10 +33,7 @@ const {isDark, currencyFmt} = useChartTheme(() => props.currency);
 
 const {data, loading} = useDailyAggregates(() => props.accountId, () => DAYS);
 
-const mounted = ref(false);
-onMounted(() => {
-  mounted.value = true;
-});
+const mounted = useMounted();
 
 const byDate = computed(() => {
   const map = new Map<string, {income: number; expense: number; net: number}>();

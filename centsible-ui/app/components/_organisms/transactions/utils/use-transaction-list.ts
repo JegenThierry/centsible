@@ -22,40 +22,47 @@ export function useTransactionList(
   const loadingMore = ref(false)
   const hasMore = ref(true)
   const error = ref(false)
+  // Monotonic token so a slow in-flight load can't clobber the results of a newer one
+  // (fast filter/search typing or quick account switches). Only the latest request applies.
+  let requestToken = 0
 
   async function loadTransactions(reset = false) {
     if (!budgetAccountsStore.activeAccount?.id) return
 
+    const current = ++requestToken
     error.value = false
     if (reset) {
-      page.value = 1
       hasMore.value = true
-      transactions.value = []
       loading.value = true
     } else {
       loadingMore.value = true
     }
 
+    // Keep the currently rendered rows in place while a reset loads so the list
+    // doesn't flash empty on every committed filter change; they're replaced on arrival.
+    const requestedPage = reset ? 1 : page.value
+
     try {
       const data = await transactionService.fetchTransactions(
         budgetAccountsStore.activeAccount.id,
-        page.value,
+        requestedPage,
         pageSize.value,
         filters?.value ?? {},
       )
+      if (current !== requestToken) return
 
-      if (data.length < pageSize.value) {
-        hasMore.value = false
-      }
-
-      transactions.value = [...transactions.value, ...data]
-      page.value++
+      hasMore.value = data.length >= pageSize.value
+      transactions.value = reset ? data : [...transactions.value, ...data]
+      page.value = requestedPage + 1
     } catch (err) {
+      if (current !== requestToken) return
       error.value = true
       adze.ns('transactions').error('Failed to fetch transactions', err)
     } finally {
-      loading.value = false
-      loadingMore.value = false
+      if (current === requestToken) {
+        loading.value = false
+        loadingMore.value = false
+      }
     }
   }
 

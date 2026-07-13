@@ -16,13 +16,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.StringReader
 import java.math.BigDecimal
+import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
 private val CURRENCY_NOISE = setOf('€', '$', '£', '¥', '₣', '¤', '₽', '₹')
+private val WINDOWS_1252 = Charset.forName("windows-1252")
 
 /**
  * CSV file parser. Stateless; one Spring bean serves every import. The CSV format itself can't
@@ -181,24 +184,66 @@ class CsvFileParser : FileFormatParser {
         return runCatching { BigDecimal(cleaned) }.getOrNull()
     }
 
-    private fun decode(bytes: ByteArray, encoding: String): String =
-        bytes.toString(runCatching { Charset.forName(encoding) }.getOrDefault(Charsets.UTF_8))
+    /**
+     * A byte-order mark authoritatively identifies the encoding and must never leak into the
+     * first header cell (it would break profile matching and the date column). When no BOM is
+     * present the configured encoding applies — except that bytes which are not valid UTF-8
+     * cannot honestly be decoded as such, so they fall back to windows-1252, the de-facto
+     * encoding of the German/French bank exports this importer targets.
+     */
+    private fun decode(bytes: ByteArray, encoding: String): String {
+        decodeByBom(bytes)?.let { return it }
+        val requested = runCatching { Charset.forName(encoding) }.getOrDefault(Charsets.UTF_8)
+        if (requested == Charsets.UTF_8 && !isValidUtf8(bytes)) {
+            log.info("CSV bytes are not valid UTF-8; decoding as windows-1252 instead")
+            return String(bytes, WINDOWS_1252)
+        }
+        return String(bytes, requested)
+    }
+
+    private fun decodeByBom(bytes: ByteArray): String? = when {
+        bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte() ->
+            String(bytes, 3, bytes.size - 3, Charsets.UTF_8)
+        bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte() ->
+            String(bytes, 2, bytes.size - 2, Charsets.UTF_16LE)
+        bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte() ->
+            String(bytes, 2, bytes.size - 2, Charsets.UTF_16BE)
+        else -> null
+    }
+
+    private fun isValidUtf8(bytes: ByteArray): Boolean = runCatching {
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes))
+    }.isSuccess
+
+    private fun detectEncoding(bytes: ByteArray): String = when {
+        bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte() -> "UTF-8"
+        bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte() -> "UTF-16LE"
+        bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte() -> "UTF-16BE"
+        isValidUtf8(bytes) -> "UTF-8"
+        else -> "windows-1252"
+    }
 
     /**
      * Heuristic: header-line delimiter counts decide. Semicolon wins when it outnumbers comma
      * (German/French bank exports — comma is the decimal separator there, so they use ';').
      * Tab wins only when present and there are no commas at all (spreadsheet TSV without comma
-     * fields). Comma is the safe default for everything else.
+     * fields). Comma is the safe default for everything else. The detected encoding rides along
+     * so probe/parse and the mapping wizard all decode the file the same way.
      */
     private fun detectDialect(bytes: ByteArray): CsvDialect {
-        val sample = bytes.take(4096).toByteArray().toString(Charsets.UTF_8)
-        val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() } ?: return CsvDialect()
+        val encoding = detectEncoding(bytes)
+        val sample = decode(bytes, encoding)
+        val firstLine = sample.lineSequence().firstOrNull { it.isNotBlank() }
+            ?: return CsvDialect(encoding = encoding)
         val delimiter = when {
             firstLine.count { it == ';' } > firstLine.count { it == ',' } -> ';'
             firstLine.count { it == '\t' } > 0 && firstLine.count { it == ',' } == 0 -> '\t'
             else -> ','
         }
-        return CsvDialect(delimiter = delimiter)
+        return CsvDialect(delimiter = delimiter, encoding = encoding)
     }
 
     /**

@@ -20,7 +20,8 @@
       "loanCount": "{count} loan | {count} loans",
       "outstanding": "Outstanding",
       "editAria": "Edit contact",
-      "deleteAria": "Delete contact"
+      "deleteAria": "Delete contact",
+      "openAria": "Open contact {name}"
     },
     "detail": {
       "back": "Back to contacts",

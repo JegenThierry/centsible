@@ -20,7 +20,8 @@
       "loanCount": "{count} prêt | {count} prêts",
       "outstanding": "Restant dû",
       "editAria": "Modifier le contact",
-      "deleteAria": "Supprimer le contact"
+      "deleteAria": "Supprimer le contact",
+      "openAria": "Ouvrir le contact {name}"
     },
     "detail": {
       "back": "Retour aux contacts",

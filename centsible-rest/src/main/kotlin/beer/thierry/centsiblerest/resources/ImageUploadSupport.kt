@@ -12,8 +12,6 @@ fun MultipartFile.toValidatedImageDataUrl(): String {
     val (detected, bytes) = validateContentType(
         allowedTypes = ALLOWED_IMAGE_TYPES,
         maxBytes = MAX_IMAGE_SIZE_BYTES,
-        tooLargeMessage = "Image must be ≤ 2MB",
-        unsupportedTypeMessage = { "Unsupported image type: $it" },
     )
     return "data:$detected;base64,${Base64.getEncoder().encodeToString(bytes)}"
 }

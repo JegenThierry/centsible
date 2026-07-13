@@ -24,6 +24,7 @@ import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
+import beer.thierry.jooq.generated.tables.references.TRANSACTION_TAGS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
@@ -57,6 +58,17 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                                     .and(TRANSACTION_SPLITS.CATEGORY_ID.`in`(ids))
                             )
                     )
+                )
+            )
+        }
+        filters.tagIds?.takeIf { it.isNotEmpty() }?.let { ids ->
+            condition = condition.and(
+                DSL.exists(
+                    dsl.selectOne().from(TRANSACTION_TAGS)
+                        .where(
+                            TRANSACTION_TAGS.TRANSACTION_ID.eq(TRANSACTIONS.ID)
+                                .and(TRANSACTION_TAGS.TAG_ID.`in`(ids))
+                        )
                 )
             )
         }
@@ -531,10 +543,10 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
         if (inserted.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
 
-        val net = inserted.fold(BigDecimal.ZERO) { acc, rec ->
+        val net = inserted.sumOf { rec ->
             val type = CategoryType.fromValue(rec[TRANSACTIONS.TYPE]!!)
             val amount = rec[TRANSACTIONS.AMOUNT]!!
-            acc + if (type == CategoryType.INCOME) amount else amount.negate()
+            if (type == CategoryType.INCOME) amount else amount.negate()
         }
 
         return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)

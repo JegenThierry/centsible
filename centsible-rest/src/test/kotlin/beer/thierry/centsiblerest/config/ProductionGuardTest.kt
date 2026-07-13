@@ -14,6 +14,30 @@ class ProductionGuardTest {
         return env
     }
 
+    /** A guard with every secret set to a realistic non-placeholder value; override one to test it. */
+    private fun prodGuard(
+        jwtSecret: String = "a-freshly-generated-long-base64-secret",
+        encryptionKey: String = "a-real-strong-passphrase",
+        encryptionSalt: String = "00112233445566778899aabbccddeeff",
+        mfaEncryptionKey: String = "another-real-strong-passphrase",
+        mfaEncryptionSalt: String = "ffeeddccbbaa99887766554433221100",
+        datasourcePassword: String = "an-actual-strong-db-password",
+        adminEnabled: Boolean = false,
+        adminUsername: String = "",
+    ) = ProductionGuard(
+        environment = env(arrayOf("prod")),
+        skipEmailVerification = false,
+        cookieSecure = true,
+        jwtSecret = jwtSecret,
+        encryptionKey = encryptionKey,
+        encryptionSalt = encryptionSalt,
+        mfaEncryptionKey = mfaEncryptionKey,
+        mfaEncryptionSalt = mfaEncryptionSalt,
+        datasourcePassword = datasourcePassword,
+        adminEnabled = adminEnabled,
+        adminUsername = adminUsername,
+    )
+
     @Test
     fun `non-prod profile tolerates skip-email-verification and insecure cookies`() {
         ProductionGuard(
@@ -56,58 +80,50 @@ class ProductionGuardTest {
     }
 
     @Test
-    fun `prod profile with safe settings passes`() {
-        ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-        ).assertSafeProduction()
+    fun `prod profile rejects empty secrets`() {
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            // No secrets configured at all — the old behavior booted green and failed lazily.
+            ProductionGuard(
+                environment = env(arrayOf("prod")),
+                skipEmailVerification = false,
+                cookieSecure = true,
+            ).assertSafeProduction()
+        }
+        assert(ex.message!!.contains("is empty"))
+    }
+
+    @Test
+    fun `prod profile rejects a single blank secret among otherwise real ones`() {
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            prodGuard(mfaEncryptionKey = "").assertSafeProduction()
+        }
+        assert(ex.message!!.contains("MFA_ENCRYPTION_KEY"))
     }
 
     @Test
     fun `prod profile rejects the committed env-example encryption key`() {
-        val guard = ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-            encryptionKey = "change_me_long_random_passphrase",
-        )
+        val guard = prodGuard(encryptionKey = "change_me_long_random_passphrase")
         val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
         assert(ex.message!!.contains("INTEGRATIONS_ENCRYPTION_KEY"))
     }
 
     @Test
     fun `prod profile rejects the committed env-example encryption salt`() {
-        val guard = ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-            encryptionSalt = "deadbeefcafebabe1234567890abcdef",
-        )
+        val guard = prodGuard(encryptionSalt = "deadbeefcafebabe1234567890abcdef")
         val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
         assert(ex.message!!.contains("INTEGRATIONS_ENCRYPTION_SALT"))
     }
 
     @Test
     fun `prod profile rejects the committed env-example jwt secret`() {
-        val guard = ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-            jwtSecret = "your-secret-here",
-        )
+        val guard = prodGuard(jwtSecret = "your-secret-here")
         val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
         assert(ex.message!!.contains("JWT_SECRET"))
     }
 
     @Test
     fun `prod profile rejects the committed env-example database password`() {
-        val guard = ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-            datasourcePassword = "change_me_super_strong_password",
-        )
+        val guard = prodGuard(datasourcePassword = "change_me_super_strong_password")
         val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
         assert(ex.message!!.contains("POSTGRES_PASSWORD"))
     }
@@ -127,14 +143,23 @@ class ProductionGuardTest {
 
     @Test
     fun `prod profile passes when real secrets replace the placeholders`() {
-        ProductionGuard(
-            environment = env(arrayOf("prod")),
-            skipEmailVerification = false,
-            cookieSecure = true,
-            jwtSecret = "a-freshly-generated-long-base64-secret",
-            encryptionKey = "a-real-strong-passphrase",
-            encryptionSalt = "00112233445566778899aabbccddeeff",
-            datasourcePassword = "an-actual-strong-db-password",
-        ).assertSafeProduction()
+        prodGuard().assertSafeProduction()
+    }
+
+    @Test
+    fun `prod profile rejects an enabled admin area without a username`() {
+        val guard = prodGuard(adminEnabled = true, adminUsername = "")
+        val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
+        assert(ex.message!!.contains("ADMIN_USERNAME"))
+    }
+
+    @Test
+    fun `prod profile passes with an enabled admin area and a username`() {
+        prodGuard(adminEnabled = true, adminUsername = "admin").assertSafeProduction()
+    }
+
+    @Test
+    fun `prod profile ignores the admin username while the feature is disabled`() {
+        prodGuard(adminEnabled = false, adminUsername = "").assertSafeProduction()
     }
 }

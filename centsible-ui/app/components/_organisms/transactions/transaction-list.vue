@@ -32,6 +32,17 @@ const {t} = useI18n();
 
 const filters = ref<TransactionFilters>({sort: 'DATE_DESC'});
 
+/** Sort alone never hides rows, so it doesn't count as an active filter. */
+const hasActiveFilters = computed(() => {
+  const f = filters.value;
+  return !!(f.search || f.categoryIds?.length || f.tagIds?.length || f.fromDate || f.toDate
+    || f.type || f.amountMin != null || f.amountMax != null);
+});
+
+function clearFilters() {
+  filters.value = {sort: filters.value.sort ?? 'DATE_DESC'};
+}
+
 const {
   transactions,
   loading,
@@ -176,8 +187,11 @@ watch(
              :loading="loading"
              :error="error"
              :empty-title="t('transactions.emptyTitle')"
+             :filtered="hasActiveFilters"
+             :filtered-title="t('transactions.filters.noResults')"
              :loading-message="t('transactions.loadingMessage')"
              class="flex-1 overflow-y-auto"
+             @clear-filters="clearFilters"
              @retry="loadTransactions(true)"/>
 
   <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">

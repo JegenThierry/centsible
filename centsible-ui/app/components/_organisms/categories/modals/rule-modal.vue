@@ -20,6 +20,7 @@ import {
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const props = defineProps<{
   rule?: Rule | null;
@@ -147,12 +148,18 @@ const canSubmit = computed(() =>
   && state.actions.some(a => (a.type === 'SET_CATEGORY' && a.categoryId != null) || (a.type === 'ADD_TAG' && a.tagId != null)),
 );
 
+const {requestClose} = useModalDirtyGuard({
+  isOpen,
+  loading,
+  getSnapshot: () => ({...state}),
+  onResetOnOpen: reset,
+});
+
 watch(isOpen, async (open) => {
   if (!open) return;
   if (categoriesStore.categories.length === 0) await categoriesStore.updateCategories();
   if (tagsStore.tags.length === 0) await tagsStore.fetchAll();
   if (budgetAccountsStore.availableAccounts.length === 0) await budgetAccountsStore.updateAvailableAccounts();
-  reset();
 });
 
 async function handleSave() {
@@ -191,10 +198,11 @@ async function handleSave() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen"
+  <UModal :open="isOpen"
           :description="t('categories.rules.modalDescription')"
           :title="isEdit ? t('categories.rules.editTitle') : t('categories.rules.createTitle')"
-          :ui="{content: 'sm:max-w-2xl'}">
+          :ui="{content: 'sm:max-w-2xl'}"
+          @update:open="requestClose">
     <template #body>
       <div class="space-y-5">
         <UFormField :label="t('categories.rules.nameLabel')">
@@ -287,7 +295,7 @@ async function handleSave() {
       <ModalFooterActions :disabled="!canSubmit"
                           :loading="loading"
                           :submit-label="isEdit ? t('categories.rules.editSubmit') : t('categories.rules.createSubmit')"
-                          @cancel="isOpen = false"
+                          @cancel="requestClose(false)"
                           @submit="handleSave"/>
     </template>
   </UModal>
