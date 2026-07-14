@@ -1,4 +1,4 @@
-import {format, subDays, subMonths} from 'date-fns';
+import {differenceInCalendarDays, format, subDays, subMonths} from 'date-fns';
 
 export const ISO_DATE = 'yyyy-MM-dd';
 
@@ -16,6 +16,18 @@ export function daysAgoIsoDate(days: number, reference: Date = new Date()): stri
 
 export function isoDateRangeForMonthsBack(months: number): {startDate: string; endDate: string} {
   return {startDate: monthsAgoIsoDate(months), endDate: todayIsoDate()};
+}
+
+/**
+ * The equal-length ISO date range immediately preceding [startDate, endDate], for period-over-period
+ * comparisons (e.g. this 6 months vs the previous 6 months).
+ */
+export function previousIsoDateRange(startDate: string, endDate: string): {startDate: string; endDate: string} {
+  const start = new Date(startDate);
+  const spanDays = differenceInCalendarDays(new Date(endDate), start);
+  const prevEnd = subDays(start, 1);
+  const prevStart = subDays(prevEnd, spanDays);
+  return {startDate: format(prevStart, ISO_DATE), endDate: format(prevEnd, ISO_DATE)};
 }
 
 /** Formats an ISO timestamp as a localized relative phrase, e.g. "3 months ago" / "il y a 3 mois". */

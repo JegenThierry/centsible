@@ -147,6 +147,10 @@
         "description": "Benachrichtigen, wenn ein Kontostand unter diesen Betrag fällt.",
         "placeholder": "100,00"
       },
+      "budgetAlerts": {
+        "title": "Budgetwarnungen",
+        "description": "Benachrichtigen, wenn die Ausgaben einer Kategorie ihr Budget erreichen oder überschreiten."
+      },
       "loanDueDaysAhead": "Verleih fällig (Tage im Voraus)",
       "recurringDueDaysAhead": "Wiederkehrend bevorstehend (Tage im Voraus)",
       "toasts": {

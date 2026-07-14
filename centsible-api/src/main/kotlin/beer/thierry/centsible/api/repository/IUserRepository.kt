@@ -20,6 +20,9 @@ interface IUserRepository {
         registrationTokenExpiresAt: OffsetDateTime,
     ): User?
     fun confirmUser(id: UUID): Boolean
+
+    /** Total number of user rows; 0 means the instance has never been set up. */
+    fun countUsers(): Int
     fun updateUserProfile(id: UUID, firstName: String, lastName: String, email: String, profilePicture: String?): User?
     fun updateUserLocale(id: UUID, locale: String): User?
     fun updateDefaultCurrency(id: UUID, currency: String): User?

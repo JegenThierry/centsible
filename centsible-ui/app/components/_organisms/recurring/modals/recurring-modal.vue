@@ -16,6 +16,8 @@ import {todayIsoDate} from "~/utils/date";
 const props = defineProps<{
   /** Present → edit that rule; absent → create a new one. */
   rule?: RecurringTransaction;
+  /** Optional starting values for a NEW rule (e.g. seeded from an existing transaction). */
+  seed?: RecurringTransactionForm;
 }>();
 
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -33,7 +35,7 @@ const {t} = useI18n();
 
 const isEdit = computed(() => !!props.rule);
 
-const form = ref<RecurringTransactionForm>(props.rule ? toForm(props.rule) : makeBlankForm());
+const form = ref<RecurringTransactionForm>(props.rule ? toForm(props.rule) : (props.seed ?? makeBlankForm()));
 const loading = ref(false);
 const formId = useId();
 
@@ -95,7 +97,7 @@ const {requestClose, captureSnapshot} = useModalDirtyGuard({
   isOpen,
   loading,
   getSnapshot: () => form.value,
-  onResetOnOpen: () => { form.value = props.rule ? toForm(props.rule) : makeBlankForm(); },
+  onResetOnOpen: () => { form.value = props.rule ? toForm(props.rule) : (props.seed ?? makeBlankForm()); },
 });
 
 watch(() => props.rule, (rule) => {

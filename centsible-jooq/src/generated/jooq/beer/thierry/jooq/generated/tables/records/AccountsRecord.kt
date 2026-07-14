@@ -44,17 +44,17 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
         set(value): Unit = set(5, value)
         get(): String? = get(5) as String?
 
-    open var type: String?
-        set(value): Unit = set(6, value)
-        get(): String? = get(6) as String?
-
     open var createdAt: OffsetDateTime?
+        set(value): Unit = set(6, value)
+        get(): OffsetDateTime? = get(6) as OffsetDateTime?
+
+    open var modifiedAt: OffsetDateTime?
         set(value): Unit = set(7, value)
         get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
-    open var modifiedAt: OffsetDateTime?
+    open var type: String?
         set(value): Unit = set(8, value)
-        get(): OffsetDateTime? = get(8) as OffsetDateTime?
+        get(): String? = get(8) as String?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -65,16 +65,16 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
     /**
      * Create a detached, initialised AccountsRecord
      */
-    constructor(id: UUID? = null, userId: UUID? = null, name: String? = null, balance: BigDecimal? = null, initialBalance: BigDecimal? = null, currency: String? = null, type: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, userId: UUID? = null, name: String? = null, balance: BigDecimal? = null, initialBalance: BigDecimal? = null, currency: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, type: String? = null): this() {
         this.id = id
         this.userId = userId
         this.name = name
         this.balance = balance
         this.initialBalance = initialBalance
         this.currency = currency
-        this.type = type
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.type = type
         resetChangedOnNotNull()
     }
 
@@ -89,9 +89,9 @@ open class AccountsRecord() : UpdatableRecordImpl<AccountsRecord>(Accounts.ACCOU
             this.balance = value.balance
             this.initialBalance = value.initialBalance
             this.currency = value.currency
-            this.type = value.type
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.type = value.type
             resetChangedOnNotNull()
         }
     }

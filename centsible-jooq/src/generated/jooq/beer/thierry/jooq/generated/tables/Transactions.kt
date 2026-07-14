@@ -14,6 +14,7 @@ import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_PROVIDER_CONNECTION_
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_RECURRING_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_TRANSFER_GROUP
 import beer.thierry.jooq.generated.indexes.UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH
+import beer.thierry.jooq.generated.keys.LOANS__LOANS_SOURCE_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTIONS_PKEY
@@ -305,20 +306,37 @@ open class Transactions(
     val loanRepayments: LoanRepaymentsPath
         get(): LoanRepaymentsPath = loanRepayments()
 
-    private lateinit var _loans: LoansPath
+    private lateinit var _loansSourceTransactionIdFkey: LoansPath
 
     /**
-     * Get the implicit to-many join path to the <code>public.loans</code> table
+     * Get the implicit to-many join path to the <code>public.loans</code>
+     * table, via the <code>loans_source_transaction_id_fkey</code> key
      */
-    fun loans(): LoansPath {
-        if (!this::_loans.isInitialized)
-            _loans = LoansPath(this, null, LOANS__LOANS_TRANSACTION_ID_FKEY.inverseKey)
+    fun loansSourceTransactionIdFkey(): LoansPath {
+        if (!this::_loansSourceTransactionIdFkey.isInitialized)
+            _loansSourceTransactionIdFkey = LoansPath(this, null, LOANS__LOANS_SOURCE_TRANSACTION_ID_FKEY.inverseKey)
 
-        return _loans;
+        return _loansSourceTransactionIdFkey;
     }
 
-    val loans: LoansPath
-        get(): LoansPath = loans()
+    val loansSourceTransactionIdFkey: LoansPath
+        get(): LoansPath = loansSourceTransactionIdFkey()
+
+    private lateinit var _loansTransactionIdFkey: LoansPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.loans</code>
+     * table, via the <code>loans_transaction_id_fkey</code> key
+     */
+    fun loansTransactionIdFkey(): LoansPath {
+        if (!this::_loansTransactionIdFkey.isInitialized)
+            _loansTransactionIdFkey = LoansPath(this, null, LOANS__LOANS_TRANSACTION_ID_FKEY.inverseKey)
+
+        return _loansTransactionIdFkey;
+    }
+
+    val loansTransactionIdFkey: LoansPath
+        get(): LoansPath = loansTransactionIdFkey()
 
     private lateinit var _transactionAttachments: TransactionAttachmentsPath
 

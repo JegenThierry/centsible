@@ -11,6 +11,7 @@ import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ExportSchedules
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
@@ -22,6 +23,7 @@ import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.RuleActions
 import beer.thierry.jooq.generated.tables.RuleConditions
 import beer.thierry.jooq.generated.tables.Rules
+import beer.thierry.jooq.generated.tables.SavedTransactionFilters
 import beer.thierry.jooq.generated.tables.Tags
 import beer.thierry.jooq.generated.tables.TransactionAttachments
 import beer.thierry.jooq.generated.tables.TransactionSplits
@@ -49,9 +51,12 @@ val IDX_EXPORT_JOBS_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export
 val IDX_EXPORT_JOBS_USER_CREATED: Index = Internal.createIndex(DSL.name("idx_export_jobs_user_created"), ExportJobs.EXPORT_JOBS, arrayOf(ExportJobs.EXPORT_JOBS.USER_ID, ExportJobs.EXPORT_JOBS.CREATED_AT.desc()), false)
 val IDX_EXPORT_POST_PROCESSING_CLAIMABLE: Index = Internal.createIndex(DSL.name("idx_export_post_processing_claimable"), ExportPostProcessing.EXPORT_POST_PROCESSING, arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.STATUS, ExportPostProcessing.EXPORT_POST_PROCESSING.CREATED_AT), false)
 val IDX_EXPORT_POST_PROCESSING_JOB: Index = Internal.createIndex(DSL.name("idx_export_post_processing_job"), ExportPostProcessing.EXPORT_POST_PROCESSING, arrayOf(ExportPostProcessing.EXPORT_POST_PROCESSING.EXPORT_JOB_ID), false)
+val IDX_EXPORT_SCHEDULES_DUE: Index = Internal.createIndex(DSL.name("idx_export_schedules_due"), ExportSchedules.EXPORT_SCHEDULES, arrayOf(ExportSchedules.EXPORT_SCHEDULES.NEXT_RUN_AT), false)
+val IDX_EXPORT_SCHEDULES_USER: Index = Internal.createIndex(DSL.name("idx_export_schedules_user"), ExportSchedules.EXPORT_SCHEDULES, arrayOf(ExportSchedules.EXPORT_SCHEDULES.USER_ID), false)
 val IDX_IMPORT_MAPPING_TEMPLATES_USER: Index = Internal.createIndex(DSL.name("idx_import_mapping_templates_user"), ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES, arrayOf(ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES.USER_ID), false)
 val IDX_LOAN_REPAYMENTS_LOAN_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_loan_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.LOAN_ID), false)
 val IDX_LOAN_REPAYMENTS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loan_repayments_transaction_id"), LoanRepayments.LOAN_REPAYMENTS, arrayOf(LoanRepayments.LOAN_REPAYMENTS.TRANSACTION_ID), false)
+val IDX_LOANS_SOURCE_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_source_transaction_id"), Loans.LOANS, arrayOf(Loans.LOANS.SOURCE_TRANSACTION_ID), false)
 val IDX_LOANS_TRANSACTION_ID: Index = Internal.createIndex(DSL.name("idx_loans_transaction_id"), Loans.LOANS, arrayOf(Loans.LOANS.TRANSACTION_ID), false)
 val IDX_LOANS_USER_CONTACT: Index = Internal.createIndex(DSL.name("idx_loans_user_contact"), Loans.LOANS, arrayOf(Loans.LOANS.USER_ID, Loans.LOANS.CONTACT_ID), false)
 val IDX_MFA_PENDING_AUTH_TOKEN_HASH: Index = Internal.createIndex(DSL.name("idx_mfa_pending_auth_token_hash"), MfaPendingAuth.MFA_PENDING_AUTH, arrayOf(MfaPendingAuth.MFA_PENDING_AUTH.TOKEN_HASH), false)
@@ -67,6 +72,7 @@ val IDX_RECURRING_DUE: Index = Internal.createIndex(DSL.name("idx_recurring_due"
 val IDX_RULE_ACTIONS_RULE: Index = Internal.createIndex(DSL.name("idx_rule_actions_rule"), RuleActions.RULE_ACTIONS, arrayOf(RuleActions.RULE_ACTIONS.RULE_ID), false)
 val IDX_RULE_CONDITIONS_RULE: Index = Internal.createIndex(DSL.name("idx_rule_conditions_rule"), RuleConditions.RULE_CONDITIONS, arrayOf(RuleConditions.RULE_CONDITIONS.RULE_ID), false)
 val IDX_RULES_USER_PRIORITY: Index = Internal.createIndex(DSL.name("idx_rules_user_priority"), Rules.RULES, arrayOf(Rules.RULES.USER_ID, Rules.RULES.PRIORITY.desc(), Rules.RULES.CREATED_AT), false)
+val IDX_SAVED_TRANSACTION_FILTERS_USER: Index = Internal.createIndex(DSL.name("idx_saved_transaction_filters_user"), SavedTransactionFilters.SAVED_TRANSACTION_FILTERS, arrayOf(SavedTransactionFilters.SAVED_TRANSACTION_FILTERS.USER_ID), false)
 val IDX_TAGS_USER: Index = Internal.createIndex(DSL.name("idx_tags_user"), Tags.TAGS, arrayOf(Tags.TAGS.USER_ID), false)
 val IDX_TRANSACTION_ATTACHMENTS_TRANSACTION: Index = Internal.createIndex(DSL.name("idx_transaction_attachments_transaction"), TransactionAttachments.TRANSACTION_ATTACHMENTS, arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.TRANSACTION_ID), false)
 val IDX_TRANSACTION_ATTACHMENTS_USER: Index = Internal.createIndex(DSL.name("idx_transaction_attachments_user"), TransactionAttachments.TRANSACTION_ATTACHMENTS, arrayOf(TransactionAttachments.TRANSACTION_ATTACHMENTS.USER_ID), false)

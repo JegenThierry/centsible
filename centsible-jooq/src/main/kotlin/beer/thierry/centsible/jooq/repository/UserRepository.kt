@@ -233,6 +233,8 @@ class UserRepository(
     override fun fetchAllUserIds(): List<UUID> =
         dsl.select(USERS.ID).from(USERS).fetch { it[USERS.ID]!! }
 
+    override fun countUsers(): Int = dsl.fetchCount(USERS)
+
     override fun fetchNotificationSettings(id: UUID): NotificationSettingsDTO {
         val jsonb = dsl.select(NOTIFICATION_SETTINGS)
             .from(USERS)

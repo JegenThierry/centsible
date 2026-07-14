@@ -45,37 +45,41 @@ open class LoansRecord() : UpdatableRecordImpl<LoansRecord>(Loans.LOANS) {
         set(value): Unit = set(5, value)
         get(): BigDecimal? = get(5) as BigDecimal?
 
-    open var currency: String?
-        set(value): Unit = set(6, value)
-        get(): String? = get(6) as String?
-
-    open var interestRate: BigDecimal?
-        set(value): Unit = set(7, value)
-        get(): BigDecimal? = get(7) as BigDecimal?
-
     open var loanDate: LocalDate?
+        set(value): Unit = set(6, value)
+        get(): LocalDate? = get(6) as LocalDate?
+
+    open var description: String?
+        set(value): Unit = set(7, value)
+        get(): String? = get(7) as String?
+
+    open var dueDate: LocalDate?
         set(value): Unit = set(8, value)
         get(): LocalDate? = get(8) as LocalDate?
 
-    open var description: String?
+    open var notes: String?
         set(value): Unit = set(9, value)
         get(): String? = get(9) as String?
 
-    open var dueDate: LocalDate?
-        set(value): Unit = set(10, value)
-        get(): LocalDate? = get(10) as LocalDate?
-
-    open var notes: String?
-        set(value): Unit = set(11, value)
-        get(): String? = get(11) as String?
-
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(12, value)
-        get(): OffsetDateTime? = get(12) as OffsetDateTime?
+        set(value): Unit = set(10, value)
+        get(): OffsetDateTime? = get(10) as OffsetDateTime?
 
     open var modifiedAt: OffsetDateTime?
+        set(value): Unit = set(11, value)
+        get(): OffsetDateTime? = get(11) as OffsetDateTime?
+
+    open var currency: String?
+        set(value): Unit = set(12, value)
+        get(): String? = get(12) as String?
+
+    open var interestRate: BigDecimal?
         set(value): Unit = set(13, value)
-        get(): OffsetDateTime? = get(13) as OffsetDateTime?
+        get(): BigDecimal? = get(13) as BigDecimal?
+
+    open var sourceTransactionId: UUID?
+        set(value): Unit = set(14, value)
+        get(): UUID? = get(14) as UUID?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -86,21 +90,22 @@ open class LoansRecord() : UpdatableRecordImpl<LoansRecord>(Loans.LOANS) {
     /**
      * Create a detached, initialised LoansRecord
      */
-    constructor(id: UUID? = null, userId: UUID? = null, contactId: UUID? = null, transactionId: UUID? = null, lentAmount: BigDecimal? = null, owedAmount: BigDecimal? = null, currency: String? = null, interestRate: BigDecimal? = null, loanDate: LocalDate? = null, description: String? = null, dueDate: LocalDate? = null, notes: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, userId: UUID? = null, contactId: UUID? = null, transactionId: UUID? = null, lentAmount: BigDecimal? = null, owedAmount: BigDecimal? = null, loanDate: LocalDate? = null, description: String? = null, dueDate: LocalDate? = null, notes: String? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null, currency: String? = null, interestRate: BigDecimal? = null, sourceTransactionId: UUID? = null): this() {
         this.id = id
         this.userId = userId
         this.contactId = contactId
         this.transactionId = transactionId
         this.lentAmount = lentAmount
         this.owedAmount = owedAmount
-        this.currency = currency
-        this.interestRate = interestRate
         this.loanDate = loanDate
         this.description = description
         this.dueDate = dueDate
         this.notes = notes
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
+        this.currency = currency
+        this.interestRate = interestRate
+        this.sourceTransactionId = sourceTransactionId
         resetChangedOnNotNull()
     }
 
@@ -115,14 +120,15 @@ open class LoansRecord() : UpdatableRecordImpl<LoansRecord>(Loans.LOANS) {
             this.transactionId = value.transactionId
             this.lentAmount = value.lentAmount
             this.owedAmount = value.owedAmount
-            this.currency = value.currency
-            this.interestRate = value.interestRate
             this.loanDate = value.loanDate
             this.description = value.description
             this.dueDate = value.dueDate
             this.notes = value.notes
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
+            this.currency = value.currency
+            this.interestRate = value.interestRate
+            this.sourceTransactionId = value.sourceTransactionId
             resetChangedOnNotNull()
         }
     }

@@ -11,7 +11,7 @@
         leak a credential. If a benign log line gets clobbered, narrow the regex; do not weaken it.
     -->
     <conversionRule conversionWord="redactedMsg"
-                    converterClass="beer.thierry.centsiblerest.logging.SecretRedactingConverter"/>
+                    class="beer.thierry.centsiblerest.logging.SecretRedactingConverter"/>
 
     <appender name="REDACTED_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

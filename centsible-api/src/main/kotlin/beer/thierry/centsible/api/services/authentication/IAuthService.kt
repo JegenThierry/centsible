@@ -24,6 +24,16 @@ interface IAuthService {
     fun register(authRequest: AuthRegisterRequest): AuthResponse
     fun confirmRegistration(token: String): Boolean
 
+    /** True only on a brand-new instance with no users yet — gates the first-run setup flow. */
+    fun needsSetup(): Boolean
+
+    /**
+     * First-run bootstrap: creates the very first user on an empty instance and returns a real JWT
+     * (email verification and the registration-enabled gate are bypassed for this one account).
+     * Throws [LocalizedException.Forbidden] once any user exists, so the endpoint self-disables.
+     */
+    fun setupFirstUser(authRequest: AuthRegisterRequest): AuthResponse
+
     /**
      * Regenerates the registration token (replacing any previous one) and resends the verification
      * email for an unconfirmed account. Throws [LocalizedException.BadRequest] when the account is

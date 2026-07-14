@@ -147,6 +147,10 @@
         "description": "Notify when any account balance drops below this amount.",
         "placeholder": "100.00"
       },
+      "budgetAlerts": {
+        "title": "Budget alerts",
+        "description": "Notify when category spending approaches or exceeds its budget."
+      },
       "loanDueDaysAhead": "Loan due (days ahead)",
       "recurringDueDaysAhead": "Recurring upcoming (days ahead)",
       "toasts": {

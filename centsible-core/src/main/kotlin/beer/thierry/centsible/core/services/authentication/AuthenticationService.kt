@@ -44,6 +44,8 @@ class AuthenticationService(
     @Value("\${jwt.secret}") private val jwtSecret: String,
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
     @Value("\${registration.enabled:false}") private val registrationEnabled: Boolean,
+    @Value("\${admin.enabled:false}") private val adminEnabled: Boolean,
+    @Value("\${admin.username:}") private val adminUsername: String,
 ) : IAuthService {
     private val log = LoggerFactory.getLogger(AuthenticationService::class.java)
 
@@ -135,6 +137,36 @@ class AuthenticationService(
 
         registerEmailService.sendRegistrationEmail(registeredUser, rawToken, resolveEmailLocale(registeredUser.locale))
         return AuthResponse("")
+    }
+
+    override fun needsSetup(): Boolean = userRepository.countUsers() == 0
+
+    override fun setupFirstUser(authRequest: AuthRegisterRequest): AuthResponse {
+        if (userRepository.countUsers() > 0) {
+            throw LocalizedException.Forbidden("error.setup.alreadyCompleted")
+        }
+        // When an admin username is configured, the first account must claim it — so the bootstrapped
+        // user is the designated admin, and a stranger can't grab a fresh instance before the operator.
+        if (adminEnabled && adminUsername.isNotBlank() && authRequest.username != adminUsername) {
+            throw LocalizedException.BadRequest("error.setup.adminUsernameMismatch", adminUsername)
+        }
+        assertPasswordMatchesSecuritySettings(authRequest.password)
+
+        val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
+        if (existing != null) {
+            throw LocalizedException.Conflict("error.auth.accountExists")
+        }
+
+        val passwordHash = passwordEncoder.encode(authRequest.password)
+            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
+        val rawToken = generateRegistrationToken()
+        val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
+
+        val created = userRepository.createUser(authRequest, passwordHash, sha256(rawToken), tokenExpiresAt)
+            ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
+        userRepository.confirmUser(created.id) // first admin skips email verification by design
+        log.info("First-run setup created admin user userId={} username='{}'", created.id, created.username)
+        return AuthResponse(generateJwt(created))
     }
 
     override fun confirmRegistration(token: String): Boolean {

@@ -27,6 +27,26 @@
       "empty": "Keine Ausgaben in diesem Zeitraum.",
       "axisAmount": "Betrag"
     },
+    "kpi": {
+      "income": "Einnahmen",
+      "expense": "Ausgaben",
+      "net": "Netto",
+      "savingsRate": "Sparquote",
+      "vsPrevious": "vs. Vorperiode",
+      "noComparison": "—",
+      "points": "Pp."
+    },
+    "forecast": {
+      "title": "Prognose",
+      "subtitle": "Projiziert aus Ihren wiederkehrenden Einnahmen & Rechnungen",
+      "horizonShort": "{count} M",
+      "projectedBalance": "Prognostizierter Saldo in {count} Monaten",
+      "vsToday": "vs. heute",
+      "legend": "Prognostizierter Saldo",
+      "upcomingTitle": "Anstehend",
+      "noUpcoming": "In diesem Zeitraum ist nichts geplant.",
+      "error": "Prognose konnte nicht geladen werden."
+    },
     "cashFlow": {
       "title": "Geldfluss",
       "income": "Einnahmen",

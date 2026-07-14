@@ -5,7 +5,10 @@ export type NotificationType =
   | 'LOAN_DUE'
   | 'RECURRING_UPCOMING'
   | 'LARGE_TRANSACTION'
-  | 'LOW_ACCOUNT_BALANCE';
+  | 'LOW_ACCOUNT_BALANCE'
+  | 'PROJECTED_SHORTFALL'
+  | 'SYNC_FAILED'
+  | 'CONSENT_EXPIRING';
 
 export interface Notification {
   id: string;

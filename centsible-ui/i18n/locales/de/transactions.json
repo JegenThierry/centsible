@@ -19,7 +19,25 @@
       "actionsLabel": "Transaktionsaktionen",
       "actionEdit": "Bearbeiten",
       "actionCreateRule": "Regel erstellen",
+      "actionSplitIous": "In Schuldscheine aufteilen",
+      "actionMakeRecurring": "Wiederkehrend machen",
       "actionDelete": "Löschen"
+    },
+    "splitIous": {
+      "title": "In Schuldscheine aufteilen",
+      "description": "Teile diese Ausgabe in Beträge auf, die dir zurückgeschuldet werden. Jeder wird zu einem Schuldschein mit Erinnerungen.",
+      "owedBackTo": "Schuldet dir",
+      "amountPlaceholder": "0,00",
+      "newNamePlaceholder": "Name der Person",
+      "addNewPerson": "Jemanden hinzufügen, der nicht in deinen Kontakten ist",
+      "pickExisting": "Bestehenden Kontakt auswählen",
+      "remove": "Person entfernen",
+      "addPerson": "Person hinzufügen",
+      "splitEvenly": "Gleichmäßig aufteilen",
+      "yourShare": "Dein Anteil",
+      "owedBack": "wird geschuldet",
+      "overAllocated": "Die Anteile übersteigen den Transaktionsbetrag.",
+      "submit": "Schuldscheine erstellen"
     },
     "bulk": {
       "selectAll": "Alle auf dieser Seite auswählen",
@@ -38,6 +56,19 @@
       "recategorizeToastBody": "{count} Transaktionen neu kategorisiert.",
       "errorTitle": "Bulk-Aktion fehlgeschlagen",
       "errorBody": "Der Vorgang konnte nicht abgeschlossen werden. Bitte erneut versuchen."
+    },
+    "savedFilters": {
+      "save": "Ansicht speichern",
+      "saveTitle": "Filteransicht speichern",
+      "nameLabel": "Name",
+      "namePlaceholder": "z. B. Restaurants diesen Monat",
+      "delete": "Ansicht löschen",
+      "savedTitle": "Ansicht gespeichert",
+      "savedBody": "„{name}“ kann wiederverwendet werden.",
+      "deletedTitle": "Ansicht gelöscht",
+      "deletedBody": "„{name}“ entfernt.",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "errorBody": "Bitte versuchen Sie es erneut."
     },
     "filters": {
       "searchLabel": "Suche",
@@ -71,6 +102,9 @@
     },
     "category": {
       "noCategory": "Keine Kategorie",
+      "editAria": "Kategorie ändern",
+      "updateToastTitle": "Kategorie aktualisiert",
+      "updateToastBody": "Verschoben nach {category}",
       "type": {
         "INCOME": "Einnahme",
         "EXPENSE": "Ausgabe"
@@ -150,7 +184,10 @@
       "toastErrorBody": "Ihre Transaktion konnte nicht aktualisiert werden, bitte versuchen Sie es erneut."
     },
     "delete": {
-      "entity": "Transaktion"
+      "entity": "Transaktion",
+      "confirmUndoable": "Diese Transaktion löschen? Sie können den Vorgang einige Sekunden lang rückgängig machen.",
+      "undoTitle": "Transaktion gelöscht",
+      "undoBody": "Zum Wiederherstellen widerrufen."
     },
     "transfer": {
       "fromAccount": "Quellkonto",

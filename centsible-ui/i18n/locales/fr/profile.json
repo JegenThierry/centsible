@@ -147,6 +147,10 @@
         "description": "Notifier lorsqu'un solde de compte passe sous ce montant.",
         "placeholder": "100,00"
       },
+      "budgetAlerts": {
+        "title": "Alertes de budget",
+        "description": "Notifier lorsque les dépenses d'une catégorie approchent ou dépassent son budget."
+      },
       "loanDueDaysAhead": "Prêt dû (jours à l'avance)",
       "recurringDueDaysAhead": "Récurrent à venir (jours à l'avance)",
       "toasts": {

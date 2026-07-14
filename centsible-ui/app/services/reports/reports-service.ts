@@ -6,6 +6,7 @@ import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {YearOverYear} from "~/models/reports/year-over-year";
 import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
 import type {SafeToSpend} from "~/models/reports/safe-to-spend";
+import type {NetWorthForecast} from "~/models/reports/forecast";
 import {validateRequest} from "~/composables/use-api";
 
 export function useReportsService(api: AxiosInstance) {
@@ -54,6 +55,13 @@ export function useReportsService(api: AxiosInstance) {
     return validateRequest<SafeToSpend>(response);
   }
 
+  async function fetchForecast(months: number = 6): Promise<NetWorthForecast> {
+    const response = await api.get<NetWorthForecast>('/reports/forecast', {
+      params: {months},
+    });
+    return validateRequest<NetWorthForecast>(response);
+  }
+
   return {
     fetchNetWorth,
     fetchNetWorthBreakdown,
@@ -62,5 +70,6 @@ export function useReportsService(api: AxiosInstance) {
     fetchYearOverYear,
     fetchBudgetVsActual,
     fetchSafeToSpend,
+    fetchForecast,
   }
 }

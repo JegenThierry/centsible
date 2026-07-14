@@ -22,12 +22,7 @@ async function load() {
   loading.value = true;
   try {
     const fetched = await service.fetchNotificationSettings();
-    settings.value = {
-      largeTransactionThreshold: fetched.largeTransactionThreshold ?? null,
-      lowBalanceThreshold: fetched.lowBalanceThreshold ?? null,
-      loanDueDaysAhead: fetched.loanDueDaysAhead ?? 3,
-      recurringDueDaysAhead: fetched.recurringDueDaysAhead ?? 2,
-    };
+    settings.value = {...DEFAULT_NOTIFICATION_SETTINGS, ...fetched};
     enableLargeTxn.value = settings.value.largeTransactionThreshold !== null;
     enableLowBalance.value = settings.value.lowBalanceThreshold !== null;
   } catch (error) {
@@ -41,6 +36,9 @@ async function save() {
   saving.value = true;
   try {
     const payload: NotificationSettings = {
+      ...settings.value,
+      // The two threshold fields carry real toggle logic (null = disabled); everything else
+      // (days-ahead ints, budgetAlertsEnabled, and any future plain field) rides the spread.
       largeTransactionThreshold: enableLargeTxn.value ? Number(settings.value.largeTransactionThreshold ?? 0) : null,
       lowBalanceThreshold: enableLowBalance.value ? Number(settings.value.lowBalanceThreshold ?? 0) : null,
       loanDueDaysAhead: Number(settings.value.loanDueDaysAhead ?? 0),
@@ -96,6 +94,14 @@ onMounted(() => load());
               :disabled="loading"
               class="w-40"
               type="number"/>
+
+      <div class="flex items-start justify-between gap-3 pt-2 border-t border-default">
+        <div class="min-w-0">
+          <p class="font-medium text-sm">{{ t('profile.notifications.budgetAlerts.title') }}</p>
+          <p class="text-xs text-muted">{{ t('profile.notifications.budgetAlerts.description') }}</p>
+        </div>
+        <AppSwitch v-model="settings.budgetAlertsEnabled" :disabled="loading"/>
+      </div>
 
       <div class="grid grid-cols-2 gap-3 pt-2 border-t border-default">
         <UFormField :label="t('profile.notifications.loanDueDaysAhead')">

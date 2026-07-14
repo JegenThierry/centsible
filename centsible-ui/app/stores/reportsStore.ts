@@ -8,6 +8,7 @@ import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {YearOverYear} from "~/models/reports/year-over-year";
 import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
 import type {SafeToSpend} from "~/models/reports/safe-to-spend";
+import type {NetWorthForecast} from "~/models/reports/forecast";
 import {isoDateRangeForMonthsBack} from "~/utils/date";
 
 export const useReportsStore = defineStore('reportsStore', () => {
@@ -15,9 +16,18 @@ export const useReportsStore = defineStore('reportsStore', () => {
   const netWorth = ref<NetWorthPoint[]>([]);
   const categorySpending = ref<CategorySpendingSeries[]>([]);
   const cashFlow = ref<CashFlowPoint[]>([]);
+  // Same-shape cash flow for the immediately-preceding period, powering the KPI strip's deltas.
+  const cashFlowPrevious = ref<CashFlowPoint[]>([]);
   const yearOverYear = ref<YearOverYear | null>(null);
   const budgetVsActual = ref<BudgetVsActualPeriod[]>([]);
   const safeToSpend = ref<SafeToSpend | null>(null);
+  // The forecast is forward-looking and independent of the report date range, so it carries its own
+  // loading/error/horizon state instead of the page-level inflight/error — toggling the horizon must
+  // not skeleton the whole page.
+  const forecast = ref<NetWorthForecast | null>(null);
+  const forecastMonths = ref(6);
+  const forecastLoading = ref(false);
+  const forecastError = ref(false);
   const inflight = ref(0);
   const pending = computed(() => inflight.value > 0);
   // Set when a report load fails so consumers can show an error state with retry instead of an
@@ -77,6 +87,16 @@ export const useReportsStore = defineStore('reportsStore', () => {
     );
   }
 
+  async function fetchCashFlowPrevious(range: RangeArg = 6) {
+    const {startDate, endDate} = resolveRange(range);
+    await runFetch(
+      "previous cash flow report",
+      async () => { cashFlowPrevious.value = await reportsService.fetchCashFlow(startDate, endDate); },
+      // A failed comparison fetch just hides the deltas — it must not error the whole page.
+      () => { cashFlowPrevious.value = []; },
+    );
+  }
+
   async function fetchYearOverYear() {
     await runFetch(
       "year-over-year report",
@@ -101,13 +121,33 @@ export const useReportsStore = defineStore('reportsStore', () => {
     );
   }
 
+  async function fetchForecast(months: number = forecastMonths.value) {
+    forecastMonths.value = months;
+    forecastLoading.value = true;
+    forecastError.value = false;
+    try {
+      forecast.value = await reportsService.fetchForecast(months);
+    } catch (e) {
+      adze.ns('reports').error('Failed to fetch forecast', e);
+      forecast.value = null;
+      forecastError.value = true;
+    } finally {
+      forecastLoading.value = false;
+    }
+  }
+
   return {
     netWorth,
     categorySpending,
     cashFlow,
+    cashFlowPrevious,
     yearOverYear,
     budgetVsActual,
     safeToSpend,
+    forecast,
+    forecastMonths,
+    forecastLoading,
+    forecastError,
     pending,
     error,
     safeToSpendError,
@@ -115,8 +155,10 @@ export const useReportsStore = defineStore('reportsStore', () => {
     fetchNetWorthBreakdown,
     fetchCategorySpending,
     fetchCashFlow,
+    fetchCashFlowPrevious,
     fetchYearOverYear,
     fetchBudgetVsActual,
     fetchSafeToSpend,
+    fetchForecast,
   }
 });

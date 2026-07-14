@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import ConfirmationModal from "~/components/_organisms/modals/confirmation-modal.vue";
 import type {Transaction} from "~/models/transactions/transaction";
-import {useTransactionService} from "~/services/transactions/transaction-service";
-import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {useApi} from "~/composables/use-api";
 
 const props = defineProps<{
   transaction: Transaction | null;
@@ -12,35 +9,32 @@ const props = defineProps<{
 const isOpen = defineModel<boolean>('open', {required: true});
 
 const emit = defineEmits<{
-  (e: 'deleted'): void;
+  (e: 'confirm'): void;
 }>();
 
-const api = useApi();
-const transactionService = useTransactionService(api);
-const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
+const isTransfer = computed(() => !!props.transaction?.transferGroupId);
+
 const entity = computed(() =>
-  props.transaction?.transferGroupId
-    ? t('transactions.transfer.entity')
-    : t('transactions.delete.entity'),
+  isTransfer.value ? t('transactions.transfer.entity') : t('transactions.delete.entity'),
 );
 
-async function deleteTransaction() {
-  if (!props.transaction || !budgetAccountsStore.activeAccount?.id) {
-    throw new Error("Missing transaction or active account");
-  }
+// Regular deletes get an undo window, so promise it in the copy; transfers are truly irreversible.
+const body = computed(() =>
+  isTransfer.value ? undefined : t('transactions.delete.confirmUndoable'),
+);
 
-  await transactionService.deleteTransaction(
-    budgetAccountsStore.activeAccount.id,
-    props.transaction.id
-  );
-  emit('deleted');
+/** Pure confirmation gate — the transaction list owns the actual (deferred, undoable) delete. */
+async function onConfirm() {
+  emit('confirm');
 }
 </script>
 
 <template>
   <ConfirmationModal v-model:open="isOpen"
-                     :delete-callback="deleteTransaction"
-                     :entity="entity"/>
+                     :delete-callback="onConfirm"
+                     :entity="entity"
+                     :body="body"
+                     :manage-toasts="false"/>
 </template>

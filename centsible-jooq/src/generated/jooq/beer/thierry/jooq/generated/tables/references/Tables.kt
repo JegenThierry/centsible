@@ -13,6 +13,7 @@ import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ExportSchedules
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
@@ -24,6 +25,7 @@ import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.RuleActions
 import beer.thierry.jooq.generated.tables.RuleConditions
 import beer.thierry.jooq.generated.tables.Rules
+import beer.thierry.jooq.generated.tables.SavedTransactionFilters
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Tags
@@ -82,6 +84,11 @@ val EXPORT_JOBS: ExportJobs = ExportJobs.EXPORT_JOBS
 val EXPORT_POST_PROCESSING: ExportPostProcessing = ExportPostProcessing.EXPORT_POST_PROCESSING
 
 /**
+ * The table <code>public.export_schedules</code>.
+ */
+val EXPORT_SCHEDULES: ExportSchedules = ExportSchedules.EXPORT_SCHEDULES
+
+/**
  * The table <code>public.import_mapping_templates</code>.
  */
 val IMPORT_MAPPING_TEMPLATES: ImportMappingTemplates = ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES
@@ -135,6 +142,11 @@ val RULE_CONDITIONS: RuleConditions = RuleConditions.RULE_CONDITIONS
  * The table <code>public.rules</code>.
  */
 val RULES: Rules = Rules.RULES
+
+/**
+ * The table <code>public.saved_transaction_filters</code>.
+ */
+val SAVED_TRANSACTION_FILTERS: SavedTransactionFilters = SavedTransactionFilters.SAVED_TRANSACTION_FILTERS
 
 /**
  * The table <code>public.schema_migrations</code>.

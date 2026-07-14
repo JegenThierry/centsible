@@ -1,6 +1,8 @@
 package beer.thierry.centsible.core.services.loans
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.contact.ContactForm
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.loan.LoanDTO
@@ -9,11 +11,13 @@ import beer.thierry.centsible.api.model.loan.LoanUpdateForm
 import beer.thierry.centsible.api.model.loan.OutstandingTotalDTO
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
+import beer.thierry.centsible.api.model.loan.SplitToLoansForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IContactsRepository
 import beer.thierry.centsible.api.repository.ILoanRepaymentsRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
+import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.loans.ILoanService
@@ -33,6 +37,7 @@ class LoanService(
     private val budgetAccountsRepository: IBudgetAccountsRepository,
     private val currencyConversionService: ICurrencyConversionService,
     private val userRepository: IUserRepository,
+    private val transactionRepository: ITransactionRepository,
 ) : ILoanService {
 
     private val log = LoggerFactory.getLogger(LoanService::class.java)
@@ -169,9 +174,17 @@ class LoanService(
 
     private fun parseCurrency(code: String?): Currency = Currency.parseOrNull(code) ?: Currency.EUR
 
-    private fun resolveContactId(authenticatedUser: UserDTO, form: LoanForm): UUID {
-        val existing = form.contactId
-        val newFirstName = form.newContactFirstName?.takeIf { it.isNotBlank() }
+    private fun resolveContactId(authenticatedUser: UserDTO, form: LoanForm): UUID =
+        resolveContact(authenticatedUser, form.contactId, form.newContactFirstName, form.newContactLastName)
+
+    /** Resolves an existing contact (validating ownership) or creates a new one from the given names. */
+    private fun resolveContact(
+        authenticatedUser: UserDTO,
+        existing: UUID?,
+        newFirstNameRaw: String?,
+        newLastNameRaw: String?,
+    ): UUID {
+        val newFirstName = newFirstNameRaw?.takeIf { it.isNotBlank() }
 
         require(existing == null || newFirstName == null) {
             "Provide either an existing contact or a new contact name, not both."
@@ -184,8 +197,62 @@ class LoanService(
         requireNotNull(newFirstName) { "Either contactId or newContactFirstName is required." }
         val created = contactsRepository.createContact(
             authenticatedUser,
-            ContactForm(firstName = newFirstName, lastName = form.newContactLastName?.takeIf { it.isNotBlank() })
+            ContactForm(firstName = newFirstName, lastName = newLastNameRaw?.takeIf { it.isNotBlank() })
         )
         return created.id ?: throw IllegalStateException("Failed to create contact.")
+    }
+
+    @Transactional
+    override fun splitTransactionIntoLoans(
+        authenticatedUser: UserDTO,
+        transactionId: UUID,
+        form: SplitToLoansForm,
+    ): List<LoanDTO> {
+        // fetchTransactionById is user-scoped and throws when the transaction is not the user's.
+        val transaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+        if (transaction.type != CategoryType.EXPENSE) {
+            throw LocalizedException.BadRequest("error.loan.split.notExpense")
+        }
+        if (transaction.transferGroupId != null) {
+            throw LocalizedException.BadRequest("error.loan.split.transfer")
+        }
+
+        val shares = form.shares
+        if (shares.isEmpty()) throw LocalizedException.BadRequest("error.loan.split.empty")
+
+        val total = shares.fold(BigDecimal.ZERO) { acc, share -> acc.add(share.amount) }
+        val transactionAmount = transaction.amount ?: BigDecimal.ZERO
+        // Shares may cover at most the whole bill; the leftover stays the user's own expense.
+        if (total.signum() <= 0 || total > transactionAmount) {
+            throw LocalizedException.BadRequest("error.loan.split.amountRange")
+        }
+
+        val currency = form.currency ?: parseCurrency(authenticatedUser.defaultCurrency)
+        val description = form.description?.takeIf { it.isNotBlank() }
+            ?: transaction.description?.takeIf { it.isNotBlank() }
+            ?: "Split"
+        val today = LocalDate.now()
+
+        val created = shares.map { share ->
+            val contactId = resolveContact(
+                authenticatedUser, share.contactId, share.newContactFirstName, share.newContactLastName,
+            )
+            loansRepository.createIouLoan(
+                authenticatedUser,
+                contactId = contactId,
+                sourceTransactionId = transactionId,
+                amount = share.amount,
+                currency = currency,
+                description = description,
+                loanDate = today,
+                dueDate = share.dueDate,
+                note = share.note?.takeIf { it.isNotBlank() },
+            )
+        }
+        log.info(
+            "Split transaction id={} into {} IOUs userId={} total={}",
+            transactionId, created.size, authenticatedUser.id, total,
+        )
+        return created
     }
 }

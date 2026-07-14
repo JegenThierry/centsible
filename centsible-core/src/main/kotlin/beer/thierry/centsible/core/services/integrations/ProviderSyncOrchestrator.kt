@@ -12,6 +12,7 @@ import beer.thierry.centsible.api.repository.ProviderSyncCandidate
 import beer.thierry.centsible.api.services.integrations.IAccountProvider
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.api.services.integrations.ITransactionImporter
+import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -42,6 +43,7 @@ class ProviderSyncOrchestrator(
     private val accountsRepository: IBudgetAccountsRepository,
     private val connectionAccountsRepository: IProviderConnectionAccountsRepository,
     private val transactionService: ITransactionService,
+    private val notificationService: INotificationService,
     @Value("\${integrations.sync.lease-timeout-seconds:300}") private val leaseTimeoutSeconds: Long,
     @Value("\${integrations.sync.interval-seconds:3600}") private val syncIntervalSeconds: Long,
 ) {
@@ -61,6 +63,9 @@ class ProviderSyncOrchestrator(
             } catch (e: Exception) {
                 log.warn("Sync failed for connection {} (provider={})", candidate.connectionId, candidate.providerKey, e)
                 repository.markSyncError(candidate.connectionId, e.message ?: e.javaClass.simpleName)
+                notificationService.maybeRaiseSyncFailure(
+                    syntheticUser(candidate.userId), candidate.connectionId, candidate.providerKey, e.message,
+                )
             }
         } catch (e: Exception) {
             log.error("Sync poller crashed; will retry on next tick", e)
