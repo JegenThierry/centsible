@@ -73,7 +73,7 @@ class TotpService(
         val pending = userRepository.getPendingTotpSecret(userId)
             ?: throw LocalizedException.BadRequest("error.totp.noPendingEnrollment")
         val secret = cipher.decrypt(pending)
-        if (!codeVerifier.isValidCode(secret, code.trim())) {
+        if (!codeVerifier.isValidCode(secret, normalizeCode(code))) {
             log.warn("TOTP enrollment confirmation failed: bad code userId={}", userId)
             throw LocalizedException.BadRequest("error.totp.invalidCode")
         }
@@ -139,7 +139,7 @@ class TotpService(
      * Returns true and records consumption on success. Shared by the login challenge and disable.
      */
     private fun verifyCodeForUser(userId: UUID, code: String): Boolean {
-        val trimmed = code.trim()
+        val trimmed = normalizeCode(code)
         val encrypted = userRepository.getActiveTotpSecret(userId) ?: return false
         val secret = cipher.decrypt(encrypted)
 
@@ -161,6 +161,13 @@ class TotpService(
         if (consumed) log.info("Recovery code consumed userId={}", userId)
         return consumed
     }
+
+    /**
+     * Strips all whitespace before verifying. Authenticator apps display the code grouped as
+     * "123 456", so a user typing or pasting it verbatim would otherwise be rejected. Recovery
+     * codes (hyphen-separated, no spaces) are unaffected.
+     */
+    private fun normalizeCode(code: String): String = code.filterNot { it.isWhitespace() }
 
     private fun currentStep(): Long = timeProvider.time / TIME_PERIOD_SECONDS
 

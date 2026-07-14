@@ -145,6 +145,38 @@ class TotpServiceTest {
     }
 
     @Test
+    fun `confirmEnrollment accepts a valid code entered with a space as authenticators display it`() {
+        val u = user(totpEnabled = false)
+        `when`(userRepository.getPendingTotpSecret(u.id)).thenReturn(encryptedSecret)
+        `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
+        `when`(cipher.encrypt(testSecret)).thenReturn(encryptedSecret)
+        `when`(userRepository.activateTotp(eqArg(u.id), eqArg(encryptedSecret))).thenReturn(true)
+        `when`(userRepository.updateTotpLastUsedStep(eqArg(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
+        `when`(passwordEncoder.encode(ArgumentMatchers.anyString())).thenReturn("\$2a\$12\$recoveryHash")
+
+        val validCode = computeValidCode(testSecret)
+        val spaced = validCode.substring(0, 3) + " " + validCode.substring(3)
+        val result = service().confirmEnrollment(u.id, spaced)
+
+        assertEquals(16, result.recoveryCodes.size)
+        verify(userRepository).activateTotp(eqArg(u.id), eqArg(encryptedSecret))
+    }
+
+    @Test
+    fun `verifyChallengeCode accepts a valid code entered with a space`() {
+        val u = user(totpEnabled = true)
+        `when`(userRepository.getActiveTotpSecret(u.id)).thenReturn(encryptedSecret)
+        `when`(cipher.decrypt(encryptedSecret)).thenReturn(testSecret)
+        `when`(userRepository.getTotpLastUsedStep(u.id)).thenReturn(null)
+        `when`(userRepository.updateTotpLastUsedStep(eqArg(u.id), ArgumentMatchers.anyLong())).thenReturn(true)
+
+        val validCode = computeValidCode(testSecret)
+        val spaced = validCode.substring(0, 3) + " " + validCode.substring(3)
+
+        assertTrue(service().verifyChallengeCode(u.id, spaced))
+    }
+
+    @Test
     fun `confirmEnrollment throws when there is no pending secret`() {
         `when`(userRepository.getPendingTotpSecret(anyArg<UUID>())).thenReturn(null)
 
