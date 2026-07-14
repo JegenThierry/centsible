@@ -1,7 +1,6 @@
 import type {AxiosInstance} from "axios";
 import type {TotpEnrollment, TotpStatus, RecoveryCodes} from "~/models/auth/totp";
 import {assertStatus, validateRequest} from "~/composables/use-api";
-import {normalizeOtpCode} from "~/utils/otp-code";
 
 export function useTotpService(api: AxiosInstance) {
   async function status(): Promise<TotpStatus> {
@@ -15,12 +14,12 @@ export function useTotpService(api: AxiosInstance) {
   }
 
   async function confirm(code: string): Promise<RecoveryCodes> {
-    const response = await api.post<RecoveryCodes>('/auth/2fa/confirm', {code: normalizeOtpCode(code)});
+    const response = await api.post<RecoveryCodes>('/auth/2fa/confirm', {code});
     return validateRequest<RecoveryCodes>(response);
   }
 
   async function disable(code: string): Promise<void> {
-    const response = await api.post('/auth/2fa/disable', {code: normalizeOtpCode(code)}, {
+    const response = await api.post('/auth/2fa/disable', {code}, {
       validateStatus: (s) => s === 204,
     });
     assertStatus(response, [204]);
@@ -34,7 +33,7 @@ export function useTotpService(api: AxiosInstance) {
 
   /** Verifies a current code, replaces every recovery code, and returns the new set (shown once). */
   async function regenerateRecoveryCodes(code: string): Promise<RecoveryCodes> {
-    const response = await api.post<RecoveryCodes>('/auth/2fa/recovery-codes/regenerate', {code: normalizeOtpCode(code)});
+    const response = await api.post<RecoveryCodes>('/auth/2fa/recovery-codes/regenerate', {code});
     return validateRequest<RecoveryCodes>(response);
   }
 

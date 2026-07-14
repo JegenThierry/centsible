@@ -32,6 +32,7 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
     implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson3.module.kotlin)
     runtimeOnly(libs.postgresql)
 
     implementation(libs.jjwt.api)
