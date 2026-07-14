@@ -12,12 +12,14 @@ import beer.thierry.jooq.generated.keys.BUDGETS__BUDGETS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CATEGORIES__CATEGORIES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.CONTACTS__CONTACTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.EXPORT_JOBS__EXPORT_JOBS_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.EXPORT_SCHEDULES__EXPORT_SCHEDULES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.IMPORT_MAPPING_TEMPLATES__IMPORT_MAPPING_TEMPLATES_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.MFA_PENDING_AUTH__MFA_PENDING_AUTH_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.NOTIFICATIONS__NOTIFICATIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.PROVIDER_CONNECTIONS__PROVIDER_CONNECTIONS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.RULES__RULES_USER_ID_FKEY
+import beer.thierry.jooq.generated.keys.SAVED_TRANSACTION_FILTERS__SAVED_TRANSACTION_FILTERS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.TAGS__TAGS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.TRANSACTION_ATTACHMENTS__TRANSACTION_ATTACHMENTS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.USERS_EMAIL_KEY
@@ -29,12 +31,14 @@ import beer.thierry.jooq.generated.tables.Budgets.BudgetsPath
 import beer.thierry.jooq.generated.tables.Categories.CategoriesPath
 import beer.thierry.jooq.generated.tables.Contacts.ContactsPath
 import beer.thierry.jooq.generated.tables.ExportJobs.ExportJobsPath
+import beer.thierry.jooq.generated.tables.ExportSchedules.ExportSchedulesPath
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates.ImportMappingTemplatesPath
 import beer.thierry.jooq.generated.tables.Loans.LoansPath
 import beer.thierry.jooq.generated.tables.MfaPendingAuth.MfaPendingAuthPath
 import beer.thierry.jooq.generated.tables.Notifications.NotificationsPath
 import beer.thierry.jooq.generated.tables.ProviderConnections.ProviderConnectionsPath
 import beer.thierry.jooq.generated.tables.Rules.RulesPath
+import beer.thierry.jooq.generated.tables.SavedTransactionFilters.SavedTransactionFiltersPath
 import beer.thierry.jooq.generated.tables.Tags.TagsPath
 import beer.thierry.jooq.generated.tables.TransactionAttachments.TransactionAttachmentsPath
 import beer.thierry.jooq.generated.tables.UserRecoveryCodes.UserRecoveryCodesPath
@@ -355,6 +359,22 @@ open class Users(
     val exportJobs: ExportJobsPath
         get(): ExportJobsPath = exportJobs()
 
+    private lateinit var _exportSchedules: ExportSchedulesPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.export_schedules</code> table
+     */
+    fun exportSchedules(): ExportSchedulesPath {
+        if (!this::_exportSchedules.isInitialized)
+            _exportSchedules = ExportSchedulesPath(this, null, EXPORT_SCHEDULES__EXPORT_SCHEDULES_USER_ID_FKEY.inverseKey)
+
+        return _exportSchedules;
+    }
+
+    val exportSchedules: ExportSchedulesPath
+        get(): ExportSchedulesPath = exportSchedules()
+
     private lateinit var _importMappingTemplates: ImportMappingTemplatesPath
 
     /**
@@ -448,6 +468,22 @@ open class Users(
 
     val rules: RulesPath
         get(): RulesPath = rules()
+
+    private lateinit var _savedTransactionFilters: SavedTransactionFiltersPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.saved_transaction_filters</code> table
+     */
+    fun savedTransactionFilters(): SavedTransactionFiltersPath {
+        if (!this::_savedTransactionFilters.isInitialized)
+            _savedTransactionFilters = SavedTransactionFiltersPath(this, null, SAVED_TRANSACTION_FILTERS__SAVED_TRANSACTION_FILTERS_USER_ID_FKEY.inverseKey)
+
+        return _savedTransactionFilters;
+    }
+
+    val savedTransactionFilters: SavedTransactionFiltersPath
+        get(): SavedTransactionFiltersPath = savedTransactionFilters()
 
     private lateinit var _tags: TagsPath
 

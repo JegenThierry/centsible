@@ -8,6 +8,7 @@ import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IBudgetRepository
+import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
@@ -38,6 +39,7 @@ class ReportServiceTest {
     @Mock private lateinit var budgetRepository: IBudgetRepository
     @Mock private lateinit var currencyConversionService: ICurrencyConversionService
     @Mock private lateinit var userRepository: IUserRepository
+    @Mock private lateinit var recurringRepository: IRecurringTransactionRepository
 
     @InjectMocks
     private lateinit var service: ReportService

@@ -21,9 +21,9 @@ data class Accounts(
     val balance: BigDecimal? = null,
     val initialBalance: BigDecimal? = null,
     val currency: String? = null,
-    val type: String? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val type: String? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -70,12 +70,6 @@ data class Accounts(
         }
         else if (this.currency != o.currency)
             return false
-        if (this.type == null) {
-            if (o.type != null)
-                return false
-        }
-        else if (this.type != o.type)
-            return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
@@ -87,6 +81,12 @@ data class Accounts(
                 return false
         }
         else if (this.modifiedAt != o.modifiedAt)
+            return false
+        if (this.type == null) {
+            if (o.type != null)
+                return false
+        }
+        else if (this.type != o.type)
             return false
         return true
     }
@@ -100,9 +100,9 @@ data class Accounts(
         result = prime * result + (if (this.balance == null) 0 else this.balance.hashCode())
         result = prime * result + (if (this.initialBalance == null) 0 else this.initialBalance.hashCode())
         result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
-        result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         return result
     }
 
@@ -115,9 +115,9 @@ data class Accounts(
         sb.append(", ").append(balance)
         sb.append(", ").append(initialBalance)
         sb.append(", ").append(currency)
-        sb.append(", ").append(type)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(type)
 
         sb.append(")")
         return sb.toString()

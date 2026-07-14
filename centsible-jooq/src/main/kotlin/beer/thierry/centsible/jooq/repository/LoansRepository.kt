@@ -23,6 +23,7 @@ import org.jooq.Record
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -105,6 +106,40 @@ class LoansRepository(
             ?: throw IllegalStateException("Created loan could not be retrieved")
     }
 
+    override fun createIouLoan(
+        authenticatedUser: UserDTO,
+        contactId: UUID,
+        sourceTransactionId: UUID,
+        amount: BigDecimal,
+        currency: Currency,
+        description: String,
+        loanDate: LocalDate,
+        dueDate: LocalDate?,
+        note: String?,
+    ): LoanDTO {
+        val now = OffsetDateTime.now()
+        val loanId = dsl.insertInto(LOANS)
+            .set(LOANS.USER_ID, authenticatedUser.id)
+            .set(LOANS.CONTACT_ID, contactId)
+            .set(LOANS.SOURCE_TRANSACTION_ID, sourceTransactionId)
+            .set(LOANS.LENT_AMOUNT, amount)
+            .set(LOANS.OWED_AMOUNT, amount)
+            .set(LOANS.CURRENCY, currency.name)
+            .set(LOANS.LOAN_DATE, loanDate)
+            .set(LOANS.DESCRIPTION, description)
+            .set(LOANS.DUE_DATE, dueDate)
+            .set(LOANS.NOTES, note)
+            .set(LOANS.CREATED_AT, now)
+            .set(LOANS.MODIFIED_AT, now)
+            .returning(LOANS.ID)
+            .fetchOne()
+            ?.get(LOANS.ID)
+            ?: throw IllegalStateException("Failed to create IOU loan")
+
+        return fetchLoanById(authenticatedUser, loanId)
+            ?: throw IllegalStateException("Created IOU loan could not be retrieved")
+    }
+
     override fun updateLoan(authenticatedUser: UserDTO, id: UUID, form: LoanUpdateForm): LoanDTO? {
         val updated = dsl.update(LOANS)
             .set(LOANS.OWED_AMOUNT, form.owedAmount)
@@ -176,6 +211,7 @@ class LoansRepository(
             LOANS.CREATED_AT,
             LOANS.MODIFIED_AT,
             LOANS.TRANSACTION_ID,
+            LOANS.SOURCE_TRANSACTION_ID,
             CONTACTS.ID,
             CONTACTS.FIRST_NAME,
             CONTACTS.LAST_NAME,
@@ -223,6 +259,7 @@ class LoansRepository(
             id = record[LOANS.ID],
             contact = contact,
             transaction = transaction,
+            sourceTransactionId = record[LOANS.SOURCE_TRANSACTION_ID],
             accountId = record[TRANSACTIONS.ACCOUNT_ID],
             affectsBalance = transaction != null,
             lentAmount = record[LOANS.LENT_AMOUNT] ?: BigDecimal.ZERO,

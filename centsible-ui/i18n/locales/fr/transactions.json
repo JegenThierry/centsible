@@ -19,7 +19,25 @@
       "actionsLabel": "Actions de la transaction",
       "actionEdit": "Modifier",
       "actionCreateRule": "Créer une règle",
+      "actionSplitIous": "Répartir en reconnaissances de dette",
+      "actionMakeRecurring": "Rendre récurrent",
       "actionDelete": "Supprimer"
+    },
+    "splitIous": {
+      "title": "Répartir en reconnaissances de dette",
+      "description": "Répartissez cette dépense en montants qui vous sont dus. Chacun devient une reconnaissance de dette à suivre, avec des rappels.",
+      "owedBackTo": "Qui vous doit",
+      "amountPlaceholder": "0,00",
+      "newNamePlaceholder": "Nom de la personne",
+      "addNewPerson": "Ajouter une personne hors de vos contacts",
+      "pickExisting": "Choisir un contact existant",
+      "remove": "Supprimer la personne",
+      "addPerson": "Ajouter une personne",
+      "splitEvenly": "Répartir également",
+      "yourShare": "Votre part",
+      "owedBack": "qui vous est dû",
+      "overAllocated": "Le total des parts dépasse le montant de la transaction.",
+      "submit": "Créer les reconnaissances"
     },
     "bulk": {
       "selectAll": "Tout sélectionner sur cette page",
@@ -38,6 +56,19 @@
       "recategorizeToastBody": "{count} transactions recatégorisées.",
       "errorTitle": "Action en masse échouée",
       "errorBody": "L'opération n'a pas pu être effectuée. Veuillez réessayer."
+    },
+    "savedFilters": {
+      "save": "Enregistrer la vue",
+      "saveTitle": "Enregistrer la vue de filtres",
+      "nameLabel": "Nom",
+      "namePlaceholder": "ex. Restaurants ce mois-ci",
+      "delete": "Supprimer la vue",
+      "savedTitle": "Vue enregistrée",
+      "savedBody": "« {name} » est prête à être réutilisée.",
+      "deletedTitle": "Vue supprimée",
+      "deletedBody": "« {name} » supprimée.",
+      "errorTitle": "Une erreur s'est produite",
+      "errorBody": "Veuillez réessayer."
     },
     "filters": {
       "searchLabel": "Recherche",
@@ -71,6 +102,9 @@
     },
     "category": {
       "noCategory": "Aucune catégorie",
+      "editAria": "Modifier la catégorie",
+      "updateToastTitle": "Catégorie mise à jour",
+      "updateToastBody": "Déplacé vers {category}",
       "type": {
         "INCOME": "Revenu",
         "EXPENSE": "Dépense"
@@ -150,7 +184,10 @@
       "toastErrorBody": "Impossible de mettre à jour la transaction, veuillez réessayer."
     },
     "delete": {
-      "entity": "transaction"
+      "entity": "transaction",
+      "confirmUndoable": "Supprimer cette transaction ? Vous pourrez annuler pendant quelques secondes.",
+      "undoTitle": "Transaction supprimée",
+      "undoBody": "Annulez pour la restaurer."
     },
     "transfer": {
       "fromAccount": "Compte source",

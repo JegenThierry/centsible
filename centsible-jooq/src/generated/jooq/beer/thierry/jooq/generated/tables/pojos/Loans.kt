@@ -22,14 +22,15 @@ data class Loans(
     val transactionId: UUID? = null,
     val lentAmount: BigDecimal? = null,
     val owedAmount: BigDecimal? = null,
-    val currency: String? = null,
-    val interestRate: BigDecimal? = null,
     val loanDate: LocalDate? = null,
     val description: String? = null,
     val dueDate: LocalDate? = null,
     val notes: String? = null,
     val createdAt: OffsetDateTime? = null,
-    val modifiedAt: OffsetDateTime? = null
+    val modifiedAt: OffsetDateTime? = null,
+    val currency: String? = null,
+    val interestRate: BigDecimal? = null,
+    val sourceTransactionId: UUID? = null
 ): Serializable {
 
     override fun equals(other: Any?): Boolean {
@@ -76,18 +77,6 @@ data class Loans(
         }
         else if (this.owedAmount != o.owedAmount)
             return false
-        if (this.currency == null) {
-            if (o.currency != null)
-                return false
-        }
-        else if (this.currency != o.currency)
-            return false
-        if (this.interestRate == null) {
-            if (o.interestRate != null)
-                return false
-        }
-        else if (this.interestRate != o.interestRate)
-            return false
         if (this.loanDate == null) {
             if (o.loanDate != null)
                 return false
@@ -124,6 +113,24 @@ data class Loans(
         }
         else if (this.modifiedAt != o.modifiedAt)
             return false
+        if (this.currency == null) {
+            if (o.currency != null)
+                return false
+        }
+        else if (this.currency != o.currency)
+            return false
+        if (this.interestRate == null) {
+            if (o.interestRate != null)
+                return false
+        }
+        else if (this.interestRate != o.interestRate)
+            return false
+        if (this.sourceTransactionId == null) {
+            if (o.sourceTransactionId != null)
+                return false
+        }
+        else if (this.sourceTransactionId != o.sourceTransactionId)
+            return false
         return true
     }
 
@@ -136,14 +143,15 @@ data class Loans(
         result = prime * result + (if (this.transactionId == null) 0 else this.transactionId.hashCode())
         result = prime * result + (if (this.lentAmount == null) 0 else this.lentAmount.hashCode())
         result = prime * result + (if (this.owedAmount == null) 0 else this.owedAmount.hashCode())
-        result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
-        result = prime * result + (if (this.interestRate == null) 0 else this.interestRate.hashCode())
         result = prime * result + (if (this.loanDate == null) 0 else this.loanDate.hashCode())
         result = prime * result + (if (this.description == null) 0 else this.description.hashCode())
         result = prime * result + (if (this.dueDate == null) 0 else this.dueDate.hashCode())
         result = prime * result + (if (this.notes == null) 0 else this.notes.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
+        result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
+        result = prime * result + (if (this.interestRate == null) 0 else this.interestRate.hashCode())
+        result = prime * result + (if (this.sourceTransactionId == null) 0 else this.sourceTransactionId.hashCode())
         return result
     }
 
@@ -156,14 +164,15 @@ data class Loans(
         sb.append(", ").append(transactionId)
         sb.append(", ").append(lentAmount)
         sb.append(", ").append(owedAmount)
-        sb.append(", ").append(currency)
-        sb.append(", ").append(interestRate)
         sb.append(", ").append(loanDate)
         sb.append(", ").append(description)
         sb.append(", ").append(dueDate)
         sb.append(", ").append(notes)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
+        sb.append(", ").append(currency)
+        sb.append(", ").append(interestRate)
+        sb.append(", ").append(sourceTransactionId)
 
         sb.append(")")
         return sb.toString()

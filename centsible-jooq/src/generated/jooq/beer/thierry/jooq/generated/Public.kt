@@ -13,6 +13,7 @@ import beer.thierry.jooq.generated.tables.Contacts
 import beer.thierry.jooq.generated.tables.ExchangeRates
 import beer.thierry.jooq.generated.tables.ExportJobs
 import beer.thierry.jooq.generated.tables.ExportPostProcessing
+import beer.thierry.jooq.generated.tables.ExportSchedules
 import beer.thierry.jooq.generated.tables.ImportMappingTemplates
 import beer.thierry.jooq.generated.tables.LoanRepayments
 import beer.thierry.jooq.generated.tables.Loans
@@ -24,6 +25,7 @@ import beer.thierry.jooq.generated.tables.RecurringTransactions
 import beer.thierry.jooq.generated.tables.RuleActions
 import beer.thierry.jooq.generated.tables.RuleConditions
 import beer.thierry.jooq.generated.tables.Rules
+import beer.thierry.jooq.generated.tables.SavedTransactionFilters
 import beer.thierry.jooq.generated.tables.SchemaMigrations
 import beer.thierry.jooq.generated.tables.SystemInformation
 import beer.thierry.jooq.generated.tables.Tags
@@ -100,6 +102,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val EXPORT_POST_PROCESSING: ExportPostProcessing get() = ExportPostProcessing.EXPORT_POST_PROCESSING
 
     /**
+     * The table <code>public.export_schedules</code>.
+     */
+    val EXPORT_SCHEDULES: ExportSchedules get() = ExportSchedules.EXPORT_SCHEDULES
+
+    /**
      * The table <code>public.import_mapping_templates</code>.
      */
     val IMPORT_MAPPING_TEMPLATES: ImportMappingTemplates get() = ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES
@@ -153,6 +160,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
      * The table <code>public.rules</code>.
      */
     val RULES: Rules get() = Rules.RULES
+
+    /**
+     * The table <code>public.saved_transaction_filters</code>.
+     */
+    val SAVED_TRANSACTION_FILTERS: SavedTransactionFilters get() = SavedTransactionFilters.SAVED_TRANSACTION_FILTERS
 
     /**
      * The table <code>public.schema_migrations</code>.
@@ -211,6 +223,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         ExchangeRates.EXCHANGE_RATES,
         ExportJobs.EXPORT_JOBS,
         ExportPostProcessing.EXPORT_POST_PROCESSING,
+        ExportSchedules.EXPORT_SCHEDULES,
         ImportMappingTemplates.IMPORT_MAPPING_TEMPLATES,
         LoanRepayments.LOAN_REPAYMENTS,
         Loans.LOANS,
@@ -222,6 +235,7 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
         RuleActions.RULE_ACTIONS,
         RuleConditions.RULE_CONDITIONS,
         Rules.RULES,
+        SavedTransactionFilters.SAVED_TRANSACTION_FILTERS,
         SchemaMigrations.SCHEMA_MIGRATIONS,
         SystemInformation.SYSTEM_INFORMATION,
         Tags.TAGS,

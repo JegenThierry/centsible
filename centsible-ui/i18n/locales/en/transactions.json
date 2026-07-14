@@ -19,7 +19,25 @@
       "actionsLabel": "Transaction actions",
       "actionEdit": "Edit",
       "actionCreateRule": "Create rule",
+      "actionSplitIous": "Split into IOUs",
+      "actionMakeRecurring": "Make recurring",
       "actionDelete": "Delete"
+    },
+    "splitIous": {
+      "title": "Split into IOUs",
+      "description": "Carve this expense into amounts owed back to you. Each becomes an IOU you can track and get reminders for.",
+      "owedBackTo": "Owed back to you",
+      "amountPlaceholder": "0.00",
+      "newNamePlaceholder": "New person's name",
+      "addNewPerson": "Add someone not in your contacts",
+      "pickExisting": "Pick an existing contact",
+      "remove": "Remove person",
+      "addPerson": "Add person",
+      "splitEvenly": "Split evenly",
+      "yourShare": "Your share",
+      "owedBack": "owed back",
+      "overAllocated": "The shares add up to more than the transaction amount.",
+      "submit": "Create IOUs"
     },
     "bulk": {
       "selectAll": "Select all on this page",
@@ -38,6 +56,19 @@
       "recategorizeToastBody": "{count} transactions re-categorized.",
       "errorTitle": "Bulk action failed",
       "errorBody": "The operation could not be completed. Please try again."
+    },
+    "savedFilters": {
+      "save": "Save view",
+      "saveTitle": "Save filter view",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Dining this month",
+      "delete": "Delete view",
+      "savedTitle": "View saved",
+      "savedBody": "\"{name}\" is ready to reuse.",
+      "deletedTitle": "View deleted",
+      "deletedBody": "Removed \"{name}\".",
+      "errorTitle": "Something went wrong",
+      "errorBody": "Please try again."
     },
     "filters": {
       "searchLabel": "Search",
@@ -71,6 +102,9 @@
     },
     "category": {
       "noCategory": "No category",
+      "editAria": "Change category",
+      "updateToastTitle": "Category updated",
+      "updateToastBody": "Moved to {category}",
       "type": {
         "INCOME": "Income",
         "EXPENSE": "Expense"
@@ -150,7 +184,10 @@
       "toastErrorBody": "Your transaction could not be updated, please try again."
     },
     "delete": {
-      "entity": "transaction"
+      "entity": "transaction",
+      "confirmUndoable": "Delete this transaction? You'll have a few seconds to undo.",
+      "undoTitle": "Transaction deleted",
+      "undoBody": "Undo to restore it."
     },
     "transfer": {
       "fromAccount": "From account",

@@ -12,6 +12,9 @@ enum class NotificationType {
     RECURRING_UPCOMING,
     LARGE_TRANSACTION,
     LOW_ACCOUNT_BALANCE,
+    PROJECTED_SHORTFALL,
+    SYNC_FAILED,
+    CONSENT_EXPIRING,
 }
 
 data class NotificationDTO(
@@ -33,4 +36,6 @@ data class NotificationSettingsDTO(
     val lowBalanceThreshold: BigDecimal? = null,
     val loanDueDaysAhead: Int = 3,
     val recurringDueDaysAhead: Int = 2,
+    /** Master switch for the category-budget alerts (threshold / exceeded / pace). Defaults on. */
+    val budgetAlertsEnabled: Boolean = true,
 )

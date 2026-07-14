@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import adze from 'adze'
-import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm} from "~/models/loan/loan";
+import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm, SplitToLoansRequest} from "~/models/loan/loan";
 import {useLoanService} from "~/services/loan/loan-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -87,6 +87,28 @@ export const useLoansStore = defineStore('loansStore', () => {
       return loan;
     } catch (error) {
       apiErrors.toastError(error, t('contacts.loans.toasts.recordFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
+      throw error;
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  async function splitIntoIous(transactionId: string, request: SplitToLoansRequest): Promise<Loan[] | undefined> {
+    pending.value = true;
+    try {
+      const loans = await loanService.splitTransactionIntoLoans(transactionId, request);
+      toasts.success(
+        t('contacts.loans.toasts.splitSuccessTitle'),
+        t('contacts.loans.toasts.splitSuccessBody', {count: loans.length}),
+      );
+      await Promise.all([
+        refreshOutstanding(),
+        allLoansLoaded.value ? refreshAllLoans() : Promise.resolve(),
+        contactsStore.updateContacts(),
+      ]);
+      return loans;
+    } catch (error) {
+      apiErrors.toastError(error, t('contacts.loans.toasts.splitFailedTitle'), t('contacts.loans.toasts.genericErrorBody'));
       throw error;
     } finally {
       pending.value = false;
@@ -181,6 +203,7 @@ export const useLoansStore = defineStore('loansStore', () => {
     refreshRepayments,
     refreshOutstanding,
     createLoan,
+    splitIntoIous,
     updateLoan,
     recordRepayment,
     deleteRepayment,

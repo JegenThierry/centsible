@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import PageHeader from "~/components/_molecules/page/page-header.vue";
+import ReportsKpiStrip from "~/components/_molecules/reports/reports-kpi-strip.vue";
 import NetWorthChart from "~/components/_organisms/reports/net-worth-chart.vue";
+import NetWorthForecast from "~/components/_organisms/reports/net-worth-forecast.vue";
 import NetWorthBreakdownSlideover from "~/components/_organisms/reports/net-worth-breakdown-slideover.vue";
 import CategorySpendingChart from "~/components/_organisms/reports/category-spending-chart.vue";
 import CashFlowChart from "~/components/_organisms/reports/cash-flow-chart.vue";
@@ -14,6 +16,7 @@ import {useReportsStore} from "~/stores/reportsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {Currency} from "~/models/budget-account/currency";
 import {useReportDateRange} from "~/composables/use-report-date-range";
+import {previousIsoDateRange} from "~/utils/date";
 
 const reportsStore = useReportsStore();
 const accountsStore = useBudgetAccountsStore();
@@ -39,10 +42,13 @@ async function refresh() {
   const range = isCustom.value
     ? {startDate: resolved.value.startDate, endDate: resolved.value.endDate}
     : resolved.value.months;
+  // The equal-length window right before the selected range powers the KPI strip's period deltas.
+  const previousRange = previousIsoDateRange(resolved.value.startDate, resolved.value.endDate);
   await Promise.all([
     reportsStore.fetchNetWorth(range),
     reportsStore.fetchCategorySpending(range),
     reportsStore.fetchCashFlow(range),
+    reportsStore.fetchCashFlowPrevious(previousRange),
     reportsStore.fetchYearOverYear(),
     reportsStore.fetchBudgetVsActual(6),
   ]);
@@ -98,9 +104,15 @@ onMounted(async () => {
     </AppEmptyState>
 
     <template v-else>
+      <ReportsKpiStrip :currency="displayCurrency"
+                       :current="reportsStore.cashFlow"
+                       :previous="reportsStore.cashFlowPrevious"/>
+
       <NetWorthChart :currency="displayCurrency"
                      :points="reportsStore.netWorth"
                      @point-click="onNetWorthPointClick"/>
+
+      <NetWorthForecast :currency="displayCurrency"/>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <CashFlowChart :currency="displayCurrency" :points="reportsStore.cashFlow"/>

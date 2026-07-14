@@ -2,9 +2,16 @@
 import {computed, ref} from 'vue'
 import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
+import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {type Transaction} from "~/models/transactions/transaction";
+import type {Category} from "~/models/category/category";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
+import type {RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
+import {Frequency} from "~/models/recurring/recurring-transaction";
+import {Currency} from "~/models/budget-account/currency";
+import {transactionType} from "~/utils/transaction";
+import {todayIsoDate} from "~/utils/date";
 import {useActiveCurrency} from "~/composables/use-active-currency";
 import {useToasts} from "~/services/toasts/toast-service";
 import CreateFab from "~/components/_molecules/buttons/create-fab.vue";
@@ -14,21 +21,30 @@ import LoadingAnimation from "~/components/_atoms/animations/loading-animation.v
 import BaseTable from "~/components/_molecules/tables/base-table.vue";
 import TransactionFilterBar from "~/components/_molecules/transactions/transaction-filter-bar.vue";
 import TransactionBulkActionBar from "~/components/_molecules/transactions/transaction-bulk-action-bar.vue";
+import SavedFilterBar from "~/components/_organisms/transactions/saved-filter-bar.vue";
 
 const EditTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transaction-modal.vue"));
 const EditTransferModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transfer-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
+const SplitIntoIousModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/split-into-ious-modal.vue"));
+const RecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/recurring-modal.vue"));
 const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
 const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const api = useApi();
 const transactionService = useTransactionService(api);
 const budgetAccountsStore = useBudgetAccountsStore();
+const categoriesStore = useCategoriesStore();
 const currency = useActiveCurrency();
 const toasts = useToasts();
 const {t} = useI18n();
+
+// Assignable categories feed the inline row picker; load once for the whole list.
+onMounted(() => {
+  if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
+});
 
 const filters = ref<TransactionFilters>({sort: 'DATE_DESC'});
 
@@ -43,6 +59,11 @@ function clearFilters() {
   filters.value = {sort: filters.value.sort ?? 'DATE_DESC'};
 }
 
+/** Applies a saved view's filters wholesale, replacing the active set. */
+function applySavedFilter(saved: TransactionFilters) {
+  filters.value = {...saved};
+}
+
 const {
   transactions,
   loading,
@@ -52,6 +73,24 @@ const {
   loadTransactions
 } = useTransactionList(transactionService, budgetAccountsStore, 25, filters);
 
+const UNDO_WINDOW_MS = 6000;
+
+interface PendingDelete {
+  accountId: string;
+  timer: ReturnType<typeof setTimeout>;
+  committing?: boolean;
+}
+
+// Rows deleted optimistically but still inside their undo window — kept out of the list without
+// dropping them, so a background reload can't resurrect a row the server hasn't deleted yet.
+const pendingDeletes = ref<Map<string, PendingDelete>>(new Map());
+
+const visibleTransactions = computed(() =>
+  pendingDeletes.value.size === 0
+    ? transactions.value
+    : transactions.value.filter((tx) => !pendingDeletes.value.has(tx.id)),
+);
+
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 const isCreateModalOpen = ref(false);
@@ -60,6 +99,9 @@ const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isBulkDeleteOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
+const isSplitModalOpen = ref(false);
+const isRecurringModalOpen = ref(false);
+const recurringSeed = ref<RecurringTransactionForm>();
 const selectedTransaction = ref<Transaction | null>(null);
 const selectedIds = ref<Set<string>>(new Set());
 
@@ -87,19 +129,44 @@ function openDeleteModal(transaction: Transaction) {
   isDeleteModalOpen.value = true;
 }
 
+function openSplitModal(transaction: Transaction) {
+  selectedTransaction.value = transaction;
+  isSplitModalOpen.value = true;
+}
+
+/** Seeds a new recurring rule from a transaction (amount/category/description/type), then opens the modal. */
+function openMakeRecurring(transaction: Transaction) {
+  const account = budgetAccountsStore.activeAccount;
+  recurringSeed.value = {
+    amount: Math.abs(transaction.amount),
+    description: transaction.description,
+    category: transaction.category,
+    frequency: Frequency.MONTHLY,
+    startDate: todayIsoDate(),
+    endDate: undefined,
+    active: true,
+    currency: account?.currency ?? Currency.EUR,
+    type: transactionType(transaction),
+    isTransfer: false,
+    sourceAccountId: account?.id,
+    destinationAccountId: undefined,
+  };
+  isRecurringModalOpen.value = true;
+}
+
 async function onMutated() {
   await budgetAccountsStore.updateActiveAccount();
   await loadTransactions(true);
 }
 
 const allOnPageSelected = computed(() =>
-  transactions.value.length > 0 && transactions.value.every((t) => selectedIds.value.has(t.id))
+  visibleTransactions.value.length > 0 && visibleTransactions.value.every((t) => selectedIds.value.has(t.id))
 );
 
 function toggleAll(checked: boolean) {
   const next = new Set(selectedIds.value);
-  if (checked) transactions.value.forEach((t) => next.add(t.id));
-  else transactions.value.forEach((t) => next.delete(t.id));
+  if (checked) visibleTransactions.value.forEach((t) => next.add(t.id));
+  else visibleTransactions.value.forEach((t) => next.delete(t.id));
   selectedIds.value = next;
 }
 
@@ -116,6 +183,7 @@ function clearSelection() {
 const columns = createTransactionColumns({
   t,
   currency: () => currency.value,
+  categories: () => categoriesStore.categories,
   isSelected: (id) => selectedIds.value.has(id),
   isAllSelected: () => allOnPageSelected.value,
   onToggleAll: toggleAll,
@@ -123,6 +191,9 @@ const columns = createTransactionColumns({
   onEdit: openEditModal,
   onDelete: openDeleteModal,
   onCreateRule: openCreateRule,
+  onSplitIntoIous: openSplitModal,
+  onMakeRecurring: openMakeRecurring,
+  onCategorize,
 })
 
 async function bulkDelete() {
@@ -153,6 +224,110 @@ async function bulkCategorize(categoryId: number) {
   }
 }
 
+/** Swaps a single row for a new object so the table re-renders just that badge (no full reload). */
+function patchCategory(id: string, category: Category) {
+  transactions.value = transactions.value.map((tx) => (tx.id === id ? {...tx, category} : tx));
+}
+
+/** Inline single-row categorize: applies optimistically, reuses bulk-categorize, rolls back on error. */
+async function onCategorize(transaction: Transaction, category: Category) {
+  const account = budgetAccountsStore.activeAccount;
+  if (!account || transaction.category?.id === category.id) return;
+  const previousCategory = transaction.category;
+  patchCategory(transaction.id, category);
+  try {
+    await transactionService.bulkCategorize(account.id, [transaction.id], category.id);
+    toasts.success(
+      t('transactions.category.updateToastTitle'),
+      t('transactions.category.updateToastBody', {category: category.name}),
+    );
+  } catch (e) {
+    patchCategory(transaction.id, previousCategory);
+    toasts.error(t('transactions.bulk.errorTitle'), t('transactions.bulk.errorBody'));
+  }
+}
+
+/** Removes an id from the pending set, which un-hides its row in place. */
+function releasePending(id: string) {
+  if (!pendingDeletes.value.has(id)) return;
+  const next = new Map(pendingDeletes.value);
+  next.delete(id);
+  pendingDeletes.value = next;
+}
+
+/** Fires the real DELETE once the undo window lapses; un-hides the row if the server refuses. */
+async function commitDelete(id: string) {
+  const pending = pendingDeletes.value.get(id);
+  if (!pending || pending.committing) return;
+  pending.committing = true; // guard against the timer and a flush racing to commit the same row
+  clearTimeout(pending.timer);
+  try {
+    await transactionService.deleteTransaction(pending.accountId, id);
+    transactions.value = transactions.value.filter((tx) => tx.id !== id);
+    releasePending(id);
+    if (budgetAccountsStore.activeAccount?.id === pending.accountId) {
+      await budgetAccountsStore.updateActiveAccount();
+    }
+  } catch (e) {
+    releasePending(id);
+    const entity = t('transactions.delete.entity');
+    toasts.error(t('common.confirmDelete.errorTitle', {entity}), t('common.confirmDelete.errorBody', {entity}));
+  }
+}
+
+/** User hit Undo inside the window: cancel the pending delete so the row reappears. */
+function undoDelete(id: string) {
+  const pending = pendingDeletes.value.get(id);
+  if (!pending || pending.committing) return;
+  clearTimeout(pending.timer);
+  releasePending(id);
+}
+
+/** Commits every still-pending delete immediately — used before unmount / account switch. */
+function flushPendingDeletes() {
+  for (const id of Array.from(pendingDeletes.value.keys())) void commitDelete(id);
+}
+
+/** Transfers span two ledger rows and can't be cleanly restored — delete straight away, no undo. */
+async function deleteTransferNow(accountId: string, transaction: Transaction) {
+  const entity = t('transactions.transfer.entity');
+  try {
+    await transactionService.deleteTransaction(accountId, transaction.id);
+    toasts.success(t('common.confirmDelete.successTitle', {entity}), t('common.confirmDelete.successBody', {entity}));
+    await onMutated();
+  } catch (e) {
+    toasts.error(t('common.confirmDelete.errorTitle', {entity}), t('common.confirmDelete.errorBody', {entity}));
+  }
+}
+
+/** Confirmed delete: transfers go immediately, regular rows hide behind an undo window. */
+function onDeleteConfirmed() {
+  const transaction = selectedTransaction.value;
+  const account = budgetAccountsStore.activeAccount;
+  if (!transaction || !account) return;
+
+  if (transaction.transferGroupId) {
+    void deleteTransferNow(account.id, transaction);
+    return;
+  }
+
+  const timer = setTimeout(() => void commitDelete(transaction.id), UNDO_WINDOW_MS);
+  const next = new Map(pendingDeletes.value);
+  next.set(transaction.id, {accountId: account.id, timer});
+  pendingDeletes.value = next;
+
+  toasts.action(
+    'info',
+    t('transactions.delete.undoTitle'),
+    t('transactions.delete.undoBody'),
+    t('common.actions.undo'),
+    () => undoDelete(transaction.id),
+    UNDO_WINDOW_MS,
+  );
+}
+
+onBeforeUnmount(flushPendingDeletes);
+
 useIntersectionObserver(loadMoreTrigger, async (entries) => {
   const entry = entries[0]
   if (!entry?.isIntersecting) return
@@ -165,6 +340,7 @@ watch(
   () => budgetAccountsStore.activeAccount?.id,
   (id) => {
     if (id) {
+      flushPendingDeletes();
       clearSelection();
       loadTransactions(true);
     }
@@ -176,6 +352,8 @@ watch(
 <template>
   <TransactionFilterBar v-model="filters"/>
 
+  <SavedFilterBar :can-save="hasActiveFilters" :filters="filters" @apply="applySavedFilter"/>
+
   <TransactionBulkActionBar v-if="selectedIds.size > 0"
                             :count="selectedIds.size"
                             @recategorize="isBulkCategorizeOpen = true"
@@ -183,7 +361,7 @@ watch(
                             @clear="clearSelection"/>
 
   <BaseTable :columns="columns"
-             :data="transactions"
+             :data="visibleTransactions"
              :loading="loading"
              :error="error"
              :empty-title="t('transactions.emptyTitle')"
@@ -214,10 +392,19 @@ watch(
                      :transaction="selectedTransaction"
                      @updated="onMutated"/>
 
+  <SplitIntoIousModal v-if="isSplitModalOpen && selectedTransaction !== null"
+                      v-model:open="isSplitModalOpen"
+                      :transaction="selectedTransaction"
+                      :currency="currency"/>
+
+  <RecurringModal v-if="isRecurringModalOpen"
+                  v-model:open="isRecurringModalOpen"
+                  :seed="recurringSeed"/>
+
   <DeleteTransactionModal v-if="isDeleteModalOpen"
                           v-model:open="isDeleteModalOpen"
                           :transaction="selectedTransaction"
-                          @deleted="onMutated"/>
+                          @confirm="onDeleteConfirmed"/>
 
   <BulkCategorizeModal v-if="isBulkCategorizeOpen"
                        v-model:open="isBulkCategorizeOpen"

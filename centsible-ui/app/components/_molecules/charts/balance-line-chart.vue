@@ -13,9 +13,12 @@ const props = withDefaults(defineProps<{
   fillColor?: string;
   tension?: number;
   heightClass?: string;
+  /** Render the line dashed — used to signal a projected/forecast series. */
+  dashed?: boolean;
 }>(), {
   tension: 0,
   heightClass: 'h-64',
+  dashed: false,
 });
 
 const emit = defineEmits<{
@@ -46,6 +49,7 @@ const chartData = computed<ChartData<'line'>>(() => {
         backgroundColor: props.fillColor ?? 'rgba(16, 185, 129, 0.1)',
         borderColor: props.color,
         borderWidth: 2,
+        borderDash: props.dashed ? [6, 5] : [],
         pointBackgroundColor: props.color,
         pointBorderColor: pointBorder,
         pointBorderWidth: 1,

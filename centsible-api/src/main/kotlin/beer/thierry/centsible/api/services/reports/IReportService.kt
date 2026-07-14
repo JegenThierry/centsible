@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.CashFlowPointDTO
 import beer.thierry.centsible.api.model.reports.CategorySpendingSeriesDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
+import beer.thierry.centsible.api.model.reports.NetWorthForecastDTO
 import beer.thierry.centsible.api.model.reports.NetWorthPointDTO
 import beer.thierry.centsible.api.model.reports.YearOverYearDTO
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -32,6 +33,11 @@ interface IReportService {
         endDate: LocalDate,
         authenticatedUser: UserDTO
     ): List<CashFlowPointDTO>
+
+    fun fetchNetWorthForecast(
+        months: Int,
+        authenticatedUser: UserDTO
+    ): NetWorthForecastDTO
 
     fun fetchYearOverYear(authenticatedUser: UserDTO): YearOverYearDTO
 

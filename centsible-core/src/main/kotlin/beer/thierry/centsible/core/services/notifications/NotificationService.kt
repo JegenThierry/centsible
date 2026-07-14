@@ -1,27 +1,44 @@
 package beer.thierry.centsible.core.services.notifications
 
 import beer.thierry.centsible.api.model.budget.BudgetDTO
+import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
+import beer.thierry.centsible.api.model.category.CategoryType
+import beer.thierry.centsible.api.model.integrations.ProviderConnectionStatus
 import beer.thierry.centsible.api.model.notification.NotificationDTO
 import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.notification.NotificationType
+import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
 import beer.thierry.centsible.api.repository.INotificationRepository
+import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 private val THRESHOLD = BigDecimal("0.85")
 private val EXCEEDED = BigDecimal("1.00")
 private const val PACE_MIN_DAYS = 4
+
+/** How many days before a provider consent lapses we start warning the user. */
+private const val CONSENT_EXPIRY_LEAD_DAYS = 7L
+
+/** How far ahead we project each account's recurring cash flow when warning about an upcoming shortfall. */
+private const val PROJECTED_SHORTFALL_HORIZON_DAYS = 30L
+
+/** Safety cap on generated occurrences per rule while projecting (a daily rule over 30d is ~30). */
+private const val MAX_SHORTFALL_OCCURRENCES = 200
 
 @Service
 class NotificationService(
@@ -31,6 +48,7 @@ class NotificationService(
     private val loans: ILoansRepository,
     private val recurring: IRecurringTransactionRepository,
     private val accounts: IBudgetAccountsRepository,
+    private val connections: IProviderConnectionsRepository,
 ) : INotificationService {
 
     override fun list(user: UserDTO, limit: Int): List<NotificationDTO> = notifications.list(user, limit)
@@ -44,6 +62,7 @@ class NotificationService(
     override fun delete(id: UUID, user: UserDTO): Boolean = notifications.delete(id, user)
 
     override fun maybeRaiseBudgetAlerts(user: UserDTO, categoryIds: Collection<Long>?) {
+        if (!users.fetchNotificationSettings(user.id).budgetAlertsEnabled) return
         val all = budgets.fetchAllWithSpentForMonth(user, YearMonth.now())
         val scoped = if (categoryIds == null) all else all.filter { it.category.id in categoryIds }
         scoped.forEach { evaluateBudget(user, it) }
@@ -59,7 +78,7 @@ class NotificationService(
     }
 
     override fun maybeRaiseLowBalanceAlerts(user: UserDTO, accountIds: Collection<UUID>?) {
-        evaluateLowBalance(user, users.fetchNotificationSettings(user.id), accountIds)
+        evaluateLowBalance(user, users.fetchNotificationSettings(user.id), accounts.fetchAllAccounts(user), accountIds)
     }
 
     override fun evaluateTransactionAlerts(
@@ -71,15 +90,66 @@ class NotificationService(
     ) {
         val settings = users.fetchNotificationSettings(user.id)
         evaluateLargeTransaction(user, settings, transactionId, amount, description)
-        evaluateLowBalance(user, settings, listOf(accountId))
+        evaluateLowBalance(user, settings, accounts.fetchAllAccounts(user), listOf(accountId))
     }
 
     override fun runScheduledChecks(user: UserDTO) {
         val settings = users.fetchNotificationSettings(user.id)
+        // Fetched once and threaded into every check that needs them, rather than each evaluator
+        // re-reading the same user-scoped tables on the same sweep.
+        val recurringRules = recurring.fetchAll(user)
+        val userAccounts = accounts.fetchAllAccounts(user)
         evaluateLoanDue(user, settings)
-        evaluateRecurringUpcoming(user, settings)
-        evaluateLowBalance(user, settings, null)
-        evaluateBudgetPacing(user)
+        evaluateRecurringUpcoming(user, settings, recurringRules)
+        evaluateLowBalance(user, settings, userAccounts, null)
+        evaluateProjectedShortfall(user, settings, recurringRules, userAccounts)
+        evaluateBudgetPacing(user, settings)
+        evaluateConsentExpiry(user)
+    }
+
+    override fun maybeRaiseSyncFailure(user: UserDTO, connectionId: UUID, provider: String, error: String?) {
+        emitIfNew(
+            user,
+            NotificationType.SYNC_FAILED,
+            dedupKey = "sync-fail:$connectionId:${LocalDate.now()}",
+            title = "Bank sync failed",
+            body = "Automatic sync for your $provider connection failed${error?.let { ": $it" } ?: ""}. Centsible will keep retrying.",
+            extras = mapOf(
+                "connectionId" to connectionId.toString(),
+                "provider" to provider,
+                "error" to (error ?: ""),
+            ),
+        )
+    }
+
+    /** Warns before a bank/provider consent lapses so the user can re-authorize before syncs break. */
+    private fun evaluateConsentExpiry(user: UserDTO) {
+        val today = LocalDate.now()
+        for (connection in connections.fetchAll(user)) {
+            if (connection.status == ProviderConnectionStatus.REVOKED) continue
+            val expiresAt = parseInstant(connection.config["consentExpiresAt"]) ?: continue
+            val expiryDate = LocalDate.ofInstant(expiresAt, ZoneOffset.UTC)
+            val daysUntil = ChronoUnit.DAYS.between(today, expiryDate)
+            // Already-expired consents surface as sync failures instead; here we only warn ahead of time.
+            if (daysUntil < 0 || daysUntil > CONSENT_EXPIRY_LEAD_DAYS) continue
+            emitIfNew(
+                user,
+                NotificationType.CONSENT_EXPIRING,
+                dedupKey = "consent:${connection.id}:$expiryDate",
+                title = "Bank connection expiring soon",
+                body = "Access for your ${connection.displayName} connection expires on $expiryDate. Reconnect it to keep syncing.",
+                extras = mapOf(
+                    "connectionId" to connection.id.toString(),
+                    "provider" to connection.providerKey,
+                    "expiresAt" to expiryDate.toString(),
+                ),
+            )
+        }
+    }
+
+    private fun parseInstant(raw: Any?): Instant? {
+        val text = raw as? String ?: return null
+        return runCatching { Instant.parse(text) }.getOrNull()
     }
 
     private fun evaluateLargeTransaction(
@@ -108,14 +178,14 @@ class NotificationService(
     private fun evaluateLowBalance(
         user: UserDTO,
         settings: NotificationSettingsDTO,
+        userAccounts: List<BudgetAccountDTO>,
         accountIds: Collection<UUID>?,
     ) {
         val threshold = settings.lowBalanceThreshold ?: return
         if (threshold.signum() <= 0) return
 
         val weekKey = currentWeekKey()
-        val all = accounts.fetchAllAccounts(user)
-        val scoped = if (accountIds == null) all else all.filter { it.id in accountIds }
+        val scoped = if (accountIds == null) userAccounts else userAccounts.filter { it.id in accountIds }
         for (account in scoped) {
             if (account.balance >= threshold) continue
             emitIfNew(
@@ -177,12 +247,16 @@ class NotificationService(
         }
     }
 
-    private fun evaluateRecurringUpcoming(user: UserDTO, settings: NotificationSettingsDTO) {
+    private fun evaluateRecurringUpcoming(
+        user: UserDTO,
+        settings: NotificationSettingsDTO,
+        rules: List<RecurringTransactionDTO>,
+    ) {
         val today = LocalDate.now()
         val window = today.plusDays(settings.recurringDueDaysAhead.coerceAtLeast(0).toLong())
-        val rules = recurring.fetchAll(user, null).filter { it.active && it.nextRunAt != null }
+        val activeRules = rules.filter { it.active && it.nextRunAt != null }
 
-        for (rule in rules) {
+        for (rule in activeRules) {
             val next = rule.nextRunAt ?: continue
             val id = rule.id ?: continue
             if (next.isBefore(today) || next.isAfter(window)) continue
@@ -201,7 +275,104 @@ class NotificationService(
         }
     }
 
-    private fun evaluateBudgetPacing(user: UserDTO) {
+    /**
+     * Proactive overdraft early-warning. Projects each account's balance forward over
+     * [PROJECTED_SHORTFALL_HORIZON_DAYS] using its active recurring rules (income/expense on the
+     * account plus transfers in/out) and alerts the first time it is projected to dip below the
+     * user's [NotificationSettingsDTO.lowBalanceThreshold]. Accounts already under the threshold are
+     * left to the reactive [evaluateLowBalance] alert. Everything is in each account's own currency,
+     * so no FX conversion is involved.
+     */
+    private fun evaluateProjectedShortfall(
+        user: UserDTO,
+        settings: NotificationSettingsDTO,
+        rules: List<RecurringTransactionDTO>,
+        userAccounts: List<BudgetAccountDTO>,
+    ) {
+        val threshold = settings.lowBalanceThreshold ?: return
+        if (threshold.signum() <= 0) return
+
+        val activeRules = rules.filter { it.active }
+        if (activeRules.isEmpty()) return
+
+        val today = LocalDate.now()
+        val horizonEnd = today.plusDays(PROJECTED_SHORTFALL_HORIZON_DAYS)
+        // Occurrence dates depend only on the rule and the shared window, not the account, so walk
+        // each rule's calendar once instead of re-walking it for every account.
+        val datesByRule = activeRules.associateWith { occurrenceDatesInWindow(it, today, horizonEnd) }
+
+        for (account in userAccounts) {
+            // Already below the line — the reactive low-balance alert owns this case.
+            if (account.balance < threshold) continue
+
+            val impacts = activeRules.asSequence()
+                .flatMap { rule ->
+                    val delta = deltaForAccount(rule, account.id) ?: return@flatMap emptySequence()
+                    datesByRule.getValue(rule).asSequence().map { it to delta }
+                }
+                .sortedBy { it.first }
+
+            var running = account.balance
+            val (breachDate, breachBalance) = impacts.firstNotNullOfOrNull { (date, delta) ->
+                running = running.add(delta)
+                (date to running).takeIf { running < threshold }
+            } ?: continue
+            val atBreach = breachBalance.setScale(2, RoundingMode.HALF_UP)
+
+            emitIfNew(
+                user,
+                NotificationType.PROJECTED_SHORTFALL,
+                dedupKey = "shortfall:${account.id}:$breachDate",
+                title = "Projected low balance: ${account.name}",
+                body = "${account.name} is projected to fall to ${atBreach.toPlainString()} ${account.currency} on $breachDate, below your ${threshold.toPlainString()} ${account.currency} threshold.",
+                extras = mapOf(
+                    "accountId" to account.id.toString(),
+                    "breachDate" to breachDate.toString(),
+                    "projectedBalance" to atBreach.toPlainString(),
+                    "threshold" to threshold.toPlainString(),
+                    "currency" to account.currency.toString(),
+                ),
+            )
+        }
+    }
+
+    /** Signed impact of one occurrence of [rule] on [accountId], or null if the rule doesn't touch it. */
+    private fun deltaForAccount(rule: RecurringTransactionDTO, accountId: UUID): BigDecimal? {
+        val amount = rule.amount ?: return null
+        return when {
+            rule.isTransfer && rule.accountId == accountId -> amount.negate()
+            rule.isTransfer && rule.destinationAccountId == accountId -> amount
+            !rule.isTransfer && rule.accountId == accountId -> when (rule.type) {
+                CategoryType.INCOME -> amount
+                CategoryType.EXPENSE -> amount.negate()
+                null -> null
+            }
+            else -> null
+        }
+    }
+
+    /** Occurrence dates of [rule] within [windowStart]..[windowEnd], respecting its end date. */
+    private fun occurrenceDatesInWindow(
+        rule: RecurringTransactionDTO,
+        windowStart: LocalDate,
+        windowEnd: LocalDate,
+    ): List<LocalDate> {
+        val frequency = rule.frequency ?: return emptyList()
+        var date = rule.nextRunAt ?: return emptyList()
+        val hardEnd = rule.endDate
+        val dates = mutableListOf<LocalDate>()
+        var guard = 0
+        while (!date.isAfter(windowEnd) && guard < MAX_SHORTFALL_OCCURRENCES) {
+            if (hardEnd != null && date.isAfter(hardEnd)) break
+            if (!date.isBefore(windowStart)) dates += date
+            date = frequency.advance(date)
+            guard++
+        }
+        return dates
+    }
+
+    private fun evaluateBudgetPacing(user: UserDTO, settings: NotificationSettingsDTO) {
+        if (!settings.budgetAlertsEnabled) return
         val now = YearMonth.now()
         val daysElapsed = LocalDate.now().dayOfMonth
         if (daysElapsed < PACE_MIN_DAYS) return

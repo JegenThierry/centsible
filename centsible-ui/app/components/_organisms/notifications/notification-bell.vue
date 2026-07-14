@@ -33,6 +33,9 @@ const NOTIFICATION_STYLE: Record<NotificationType, {icon: string; color: string}
   RECURRING_UPCOMING: {icon: 'i-lucide-repeat', color: 'text-muted'},
   LARGE_TRANSACTION: {icon: 'i-lucide-arrow-up-right', color: 'text-info'},
   LOW_ACCOUNT_BALANCE: {icon: 'i-lucide-wallet', color: 'text-error'},
+  PROJECTED_SHORTFALL: {icon: 'i-lucide-trending-down', color: 'text-warning'},
+  SYNC_FAILED: {icon: 'i-lucide-refresh-cw-off', color: 'text-error'},
+  CONSENT_EXPIRING: {icon: 'i-lucide-link-2-off', color: 'text-warning'},
 };
 
 function iconFor(type: NotificationType): string {

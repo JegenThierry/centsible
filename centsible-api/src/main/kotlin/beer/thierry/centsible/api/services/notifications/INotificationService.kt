@@ -44,8 +44,14 @@ interface INotificationService {
     )
 
     /**
-     * Runs all scheduled checks (loan due, recurring upcoming, low balance) for [user].
-     * Safe to call repeatedly — each individual check is idempotent via dedup keys.
+     * Runs all scheduled checks (loan due, recurring upcoming, low balance, provider consent expiry)
+     * for [user]. Safe to call repeatedly — each individual check is idempotent via dedup keys.
      */
     fun runScheduledChecks(user: UserDTO)
+
+    /**
+     * Raises an alert that a provider connection's automated sync failed. Deduplicated per connection
+     * per day, so a persistently-failing connection alerts at most once a day rather than every poll.
+     */
+    fun maybeRaiseSyncFailure(user: UserDTO, connectionId: UUID, provider: String, error: String?)
 }

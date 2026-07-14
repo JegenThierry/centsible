@@ -68,6 +68,44 @@
     },
     "delete": {
       "confirmBody": "Supprimer cet export ? Cette action est irréversible."
+    },
+    "schedules": {
+      "title": "Exports programmés",
+      "description": "Recevez automatiquement un rapport récurrent par e-mail.",
+      "documentsHeading": "Mes documents",
+      "new": "Nouvelle programmation",
+      "empty": "Aucun export programmé. Créez-en un pour recevoir des rapports automatiquement.",
+      "nextRun": "prochaine exécution",
+      "toggleAria": "Suspendre ou reprendre la programmation",
+      "deleteConfirm": "Supprimer cet export programmé ? Cette action est irréversible.",
+      "frequency": {
+        "daily": "Quotidien",
+        "weekly": "Hebdomadaire",
+        "monthly": "Mensuel",
+        "yearly": "Annuel"
+      },
+      "form": {
+        "createTitle": "Nouvel export programmé",
+        "editTitle": "Modifier l'export programmé",
+        "description": "Un export récurrent de vos transactions, envoyé par e-mail à chaque période.",
+        "nameLabel": "Nom",
+        "namePlaceholder": "Relevé mensuel",
+        "formatLabel": "Format",
+        "frequencyLabel": "Fréquence",
+        "hint": "Chaque exécution couvre la période précédente (mensuel → le mois dernier) sur tous les comptes et vous est envoyée par e-mail."
+      },
+      "toasts": {
+        "loadFailedTitle": "Impossible de charger les programmations",
+        "loadFailedBody": "Vos exports programmés n'ont pas pu être chargés.",
+        "createdTitle": "Programmation créée",
+        "createdBody": "Votre export sera envoyé automatiquement par e-mail.",
+        "updatedTitle": "Programmation mise à jour",
+        "updatedBody": "Vos modifications ont été enregistrées.",
+        "deletedTitle": "Programmation supprimée",
+        "deletedBody": "L'export programmé a été supprimé.",
+        "errorTitle": "Une erreur s'est produite",
+        "errorBody": "Veuillez réessayer."
+      }
     }
   }
 }

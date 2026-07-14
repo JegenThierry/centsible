@@ -53,6 +53,8 @@ class AuthenticationServiceTest {
         jwtSecret = validJwtSecret,
         jwtExpirationMs = 3_600_000L,
         registrationEnabled = false,
+        adminEnabled = false,
+        adminUsername = "",
     )
 
     private fun user(registered: Boolean, totpEnabled: Boolean = false) = User(

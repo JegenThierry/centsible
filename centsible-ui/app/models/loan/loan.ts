@@ -6,6 +6,8 @@ export interface Loan {
   id: string;
   contact: Contact;
   transaction?: Transaction;
+  /** For an IOU carved from an expense (split-to-IOUs): the source transaction it belongs to. */
+  sourceTransactionId?: string;
   accountId?: string;
   affectsBalance: boolean;
   lentAmount: number;
@@ -36,6 +38,23 @@ export interface LoanForm {
   transactionDate: string;
   dueDate?: string;
   notes?: string;
+}
+
+/** One person's share when splitting an expense into IOUs. Provide an existing contact or a new name. */
+export interface IouShare {
+  contactId?: string;
+  newContactFirstName?: string;
+  newContactLastName?: string;
+  amount: number;
+  dueDate?: string;
+  note?: string;
+}
+
+/** Carve an existing expense into tracking-only IOUs, one loan per share (see backend SplitToLoansForm). */
+export interface SplitToLoansRequest {
+  currency?: Currency;
+  description?: string;
+  shares: IouShare[];
 }
 
 /** Balance-neutral edits only (see backend LoanUpdateForm). */

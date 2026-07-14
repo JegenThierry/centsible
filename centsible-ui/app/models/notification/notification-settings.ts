@@ -3,6 +3,7 @@ export interface NotificationSettings {
   lowBalanceThreshold: number | null;
   loanDueDaysAhead: number;
   recurringDueDaysAhead: number;
+  budgetAlertsEnabled: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -10,4 +11,5 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   lowBalanceThreshold: null,
   loanDueDaysAhead: 3,
   recurringDueDaysAhead: 2,
+  budgetAlertsEnabled: true,
 };

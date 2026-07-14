@@ -5,6 +5,7 @@ import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
 import beer.thierry.centsible.api.model.reports.CashFlowPointDTO
 import beer.thierry.centsible.api.model.reports.CategorySpendingSeriesDTO
+import beer.thierry.centsible.api.model.reports.NetWorthForecastDTO
 import beer.thierry.centsible.api.model.reports.NetWorthPointDTO
 import beer.thierry.centsible.api.model.reports.YearOverYearDTO
 import beer.thierry.centsible.api.model.user.UserDTO
@@ -52,6 +53,15 @@ class ReportsResource(private val reportService: IReportService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<List<CashFlowPointDTO>> =
         ResponseEntity.ok(reportService.fetchCashFlow(startDate, endDate, authenticatedUser))
+
+    @GetMapping("/forecast")
+    fun fetchForecast(
+        @RequestParam(defaultValue = "6") months: Int,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<NetWorthForecastDTO> {
+        if (months !in 1..24) throw LocalizedException.BadRequest("error.report.monthsOutOfRange")
+        return ResponseEntity.ok(reportService.fetchNetWorthForecast(months, authenticatedUser))
+    }
 
     @GetMapping("/year-over-year")
     fun fetchYearOverYear(

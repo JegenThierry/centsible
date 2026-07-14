@@ -1,16 +1,23 @@
 package beer.thierry.centsible.core.service
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
+import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.contact.ContactDTO
+import beer.thierry.centsible.api.model.loan.IouShareForm
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.loan.LoanForm
 import beer.thierry.centsible.api.model.loan.LoanUpdateForm
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
+import beer.thierry.centsible.api.model.loan.SplitToLoansForm
+import beer.thierry.centsible.api.model.transaction.TransactionDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IContactsRepository
 import beer.thierry.centsible.api.repository.ILoanRepaymentsRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
+import beer.thierry.centsible.api.repository.ITransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.core.services.loans.LoanService
@@ -22,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
@@ -39,6 +47,7 @@ class LoanServiceTest {
     @Mock private lateinit var budgetAccountsRepository: IBudgetAccountsRepository
     @Mock private lateinit var currencyConversionService: ICurrencyConversionService
     @Mock private lateinit var userRepository: IUserRepository
+    @Mock private lateinit var transactionRepository: ITransactionRepository
 
     @InjectMocks
     private lateinit var service: LoanService
@@ -211,6 +220,69 @@ class LoanServiceTest {
             .thenReturn(repayment)
 
         assertEquals(repayment, service.recordRepayment(user, loanId, form))
+    }
+
+    @Test
+    fun `splitTransactionIntoLoans creates one IOU per share for an expense`() {
+        val txId = UUID.randomUUID()
+        val contactA = UUID.randomUUID()
+        val contactB = UUID.randomUUID()
+        val tx = TransactionDTO(
+            id = txId, type = CategoryType.EXPENSE, amount = BigDecimal("120.00"), description = "Dinner",
+        )
+        val form = SplitToLoansForm(
+            currency = Currency.EUR,
+            shares = listOf(
+                IouShareForm(contactId = contactA, amount = BigDecimal("40.00")),
+                IouShareForm(contactId = contactB, amount = BigDecimal("40.00")),
+            ),
+        )
+        `when`(transactionRepository.fetchTransactionById(txId, user)).thenReturn(tx)
+        `when`(contactsRepository.fetchContactById(user, contactA)).thenReturn(ContactDTO(id = contactA))
+        `when`(contactsRepository.fetchContactById(user, contactB)).thenReturn(ContactDTO(id = contactB))
+        `when`(
+            loansRepository.createIouLoan(
+                anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(),
+            ),
+        ).thenReturn(LoanDTO(id = UUID.randomUUID()))
+
+        val result = service.splitTransactionIntoLoans(user, txId, form)
+
+        assertEquals(2, result.size)
+        verify(loansRepository, times(2)).createIouLoan(
+            anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(),
+        )
+    }
+
+    @Test
+    fun `splitTransactionIntoLoans rejects when shares exceed the transaction amount`() {
+        val txId = UUID.randomUUID()
+        val tx = TransactionDTO(id = txId, type = CategoryType.EXPENSE, amount = BigDecimal("50.00"))
+        `when`(transactionRepository.fetchTransactionById(txId, user)).thenReturn(tx)
+
+        val form = SplitToLoansForm(
+            shares = listOf(IouShareForm(contactId = UUID.randomUUID(), amount = BigDecimal("80.00"))),
+        )
+        assertThrows(LocalizedException.BadRequest::class.java) {
+            service.splitTransactionIntoLoans(user, txId, form)
+        }
+        verify(loansRepository, never()).createIouLoan(
+            anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg(),
+        )
+    }
+
+    @Test
+    fun `splitTransactionIntoLoans rejects a non-expense transaction`() {
+        val txId = UUID.randomUUID()
+        val tx = TransactionDTO(id = txId, type = CategoryType.INCOME, amount = BigDecimal("50.00"))
+        `when`(transactionRepository.fetchTransactionById(txId, user)).thenReturn(tx)
+
+        val form = SplitToLoansForm(
+            shares = listOf(IouShareForm(contactId = UUID.randomUUID(), amount = BigDecimal("10.00"))),
+        )
+        assertThrows(LocalizedException.BadRequest::class.java) {
+            service.splitTransactionIntoLoans(user, txId, form)
+        }
     }
 
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value

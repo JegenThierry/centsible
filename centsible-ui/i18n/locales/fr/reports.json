@@ -27,6 +27,26 @@
       "empty": "Aucune dépense sur cette période.",
       "axisAmount": "Montant"
     },
+    "kpi": {
+      "income": "Revenus",
+      "expense": "Dépenses",
+      "net": "Net",
+      "savingsRate": "Taux d'épargne",
+      "vsPrevious": "vs période précédente",
+      "noComparison": "—",
+      "points": "pts"
+    },
+    "forecast": {
+      "title": "Prévisions",
+      "subtitle": "Projeté à partir de vos revenus et factures récurrents",
+      "horizonShort": "{count} M",
+      "projectedBalance": "Solde projeté dans {count} mois",
+      "vsToday": "vs aujourd'hui",
+      "legend": "Solde projeté",
+      "upcomingTitle": "À venir",
+      "noUpcoming": "Rien de prévu sur cette période.",
+      "error": "Impossible de charger les prévisions."
+    },
     "cashFlow": {
       "title": "Flux de trésorerie",
       "income": "Revenus",

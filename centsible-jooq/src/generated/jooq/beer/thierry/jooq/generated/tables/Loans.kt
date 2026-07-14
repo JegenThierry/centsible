@@ -5,11 +5,13 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
+import beer.thierry.jooq.generated.indexes.IDX_LOANS_SOURCE_TRANSACTION_ID
 import beer.thierry.jooq.generated.indexes.IDX_LOANS_TRANSACTION_ID
 import beer.thierry.jooq.generated.indexes.IDX_LOANS_USER_CONTACT
 import beer.thierry.jooq.generated.keys.LOANS_PKEY
 import beer.thierry.jooq.generated.keys.LOANS_TRANSACTION_ID_KEY
 import beer.thierry.jooq.generated.keys.LOANS__FK_LOANS_CONTACT_USER
+import beer.thierry.jooq.generated.keys.LOANS__LOANS_SOURCE_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_TRANSACTION_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOANS__LOANS_USER_ID_FKEY
 import beer.thierry.jooq.generated.keys.LOAN_REPAYMENTS__LOAN_REPAYMENTS_LOAN_ID_FKEY
@@ -120,16 +122,6 @@ open class Loans(
     val OWED_AMOUNT: TableField<LoansRecord, BigDecimal?> = createField(DSL.name("owed_amount"), SQLDataType.NUMERIC(15, 2).nullable(false), this, "")
 
     /**
-     * The column <code>public.loans.currency</code>.
-     */
-    val CURRENCY: TableField<LoansRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
-
-    /**
-     * The column <code>public.loans.interest_rate</code>.
-     */
-    val INTEREST_RATE: TableField<LoansRecord, BigDecimal?> = createField(DSL.name("interest_rate"), SQLDataType.NUMERIC(5, 2), this, "")
-
-    /**
      * The column <code>public.loans.loan_date</code>.
      */
     val LOAN_DATE: TableField<LoansRecord, LocalDate?> = createField(DSL.name("loan_date"), SQLDataType.LOCALDATE.nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_DATE"), SQLDataType.LOCALDATE)), this, "")
@@ -158,6 +150,21 @@ open class Loans(
      * The column <code>public.loans.modified_at</code>.
      */
     val MODIFIED_AT: TableField<LoansRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    /**
+     * The column <code>public.loans.currency</code>.
+     */
+    val CURRENCY: TableField<LoansRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
+
+    /**
+     * The column <code>public.loans.interest_rate</code>.
+     */
+    val INTEREST_RATE: TableField<LoansRecord, BigDecimal?> = createField(DSL.name("interest_rate"), SQLDataType.NUMERIC(5, 2), this, "")
+
+    /**
+     * The column <code>public.loans.source_transaction_id</code>.
+     */
+    val SOURCE_TRANSACTION_ID: TableField<LoansRecord, UUID?> = createField(DSL.name("source_transaction_id"), SQLDataType.UUID, this, "")
 
     private constructor(alias: Name, aliased: Table<LoansRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<LoansRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -191,10 +198,10 @@ open class Loans(
         override fun `as`(alias: Table<*>): LoansPath = LoansPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_LOANS_TRANSACTION_ID, IDX_LOANS_USER_CONTACT)
+    override fun getIndexes(): List<Index> = listOf(IDX_LOANS_SOURCE_TRANSACTION_ID, IDX_LOANS_TRANSACTION_ID, IDX_LOANS_USER_CONTACT)
     override fun getPrimaryKey(): UniqueKey<LoansRecord> = LOANS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<LoansRecord>> = listOf(LOANS_TRANSACTION_ID_KEY)
-    override fun getReferences(): List<ForeignKey<LoansRecord, *>> = listOf(LOANS__FK_LOANS_CONTACT_USER, LOANS__LOANS_TRANSACTION_ID_FKEY, LOANS__LOANS_USER_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<LoansRecord, *>> = listOf(LOANS__FK_LOANS_CONTACT_USER, LOANS__LOANS_SOURCE_TRANSACTION_ID_FKEY, LOANS__LOANS_TRANSACTION_ID_FKEY, LOANS__LOANS_USER_ID_FKEY)
 
     private lateinit var _contacts: ContactsPath
 
@@ -211,20 +218,37 @@ open class Loans(
     val contacts: ContactsPath
         get(): ContactsPath = contacts()
 
-    private lateinit var _transactions: TransactionsPath
+    private lateinit var _loansSourceTransactionIdFkey: TransactionsPath
 
     /**
-     * Get the implicit join path to the <code>public.transactions</code> table.
+     * Get the implicit join path to the <code>public.transactions</code> table,
+     * via the <code>loans_source_transaction_id_fkey</code> key.
      */
-    fun transactions(): TransactionsPath {
-        if (!this::_transactions.isInitialized)
-            _transactions = TransactionsPath(this, LOANS__LOANS_TRANSACTION_ID_FKEY, null)
+    fun loansSourceTransactionIdFkey(): TransactionsPath {
+        if (!this::_loansSourceTransactionIdFkey.isInitialized)
+            _loansSourceTransactionIdFkey = TransactionsPath(this, LOANS__LOANS_SOURCE_TRANSACTION_ID_FKEY, null)
 
-        return _transactions;
+        return _loansSourceTransactionIdFkey;
     }
 
-    val transactions: TransactionsPath
-        get(): TransactionsPath = transactions()
+    val loansSourceTransactionIdFkey: TransactionsPath
+        get(): TransactionsPath = loansSourceTransactionIdFkey()
+
+    private lateinit var _loansTransactionIdFkey: TransactionsPath
+
+    /**
+     * Get the implicit join path to the <code>public.transactions</code> table,
+     * via the <code>loans_transaction_id_fkey</code> key.
+     */
+    fun loansTransactionIdFkey(): TransactionsPath {
+        if (!this::_loansTransactionIdFkey.isInitialized)
+            _loansTransactionIdFkey = TransactionsPath(this, LOANS__LOANS_TRANSACTION_ID_FKEY, null)
+
+        return _loansTransactionIdFkey;
+    }
+
+    val loansTransactionIdFkey: TransactionsPath
+        get(): TransactionsPath = loansTransactionIdFkey()
 
     private lateinit var _users: UsersPath
 
@@ -258,7 +282,7 @@ open class Loans(
         get(): LoanRepaymentsPath = loanRepayments()
     override fun getChecks(): List<Check<LoansRecord>> = listOf(
         Internal.createCheck(this, DSL.name("loans_currency_supported"), "(((currency)::text = ANY ((ARRAY['EUR'::character varying, 'USD'::character varying, 'JPY'::character varying, 'GBP'::character varying, 'AUD'::character varying, 'CAD'::character varying, 'CHF'::character varying, 'CNY'::character varying, 'HKD'::character varying, 'NZD'::character varying, 'SEK'::character varying, 'NOK'::character varying, 'DKK'::character varying, 'SGD'::character varying, 'KRW'::character varying, 'INR'::character varying, 'MXN'::character varying, 'BRL'::character varying, 'ZAR'::character varying, 'TRY'::character varying, 'PLN'::character varying, 'PHP'::character varying, 'IDR'::character varying])::text[])))", true),
-        Internal.createCheck(this, DSL.name("loans_interest_rate_check"), "(((interest_rate IS NULL) OR (interest_rate >= (0)::numeric)))", true),
+        Internal.createCheck(this, DSL.name("loans_interest_rate_non_negative"), "(((interest_rate IS NULL) OR (interest_rate >= (0)::numeric)))", true),
         Internal.createCheck(this, DSL.name("loans_lent_amount_check"), "((lent_amount > (0)::numeric))", true),
         Internal.createCheck(this, DSL.name("loans_owed_amount_check"), "((owed_amount >= (0)::numeric))", true)
     )

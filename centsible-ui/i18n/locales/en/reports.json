@@ -27,6 +27,26 @@
       "empty": "No expense data in this range.",
       "axisAmount": "Amount"
     },
+    "kpi": {
+      "income": "Income",
+      "expense": "Expenses",
+      "net": "Net",
+      "savingsRate": "Savings rate",
+      "vsPrevious": "vs. previous period",
+      "noComparison": "—",
+      "points": "pp"
+    },
+    "forecast": {
+      "title": "Forecast",
+      "subtitle": "Projected from your recurring income & bills",
+      "horizonShort": "{count}M",
+      "projectedBalance": "Projected balance in {count} months",
+      "vsToday": "vs. today",
+      "legend": "Projected balance",
+      "upcomingTitle": "Upcoming",
+      "noUpcoming": "Nothing scheduled in this period.",
+      "error": "Couldn't load the forecast."
+    },
     "cashFlow": {
       "title": "Cash flow",
       "income": "Income",

@@ -2,6 +2,7 @@
 import {onMounted} from 'vue';
 import {useExports} from "~/composables/use-exports";
 import ExportsTable from "~/components/_organisms/exports/exports-table.vue";
+import ScheduledExportsSection from "~/components/_organisms/exports/scheduled-exports-section.vue";
 import PageHeader from "~/components/_molecules/page/page-header.vue";
 import RefreshButton from "~/components/_molecules/buttons/refresh-button.vue";
 const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
@@ -50,6 +51,9 @@ onMounted(async () => {
 
     <UAlert v-if="error" class="mb-4" color="error" :description="error" icon="i-lucide-alert-triangle"/>
 
+    <ScheduledExportsSection/>
+
+    <h2 class="text-base font-semibold text-highlighted mb-3">{{ t('exports.schedules.documentsHeading') }}</h2>
     <ExportsTable
       :exports="exports"
       :loading="loading"

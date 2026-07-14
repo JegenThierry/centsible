@@ -29,7 +29,8 @@
       "open": "Open",
       "view": "View",
       "more": "More",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "undo": "Undo"
     },
     "validation": {
       "required": "{field} is required.",

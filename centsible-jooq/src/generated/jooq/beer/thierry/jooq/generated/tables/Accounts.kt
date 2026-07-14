@@ -118,11 +118,6 @@ open class Accounts(
     val CURRENCY: TableField<AccountsRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false).defaultValue(DSL.field(DSL.raw("'EUR'::character varying"), SQLDataType.VARCHAR)), this, "")
 
     /**
-     * The column <code>public.accounts.type</code>.
-     */
-    val TYPE: TableField<AccountsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'CHECKING'::character varying"), SQLDataType.VARCHAR)), this, "")
-
-    /**
      * The column <code>public.accounts.created_at</code>.
      */
     val CREATED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
@@ -131,6 +126,11 @@ open class Accounts(
      * The column <code>public.accounts.modified_at</code>.
      */
     val MODIFIED_AT: TableField<AccountsRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    /**
+     * The column <code>public.accounts.type</code>.
+     */
+    val TYPE: TableField<AccountsRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'CHECKING'::character varying"), SQLDataType.VARCHAR)), this, "")
 
     private constructor(alias: Name, aliased: Table<AccountsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AccountsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)

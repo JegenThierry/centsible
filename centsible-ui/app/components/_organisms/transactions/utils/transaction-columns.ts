@@ -1,11 +1,14 @@
 import {h} from 'vue'
 import type {TableColumn} from '@nuxt/ui'
 import type {Transaction} from '~/models/transactions/transaction'
+import type {Category} from '~/models/category/category'
 import type {Currency} from '~/models/budget-account/currency'
+import {CategoryType} from '~/models/category/category'
 import {transactionType} from '~/utils/transaction'
 import TransactionAmount from '~/components/_molecules/transactions/transaction-amount.vue'
 import TransactionAttachmentsPopover from '~/components/_organisms/transactions/transaction-attachments-popover.vue'
 import CategoryBadge from '~/components/_molecules/badges/category-badge.vue'
+import InlineCategoryPicker from '~/components/_molecules/transactions/inline-category-picker.vue'
 import FormattedDate from '~/components/_atoms/labels/formatted-date.vue'
 import TableRowActionsMenu from '~/components/_molecules/tables/table-row-actions-menu.vue'
 
@@ -20,6 +23,7 @@ import TableRowActionsMenu from '~/components/_molecules/tables/table-row-action
 export interface TransactionColumnsOptions {
   t: (key: string, ...args: any[]) => string
   currency: () => Currency
+  categories: () => Category[]
   isSelected: (id: string) => boolean
   isAllSelected: () => boolean
   onToggleAll: (checked: boolean) => void
@@ -27,10 +31,13 @@ export interface TransactionColumnsOptions {
   onEdit: (transaction: Transaction) => void
   onDelete: (transaction: Transaction) => void
   onCreateRule: (transaction: Transaction) => void
+  onSplitIntoIous: (transaction: Transaction) => void
+  onMakeRecurring: (transaction: Transaction) => void
+  onCategorize: (transaction: Transaction, category: Category) => void
 }
 
 export function createTransactionColumns(options: TransactionColumnsOptions): TableColumn<Transaction>[] {
-  const {t, currency, isSelected, isAllSelected, onToggleAll, onToggleOne, onEdit, onDelete, onCreateRule} = options
+  const {t, currency, categories, isSelected, isAllSelected, onToggleAll, onToggleOne, onEdit, onDelete, onCreateRule, onSplitIntoIous, onMakeRecurring, onCategorize} = options
 
   return [
     {
@@ -96,11 +103,19 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
             }))),
           ])
         }
-        const category = row.getValue('category') as any
-        return h(CategoryBadge, {
-          name: category?.name,
-          icon: category?.icon,
-          color: category?.color,
+        const category = row.original.category
+        // Transfers keep a static badge — their category is managed by the transfer, not free-editable.
+        if (row.original.transferGroupId) {
+          return h(CategoryBadge, {
+            name: category?.name,
+            icon: category?.icon,
+            color: category?.color,
+          })
+        }
+        return h(InlineCategoryPicker, {
+          category,
+          options: categories(),
+          onSelect: (picked: Category) => onCategorize(row.original, picked),
         })
       },
     },
@@ -132,14 +147,25 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
     {
       id: 'actions',
       meta: {class: {td: 'text-right'}},
-      cell: ({row}) => h(TableRowActionsMenu, {
-        menuLabel: t('transactions.table.actionsLabel'),
-        items: [
+      cell: ({row}) => {
+        // IOUs are carved from an expense; transfers and income can't be split.
+        const canSplit = transactionType(row.original) === CategoryType.EXPENSE && !row.original.transferGroupId
+        const items = [
           {
             label: t('transactions.table.actionEdit'),
             icon: 'i-lucide-pencil',
             onSelect: () => onEdit(row.original),
           },
+          ...(canSplit ? [{
+            label: t('transactions.table.actionSplitIous'),
+            icon: 'i-lucide-users',
+            onSelect: () => onSplitIntoIous(row.original),
+          }] : []),
+          ...(!row.original.transferGroupId ? [{
+            label: t('transactions.table.actionMakeRecurring'),
+            icon: 'i-lucide-repeat',
+            onSelect: () => onMakeRecurring(row.original),
+          }] : []),
           {
             label: t('transactions.table.actionCreateRule'),
             icon: 'i-lucide-wand-sparkles',
@@ -151,8 +177,12 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
             color: 'error' as any,
             onSelect: () => onDelete(row.original),
           },
-        ],
-      }),
+        ]
+        return h(TableRowActionsMenu, {
+          menuLabel: t('transactions.table.actionsLabel'),
+          items,
+        })
+      },
     },
   ]
 }

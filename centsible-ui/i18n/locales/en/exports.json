@@ -68,6 +68,44 @@
     },
     "delete": {
       "confirmBody": "Delete this export? This cannot be undone."
+    },
+    "schedules": {
+      "title": "Scheduled exports",
+      "description": "Automatically email yourself a recurring report.",
+      "documentsHeading": "My documents",
+      "new": "New schedule",
+      "empty": "No scheduled exports yet. Create one to get reports emailed automatically.",
+      "nextRun": "next run",
+      "toggleAria": "Pause or resume schedule",
+      "deleteConfirm": "Delete this scheduled export? This cannot be undone.",
+      "frequency": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "form": {
+        "createTitle": "New scheduled export",
+        "editTitle": "Edit scheduled export",
+        "description": "A recurring export of your transactions, emailed to you each period.",
+        "nameLabel": "Name",
+        "namePlaceholder": "Monthly statement",
+        "formatLabel": "Format",
+        "frequencyLabel": "Frequency",
+        "hint": "Each run covers the previous period (monthly → last month) across all accounts and is emailed to you."
+      },
+      "toasts": {
+        "loadFailedTitle": "Couldn't load schedules",
+        "loadFailedBody": "Your scheduled exports could not be loaded.",
+        "createdTitle": "Schedule created",
+        "createdBody": "Your export will be emailed automatically.",
+        "updatedTitle": "Schedule updated",
+        "updatedBody": "Your changes have been saved.",
+        "deletedTitle": "Schedule deleted",
+        "deletedBody": "The scheduled export has been removed.",
+        "errorTitle": "Something went wrong",
+        "errorBody": "Please try again."
+      }
     }
   }
 }

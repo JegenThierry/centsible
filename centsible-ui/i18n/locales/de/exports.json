@@ -68,6 +68,44 @@
     },
     "delete": {
       "confirmBody": "Diesen Export löschen? Das kann nicht rückgängig gemacht werden."
+    },
+    "schedules": {
+      "title": "Geplante Exporte",
+      "description": "Lass dir automatisch einen wiederkehrenden Bericht per E-Mail senden.",
+      "documentsHeading": "Meine Dokumente",
+      "new": "Neue Planung",
+      "empty": "Noch keine geplanten Exporte. Erstelle einen, um Berichte automatisch per E-Mail zu erhalten.",
+      "nextRun": "nächste Ausführung",
+      "toggleAria": "Planung pausieren oder fortsetzen",
+      "deleteConfirm": "Diesen geplanten Export löschen? Das kann nicht rückgängig gemacht werden.",
+      "frequency": {
+        "daily": "Täglich",
+        "weekly": "Wöchentlich",
+        "monthly": "Monatlich",
+        "yearly": "Jährlich"
+      },
+      "form": {
+        "createTitle": "Neuer geplanter Export",
+        "editTitle": "Geplanten Export bearbeiten",
+        "description": "Ein wiederkehrender Export deiner Transaktionen, der dir jede Periode per E-Mail zugeschickt wird.",
+        "nameLabel": "Name",
+        "namePlaceholder": "Monatlicher Kontoauszug",
+        "formatLabel": "Format",
+        "frequencyLabel": "Häufigkeit",
+        "hint": "Jede Ausführung deckt die vorherige Periode ab (monatlich → letzter Monat) über alle Konten und wird dir per E-Mail zugeschickt."
+      },
+      "toasts": {
+        "loadFailedTitle": "Planungen konnten nicht geladen werden",
+        "loadFailedBody": "Deine geplanten Exporte konnten nicht geladen werden.",
+        "createdTitle": "Planung erstellt",
+        "createdBody": "Dein Export wird automatisch per E-Mail gesendet.",
+        "updatedTitle": "Planung aktualisiert",
+        "updatedBody": "Deine Änderungen wurden gespeichert.",
+        "deletedTitle": "Planung gelöscht",
+        "deletedBody": "Der geplante Export wurde entfernt.",
+        "errorTitle": "Etwas ist schiefgelaufen",
+        "errorBody": "Bitte versuche es erneut."
+      }
     }
   }
 }

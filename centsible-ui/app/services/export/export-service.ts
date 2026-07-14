@@ -2,6 +2,7 @@ import type {AxiosInstance} from "axios";
 import {assertStatus, validateRequest} from "~/composables/use-api";
 import {triggerBrowserDownload} from "~/utils/blob-download";
 import type {CreateExportRequest, ExportJob} from "~/models/export/export-job";
+import type {ExportSchedule, ExportScheduleForm, ExportScheduleUpdateForm} from "~/models/export/export-schedule";
 
 export function useExportService(api: AxiosInstance) {
   async function listExports(page: number = 1, size: number = 25): Promise<ExportJob[]> {
@@ -38,6 +39,25 @@ export function useExportService(api: AxiosInstance) {
     triggerBrowserDownload(blob, filename || `export-${jobId}`);
   }
 
+  async function listSchedules(): Promise<ExportSchedule[]> {
+    const response = await api.get<ExportSchedule[]>(`/export-schedules`);
+    return validateRequest<ExportSchedule[]>(response);
+  }
+
+  async function createSchedule(form: ExportScheduleForm): Promise<ExportSchedule> {
+    const response = await api.post<ExportSchedule>(`/export-schedules`, form);
+    return validateRequest<ExportSchedule>(response);
+  }
+
+  async function updateSchedule(id: string, form: ExportScheduleUpdateForm): Promise<ExportSchedule> {
+    const response = await api.put<ExportSchedule>(`/export-schedules/${encodeURIComponent(id)}`, form);
+    return validateRequest<ExportSchedule>(response);
+  }
+
+  async function deleteSchedule(id: string): Promise<void> {
+    assertStatus(await api.delete(`/export-schedules/${encodeURIComponent(id)}`));
+  }
+
   return {
     listExports,
     createExport,
@@ -45,5 +65,9 @@ export function useExportService(api: AxiosInstance) {
     retriggerExport,
     deleteExport,
     downloadExport,
+    listSchedules,
+    createSchedule,
+    updateSchedule,
+    deleteSchedule,
   };
 }

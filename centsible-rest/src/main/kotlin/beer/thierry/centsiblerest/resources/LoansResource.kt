@@ -6,6 +6,7 @@ import beer.thierry.centsible.api.model.loan.LoanUpdateForm
 import beer.thierry.centsible.api.model.loan.OutstandingTotalDTO
 import beer.thierry.centsible.api.model.loan.RepaymentDTO
 import beer.thierry.centsible.api.model.loan.RepaymentForm
+import beer.thierry.centsible.api.model.loan.SplitToLoansForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.loans.ILoanService
 import jakarta.validation.Valid
@@ -50,6 +51,18 @@ class LoansResource(private val loanService: ILoanService) {
     ): ResponseEntity<LoanDTO> {
         val created = loanService.createLoan(authenticatedUser, form)
         log.info("Created loan id={} userId={}", created.id, authenticatedUser.id)
+        return ResponseEntity.ok(created)
+    }
+
+    /** Splits an existing expense into one tracking-only IOU per share (money owed back to the user). */
+    @PostMapping("/from-transaction/{transactionId}")
+    fun splitFromTransaction(
+        @PathVariable transactionId: UUID,
+        @Valid @RequestBody form: SplitToLoansForm,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): ResponseEntity<List<LoanDTO>> {
+        val created = loanService.splitTransactionIntoLoans(authenticatedUser, transactionId, form)
+        log.info("Split transaction id={} into {} IOUs userId={}", transactionId, created.size, authenticatedUser.id)
         return ResponseEntity.ok(created)
     }
 

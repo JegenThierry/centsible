@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import {assertStatus, validateRequest} from "~/composables/use-api";
-import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm} from "~/models/loan/loan";
+import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm, SplitToLoansRequest} from "~/models/loan/loan";
 
 export function useLoanService(api: AxiosInstance) {
   async function fetchLoans(contactId?: string): Promise<Loan[]> {
@@ -18,6 +18,15 @@ export function useLoanService(api: AxiosInstance) {
   async function createLoan(form: LoanForm): Promise<Loan> {
     const response = await api.post<Loan>('/loans', form);
     return validateRequest<Loan>(response);
+  }
+
+  /** Splits an existing expense into one tracking-only IOU per share (money owed back to you). */
+  async function splitTransactionIntoLoans(transactionId: string, request: SplitToLoansRequest): Promise<Loan[]> {
+    const response = await api.post<Loan[]>(
+      `/loans/from-transaction/${encodeURIComponent(transactionId)}`,
+      request,
+    );
+    return validateRequest<Loan[]>(response);
   }
 
   async function updateLoan(id: string, form: LoanUpdateForm): Promise<Loan> {
@@ -58,6 +67,7 @@ export function useLoanService(api: AxiosInstance) {
     fetchLoans,
     fetchLoan,
     createLoan,
+    splitTransactionIntoLoans,
     updateLoan,
     deleteLoan,
     fetchRepayments,
