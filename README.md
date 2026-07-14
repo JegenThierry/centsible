@@ -2,7 +2,7 @@
 
 A clean, self-hosted budget tracker — multiple accounts, smart categories, monthly budgets, and dashboards that actually help you decide. **NOTE: This project is in its early development stages, and bugs may occur. If you find any issues, please feel free to create an issue. When deploying use the main Branch or one of the released versions, develop may be buggy.**
 
-A testing instance can be found under: <a href="https://centsible.thierry.beer">https://centsible.thierry.beer</a>
+A testing instance can be found under: <a href="https://centsible.thierry.beer" target="_blank">https://centsible.thierry.beer</a>
 
 ## Donate
 
