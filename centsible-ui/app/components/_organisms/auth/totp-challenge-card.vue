@@ -31,9 +31,9 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
     .then(async () => {
       authStore.setTwoFactorPending(false);
       authStore.setAuthenticated(true);
-      await userStore.fetchMyself();
-      navigateTo('/accounts');
+      await userStore.fetchMyselfBestEffort();
       success(t('auth.login.toastSuccessTitle'), t('auth.login.toastSuccessBody'));
+      await navigateTo('/accounts');
     })
     .catch((err) => {
       adze.ns('auth').warn('2FA challenge failed', err);

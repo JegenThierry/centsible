@@ -118,7 +118,7 @@ class BudgetAccountServiceTest {
         val startDate = LocalDate.now().minusDays(7)
         val endDate = LocalDate.now()
         val snapshots = listOf(
-            BudgetAccountSnapshotDTO(1, accountId, BigDecimal("100.00"), OffsetDateTime.now())
+            BudgetAccountSnapshotDTO(accountId, BigDecimal("100.00"), OffsetDateTime.now())
         )
 
         `when`(

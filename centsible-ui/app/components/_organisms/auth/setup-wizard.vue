@@ -72,7 +72,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
     })
     .then(async () => {
       authStore.setAuthenticated(true);
-      await userStore.fetchMyself();
+      await userStore.fetchMyselfBestEffort();
       success(t('auth.setup.toastSuccessTitle'), t('auth.setup.toastSuccessBody'));
       await navigateTo('/accounts');
     })

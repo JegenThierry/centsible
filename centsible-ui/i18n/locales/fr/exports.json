@@ -17,6 +17,9 @@
       "retrigger": "Relancer",
       "delete": "Supprimer"
     },
+    "errors": {
+      "tooManyTransactions": "Cet export correspond à trop de transactions pour être généré. Affinez la période, les comptes ou les catégories, puis réessayez."
+    },
     "types": {
       "TRANSACTIONS": "Transactions",
       "LENDINGS_PER_CONTACT": "Prêts (un contact)",

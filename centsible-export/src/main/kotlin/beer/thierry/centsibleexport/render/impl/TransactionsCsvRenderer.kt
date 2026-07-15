@@ -3,6 +3,7 @@ package beer.thierry.centsibleexport.render.impl
 import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
+import beer.thierry.centsibleexport.render.RenderLimits
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.util.UUID
@@ -10,6 +11,7 @@ import java.util.UUID
 @Component
 class TransactionsCsvRenderer(
     private val data: IExportDataRepository,
+    private val limits: RenderLimits,
 ) : CsvExportRenderer() {
     override fun supports(): ExportType = ExportType.TRANSACTIONS
 
@@ -22,7 +24,9 @@ class TransactionsCsvRenderer(
         val toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
         val categoryIds = body.categoryIdsList.toList()
 
-        val transactions = data.fetchTransactionsForExport(userId, accountIds, fromDate, toDate, categoryIds)
+        val transactions = data.fetchTransactionsCapped(
+            userId, accountIds, fromDate, toDate, categoryIds, limits.maxTransactionRows,
+        )
 
         val builder = CsvBuilder()
         builder.row("Date", "Account", "Currency", "Amount", "Description", "Category", "Type")

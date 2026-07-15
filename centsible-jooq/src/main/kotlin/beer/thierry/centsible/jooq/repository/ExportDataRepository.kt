@@ -46,6 +46,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
         fromDate: LocalDate?,
         toDate: LocalDate?,
         categoryIds: List<Long>,
+        limit: Int,
     ): List<ExportTransactionRow> {
         val conditions = mutableListOf<Condition>(ACCOUNTS.USER_ID.eq(userId))
         if (accountIds.isNotEmpty()) conditions += TRANSACTIONS.ACCOUNT_ID.`in`(accountIds)
@@ -70,6 +71,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
             .join(CATEGORIES).on(CATEGORIES.ID.eq(TRANSACTIONS.CATEGORY_ID))
             .where(DSL.and(conditions))
             .orderBy(TRANSACTIONS.TRANSACTION_DATE.asc(), TRANSACTIONS.ID.asc())
+            .limit(limit)
             .fetch { r ->
                 ExportTransactionRow(
                     id = r[TRANSACTIONS.ID]!!,

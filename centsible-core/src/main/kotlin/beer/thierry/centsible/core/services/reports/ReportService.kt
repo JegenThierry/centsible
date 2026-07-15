@@ -54,31 +54,26 @@ class ReportService(
     ): List<NetWorthPointDTO> {
         require(!startDate.isAfter(endDate)) { "Start date must not be after end date" }
 
+        val startOffset = OffsetDateTime.of(startDate, LocalTime.MIN, ZoneOffset.UTC)
         val endOffset = OffsetDateTime.of(endDate, LocalTime.MAX, ZoneOffset.UTC)
-        val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(endOffset, authenticatedUser)
+        val openingOffset = OffsetDateTime.of(startDate.minusDays(1), LocalTime.MAX, ZoneOffset.UTC)
+
+        val opening = reportsRepository.fetchLatestSnapshotPerAccountAsOf(openingOffset, authenticatedUser)
+        val snapshots = reportsRepository.fetchUserSnapshotsBetween(startOffset, endOffset, authenticatedUser)
         val rates = accountRatesFor(authenticatedUser)
 
         val accountBalances = mutableMapOf<UUID, BigDecimal>()
+        for (snapshot in opening) accountBalances[snapshot.accountId] = snapshot.balance
+
         val pointByDate = sortedMapOf<LocalDate, BigDecimal>()
-        var crossedStart = false
+        pointByDate[startDate] = totalOf(accountBalances, rates)
 
         for (snapshot in snapshots) {
-            val date = snapshot.createdAt.toLocalDate()
-            if (!crossedStart && !date.isBefore(startDate)) {
-                pointByDate[startDate] = totalOf(accountBalances, rates)
-                crossedStart = true
-            }
             accountBalances[snapshot.accountId] = snapshot.balance
-            if (!date.isBefore(startDate)) {
-                pointByDate[date] = totalOf(accountBalances, rates)
-            }
+            pointByDate[snapshot.createdAt.toLocalDate()] = totalOf(accountBalances, rates)
         }
 
-        if (pointByDate.isEmpty()) {
-            val total = totalOf(accountBalances, rates)
-            pointByDate[startDate] = total
-            pointByDate[endDate] = total
-        } else if (pointByDate.lastKey().isBefore(endDate)) {
+        if (pointByDate.lastKey().isBefore(endDate)) {
             pointByDate[endDate] = totalOf(accountBalances, rates)
         }
 
@@ -172,7 +167,7 @@ class ReportService(
         authenticatedUser: UserDTO,
     ): List<AccountBalanceAtDateDTO> {
         val asOf = OffsetDateTime.of(date, LocalTime.MAX, ZoneOffset.UTC)
-        val snapshots = reportsRepository.fetchAllUserSnapshotsUntil(asOf, authenticatedUser)
+        val snapshots = reportsRepository.fetchLatestSnapshotPerAccountAsOf(asOf, authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
         val rates = accountRatesFor(authenticatedUser)
         val balances = mutableMapOf<UUID, BigDecimal>()

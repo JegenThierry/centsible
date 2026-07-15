@@ -12,12 +12,14 @@ interface IExportDataRepository {
 
     fun fetchUserById(userId: UUID): UserDTO?
 
+    /** At most [limit] rows, ordered by transaction date then id. To detect an oversized result, ask for one row more than you can accept. */
     fun fetchTransactionsForExport(
         userId: UUID,
         accountIds: List<UUID>,
         fromDate: LocalDate?,
         toDate: LocalDate?,
         categoryIds: List<Long>,
+        limit: Int,
     ): List<ExportTransactionRow>
 
     fun fetchAccountsByIds(userId: UUID, accountIds: List<UUID>): List<ExportAccountRow>

@@ -13,3 +13,9 @@ data class ConversionResult(
     val rateDate: LocalDate,
     val sameCurrency: Boolean,
 )
+
+data class ConversionRequest(
+    val amount: BigDecimal,
+    val from: Currency,
+    val date: LocalDate,
+)

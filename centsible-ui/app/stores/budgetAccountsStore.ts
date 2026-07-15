@@ -14,12 +14,15 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const availableAccounts = ref<BudgetAccount[]>([]);
   const pending = ref(false);
 
-  async function updateAvailableAccounts() {
+  /** Returns whether the list was actually refreshed, so callers can tell an empty list from a failed fetch. */
+  async function updateAvailableAccounts(): Promise<boolean> {
     pending.value = true;
     try {
       availableAccounts.value = await accountService.fetchAccounts();
+      return true;
     } catch (error) {
       apiErrors.toastError(error, t('accounts.toasts.updateFailedTitle'), t('accounts.toasts.updateFailedBody'));
+      return false;
     } finally {
       pending.value = false;
     }
@@ -38,14 +41,16 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     }
   }
 
+  /**
+   * Rejects instead of toasting: account-loader has to tell a missing account (redirect to the list)
+   * apart from a transient failure (keep the user where they are), which a swallowed error hides.
+   */
   async function loadActiveAccount(accountId: string) {
     if (activeAccount.value?.id === accountId) return;
 
     pending.value = true;
     try {
       activeAccount.value = await accountService.fetchAccount(accountId);
-    } catch (error) {
-      apiErrors.toastError(error, t('accounts.toasts.loadFailedTitle'), t('accounts.toasts.loadFailedBody'));
     } finally {
       pending.value = false;
     }

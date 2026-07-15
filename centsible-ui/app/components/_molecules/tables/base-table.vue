@@ -1,9 +1,10 @@
 <script lang="ts" setup generic="T">
 import type {TableColumn} from '@nuxt/ui';
+import {useInfiniteScroll} from '@vueuse/core';
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 
-defineProps<{
+const props = defineProps<{
   columns: TableColumn<T>[];
   data: T[];
   loading?: boolean;
@@ -16,20 +17,45 @@ defineProps<{
   /** When true, an empty result set means "no matches for the active filters", not "no data yet". */
   filtered?: boolean;
   filteredTitle?: string;
+  /** Opt-in row virtualization. Height-bounds the root, so the table scrolls internally instead of growing the page. */
+  virtualize?: boolean;
+  /** Gates scroll-driven load-more. Pass `hasMore && !loading` so a page in flight can't re-fire it. */
+  canLoadMore?: boolean;
 }>();
 
-const emit = defineEmits<{ retry: [], clearFilters: [] }>();
+const emit = defineEmits<{ retry: [], clearFilters: [], loadMore: [] }>();
 
 const slots = defineSlots<Record<string, (scope: any) => any>>();
 const {t} = useI18n();
+
+const tableRef = useTemplateRef<{ $el?: HTMLElement }>('tableRef');
+
+// Measured. UTable force-sizes rows to this and never measures the DOM, so a value below a row's
+// natural height drifts it out of sync with the scroll offset — re-measure before adding taller cells.
+const ROW_HEIGHT = 65;
+
+// Not computed: UTable reads both of these once, during setup.
+const virtualizeOptions = props.virtualize ? {estimateSize: ROW_HEIGHT} : false;
+const tableUi = {
+  root: `rounded-lg overflow-x-auto ring ring-default bg-default${props.virtualize ? ' max-h-[70vh] overflow-y-auto' : ''}`,
+};
+
+useInfiniteScroll(
+  () => tableRef.value?.$el,
+  () => emit('loadMore'),
+  // useScroll defaults throttle to 0, and its handler forces a layout read on every scroll event.
+  {distance: 200, throttle: 100, canLoadMore: () => props.canLoadMore === true},
+);
 </script>
 
 <template>
   <UTable
+    ref="tableRef"
     :columns="columns"
     :data="data"
     :loading="loading"
-    :ui="{ root: 'rounded-lg overflow-x-auto ring ring-default bg-default' }"
+    :virtualize="virtualizeOptions"
+    :ui="tableUi"
   >
     <template v-for="(_, name) in slots" :key="name" #[name]="scope">
       <slot :name="name" v-bind="scope"/>

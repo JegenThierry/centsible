@@ -3,6 +3,7 @@ package beer.thierry.centsibleexport.render.impl
 import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
+import beer.thierry.centsibleexport.render.RenderLimits
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -11,6 +12,7 @@ import java.util.UUID
 @Component
 class TransactionsJsonRenderer(
     private val data: IExportDataRepository,
+    private val limits: RenderLimits,
     objectMapper: ObjectMapper,
 ) : JsonExportRenderer(objectMapper) {
     override fun supports(): ExportType = ExportType.TRANSACTIONS
@@ -24,7 +26,9 @@ class TransactionsJsonRenderer(
         val toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
         val categoryIds = body.categoryIdsList.toList()
 
-        val transactions = data.fetchTransactionsForExport(userId, accountIds, fromDate, toDate, categoryIds)
+        val transactions = data.fetchTransactionsCapped(
+            userId, accountIds, fromDate, toDate, categoryIds, limits.maxTransactionRows,
+        )
 
         return envelopeHeader(request, "transactions") + mapOf(
             "filters" to mapOf(

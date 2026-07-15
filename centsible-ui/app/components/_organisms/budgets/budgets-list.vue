@@ -66,8 +66,10 @@ function openDelete(b: Budget) {
 }
 
 async function refresh() {
-  await store.fetchForMonth(selectedMonth.value);
-  if (showHistory.value) await store.fetchHistory(historyMonths.value);
+  await Promise.all([
+    store.fetchForMonth(selectedMonth.value),
+    showHistory.value ? store.fetchHistory(historyMonths.value) : Promise.resolve(),
+  ]);
 }
 
 watch(selectedMonth, () => refresh());

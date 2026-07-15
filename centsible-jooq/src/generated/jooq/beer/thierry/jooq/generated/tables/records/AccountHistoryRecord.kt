@@ -19,35 +19,30 @@ import org.jooq.impl.TableRecordImpl
 @Suppress("UNCHECKED_CAST")
 open class AccountHistoryRecord() : TableRecordImpl<AccountHistoryRecord>(AccountHistory.ACCOUNT_HISTORY) {
 
-    open var id: Long?
-        set(value): Unit = set(0, value)
-        get(): Long? = get(0) as Long?
-
     open var accountId: UUID?
+        set(value): Unit = set(0, value)
+        get(): UUID? = get(0) as UUID?
+
+    open var userId: UUID?
         set(value): Unit = set(1, value)
         get(): UUID? = get(1) as UUID?
 
-    open var userId: UUID?
-        set(value): Unit = set(2, value)
-        get(): UUID? = get(2) as UUID?
-
     open var balance: BigDecimal?
-        set(value): Unit = set(3, value)
-        get(): BigDecimal? = get(3) as BigDecimal?
+        set(value): Unit = set(2, value)
+        get(): BigDecimal? = get(2) as BigDecimal?
 
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(4, value)
-        get(): OffsetDateTime? = get(4) as OffsetDateTime?
+        set(value): Unit = set(3, value)
+        get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
     open var transactionId: UUID?
-        set(value): Unit = set(5, value)
-        get(): UUID? = get(5) as UUID?
+        set(value): Unit = set(4, value)
+        get(): UUID? = get(4) as UUID?
 
     /**
      * Create a detached, initialised AccountHistoryRecord
      */
-    constructor(id: Long? = null, accountId: UUID? = null, userId: UUID? = null, balance: BigDecimal? = null, createdAt: OffsetDateTime? = null, transactionId: UUID? = null): this() {
-        this.id = id
+    constructor(accountId: UUID? = null, userId: UUID? = null, balance: BigDecimal? = null, createdAt: OffsetDateTime? = null, transactionId: UUID? = null): this() {
         this.accountId = accountId
         this.userId = userId
         this.balance = balance
@@ -61,7 +56,6 @@ open class AccountHistoryRecord() : TableRecordImpl<AccountHistoryRecord>(Accoun
      */
     constructor(value: beer.thierry.jooq.generated.tables.pojos.AccountHistory?): this() {
         if (value != null) {
-            this.id = value.id
             this.accountId = value.accountId
             this.userId = value.userId
             this.balance = value.balance
