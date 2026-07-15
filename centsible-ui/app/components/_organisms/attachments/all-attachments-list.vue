@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {computed, h, ref, resolveComponent} from 'vue';
 import type {TableColumn} from '@nuxt/ui';
-import {useIntersectionObserver} from '@vueuse/core';
 import {useAttachmentService} from "~/services/transactions/attachment-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -150,15 +149,6 @@ const columns = computed<TableColumn<EnrichedAttachment>[]>(() => [
   },
 ]);
 
-const loadMoreTrigger = ref<HTMLElement | null>(null);
-
-useIntersectionObserver(loadMoreTrigger, async (entries) => {
-  const entry = entries[0];
-  if (!entry?.isIntersecting) return;
-  if (loading.value || !hasMore.value) return;
-  await load();
-});
-
 onMounted(() => load(true));
 </script>
 
@@ -171,10 +161,13 @@ onMounted(() => load(true));
                :error="error && items.length === 0"
                :loading="showInitialLoading"
                :loading-message="t('attachments.loading')"
+               virtualize
+               :can-load-more="hasMore && !loading"
+               @load-more="load()"
                @retry="load(true)"/>
 
-    <div v-if="hasMore && items.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-      <LoadingAnimation v-if="showLoadMoreSpinner"/>
+    <div v-if="showLoadMoreSpinner" class="flex justify-center p-4">
+      <LoadingAnimation/>
     </div>
 
     <ConfirmationModal v-if="isDeleteOpen"

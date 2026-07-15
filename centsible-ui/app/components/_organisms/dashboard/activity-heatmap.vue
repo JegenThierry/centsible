@@ -141,17 +141,27 @@ function cellStyle(cell: Cell): Record<string, string> {
   return {backgroundColor: `var(--ui-color-${name}-${shadeFor(levelIndex(Math.abs(cell.net)))})`};
 }
 
-function cellTitle(cell: Cell): string {
+function cellTitle(cell: Cell, dfmt: Intl.DateTimeFormat, cfmt: Intl.NumberFormat): string {
   if (cell.future || !cell.date) return '';
-  const dateLabel = cell.date.toLocaleDateString(localeTag.value, {year: 'numeric', month: 'short', day: 'numeric'});
+  const dateLabel = dfmt.format(cell.date);
   if (cell.income === 0 && cell.expense === 0) {
     return `${dateLabel} — ${t('accounts.dashboard.activityNoData')}`;
   }
-  const fmt = currencyFmt(2);
   const sign = cell.net > 0 ? '+' : '';
-  return `${dateLabel}: ${sign}${fmt.format(cell.net)} `
-    + `(${t('accounts.dashboard.income')} ${fmt.format(cell.income)}, ${t('accounts.dashboard.expense')} ${fmt.format(cell.expense)})`;
+  return `${dateLabel}: ${sign}${cfmt.format(cell.net)} `
+    + `(${t('accounts.dashboard.income')} ${cfmt.format(cell.income)}, ${t('accounts.dashboard.expense')} ${cfmt.format(cell.expense)})`;
 }
+
+const renderCells = computed(() => {
+  const dfmt = new Intl.DateTimeFormat(localeTag.value, {year: 'numeric', month: 'short', day: 'numeric'});
+  const cfmt = currencyFmt(2);
+  return flatCells.value.map(cell => ({
+    key: cell.key,
+    class: cellClass(cell),
+    style: cellStyle(cell),
+    title: cellTitle(cell, dfmt, cfmt),
+  }));
+});
 </script>
 
 <template>
@@ -197,12 +207,12 @@ function cellTitle(cell: Cell): string {
 
           <div class="grid gap-[3px] flex-1 min-w-0" :style="CELLS_STYLE">
             <div
-              v-for="cell in flatCells"
+              v-for="cell in renderCells"
               :key="cell.key"
               class="aspect-square w-full rounded-sm"
-              :class="cellClass(cell)"
-              :style="cellStyle(cell)"
-              :title="cellTitle(cell)"
+              :class="cell.class"
+              :style="cell.style"
+              :title="cell.title"
             />
           </div>
         </div>

@@ -9,6 +9,8 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const history = ref<{month: string; budgets: Budget[]}[]>([]);
   const loading = ref(false);
   const error = ref(false);
+  // Separate from `loading`: history loads concurrently with the selected month.
+  const historyLoading = ref(false);
   const historyError = ref(false);
 
   async function fetchCurrentMonth() {
@@ -40,7 +42,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   }
 
   async function fetchHistory(months: string[]) {
-    loading.value = true;
+    historyLoading.value = true;
     historyError.value = false;
     try {
       history.value = await Promise.all(
@@ -51,9 +53,19 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
       history.value = [];
       historyError.value = true;
     } finally {
-      loading.value = false;
+      historyLoading.value = false;
     }
   }
 
-  return {items, history, loading, error, historyError, fetchCurrentMonth, fetchForMonth, fetchHistory};
+  return {
+    items,
+    history,
+    loading,
+    error,
+    historyLoading,
+    historyError,
+    fetchCurrentMonth,
+    fetchForMonth,
+    fetchHistory,
+  };
 });

@@ -15,7 +15,6 @@ import java.util.UUID
  */
 @Suppress("UNCHECKED_CAST")
 data class AccountHistory(
-    val id: Long? = null,
     val accountId: UUID? = null,
     val userId: UUID? = null,
     val balance: BigDecimal? = null,
@@ -31,12 +30,6 @@ data class AccountHistory(
         if (this::class != other::class)
             return false
         val o: AccountHistory = other as AccountHistory
-        if (this.id == null) {
-            if (o.id != null)
-                return false
-        }
-        else if (this.id != o.id)
-            return false
         if (this.accountId == null) {
             if (o.accountId != null)
                 return false
@@ -73,7 +66,6 @@ data class AccountHistory(
     override fun hashCode(): Int {
         val prime = 31
         var result = 1
-        result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
         result = prime * result + (if (this.accountId == null) 0 else this.accountId.hashCode())
         result = prime * result + (if (this.userId == null) 0 else this.userId.hashCode())
         result = prime * result + (if (this.balance == null) 0 else this.balance.hashCode())
@@ -85,8 +77,7 @@ data class AccountHistory(
     override fun toString(): String {
         val sb = StringBuilder("AccountHistory (")
 
-        sb.append(id)
-        sb.append(", ").append(accountId)
+        sb.append(accountId)
         sb.append(", ").append(userId)
         sb.append(", ").append(balance)
         sb.append(", ").append(createdAt)

@@ -20,6 +20,16 @@ const {t} = useI18n();
 
 const typeLabel = (type: ExportType): string => t(`exports.types.${type}`);
 
+/** The export worker has no MessageSource, so a LocalizedException reaches `errorMessage` as its raw bundle key. */
+const ERROR_KEY_MAP: Record<string, string> = {
+  'error.export.tooManyTransactions': 'exports.errors.tooManyTransactions',
+};
+
+const errorText = (message: string): string => {
+  const key = ERROR_KEY_MAP[message];
+  return key ? t(key) : message;
+};
+
 const columns = computed(() => [
   {id: 'title', accessorKey: 'title', header: t('exports.table.title')},
   {id: 'type', accessorKey: 'type', header: t('exports.table.type')},
@@ -46,7 +56,7 @@ function postProcessingLabel(job: ExportJob): string {
     <template #title-cell="{ row }">
       <div class="font-medium">{{ row.original.title }}</div>
       <div v-if="row.original.errorMessage" class="text-xs text-error mt-0.5">
-        {{ row.original.errorMessage }}
+        {{ errorText(row.original.errorMessage) }}
       </div>
     </template>
 

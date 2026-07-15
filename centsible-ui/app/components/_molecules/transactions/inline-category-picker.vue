@@ -1,3 +1,12 @@
+<script lang="ts">
+/** Module scope: an inline literal would hand USelectMenu a new object identity on every row re-render. */
+const SELECT_MENU_UI = {
+  base: 'group w-fit cursor-pointer rounded-md -mx-1 px-1 py-0.5 hover:bg-elevated focus-visible:outline-2 focus-visible:outline-primary',
+  trailingIcon: 'hidden',
+  content: 'min-w-56',
+} as const;
+</script>
+
 <script lang="ts" setup>
 import type {Category} from "~/models/category/category";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
@@ -31,11 +40,7 @@ function onSelect(category: Category | undefined) {
   <USelectMenu :model-value="selected"
                :items="options"
                :aria-label="t('transactions.category.editAria')"
-               :ui="{
-                 base: 'group w-fit cursor-pointer rounded-md -mx-1 px-1 py-0.5 hover:bg-elevated focus-visible:outline-2 focus-visible:outline-primary',
-                 trailingIcon: 'hidden',
-                 content: 'min-w-56',
-               }"
+               :ui="SELECT_MENU_UI"
                label-key="name"
                searchable
                variant="none"

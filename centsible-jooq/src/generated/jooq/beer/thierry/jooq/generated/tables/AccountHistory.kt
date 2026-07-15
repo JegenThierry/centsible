@@ -55,33 +55,24 @@ open class AccountHistory(
     parameters,
     DSL.comment(""),
     TableOptions.view("""
-    create view "account_history" as  WITH history AS (
-            SELECT a.id AS account_id,
-               a.user_id,
-               a.initial_balance AS balance,
-               a.created_at,
-               '00000000-0000-0000-0000-000000000000'::uuid AS transaction_id
-              FROM accounts a
-           UNION ALL
-            SELECT t.account_id,
-               a.user_id,
-               (a.initial_balance + sum(
-                   CASE
-                       WHEN ((t.type)::text = 'INCOME'::text) THEN t.amount
-                       ELSE (- t.amount)
-                   END) OVER (PARTITION BY t.account_id ORDER BY t.transaction_date, t.created_at)) AS balance,
-               t.created_at,
-               t.id AS transaction_id
-              FROM (transactions t
-                JOIN accounts a ON ((t.account_id = a.id)))
-           )
-    SELECT row_number() OVER (ORDER BY account_id, created_at) AS id,
-       account_id,
-       user_id,
-       balance,
-       created_at,
-       transaction_id
-      FROM history;
+     create view "account_history" as  SELECT a.id AS account_id,
+        a.user_id,
+        a.initial_balance AS balance,
+        a.created_at,
+        '00000000-0000-0000-0000-000000000000'::uuid AS transaction_id
+       FROM accounts a
+    UNION ALL
+     SELECT t.account_id,
+        a.user_id,
+        (a.initial_balance + sum(
+            CASE
+                WHEN ((t.type)::text = 'INCOME'::text) THEN t.amount
+                ELSE (- t.amount)
+            END) OVER (PARTITION BY a.user_id, t.account_id ORDER BY t.transaction_date, t.created_at)) AS balance,
+        t.created_at,
+        t.id AS transaction_id
+       FROM (transactions t
+         JOIN accounts a ON ((t.account_id = a.id)));
     """),
     where,
 ) {
@@ -97,11 +88,6 @@ open class AccountHistory(
      * The class holding records for this type
      */
     override fun getRecordType(): Class<AccountHistoryRecord> = AccountHistoryRecord::class.java
-
-    /**
-     * The column <code>public.account_history.id</code>.
-     */
-    val ID: TableField<AccountHistoryRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT, this, "")
 
     /**
      * The column <code>public.account_history.account_id</code>.

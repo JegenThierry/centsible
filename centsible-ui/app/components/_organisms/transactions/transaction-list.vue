@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
-import {useIntersectionObserver} from '@vueuse/core'
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
@@ -90,8 +89,6 @@ const visibleTransactions = computed(() =>
     ? transactions.value
     : transactions.value.filter((tx) => !pendingDeletes.value.has(tx.id)),
 );
-
-const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -328,14 +325,6 @@ function onDeleteConfirmed() {
 
 onBeforeUnmount(flushPendingDeletes);
 
-useIntersectionObserver(loadMoreTrigger, async (entries) => {
-  const entry = entries[0]
-  if (!entry?.isIntersecting) return
-  if (loading.value || loadingMore.value || !hasMore.value) return
-
-  await loadTransactions()
-})
-
 watch(
   () => budgetAccountsStore.activeAccount?.id,
   (id) => {
@@ -368,12 +357,14 @@ watch(
              :filtered="hasActiveFilters"
              :filtered-title="t('transactions.filters.noResults')"
              :loading-message="t('transactions.loadingMessage')"
-             class="flex-1 overflow-y-auto"
+             virtualize
+             :can-load-more="hasMore && !loading && !loadingMore"
+             @load-more="loadTransactions()"
              @clear-filters="clearFilters"
              @retry="loadTransactions(true)"/>
 
-  <div v-if="hasMore && transactions.length > 0" ref="loadMoreTrigger" class="flex justify-center p-4">
-    <LoadingAnimation v-if="loadingMore || loading"/>
+  <div v-if="loadingMore" class="flex justify-center p-4">
+    <LoadingAnimation/>
   </div>
 
   <CreateFab @create="isCreateModalOpen = true"/>

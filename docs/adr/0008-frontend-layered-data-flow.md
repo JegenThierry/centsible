@@ -31,6 +31,13 @@ Data flows in **one direction**, `models → services → stores → components`
 mutation and then `emit` success, rather than routing through a store. Keep this to
 short-lived, self-contained widgets.
 
+**Pragmatic exception:** a store action may **reject instead of catching** when its caller has to
+distinguish failure kinds that a toast would flatten — `budgetAccountsStore.loadActiveAccount`
+rejects so `middleware/account-loader` can tell a missing account (redirect to the list) from a
+transient failure (keep the user where they are); a swallowed error makes those identical. The
+caller then owns the logging and the user feedback. Keep this to actions consumed by a route
+guard, where the outcome is a redirect rather than a toast.
+
 ## Examples
 
 **Do** — a store owns state, loading, service, and error logging:

@@ -5,7 +5,6 @@ import type {RegisterRequest} from "~/models/user/register-request";
 import type {ChangePasswordRequest} from "~/models/user/change-password-request";
 import type {AxiosInstance} from "axios";
 import {validateRequest} from "~/composables/use-api";
-import {normalizeOtpCode} from "~/utils/otp-code";
 
 export function useAuthService(api: AxiosInstance) {
   /** Resolves with status 200 (fully authenticated) or 202 (password ok, TOTP challenge required). */
@@ -17,7 +16,7 @@ export function useAuthService(api: AxiosInstance) {
   }
 
   async function twoFactorChallenge(code: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/2fa/challenge', {code: normalizeOtpCode(code)});
+    const response = await api.post<AuthResponse>('/auth/2fa/challenge', {code});
     return validateRequest<AuthResponse>(response);
   }
 

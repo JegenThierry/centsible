@@ -8,9 +8,15 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 interface IReportsRepository {
-    fun fetchAllUserSnapshotsUntil(
+    fun fetchUserSnapshotsBetween(
+        from: OffsetDateTime,
         until: OffsetDateTime,
-        authenticatedUser: UserDTO
+        authenticatedUser: UserDTO,
+    ): List<BudgetAccountSnapshotDTO>
+
+    fun fetchLatestSnapshotPerAccountAsOf(
+        until: OffsetDateTime,
+        authenticatedUser: UserDTO,
     ): List<BudgetAccountSnapshotDTO>
 
     fun fetchCategorySpendingOverTime(

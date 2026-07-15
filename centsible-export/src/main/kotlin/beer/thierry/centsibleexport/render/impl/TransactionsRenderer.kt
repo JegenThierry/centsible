@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.ExportRenderer
 import beer.thierry.centsibleexport.render.PdfRenderer
+import beer.thierry.centsibleexport.render.RenderLimits
 import beer.thierry.centsibleexport.render.RenderedExport
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -18,6 +19,7 @@ import java.util.UUID
 class TransactionsRenderer(
     private val data: IExportDataRepository,
     private val pdfRenderer: PdfRenderer,
+    private val limits: RenderLimits,
 ) : ExportRenderer {
 
     override fun supports(): ExportType = ExportType.TRANSACTIONS
@@ -31,7 +33,9 @@ class TransactionsRenderer(
         val toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
         val categoryIds = body.categoryIdsList.toList()
 
-        val transactions = data.fetchTransactionsForExport(userId, accountIds, fromDate, toDate, categoryIds)
+        val transactions = data.fetchTransactionsCapped(
+            userId, accountIds, fromDate, toDate, categoryIds, limits.maxTransactionRows,
+        )
         val accounts = data.fetchAccountsByIds(userId, accountIds.ifEmpty { transactions.map { it.accountId }.distinct() })
         val locale = request.locale()
 
