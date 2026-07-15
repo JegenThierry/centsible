@@ -1,6 +1,3 @@
--- Scheduled/automated export delivery: a recurring export that a materializer enqueues as an
--- ordinary export_jobs row each period (mirrors recurring_transactions). No changes to export_jobs
--- or the proto contract — schedules just mint normal jobs with a SEND_EMAIL post-processor.
 CREATE TABLE IF NOT EXISTS export_schedules
 (
     id          UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
