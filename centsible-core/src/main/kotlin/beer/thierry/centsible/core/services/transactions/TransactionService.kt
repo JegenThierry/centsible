@@ -32,9 +32,11 @@ import beer.thierry.centsible.api.services.rule.IRuleService
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
 import beer.thierry.centsible.api.services.transactions.ITransactionService
+import beer.thierry.centsible.api.model.currency.ConversionRequest
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
 import java.security.MessageDigest
 import java.time.LocalDate
@@ -52,6 +54,7 @@ class TransactionService(
     private val notificationService: INotificationService,
     private val ruleService: IRuleService,
     private val currencyConversionService: ICurrencyConversionService,
+    private val transactionTemplate: TransactionTemplate,
 ) : ITransactionService {
 
     private val log = LoggerFactory.getLogger(TransactionService::class.java)
@@ -400,7 +403,6 @@ class TransactionService(
     ): List<DailyAggregateDTO> =
         transactionRepository.aggregateByDay(accountId, authenticatedUser, days)
 
-    @Transactional
     override fun importBatch(
         accountId: UUID,
         request: ImportTransactionsRequest,
@@ -410,43 +412,47 @@ class TransactionService(
         if (rows.isEmpty()) return ImportResult(0, 0)
 
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val classifications = categoriesRepository.fetchCategoryClassifications(
-            authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
-        )
-        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
-        val rules = if (fallbackCategoryId != null) ruleService.list(authenticatedUser) else emptyList()
-        val resolvedRows = rows.map { row ->
-            val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
-            val type = resolveType(classification, row.type)
-            val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
-                RuleMatching.evaluate(rules, RuleContext(row.description, row.amount, type, accountId)).categoryId
-                    ?: row.categoryId
-            } else {
-                row.categoryId
+
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
+        val conversions = convertRows(rows, account.currency)
+
+        return transactionTemplate.execute {
+            val classifications = categoriesRepository.fetchCategoryClassifications(
+                authenticatedUser, rows.mapTo(HashSet()) { it.categoryId }
+            )
+            val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
+            val rules = if (fallbackCategoryId != null) ruleService.list(authenticatedUser) else emptyList()
+            val resolvedRows = rows.map { row ->
+                val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
+                val type = resolveType(classification, row.type)
+                val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
+                    RuleMatching.evaluate(rules, RuleContext(row.description, row.amount, type, accountId)).categoryId
+                        ?: row.categoryId
+                } else {
+                    row.categoryId
+                }
+                row.copy(categoryId = categoryId, type = type)
             }
-            row.copy(categoryId = categoryId, type = type)
+
+            val hashes = resolvedRows.map { rowHash(accountId, it) }
+            val outcome = transactionRepository.importBatch(accountId, resolvedRows, conversions, hashes, authenticatedUser)
+
+            if (outcome.netBalanceAdjustment.signum() != 0) {
+                accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
+                checkBudgetAlerts(authenticatedUser, resolvedRows.map { it.categoryId }.distinct())
+            }
+
+            log.info(
+                "Imported transaction batch accountId={} userId={} totalRows={} inserted={} skippedDuplicates={}",
+                accountId, authenticatedUser.id, rows.size, outcome.insertedCount, rows.size - outcome.insertedCount,
+            )
+            ImportResult(
+                imported = outcome.insertedCount,
+                skippedDuplicates = rows.size - outcome.insertedCount,
+            )
         }
-
-        val conversions = convertRows(resolvedRows, account.currency)
-        val hashes = resolvedRows.map { rowHash(accountId, it) }
-        val outcome = transactionRepository.importBatch(accountId, resolvedRows, conversions, hashes, authenticatedUser)
-
-        if (outcome.netBalanceAdjustment.signum() != 0) {
-            accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-            checkBudgetAlerts(authenticatedUser, resolvedRows.map { it.categoryId }.distinct())
-        }
-
-        log.info(
-            "Imported transaction batch accountId={} userId={} totalRows={} inserted={} skippedDuplicates={}",
-            accountId, authenticatedUser.id, rows.size, outcome.insertedCount, rows.size - outcome.insertedCount,
-        )
-        return ImportResult(
-            imported = outcome.insertedCount,
-            skippedDuplicates = rows.size - outcome.insertedCount,
-        )
     }
 
-    @Transactional
     override fun importProviderTransactions(
         accountId: UUID,
         providerConnectionId: UUID,
@@ -478,25 +484,29 @@ class TransactionService(
                 currency = parseProviderCurrency(tx.currency),
             )
         }
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversions = convertRows(rows, account.currency)
         val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
 
-        val outcome =
-            transactionRepository.importBatch(accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId)
-        if (outcome.netBalanceAdjustment.signum() != 0) {
-            accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-            checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
-        }
+        return transactionTemplate.execute {
+            val outcome = transactionRepository.importBatch(
+                accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId
+            )
+            if (outcome.netBalanceAdjustment.signum() != 0) {
+                accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
+                checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
+            }
 
-        log.info(
-            "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
-            accountId, providerConnectionId, authenticatedUser.id, transactions.size,
-            outcome.insertedCount, priced.size - outcome.insertedCount,
-        )
-        return ImportResult(
-            imported = outcome.insertedCount,
-            skippedDuplicates = priced.size - outcome.insertedCount,
-        )
+            log.info(
+                "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
+                accountId, providerConnectionId, authenticatedUser.id, transactions.size,
+                outcome.insertedCount, priced.size - outcome.insertedCount,
+            )
+            ImportResult(
+                imported = outcome.insertedCount,
+                skippedDuplicates = priced.size - outcome.insertedCount,
+            )
+        }
     }
 
     private fun providerRowHash(providerConnectionId: UUID, externalId: String): String =
@@ -549,11 +559,10 @@ class TransactionService(
     }
 
     private fun convertRows(rows: List<ImportTransactionRow>, accountCurrency: Currency): List<ConversionResult> =
-        rows.map { row ->
-            currencyConversionService.convert(
-                row.amount, row.currency ?: accountCurrency, accountCurrency, row.transactionDate
-            )
-        }
+        currencyConversionService.convertAll(
+            rows.map { ConversionRequest(it.amount, it.currency ?: accountCurrency, it.transactionDate) },
+            accountCurrency,
+        )
 
     private fun parseProviderCurrency(code: String?): Currency? =
         Currency.parseOrNull(code).also { parsed ->

@@ -3,9 +3,7 @@
     "pageTitle": "Comptes",
     "toasts": {
       "updateFailedTitle": "Échec de la mise à jour des comptes",
-      "updateFailedBody": "Impossible de mettre à jour les comptes.",
-      "loadFailedTitle": "Échec du chargement du compte",
-      "loadFailedBody": "Impossible de charger le compte."
+      "updateFailedBody": "Impossible de mettre à jour les comptes."
     },
     "list": {
       "title": "Comptes",

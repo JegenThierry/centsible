@@ -14,7 +14,6 @@ data class BudgetAccountDTO(
 )
 
 data class BudgetAccountSnapshotDTO(
-    var id: Number = 0,
     var accountId: UUID = UUID.randomUUID(),
     var balance: BigDecimal = BigDecimal.ZERO,
     var createdAt: OffsetDateTime = OffsetDateTime.now(),

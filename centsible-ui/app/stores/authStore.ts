@@ -8,7 +8,20 @@ export const useAuthStore = defineStore('authStore', () => {
   const authService = useAuthService(api);
 
   const isAuthenticated = ref(false)
-  const twoFactorPending = ref(false)
+
+  /**
+   * Cookie-backed so the /auth/2fa guard can read it during SSR; an in-memory ref is always false on
+   * the server, which bounced a reloading user out of a challenge they were mid-way through. This is a
+   * non-httpOnly hint that grants no authority — the real gate stays the httpOnly `pre_auth` cookie the
+   * backend verifies. maxAge mirrors PENDING_TTL in AuthCookieSupport.kt so the hint cannot outlive the
+   * challenge it describes.
+   */
+  const twoFactorPending = useCookie<boolean>('centsible_2fa_pending', {
+    maxAge: 300,
+    sameSite: 'strict',
+    path: '/',
+    default: () => false,
+  })
 
   const setAuthenticated = (value: boolean) => {
     isAuthenticated.value = value

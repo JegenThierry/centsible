@@ -28,9 +28,10 @@ private val TXN_MONTH_KEY = DSL.field(
 @Repository
 class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
 
-    override fun fetchAllUserSnapshotsUntil(
+    override fun fetchUserSnapshotsBetween(
+        from: OffsetDateTime,
         until: OffsetDateTime,
-        authenticatedUser: UserDTO
+        authenticatedUser: UserDTO,
     ): List<BudgetAccountSnapshotDTO> =
         dsl.select(
             ACCOUNT_HISTORY.ACCOUNT_ID,
@@ -40,9 +41,27 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             .from(ACCOUNT_HISTORY)
             .where(
                 ACCOUNT_HISTORY.USER_ID.eq(authenticatedUser.id)
-                    .and(ACCOUNT_HISTORY.CREATED_AT.le(until))
+                    .and(ACCOUNT_HISTORY.CREATED_AT.between(from, until))
             )
             .orderBy(ACCOUNT_HISTORY.CREATED_AT.asc())
+            .fetchInto(BudgetAccountSnapshotDTO::class.java)
+
+    override fun fetchLatestSnapshotPerAccountAsOf(
+        until: OffsetDateTime,
+        authenticatedUser: UserDTO,
+    ): List<BudgetAccountSnapshotDTO> =
+        dsl.selectDistinct(
+            ACCOUNT_HISTORY.ACCOUNT_ID,
+            ACCOUNT_HISTORY.BALANCE,
+            ACCOUNT_HISTORY.CREATED_AT,
+        )
+            .on(ACCOUNT_HISTORY.ACCOUNT_ID)
+            .from(ACCOUNT_HISTORY)
+            .where(
+                ACCOUNT_HISTORY.USER_ID.eq(authenticatedUser.id)
+                    .and(ACCOUNT_HISTORY.CREATED_AT.le(until))
+            )
+            .orderBy(ACCOUNT_HISTORY.ACCOUNT_ID, ACCOUNT_HISTORY.CREATED_AT.desc())
             .fetchInto(BudgetAccountSnapshotDTO::class.java)
 
     override fun fetchCategorySpendingOverTime(

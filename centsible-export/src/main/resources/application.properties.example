@@ -18,6 +18,8 @@ export.worker.lease-timeout-seconds=${EXPORT_LEASE_TIMEOUT_SECONDS:300}
 # Playwright default timeout for the render page (setContent/waitForLoadState) — keep well below
 # the lease timeout so a hung render fails the job instead of losing the lease mid-flight.
 export.render.timeout-ms=${EXPORT_RENDER_TIMEOUT_MS:60000}
+# Exports matching more rows than this are rejected. Raise only alongside the worker's heap.
+export.render.max-transaction-rows=${EXPORT_MAX_TRANSACTION_ROWS:20000}
 
 # Two pollers (@Scheduled export + post-processing) share this pool; Spring's default single
 # thread would let one slow render also stall post-processing.

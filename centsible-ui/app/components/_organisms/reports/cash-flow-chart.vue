@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {ChartData, ChartOptions} from 'chart.js';
 import {Bar} from 'vue-chartjs';
+import '~/utils/chart-registry';
 import type {CashFlowPoint} from "~/models/reports/cash-flow";
 import type {Currency} from "~/models/budget-account/currency";
 import {useChartTheme} from "~/composables/use-chart-theme";

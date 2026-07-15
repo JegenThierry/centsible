@@ -17,6 +17,9 @@
       "retrigger": "Erneut auslösen",
       "delete": "Löschen"
     },
+    "errors": {
+      "tooManyTransactions": "Dieser Export umfasst zu viele Transaktionen und kann nicht erstellt werden. Schränken Sie den Zeitraum, die Konten oder die Kategorien ein und versuchen Sie es erneut."
+    },
     "types": {
       "TRANSACTIONS": "Transaktionen",
       "LENDINGS_PER_CONTACT": "Verleihungen (ein Kontakt)",

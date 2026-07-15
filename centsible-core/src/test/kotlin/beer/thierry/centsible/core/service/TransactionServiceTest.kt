@@ -1,5 +1,6 @@
 package beer.thierry.centsible.core.service
 
+import org.springframework.transaction.support.TransactionTemplate
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
@@ -81,6 +82,9 @@ class TransactionServiceTest {
 
     @Mock
     private lateinit var currencyConversionService: ICurrencyConversionService
+
+    @Mock
+    private lateinit var transactionTemplate: TransactionTemplate
 
     @InjectMocks
     private lateinit var service: TransactionService

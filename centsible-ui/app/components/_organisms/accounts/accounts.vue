@@ -43,7 +43,14 @@ function onRefresh(): void {
 }
 
 accountStore.clearActiveAccount();
-load();
+
+// `onboarding-guard` has already fetched the list; mutations patch the store in place, so it stays current.
+onMounted(() => {
+  if (accountStore.availableAccounts.length === 0) {
+    accountStore.updateAvailableAccounts();
+  }
+  refreshTrends();
+});
 </script>
 
 <template>

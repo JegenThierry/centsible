@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {ChartData, ChartOptions} from 'chart.js';
 import {Doughnut} from 'vue-chartjs';
+import '~/utils/chart-registry';
 import type {Currency} from "~/models/budget-account/currency";
 import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";

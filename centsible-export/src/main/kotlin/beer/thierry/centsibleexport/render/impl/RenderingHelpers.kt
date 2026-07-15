@@ -1,9 +1,12 @@
 package beer.thierry.centsibleexport.render.impl
 
+import beer.thierry.centsible.api.exceptions.LocalizedException
+import beer.thierry.centsible.api.model.export.ExportTransactionRow
 import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.PdfRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -13,6 +16,8 @@ import java.util.UUID
 
 private const val DEFAULT_LOCALE_TAG = "en-GB"
 private const val DEFAULT_CURRENCY = "EUR"
+
+private val log = LoggerFactory.getLogger("beer.thierry.centsibleexport.render.impl.RenderingHelpers")
 
 internal fun ExportRequest.locale(): Locale =
     meta.locale.takeIf { it.isNotBlank() }?.let(Locale::forLanguageTag) ?: Locale.forLanguageTag(DEFAULT_LOCALE_TAG)
@@ -50,6 +55,23 @@ internal fun lendingsPerContactStem(data: IExportDataRepository, request: Export
         data.fetchContactSummary(UUID.fromString(request.meta.userId), UUID.fromString(contactId))?.contactName
     }.getOrNull()
     return "lendings-${slug(name ?: contactId)}"
+}
+
+/** The message takes no args: this app has no MessageSource, so the key reaches the UI bare and cannot interpolate them. */
+internal fun IExportDataRepository.fetchTransactionsCapped(
+    userId: UUID,
+    accountIds: List<UUID>,
+    fromDate: LocalDate?,
+    toDate: LocalDate?,
+    categoryIds: List<Long>,
+    maxRows: Int,
+): List<ExportTransactionRow> {
+    val rows = fetchTransactionsForExport(userId, accountIds, fromDate, toDate, categoryIds, maxRows + 1)
+    if (rows.size > maxRows) {
+        log.warn("Refusing oversized transactions export userId={} maxRows={}", userId, maxRows)
+        throw LocalizedException.BadRequest("error.export.tooManyTransactions")
+    }
+    return rows
 }
 
 /**

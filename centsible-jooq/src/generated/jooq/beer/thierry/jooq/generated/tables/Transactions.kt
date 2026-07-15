@@ -5,6 +5,7 @@ package beer.thierry.jooq.generated.tables
 
 
 import beer.thierry.jooq.generated.Public
+import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_AMOUNT
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_DATE
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_ID
 import beer.thierry.jooq.generated.indexes.IDX_TRANSACTIONS_ACCOUNT_TYPE
@@ -224,7 +225,7 @@ open class Transactions(
         override fun `as`(alias: Table<*>): TransactionsPath = TransactionsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_DATE, IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID, IDX_TRANSACTIONS_RECURRING_ID, IDX_TRANSACTIONS_TRANSFER_GROUP, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
+    override fun getIndexes(): List<Index> = listOf(IDX_TRANSACTIONS_ACCOUNT_AMOUNT, IDX_TRANSACTIONS_ACCOUNT_DATE, IDX_TRANSACTIONS_ACCOUNT_ID, IDX_TRANSACTIONS_ACCOUNT_TYPE, IDX_TRANSACTIONS_CATEGORY_ID, IDX_TRANSACTIONS_DATE, IDX_TRANSACTIONS_PROVIDER_CONNECTION_ID, IDX_TRANSACTIONS_RECURRING_ID, IDX_TRANSACTIONS_TRANSFER_GROUP, UQ_TRANSACTIONS_ACCOUNT_IMPORT_HASH)
     override fun getPrimaryKey(): UniqueKey<TransactionsRecord> = TRANSACTIONS_PKEY
     override fun getReferences(): List<ForeignKey<TransactionsRecord, *>> = listOf(TRANSACTIONS__TRANSACTIONS_ACCOUNT_ID_FKEY, TRANSACTIONS__TRANSACTIONS_CATEGORY_ID_FKEY, TRANSACTIONS__TRANSACTIONS_PROVIDER_CONNECTION_ID_FKEY, TRANSACTIONS__TRANSACTIONS_RECURRING_TRANSACTION_ID_FKEY)
 

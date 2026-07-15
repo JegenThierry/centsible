@@ -70,7 +70,7 @@ class ReportServiceTest {
     @Test
     fun `fetchNetWorthOverTime converts foreign-currency balances into the user default currency`() {
         `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount, usdAccount))
-        `when`(reportsRepository.fetchAllUserSnapshotsUntil(anyArg(), anyArg()))
+        `when`(reportsRepository.fetchUserSnapshotsBetween(anyArg(), anyArg(), anyArg()))
             .thenReturn(listOf(snapshot(eurAccount, "100.00", 5), snapshot(usdAccount, "200.00", 4)))
         `when`(currencyConversionService.convert(BigDecimal.ONE, Currency.USD, Currency.EUR, LocalDate.now()))
             .thenReturn(usdToEurRate("0.90"))
@@ -84,7 +84,7 @@ class ReportServiceTest {
     @Test
     fun `fetchNetWorthOverTime excludes accounts whose FX rate cannot be resolved`() {
         `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount, usdAccount))
-        `when`(reportsRepository.fetchAllUserSnapshotsUntil(anyArg(), anyArg()))
+        `when`(reportsRepository.fetchUserSnapshotsBetween(anyArg(), anyArg(), anyArg()))
             .thenReturn(listOf(snapshot(eurAccount, "100.00", 5), snapshot(usdAccount, "200.00", 4)))
         `when`(currencyConversionService.convert(BigDecimal.ONE, Currency.USD, Currency.EUR, LocalDate.now()))
             .thenThrow(RuntimeException("fx unavailable"))
@@ -99,7 +99,7 @@ class ReportServiceTest {
         // The principal always carries the fallback "EUR"; the user's real setting lives in the DB.
         `when`(userRepository.findUserById(user.id)).thenReturn(User(id = user.id, defaultCurrency = "USD"))
         `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount))
-        `when`(reportsRepository.fetchAllUserSnapshotsUntil(anyArg(), anyArg()))
+        `when`(reportsRepository.fetchUserSnapshotsBetween(anyArg(), anyArg(), anyArg()))
             .thenReturn(listOf(snapshot(eurAccount, "100.00", 5)))
         `when`(currencyConversionService.convert(BigDecimal.ONE, Currency.EUR, Currency.USD, LocalDate.now()))
             .thenReturn(
@@ -123,7 +123,7 @@ class ReportServiceTest {
     @Test
     fun `fetchNetWorthOverTime never converts when all accounts use the default currency`() {
         `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount))
-        `when`(reportsRepository.fetchAllUserSnapshotsUntil(anyArg(), anyArg()))
+        `when`(reportsRepository.fetchUserSnapshotsBetween(anyArg(), anyArg(), anyArg()))
             .thenReturn(listOf(snapshot(eurAccount, "150.50", 3)))
 
         val points = service.fetchNetWorthOverTime(startDate, endDate, user)

@@ -3,21 +3,14 @@ export default defineNuxtConfig({
   devtools: {enabled: false},
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n', '@vueuse/nuxt'],
   css: ['@/assets/css/main.css'],
+  // No manualChunks for chart.js: naming it as one made Rollup merge it into the always-loaded
+  // shared chunk, costing every route ~67 kB gzip. Default splitting isolates it correctly.
   vite: {
     optimizeDeps: {
       include: [
         'axios',
         '@vueuse/core',
       ]
-    },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'chart-vendor': ['chart.js', 'vue-chartjs'],
-          },
-        },
-      },
     },
   },
   runtimeConfig: {

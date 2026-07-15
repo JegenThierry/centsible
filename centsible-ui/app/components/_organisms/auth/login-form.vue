@@ -35,13 +35,13 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
     .then(async (result) => {
       if (result.twoFactorRequired) {
         authStore.setTwoFactorPending(true);
-        navigateTo('/auth/2fa');
+        await navigateTo('/auth/2fa');
         return;
       }
       authStore.setAuthenticated(true);
-      await userStore.fetchMyself();
-      navigateTo('/accounts');
+      await userStore.fetchMyselfBestEffort();
       success(t('auth.login.toastSuccessTitle'), t('auth.login.toastSuccessBody'));
+      await navigateTo('/accounts');
     })
     .catch((err) => {
       useApiErrors().toastError(err, t('auth.login.toastErrorTitle'), t('auth.login.toastErrorGeneric'));

@@ -49,6 +49,12 @@ async function refresh() {
     reportsStore.fetchCategorySpending(range),
     reportsStore.fetchCashFlow(range),
     reportsStore.fetchCashFlowPrevious(previousRange),
+  ]);
+}
+
+// Neither takes the selected range, so neither belongs in refresh().
+function loadRangeIndependent(): Promise<unknown> {
+  return Promise.all([
     reportsStore.fetchYearOverYear(),
     reportsStore.fetchBudgetVsActual(6),
   ]);
@@ -60,7 +66,7 @@ onMounted(async () => {
   const loadAccounts = accountsStore.availableAccounts.length === 0
     ? accountsStore.updateAvailableAccounts()
     : Promise.resolve();
-  await Promise.all([loadAccounts, refresh()]);
+  await Promise.all([loadAccounts, refresh(), loadRangeIndependent()]);
 });
 </script>
 

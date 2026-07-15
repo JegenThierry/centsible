@@ -2,6 +2,7 @@ package beer.thierry.centsible.core.services.currency
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
+import beer.thierry.centsible.api.model.currency.ConversionRequest
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.repository.IExchangeRateRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
@@ -25,12 +26,29 @@ class CurrencyConversionService(
 
     override fun convert(amount: BigDecimal, from: Currency, to: Currency, date: LocalDate): ConversionResult {
         if (from == to) return sameCurrency(amount, to, date)
+        return applyRate(amount, from, to, resolveRate(from, to, date))
+    }
 
+    override fun convertAll(requests: List<ConversionRequest>, to: Currency): List<ConversionResult> {
+        val rates = HashMap<Pair<Currency, LocalDate>, ResolvedRate>()
+        val today = LocalDate.now()
+        return requests.map { request ->
+            if (request.from == to) return@map sameCurrency(request.amount, to, request.date)
+            // Keyed on the collapsed date, matching resolveRate's own minOf(date, today).
+            val rate = rates.getOrPut(request.from to minOf(request.date, today)) {
+                resolveRate(request.from, to, request.date)
+            }
+            applyRate(request.amount, request.from, to, rate)
+        }
+    }
+
+    private fun resolveRate(from: Currency, to: Currency, date: LocalDate): ResolvedRate {
         val lookupDate = minOf(date, LocalDate.now())
-
         val cached = exchangeRateRepository.findRate(from, to, lookupDate)
-        val resolved = cached?.let { ResolvedRate(it.rate, it.rateDate) } ?: fetchAndCache(from, to, lookupDate)
+        return cached?.let { ResolvedRate(it.rate, it.rateDate) } ?: fetchAndCache(from, to, lookupDate)
+    }
 
+    private fun applyRate(amount: BigDecimal, from: Currency, to: Currency, resolved: ResolvedRate): ConversionResult {
         val converted = amount.multiply(resolved.rate).setScale(SCALE, RoundingMode.HALF_EVEN)
         if (converted.abs() > MAX_CONVERTED_AMOUNT) {
             throw LocalizedException.BadRequest("error.fx.convertedAmountTooLarge")

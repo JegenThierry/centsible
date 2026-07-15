@@ -17,6 +17,9 @@
       "retrigger": "Retrigger",
       "delete": "Delete"
     },
+    "errors": {
+      "tooManyTransactions": "This export matches too many transactions to render. Narrow the date range, accounts or categories and try again."
+    },
     "types": {
       "TRANSACTIONS": "Transactions",
       "LENDINGS_PER_CONTACT": "Lendings (one contact)",

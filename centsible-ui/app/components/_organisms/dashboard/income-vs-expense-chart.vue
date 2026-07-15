@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {ChartData, ChartOptions} from 'chart.js';
 import {Bar} from 'vue-chartjs';
+import '~/utils/chart-registry';
 import type {Currency} from "~/models/budget-account/currency";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import {useMonthlyAggregates} from "~/composables/use-monthly-aggregates";

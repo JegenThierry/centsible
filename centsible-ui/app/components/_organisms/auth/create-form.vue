@@ -77,7 +77,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
     .then(async (res) => {
       if (res.token) {
         authStore.setAuthenticated(true);
-        await userStore.fetchMyself();
+        await userStore.fetchMyselfBestEffort();
         success(t('auth.register.toastSuccessTitle'), t('auth.register.toastSuccessBodyAuto'));
         await navigateTo('/accounts');
         return;
