@@ -29,7 +29,7 @@ const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_org
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 const SplitIntoIousModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/split-into-ious-modal.vue"));
 const RecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/recurring-modal.vue"));
-const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
+const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/rules/modals/rule-modal.vue"));
 const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const api = useApi();

@@ -1,0 +1,25 @@
+{
+  "tags": {
+    "page": {
+      "title": "Tags",
+      "description": "Organize transactions with reusable labels"
+    },
+    "newTag": "New tag",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. reimbursable, vacation",
+    "colorLabel": "Color",
+    "emptyTitle": "No tags yet",
+    "emptyDescription": "Create tags to label transactions across categories — e.g. reimbursable or a trip.",
+    "entity": "tag",
+    "editAria": "Edit tag",
+    "deleteAria": "Delete tag",
+    "toasts": {
+      "createdTitle": "Tag created",
+      "createdBody": "{name} has been added.",
+      "updatedTitle": "Tag updated",
+      "updatedBody": "{name} has been saved.",
+      "saveFailedTitle": "Couldn't save tag",
+      "saveFailedBody": "The tag could not be saved. Please try again."
+    }
+  }
+}

@@ -41,6 +41,8 @@ const items = computed(() => {
     {label: t('nav.sidebar.sections.manage'), type: 'label'},
     {label: t('nav.sidebar.reports'), to: '/reports', icon: 'i-lucide-trending-up', target: '_self'},
     {label: t('nav.sidebar.categories'), to: '/categories', icon: 'i-lucide-tag', target: '_self'},
+    {label: t('nav.sidebar.rules'), to: '/rules', icon: 'i-lucide-wand-sparkles', target: '_self'},
+    {label: t('nav.sidebar.tags'), to: '/tags', icon: 'i-lucide-hash', target: '_self'},
     {label: t('nav.sidebar.contacts'), to: '/contacts', icon: 'i-lucide-users', target: '_self'},
   ];
 

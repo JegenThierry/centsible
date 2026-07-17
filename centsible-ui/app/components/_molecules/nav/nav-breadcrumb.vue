@@ -21,6 +21,8 @@ const sectionKey = computed<string | null>(() => {
   if (p.startsWith('/loans')) return 'nav.sidebar.loans';
   if (p.startsWith('/reports')) return 'nav.sidebar.reports';
   if (p.startsWith('/categories')) return 'nav.sidebar.categories';
+  if (p.startsWith('/rules')) return 'nav.sidebar.rules';
+  if (p.startsWith('/tags')) return 'nav.sidebar.tags';
   if (p.startsWith('/contacts')) return 'nav.sidebar.contacts';
   if (p.startsWith('/exports')) return 'nav.sidebar.exports';
   if (p.startsWith('/attachments')) return 'nav.sidebar.documents';

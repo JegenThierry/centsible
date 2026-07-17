@@ -43,6 +43,8 @@ const groups = computed(() => {
     {label: t('nav.sidebar.loans'), icon: 'i-lucide-hand-coins', onSelect: () => go('/loans')},
     {label: t('nav.sidebar.reports'), icon: 'i-lucide-trending-up', onSelect: () => go('/reports')},
     {label: t('nav.sidebar.categories'), icon: 'i-lucide-tag', onSelect: () => go('/categories')},
+    {label: t('nav.sidebar.rules'), icon: 'i-lucide-wand-sparkles', onSelect: () => go('/rules')},
+    {label: t('nav.sidebar.tags'), icon: 'i-lucide-hash', onSelect: () => go('/tags')},
     {label: t('nav.sidebar.contacts'), icon: 'i-lucide-users', onSelect: () => go('/contacts')},
     {label: t('nav.sidebar.exports'), icon: 'i-lucide-file-text', onSelect: () => go('/exports')},
     {label: t('nav.sidebar.documents'), icon: 'i-lucide-paperclip', onSelect: () => go('/attachments')},
