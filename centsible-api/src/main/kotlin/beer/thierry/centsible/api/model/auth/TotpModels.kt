@@ -24,13 +24,11 @@ data class TotpStatusDTO(
     val recoveryCodesRemaining: Int = 0,
 )
 
-/** A 6-digit TOTP code (or a recovery code) submitted to confirm enrollment or to disable 2FA. */
+/**
+ * A 6-digit TOTP code (or a recovery code) submitted to confirm enrollment, to disable 2FA, or
+ * during the second login step against the pre-auth token cookie.
+ */
 data class TotpCodeRequest(
-    @field:NotBlank val code: String = "",
-)
-
-/** Code submitted during the second login step, against the pre-auth token cookie. */
-data class TotpChallengeRequest(
     @field:NotBlank val code: String = "",
 )
 

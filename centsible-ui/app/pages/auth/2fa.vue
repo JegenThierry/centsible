@@ -1,14 +1,12 @@
 <script lang="ts" setup>
 import TotpChallengeCard from "~/components/_organisms/auth/totp-challenge-card.vue";
-import {useAuthStore} from "~/stores/authStore";
 
 definePageMeta({
   middleware: [
+    'guest-guard',
+    // A challenge is only reachable mid-login, once the password step has flagged 2FA as pending.
     () => {
       const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        return navigateTo('/accounts');
-      }
       if (!authStore.twoFactorPending) {
         return navigateTo('/auth');
       }

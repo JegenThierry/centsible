@@ -15,21 +15,21 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class ImportTransactionRow(
-    @field:NotNull
-    @field:DecimalMin(value = "0.01")
-    @field:DecimalMax(value = "999999999999.99")
-    @field:Digits(integer = 12, fraction = 2)
+    @field:NotNull(message = "{validation.amount.required}")
+    @field:DecimalMin(value = "0.01", message = "{validation.amount.tooSmall}")
+    @field:DecimalMax(value = "999999999999.99", message = "{validation.amount.tooLarge}")
+    @field:Digits(integer = 12, fraction = 2, message = "{validation.amount.fraction}")
     var amount: BigDecimal = BigDecimal.ZERO,
 
-    @field:NotNull
-    @field:Positive
+    @field:NotNull(message = "{validation.category.required}")
+    @field:Positive(message = "{validation.category.positive}")
     var categoryId: Long = 0L,
 
-    @field:NotBlank
-    @field:Size(min = 1, max = 255)
+    @field:NotBlank(message = "{validation.description.required}")
+    @field:Size(min = 1, max = 255, message = "{validation.description.range}")
     var description: String = "",
 
-    @field:NotNull
+    @field:NotNull(message = "{validation.transactionDate.required}")
     var transactionDate: LocalDate = LocalDate.now(),
 
     var type: CategoryType? = null,
@@ -38,8 +38,8 @@ data class ImportTransactionRow(
 )
 
 data class ImportTransactionsRequest(
-    @field:NotEmpty
-    @field:Size(max = 1000, message = "Cannot import more than 1000 rows at once.")
+    @field:NotEmpty(message = "{validation.import.rows.required}")
+    @field:Size(max = 1000, message = "{validation.import.rows.tooMany}")
     @field:Valid
     var rows: List<ImportTransactionRow> = emptyList(),
 )

@@ -39,3 +39,15 @@ fun requireDefaultCategoryId(hints: ParseHints, parserName: String): Long =
     requireNotNull(hints.defaultCategoryId) {
         "$parserName requires ParseHints.defaultCategoryId so unmapped rows still satisfy validation."
     }
+
+/**
+ * Lowercases every header cell so profile matching is case-insensitive. Pure and stateless — safe
+ * to call from a [CsvBankProfile.matches], which the registry invokes on a shared instance.
+ */
+fun List<String>.normalizedHeader(): List<String> = map { it.lowercase() }
+
+/** True when any (already-normalized) header cell contains [term]. */
+fun List<String>.anyContains(term: String): Boolean = any { it.contains(term) }
+
+/** True when any (already-normalized) header cell equals [term]. */
+fun List<String>.anyEquals(term: String): Boolean = any { it == term }

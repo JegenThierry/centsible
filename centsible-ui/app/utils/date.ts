@@ -2,6 +2,11 @@ import {differenceInCalendarDays, format, subDays, subMonths} from 'date-fns';
 
 export const ISO_DATE = 'yyyy-MM-dd';
 
+/** Formats a Date as a `yyyy-MM-dd` ISO date string. */
+export function toIsoDate(date: Date): string {
+  return format(date, ISO_DATE);
+}
+
 export function todayIsoDate(): string {
   return format(new Date(), ISO_DATE);
 }

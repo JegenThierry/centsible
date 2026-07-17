@@ -11,7 +11,6 @@ enum class RuleOperator {
     val value: String get() = name
 
     companion object {
-        fun fromValue(value: String): RuleOperator =
-            entries.find { it.name == value } ?: throw IllegalArgumentException("Unknown rule operator: $value")
+        fun fromValue(value: String): RuleOperator = valueOf(value)
     }
 }

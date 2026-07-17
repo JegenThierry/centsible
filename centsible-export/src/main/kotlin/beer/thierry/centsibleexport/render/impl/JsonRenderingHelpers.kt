@@ -4,7 +4,7 @@ import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.ExportRenderer
 import beer.thierry.centsibleexport.render.RenderedExport
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 
 /**
@@ -29,7 +29,7 @@ abstract class JsonExportRenderer(
                 javaClass.simpleName, supports(), bytes.size,
             )
             return RenderedExport(
-                pdf = bytes,
+                bytes = bytes,
                 filename = "${filenameStem(request)}-${filenameTimestamp()}.json",
             )
         } catch (ex: Exception) {
@@ -44,7 +44,7 @@ abstract class JsonExportRenderer(
     /** Shared header so every JSON envelope identifies itself the same way. */
     protected fun envelopeHeader(request: ExportRequest, type: String): Map<String, Any?> = mapOf(
         "type" to type,
-        "generatedAt" to baseMeta(request)["generatedAt"],
+        "generatedAt" to generatedAt(request),
         "user" to mapOf(
             "name" to request.meta.userDisplayName,
             "email" to request.meta.userEmail,

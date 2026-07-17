@@ -17,20 +17,45 @@ import java.util.UUID
 private const val DEFAULT_LOCALE_TAG = "en-GB"
 private const val DEFAULT_CURRENCY = "EUR"
 
+private val SLUG_PATTERN = Regex("[^a-z0-9]+")
+
 private val log = LoggerFactory.getLogger("beer.thierry.centsibleexport.render.impl.RenderingHelpers")
 
 internal fun ExportRequest.locale(): Locale =
     meta.locale.takeIf { it.isNotBlank() }?.let(Locale::forLanguageTag) ?: Locale.forLanguageTag(DEFAULT_LOCALE_TAG)
 
-internal fun baseMeta(request: ExportRequest): Map<String, Any?> {
-    val locale = request.locale()
-    val timestamp = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", locale))
-    return mapOf(
+/** Human-formatted "now" timestamp shared by [baseMeta] and JSON envelope headers. */
+internal fun generatedAt(request: ExportRequest): String =
+    OffsetDateTime.now().format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", request.locale()))
+
+internal fun baseMeta(request: ExportRequest): Map<String, Any?> =
+    mapOf(
         "userName" to request.meta.userDisplayName.ifBlank { "Account holder" },
         "userEmail" to request.meta.userEmail,
         "currency" to request.meta.currency.ifBlank { DEFAULT_CURRENCY },
         "locale" to request.meta.locale.ifBlank { DEFAULT_LOCALE_TAG },
-        "generatedAt" to timestamp,
+        "generatedAt" to generatedAt(request),
+    )
+
+/** Parsed transactions-export filters, shared by the PDF, CSV and JSON transactions renderers. */
+internal data class TransactionFilters(
+    val userId: UUID,
+    val accountIds: List<UUID>,
+    val fromDate: LocalDate?,
+    val toDate: LocalDate?,
+    val categoryIds: List<Long>,
+)
+
+/** Parses the transactions filter fields off the proto body. Guards that the body is present. */
+internal fun ExportRequest.transactionFilters(): TransactionFilters {
+    require(hasTransactions()) { "ExportRequest missing transactions body" }
+    val body = transactions
+    return TransactionFilters(
+        userId = UUID.fromString(meta.userId),
+        accountIds = body.accountIdsList.map(UUID::fromString),
+        fromDate = body.fromDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse),
+        toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse),
+        categoryIds = body.categoryIdsList.toList(),
     )
 }
 
@@ -41,7 +66,7 @@ internal fun formatDate(date: LocalDate?, locale: Locale, pattern: String = "d M
 internal fun filenameTimestamp(): Long = OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()
 
 internal fun slug(s: String): String =
-    s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').ifBlank { "export" }
+    s.lowercase().replace(SLUG_PATTERN, "-").trim('-').ifBlank { "export" }
 
 /**
  * Filename stem for a per-contact lendings export: `lendings-<slug(contactName)>`, so PDF, CSV and
@@ -83,6 +108,6 @@ internal fun PdfRenderer.renderExport(
     filenameStem: String,
     context: Map<String, Any?>,
 ): RenderedExport = RenderedExport(
-    pdf = renderHtmlToPdf(template, context),
+    bytes = renderHtmlToPdf(template, context),
     filename = "$filenameStem-${filenameTimestamp()}.pdf",
 )

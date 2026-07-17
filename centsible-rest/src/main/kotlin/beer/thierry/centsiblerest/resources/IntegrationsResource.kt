@@ -40,14 +40,14 @@ class IntegrationsResource(
     private val log = LoggerFactory.getLogger(IntegrationsResource::class.java)
 
     @GetMapping("/providers")
-    fun listProviders(): ResponseEntity<List<ProviderDescriptor>> =
-        ResponseEntity.ok(registry.listDescriptors())
+    fun listProviders(): List<ProviderDescriptor> =
+        registry.listDescriptors()
 
     @GetMapping("/connections")
     fun listConnections(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<ProviderConnectionDTO>> =
-        ResponseEntity.ok(connectionService.fetchAllConnections(authenticatedUser))
+    ): List<ProviderConnectionDTO> =
+        connectionService.fetchAllConnections(authenticatedUser)
 
     @GetMapping("/connections/{id}")
     fun getConnection(
@@ -63,10 +63,10 @@ class IntegrationsResource(
     fun createConnection(
         @Valid @RequestBody form: ProviderConnectionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ProviderConnectionDTO> {
+    ): ProviderConnectionDTO {
         val created = connectionService.createConnection(authenticatedUser, form)
         log.info("Created provider connection id={} providerKey={} userId={}", created.id, form.providerKey, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/connections/{id}")
@@ -85,11 +85,11 @@ class IntegrationsResource(
     fun deleteConnection(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<Void> =
-        if (connectionService.deleteConnection(authenticatedUser, id)) {
-            log.info("Deleted provider connection id={} userId={}", id, authenticatedUser.id)
-            ResponseEntity.ok().build()
-        } else ResponseEntity.notFound().build()
+    ): ResponseEntity<Void> {
+        val deleted = connectionService.deleteConnection(authenticatedUser, id)
+        if (deleted) log.info("Deleted provider connection id={} userId={}", id, authenticatedUser.id)
+        return deleted.toDeleteResponse()
+    }
 
     @PostMapping("/connections/{id}/sync")
     fun triggerSync(
@@ -109,12 +109,10 @@ class IntegrationsResource(
     fun startOAuth(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<OAuthStartResponse> {
+    ): OAuthStartResponse {
         val result = oauthFlowService.startAuthorization(authenticatedUser, id)
         log.info("Started OAuth authorization connectionId={} userId={}", result.connectionId, authenticatedUser.id)
-        return ResponseEntity.ok(
-            OAuthStartResponse(authorizationUrl = result.authorizationUrl, connectionId = result.connectionId)
-        )
+        return OAuthStartResponse(authorizationUrl = result.authorizationUrl, connectionId = result.connectionId)
     }
 
     /**
@@ -127,16 +125,14 @@ class IntegrationsResource(
         @PathVariable fieldName: String,
         @RequestBody(required = false) request: RemoteOptionsRequestBody?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<SelectOption>> {
+    ): List<SelectOption> {
         val req = request ?: RemoteOptionsRequestBody()
-        return ResponseEntity.ok(
-            connectionService.fetchRemoteOptions(
-                authenticatedUser = authenticatedUser,
-                providerKey = providerKey,
-                fieldName = fieldName,
-                query = req.query,
-                values = req.values,
-            )
+        return connectionService.fetchRemoteOptions(
+            authenticatedUser = authenticatedUser,
+            providerKey = providerKey,
+            fieldName = fieldName,
+            query = req.query,
+            values = req.values,
         )
     }
 

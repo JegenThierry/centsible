@@ -5,7 +5,7 @@ import beer.thierry.centsible.api.model.savedfilter.SavedFilterForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.ISavedFilterRepository
 import beer.thierry.jooq.generated.tables.references.SAVED_TRANSACTION_FILTERS
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record

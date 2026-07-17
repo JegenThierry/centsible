@@ -3,7 +3,6 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.reports.SafeToSpendDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.reports.ISafeToSpendService
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,6 +20,6 @@ class SafeToSpendResource(
 ) {
 
     @GetMapping
-    fun fetch(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<SafeToSpendDTO> =
-        ResponseEntity.ok(safeToSpendService.fetchForCurrentMonth(authenticatedUser))
+    fun fetch(@AuthenticationPrincipal authenticatedUser: UserDTO): SafeToSpendDTO =
+        safeToSpendService.fetchForCurrentMonth(authenticatedUser)
 }

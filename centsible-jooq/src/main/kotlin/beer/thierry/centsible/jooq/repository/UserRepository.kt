@@ -5,7 +5,7 @@ import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.jooq.generated.tables.references.USERS
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.JSONB

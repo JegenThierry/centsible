@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {useSidebar} from "~/composables/use-sidebar";
-import {currencyOptions} from "~/models/budget-account/currency";
+import {currencyIcon} from "~/models/budget-account/currency";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 
 const accountStore = useBudgetAccountsStore();
@@ -9,10 +9,6 @@ const {open} = useSidebar();
 const {t} = useI18n();
 
 const active = computed(() => accountStore.activeAccount);
-
-function currencyIcon(currency: string): string | undefined {
-  return currencyOptions.find(c => c.value === currency)?.icon;
-}
 
 const items = computed(() => [
   accountStore.availableAccounts.map(a => ({

@@ -97,8 +97,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         to: LocalDate,
     ): Map<Long, BigDecimal> {
         if (categoryIds.isEmpty()) return emptyMap()
-        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
-        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val effectiveCategoryId = effectiveCategoryId()
+        val effectiveAmount = effectiveAmount()
         val categoryKey = effectiveCategoryId.`as`("category_id")
         val total = DSL.sum(effectiveAmount).`as`("total")
         return dsl.select(categoryKey, total)

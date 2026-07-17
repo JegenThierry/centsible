@@ -5,6 +5,7 @@ import beer.thierry.centsible.api.model.export.ExportScheduleForm
 import beer.thierry.centsible.api.model.export.ExportScheduleUpdateForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.export.IExportScheduleService
+import beer.thierry.centsiblerest.resources.toDeleteResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -26,17 +27,17 @@ class ExportSchedulesResource(private val service: IExportScheduleService) {
     private val log = LoggerFactory.getLogger(ExportSchedulesResource::class.java)
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<ExportScheduleDTO>> =
-        ResponseEntity.ok(service.list(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<ExportScheduleDTO> =
+        service.list(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: ExportScheduleForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ExportScheduleDTO> {
+    ): ExportScheduleDTO {
         val created = service.create(user, form)
         log.info("Created export schedule id={} userId={}", created.id, user.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -54,11 +55,9 @@ class ExportSchedulesResource(private val service: IExportScheduleService) {
     fun delete(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<Void> =
-        if (service.delete(user, id)) {
-            log.info("Deleted export schedule id={} userId={}", id, user.id)
-            ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+    ): ResponseEntity<Void> {
+        val deleted = service.delete(user, id)
+        if (deleted) log.info("Deleted export schedule id={} userId={}", id, user.id)
+        return deleted.toDeleteResponse()
+    }
 }

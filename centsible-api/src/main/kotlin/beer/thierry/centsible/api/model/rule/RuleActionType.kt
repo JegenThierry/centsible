@@ -7,7 +7,6 @@ enum class RuleActionType {
     val value: String get() = name
 
     companion object {
-        fun fromValue(value: String): RuleActionType =
-            entries.find { it.name == value } ?: throw IllegalArgumentException("Unknown rule action type: $value")
+        fun fromValue(value: String): RuleActionType = valueOf(value)
     }
 }

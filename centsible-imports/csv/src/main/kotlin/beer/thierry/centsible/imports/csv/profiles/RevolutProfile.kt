@@ -3,6 +3,8 @@ package beer.thierry.centsible.imports.csv.profiles
 import beer.thierry.centsible.imports.core.CsvBankProfile
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.MatchScore
+import beer.thierry.centsible.imports.core.anyEquals
+import beer.thierry.centsible.imports.core.normalizedHeader
 import org.springframework.stereotype.Component
 import java.util.Locale
 
@@ -21,11 +23,11 @@ class RevolutProfile : CsvBankProfile {
     override val version = 1
 
     override fun matches(header: List<String>, sample: List<List<String>>): MatchScore {
-        val normalized = header.map { it.lowercase() }
-        val hasStarted = normalized.any { it == "started date" }
-        val hasCompleted = normalized.any { it == "completed date" }
-        val hasState = normalized.any { it == "state" }
-        val hasBalance = normalized.any { it == "balance" }
+        val normalized = header.normalizedHeader()
+        val hasStarted = normalized.anyEquals("started date")
+        val hasCompleted = normalized.anyEquals("completed date")
+        val hasState = normalized.anyEquals("state")
+        val hasBalance = normalized.anyEquals("balance")
         return when {
             hasStarted && hasCompleted && hasState && hasBalance -> MatchScore.EXACT
             hasCompleted && hasBalance -> MatchScore.STRONG

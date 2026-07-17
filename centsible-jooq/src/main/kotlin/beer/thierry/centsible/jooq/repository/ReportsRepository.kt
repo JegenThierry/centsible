@@ -19,12 +19,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
-private val TXN_MONTH_KEY = DSL.field(
-    "to_char({0}, 'YYYY-MM')",
-    String::class.java,
-    TRANSACTIONS.TRANSACTION_DATE,
-)
-
 @Repository
 class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
 
@@ -69,8 +63,8 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         endDate: LocalDate,
         authenticatedUser: UserDTO,
     ): List<CategorySpendingCurrencyPointDTO> {
-        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
-        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val effectiveAmount = effectiveAmount()
+        val effectiveCategoryId = effectiveCategoryId()
         val total = DSL.sum(effectiveAmount)
 
         // Grouped by the account's currency for the same reason as fetchCashFlow: amounts are stored in

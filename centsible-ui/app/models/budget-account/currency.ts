@@ -44,3 +44,8 @@ export const currencyOptions = (Object.values(Currency) as Currency[]).map(code 
   value: code,
   icon: currencyIcons[code] ?? FALLBACK_ICON,
 })) satisfies SelectItem[];
+
+/** The select-option icon for a currency, or `undefined` when the code is not a known currency. */
+export function currencyIcon(currency: Currency | string | null | undefined): string | undefined {
+  return currencyOptions.find(c => c.value === currency)?.icon;
+}

@@ -3,7 +3,6 @@ package beer.thierry.centsible.core.services.reports
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetPeriodType
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualEntryDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
@@ -23,6 +22,7 @@ import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.IReportService
+import beer.thierry.centsible.core.services.recurring.occurrenceDatesInWindow
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -106,7 +106,7 @@ class ReportService(
                     emptySequence()
                 } else {
                     val converted = amount.multiply(rate).setScale(2, RoundingMode.HALF_UP)
-                    occurrenceDatesInWindow(rule, today, horizonEnd).asSequence().map { date ->
+                    occurrenceDatesInWindow(rule, today, horizonEnd, MAX_FORECAST_OCCURRENCES).asSequence().map { date ->
                         ForecastOccurrenceDTO(
                             date = date,
                             description = rule.description ?: "",
@@ -139,26 +139,6 @@ class ReportService(
 
         val points = pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
         return NetWorthForecastDTO(currency = rates.target, points = points, occurrences = occurrences)
-    }
-
-    /** Upcoming run dates within [windowStart, windowEnd], following the cadence from nextRunAt. */
-    private fun occurrenceDatesInWindow(
-        rule: RecurringTransactionDTO,
-        windowStart: LocalDate,
-        windowEnd: LocalDate,
-    ): List<LocalDate> {
-        val frequency = rule.frequency ?: return emptyList()
-        val hardEnd = rule.endDate
-        val dates = mutableListOf<LocalDate>()
-        var date = rule.nextRunAt ?: return emptyList()
-        var guard = 0
-        while (!date.isAfter(windowEnd) && guard < MAX_FORECAST_OCCURRENCES) {
-            if (hardEnd != null && date.isAfter(hardEnd)) break
-            if (!date.isBefore(windowStart)) dates += date
-            date = frequency.advance(date)
-            guard++
-        }
-        return dates
     }
 
     override fun fetchAccountBalancesOnDate(

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {currencyOptions} from "~/models/budget-account/currency";
+import {currencyIcon} from "~/models/budget-account/currency";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const accountStore = useBudgetAccountsStore();
@@ -13,10 +13,6 @@ defineShortcuts({
     open.value = !open.value;
   },
 });
-
-function currencyIcon(currency: string): string | undefined {
-  return currencyOptions.find(c => c.value === currency)?.icon;
-}
 
 function go(to: string): void {
   open.value = false;

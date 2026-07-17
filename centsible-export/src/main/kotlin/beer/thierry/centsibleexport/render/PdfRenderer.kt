@@ -1,6 +1,7 @@
 package beer.thierry.centsibleexport.render
 
 import beer.thierry.centsibleexport.config.BrowserPool
+import beer.thierry.centsibleexport.worker.elapsedMsSince
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.LoadState
 import com.microsoft.playwright.options.Margin
@@ -26,7 +27,7 @@ class PdfRenderer(
         val startNanos = System.nanoTime()
         try {
             val bytes = htmlToPdfBytes(renderHtml(template, context))
-            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            val elapsedMs = elapsedMsSince(startNanos)
             log.info("Rendered PDF template={} bytes={} elapsedMs={}", template, bytes.size, elapsedMs)
             return bytes
         } catch (ex: Exception) {

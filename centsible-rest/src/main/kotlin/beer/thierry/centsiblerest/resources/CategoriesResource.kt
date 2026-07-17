@@ -20,15 +20,15 @@ class CategoriesResource(private val categoryService: ICategoryService) {
     fun create(
         @Valid @RequestBody category: CategoryForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<CategoryDTO> {
+    ): CategoryDTO {
         val created = categoryService.createCategory(authenticatedUser, category)
         log.info("Created category id={} userId={}", created.id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @GetMapping
-    fun getCategories(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<CategoryDTO>> =
-        ResponseEntity.ok(categoryService.fetchAllCategories(authenticatedUser))
+    fun getCategories(@AuthenticationPrincipal authenticatedUser: UserDTO): List<CategoryDTO> =
+        categoryService.fetchAllCategories(authenticatedUser)
 
     @GetMapping("/{id}")
     fun getCategory(
@@ -58,9 +58,7 @@ class CategoriesResource(private val categoryService: ICategoryService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
         val deleted = categoryService.deleteCategory(authenticatedUser, id)
-        return if (deleted) {
-            log.info("Deleted category id={} userId={}", id, authenticatedUser.id)
-            ResponseEntity.ok().build()
-        } else ResponseEntity.notFound().build()
+        if (deleted) log.info("Deleted category id={} userId={}", id, authenticatedUser.id)
+        return deleted.toDeleteResponse()
     }
 }

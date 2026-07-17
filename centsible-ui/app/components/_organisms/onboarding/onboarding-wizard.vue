@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {computed, ref} from 'vue';
-import {Currency, currencyOptions} from "~/models/budget-account/currency";
+import {Currency, currencyIcon, currencyOptions} from "~/models/budget-account/currency";
 import {CategoryType} from "~/models/category/category";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import {useCategoryService} from "~/services/category/category-service";
@@ -55,9 +55,7 @@ function toggleSuggestion(name: string) {
   selectedCategories.value = next;
 }
 
-const activeIcon = computed(() =>
-  currencyOptions.find((item) => item.value === accountForm.value.currency)?.icon
-);
+const activeIcon = computed(() => currencyIcon(accountForm.value.currency));
 
 async function submitAccount() {
   if (!accountForm.value.name.trim()) {

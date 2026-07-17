@@ -3,8 +3,8 @@ package beer.thierry.centsible.core.services.integrations
 import beer.thierry.centsible.api.model.integrations.AuthType
 import beer.thierry.centsible.api.services.integrations.IProviderRegistry
 import beer.thierry.centsible.core.services.crypto.LazyAesGcmEncryptor
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

@@ -53,11 +53,11 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `illegal-state handler does not surface the raw exception message as the client message`() {
+    fun `illegal-state routed to the catch-all does not surface the raw exception message as the client message`() {
         val secret = "/var/lib/centsible/attachments/3f2c/secret.png: write failed"
         MDC.put(MDC_REQUEST_ID, "corr-456")
 
-        val response = handler.handleIllegalState(IllegalStateException(secret), request)
+        val response = handler.handleGlobalException(IllegalStateException(secret), request)
         val body = response.body!!
 
         assertEquals(500, response.statusCode.value())

@@ -11,6 +11,7 @@ import beer.thierry.centsible.imports.core.requireDefaultCategoryId
 import com.webcohesion.ofx4j.OFXException
 import com.webcohesion.ofx4j.domain.data.ResponseEnvelope
 import com.webcohesion.ofx4j.domain.data.banking.BankingResponseMessageSet
+import com.webcohesion.ofx4j.domain.data.common.StatementResponse
 import com.webcohesion.ofx4j.domain.data.common.Transaction
 import com.webcohesion.ofx4j.domain.data.creditcard.CreditCardResponseMessageSet
 import com.webcohesion.ofx4j.io.AggregateUnmarshaller
@@ -77,12 +78,8 @@ class OfxFileParser : FileFormatParser {
 
             for (set in envelope.messageSets) {
                 val statementResponses: List<StatementBlock> = when (set) {
-                    is BankingResponseMessageSet -> set.statementResponses.orEmpty()
-                        .mapNotNull { it.message }
-                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
-                    is CreditCardResponseMessageSet -> set.statementResponses.orEmpty()
-                        .mapNotNull { it.message }
-                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
+                    is BankingResponseMessageSet -> statementBlocks(set.statementResponses.orEmpty()) { it.message }
+                    is CreditCardResponseMessageSet -> statementBlocks(set.statementResponses.orEmpty()) { it.message }
                     else -> continue
                 }
                 for (block in statementResponses) {
@@ -128,6 +125,16 @@ class OfxFileParser : FileFormatParser {
 
         return importRow(amount, description, date, defaultCategoryId)
     }
+
+    /**
+     * Shared tail for the banking and credit-card arms of [parse]: unwrap each response's statement
+     * [message] (the two ofx4j wrapper types share no supertype, so the caller supplies the accessor)
+     * and project it onto a [StatementBlock]. Both statement messages extend [StatementResponse], so
+     * currency and transaction extraction are identical once the message is in hand.
+     */
+    private fun <T> statementBlocks(responses: List<T>, message: (T) -> StatementResponse?): List<StatementBlock> =
+        responses.mapNotNull(message)
+            .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
 
     private data class StatementBlock(
         val currencyCode: String?,

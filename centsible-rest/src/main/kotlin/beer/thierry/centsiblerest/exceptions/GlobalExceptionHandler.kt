@@ -3,7 +3,7 @@ package beer.thierry.centsiblerest.exceptions
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.ErrorResponse
 import beer.thierry.centsiblerest.logging.MDC_REQUEST_ID
-import com.fasterxml.jackson.core.JacksonException
+import tools.jackson.core.JacksonException
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -228,12 +228,6 @@ class GlobalExceptionHandler(
         // ex.message names the required parameter/part or the offending media type — useful in the
         // log, but it is untranslated developer text, so the client gets the generic key (ADR-0004).
         return frameworkError(statusCode, t("error.request.invalid"), request, headers, MDC.get(MDC_REQUEST_ID))
-    }
-
-    @ExceptionHandler(IllegalStateException::class)
-    fun handleIllegalState(ex: IllegalStateException, request: WebRequest): ResponseEntity<ErrorResponse> {
-        log.error("IllegalStateException", ex)
-        return serverError(request)
     }
 
     @ExceptionHandler(Exception::class)

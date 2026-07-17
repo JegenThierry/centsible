@@ -60,13 +60,10 @@ class FileImportRegistry(
      * Score every profile against the given CSV header/sample and return the winner. Used by
      * the wizard's "we think this is a Revolut export" suggestion.
      */
-    fun bestProfileMatch(header: List<String>, sample: List<List<String>>): CsvBankProfile? {
-        val scored = profilesById.values
-            .asSequence()
+    fun bestProfileMatch(header: List<String>, sample: List<List<String>>): CsvBankProfile? =
+        profilesById.values
             .map { it to it.matches(header, sample) }
             .filter { it.second > MatchScore.NO_MATCH }
-            .toList()
-        if (scored.isEmpty()) return null
-        return scored.maxByOrNull { it.second.value }?.first
-    }
+            .maxByOrNull { it.second }
+            ?.first
 }

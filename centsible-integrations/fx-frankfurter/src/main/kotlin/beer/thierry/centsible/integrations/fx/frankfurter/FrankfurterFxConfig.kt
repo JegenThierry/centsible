@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.client.RestClient
 
 @Configuration
 @ConditionalOnProperty(value = ["fx.frankfurter.enabled"], havingValue = "true", matchIfMissing = true)
@@ -27,9 +26,7 @@ class FrankfurterFxConfig(
 
     @Bean
     fun frankfurterHttpClient(httpTimeouts: HttpTimeoutProperties): FrankfurterHttpClient = FrankfurterHttpClient(
-        RestClient.builder()
-            .requestFactory(httpTimeouts.requestFactory())
-            .build(),
+        httpTimeouts.restClientBuilder().build(),
         apiBase,
     )
 

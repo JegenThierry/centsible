@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {Currency, currencyOptions} from "~/models/budget-account/currency";
+import {Currency, currencyIcon, currencyOptions} from "~/models/budget-account/currency";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 
 const model = defineModel<Currency>({required: true});
@@ -8,7 +8,7 @@ defineProps<{
   placeholder?: string;
 }>();
 
-const activeIcon = computed(() => currencyOptions.find(item => item.value === model.value)?.icon);
+const activeIcon = computed(() => currencyIcon(model.value));
 </script>
 
 <template>

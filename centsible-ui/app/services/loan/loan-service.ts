@@ -1,9 +1,13 @@
 import type {AxiosInstance} from "axios";
-import {assertStatus, validateRequest} from "~/composables/use-api";
+import {assertStatus, crudResource, validateRequest} from "~/composables/use-api";
 import {invalidateLedgerAggregates} from "~/utils/ledger-aggregates";
 import type {Loan, LoanForm, LoanUpdateForm, Repayment, RepaymentForm, SplitToLoansRequest} from "~/models/loan/loan";
 
 export function useLoanService(api: AxiosInstance) {
+  // Only the two side-effect-free endpoints use the shared resource; the ledger-writing paths below
+  // stay bespoke so they can invalidate aggregates (see the doc comments on createLoan/deleteLoan).
+  const resource = crudResource<Loan, string, LoanForm, LoanUpdateForm>(api, '/loans');
+
   async function fetchLoans(contactId?: string): Promise<Loan[]> {
     const response = await api.get<Loan[]>('/loans', {
       params: contactId ? {contactId} : undefined,
@@ -11,10 +15,7 @@ export function useLoanService(api: AxiosInstance) {
     return validateRequest<Loan[]>(response);
   }
 
-  async function fetchLoan(id: string): Promise<Loan> {
-    const response = await api.get<Loan>(`/loans/${encodeURIComponent(id)}`);
-    return validateRequest<Loan>(response);
-  }
+  const fetchLoan = (id: string): Promise<Loan> => resource.get(id);
 
   /**
    * A loan with `affectBalance` writes a source transaction server-side, so this is a ledger write
@@ -38,10 +39,7 @@ export function useLoanService(api: AxiosInstance) {
     return validateRequest<Loan[]>(response);
   }
 
-  async function updateLoan(id: string, form: LoanUpdateForm): Promise<Loan> {
-    const response = await api.put<Loan>(`/loans/${encodeURIComponent(id)}`, form);
-    return validateRequest<Loan>(response);
-  }
+  const updateLoan = (id: string, form: LoanUpdateForm): Promise<Loan> => resource.update(id, form);
 
   /** Unconditional: whether this loan had a balance-affecting source transaction isn't known here. */
   async function deleteLoan(id: string): Promise<void> {

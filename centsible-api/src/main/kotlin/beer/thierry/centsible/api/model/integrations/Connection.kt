@@ -20,12 +20,12 @@ data class ProviderConnectionDTO(
 )
 
 data class ProviderConnectionForm(
-    @field:NotBlank(message = "Provider key is required.")
-    @field:Size(max = 100)
+    @field:NotBlank(message = "{validation.connection.providerKey.required}")
+    @field:Size(max = 100, message = "{validation.connection.providerKey.tooLong}")
     var providerKey: String = "",
 
-    @field:NotBlank(message = "Display name is required.")
-    @field:Size(max = 200)
+    @field:NotBlank(message = "{validation.connection.displayName.required}")
+    @field:Size(max = 200, message = "{validation.connection.displayName.tooLong}")
     var displayName: String = "",
 
     var values: Map<String, Any?> = emptyMap(),

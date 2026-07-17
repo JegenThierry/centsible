@@ -5,8 +5,6 @@ import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
 import beer.thierry.centsibleexport.render.RenderLimits
 import org.springframework.stereotype.Component
-import java.time.LocalDate
-import java.util.UUID
 
 @Component
 class TransactionsCsvRenderer(
@@ -16,13 +14,7 @@ class TransactionsCsvRenderer(
     override fun supports(): ExportType = ExportType.TRANSACTIONS
 
     override fun buildCsv(request: ExportRequest): CsvBuilder {
-        require(request.hasTransactions()) { "ExportRequest missing transactions body" }
-        val body = request.transactions
-        val userId = UUID.fromString(request.meta.userId)
-        val accountIds = body.accountIdsList.map(UUID::fromString)
-        val fromDate = body.fromDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
-        val toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
-        val categoryIds = body.categoryIdsList.toList()
+        val (userId, accountIds, fromDate, toDate, categoryIds) = request.transactionFilters()
 
         val transactions = data.fetchTransactionsCapped(
             userId, accountIds, fromDate, toDate, categoryIds, limits.maxTransactionRows,

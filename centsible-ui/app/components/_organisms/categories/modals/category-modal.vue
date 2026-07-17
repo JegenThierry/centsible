@@ -8,8 +8,7 @@ import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import IconInput from "~/components/_molecules/inputs/icon-input.vue";
 import ColorSelect from "~/components/_atoms/inputs/color-select.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {categorySchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
@@ -24,7 +23,6 @@ const {t} = useI18n();
 
 const form = ref<CategoryForm>(blankForm());
 const loading = ref(false);
-const formId = useId();
 
 const schema = categorySchema(t);
 type Schema = z.output<typeof schema>;
@@ -47,12 +45,12 @@ function syncForm() {
     : blankForm();
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: syncForm,
-});
+// Snapshot for FormModal's dirty guard; defined in script so `form.value` reads the ref, not the
+// template-unwrapped value.
+function snapshot() {
+  return form.value;
+}
+
 watch(() => props.category, () => {
   if (isOpen.value) syncForm();
 });
@@ -76,40 +74,37 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t(isEdit ? 'categories.edit.description' : 'categories.create.description')"
-          :title="t(isEdit ? 'categories.edit.title' : 'categories.create.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
-        <AppRadioGroup v-model="form.type"
-                     :items="typeOptions"
-                     :legend="t('categories.type.legend')"
-                     orientation="horizontal"/>
+  <FormModal v-model="isOpen"
+             :description="t(isEdit ? 'categories.edit.description' : 'categories.create.description')"
+             :title="t(isEdit ? 'categories.edit.title' : 'categories.create.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="snapshot"
+             :on-reset-on-open="syncForm"
+             :submit-label="t(isEdit ? 'categories.edit.submit' : 'categories.create.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <AppRadioGroup v-model="form.type"
+                   :items="typeOptions"
+                   :legend="t('categories.type.legend')"
+                   orientation="horizontal"/>
 
-        <BaseInput name="name"
-                   v-model="form.name"
-                   :max-length="50"
-                   :label="t('categories.form.nameLabel')"
-                   :placeholder="t('categories.form.namePlaceholder')"
-                   required
-                   type="text"/>
+      <BaseInput name="name"
+                 v-model="form.name"
+                 :max-length="50"
+                 :label="t('categories.form.nameLabel')"
+                 :placeholder="t('categories.form.namePlaceholder')"
+                 required
+                 type="text"/>
 
-        <IconInput name="icon"
-                   v-model="form.icon"
+      <IconInput name="icon"
+                 v-model="form.icon"
+                 required/>
+
+      <ColorSelect v-model="form.color"
+                   :label="t('categories.form.colorLabel')"
                    required/>
-
-        <ColorSelect v-model="form.color"
-                     :label="t('categories.form.colorLabel')"
-                     required/>
-      </UForm>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t(isEdit ? 'categories.edit.submit' : 'categories.create.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

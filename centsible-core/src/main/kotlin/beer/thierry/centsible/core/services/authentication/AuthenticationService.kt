@@ -108,8 +108,13 @@ class AuthenticationService(
         return AuthResponse(generateJwt(user))
     }
 
-    override fun register(authRequest: AuthRegisterRequest): AuthResponse {
-        if (!registrationEnabled) throw LocalizedException.Forbidden("error.auth.registrationDisabled")
+    /**
+     * Shared registration prologue for [register] and [setupFirstUser]: validate the password, reject a
+     * pre-existing account, hash the password, mint a verification token and persist the user. Returns
+     * the created user paired with the raw (un-hashed) token; each caller owns its divergent tail.
+     * Preserves every LocalizedException key and InternalError path.
+     */
+    private fun createRegisteredUser(authRequest: AuthRegisterRequest): Pair<User, String> {
         assertPasswordMatchesSecuritySettings(authRequest.password)
 
         val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
@@ -122,11 +127,17 @@ class AuthenticationService(
             ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
 
         val rawToken = generateRegistrationToken()
-        val tokenHash = sha256(rawToken)
         val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
 
-        val registeredUser = userRepository.createUser(authRequest, passwordHash, tokenHash, tokenExpiresAt)
+        val user = userRepository.createUser(authRequest, passwordHash, sha256(rawToken), tokenExpiresAt)
             ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
+        return user to rawToken
+    }
+
+    override fun register(authRequest: AuthRegisterRequest): AuthResponse {
+        if (!registrationEnabled) throw LocalizedException.Forbidden("error.auth.registrationDisabled")
+
+        val (registeredUser, rawToken) = createRegisteredUser(authRequest)
         log.info("Registered new user userId={} username='{}'", registeredUser.id, registeredUser.username)
 
         if (skipEmailVerification) {
@@ -150,20 +161,8 @@ class AuthenticationService(
         if (adminEnabled && adminUsername.isNotBlank() && authRequest.username != adminUsername) {
             throw LocalizedException.BadRequest("error.setup.adminUsernameMismatch", adminUsername)
         }
-        assertPasswordMatchesSecuritySettings(authRequest.password)
 
-        val existing = userRepository.findUserByEmailOrUsername(authRequest.email, authRequest.username)
-        if (existing != null) {
-            throw LocalizedException.Conflict("error.auth.accountExists")
-        }
-
-        val passwordHash = passwordEncoder.encode(authRequest.password)
-            ?: throw LocalizedException.InternalError("error.auth.passwordHashFailed")
-        val rawToken = generateRegistrationToken()
-        val tokenExpiresAt = OffsetDateTime.now().plusHours(REGISTRATION_TOKEN_TTL_HOURS)
-
-        val created = userRepository.createUser(authRequest, passwordHash, sha256(rawToken), tokenExpiresAt)
-            ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
+        val (created, _) = createRegisteredUser(authRequest)
         userRepository.confirmUser(created.id) // first admin skips email verification by design
         log.info("First-run setup created admin user userId={} username='{}'", created.id, created.username)
         return AuthResponse(generateJwt(created))

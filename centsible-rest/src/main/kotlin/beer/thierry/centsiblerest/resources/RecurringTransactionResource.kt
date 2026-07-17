@@ -21,18 +21,18 @@ class RecurringTransactionResource(private val service: IRecurringTransactionSer
     fun list(
         @RequestParam(required = false) accountId: UUID?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<RecurringTransactionDTO>> =
-        ResponseEntity.ok(service.fetchAll(authenticatedUser, accountId))
+    ): List<RecurringTransactionDTO> =
+        service.fetchAll(authenticatedUser, accountId)
 
     @PostMapping("/{accountId}")
     fun create(
         @PathVariable accountId: UUID,
         @Valid @RequestBody form: RecurringTransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RecurringTransactionDTO> {
+    ): RecurringTransactionDTO {
         val created = service.create(accountId, form, authenticatedUser)
         log.info("Created recurring transaction id={} accountId={} userId={}", created.id, accountId, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -40,10 +40,10 @@ class RecurringTransactionResource(private val service: IRecurringTransactionSer
         @PathVariable id: UUID,
         @Valid @RequestBody form: RecurringTransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RecurringTransactionDTO> {
+    ): RecurringTransactionDTO {
         val updated = service.update(id, form, authenticatedUser)
         log.info("Updated recurring transaction id={} userId={}", id, authenticatedUser.id)
-        return ResponseEntity.ok(updated)
+        return updated
     }
 
     @DeleteMapping("/{id}")
@@ -60,19 +60,19 @@ class RecurringTransactionResource(private val service: IRecurringTransactionSer
     fun pause(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RecurringTransactionDTO> {
+    ): RecurringTransactionDTO {
         val result = service.setActive(id, false, authenticatedUser)
         log.info("Paused recurring transaction id={} userId={}", id, authenticatedUser.id)
-        return ResponseEntity.ok(result)
+        return result
     }
 
     @PostMapping("/{id}/resume")
     fun resume(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RecurringTransactionDTO> {
+    ): RecurringTransactionDTO {
         val result = service.setActive(id, true, authenticatedUser)
         log.info("Resumed recurring transaction id={} userId={}", id, authenticatedUser.id)
-        return ResponseEntity.ok(result)
+        return result
     }
 }

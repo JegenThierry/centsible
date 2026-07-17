@@ -63,13 +63,13 @@ class PostProcessingWorker(
             try {
                 processors.forType(claimed.type).execute(job, pdf.bytes, pdf.filename, claimed.config)
                 ppRepository.markCompleted(claimed.id, workerProperties.id)
-                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                val elapsedMs = elapsedMsSince(startNanos)
                 log.info(
                     "Completed post-processing ppId={} type={} jobId={} elapsedMs={}",
                     claimed.id, claimed.type, claimed.exportJobId, elapsedMs,
                 )
             } catch (ex: Exception) {
-                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                val elapsedMs = elapsedMsSince(startNanos)
                 log.error(
                     "Failed post-processing ppId={} type={} jobId={} elapsedMs={}",
                     claimed.id, claimed.type, claimed.exportJobId, elapsedMs, ex,

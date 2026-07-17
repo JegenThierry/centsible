@@ -132,7 +132,7 @@ class CsvFileParser : FileFormatParser {
         return try {
             Result.success(
                 CSVParser.parse(StringReader(text), format).use { parser ->
-                    parser.map { record -> (0 until record.size()).map { i -> record[i] ?: "" } }
+                    parser.map { record -> record.toList() }
                 }
             )
         } catch (ex: UncheckedIOException) {
@@ -234,15 +234,24 @@ class CsvFileParser : FileFormatParser {
         return String(bytes, requested)
     }
 
-    private fun decodeByBom(bytes: ByteArray): String? = when {
+    /**
+     * The magic-byte inspection shared by [decodeByBom] and [detectEncoding]: returns the charset a
+     * byte-order mark authoritatively identifies together with the BOM's byte length (so callers can
+     * strip it), or null when no BOM is present. Keeping the byte checks in one place stops the three
+     * decode paths from drifting apart.
+     */
+    private fun detectBomCharset(bytes: ByteArray): Pair<Charset, Int>? = when {
         bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte() ->
-            String(bytes, 3, bytes.size - 3, Charsets.UTF_8)
+            Charsets.UTF_8 to 3
         bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte() ->
-            String(bytes, 2, bytes.size - 2, Charsets.UTF_16LE)
+            Charsets.UTF_16LE to 2
         bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte() ->
-            String(bytes, 2, bytes.size - 2, Charsets.UTF_16BE)
+            Charsets.UTF_16BE to 2
         else -> null
     }
+
+    private fun decodeByBom(bytes: ByteArray): String? =
+        detectBomCharset(bytes)?.let { (charset, prefix) -> String(bytes, prefix, bytes.size - prefix, charset) }
 
     private fun isValidUtf8(bytes: ByteArray): Boolean = runCatching {
         Charsets.UTF_8.newDecoder()
@@ -251,12 +260,9 @@ class CsvFileParser : FileFormatParser {
             .decode(ByteBuffer.wrap(bytes))
     }.isSuccess
 
-    private fun detectEncoding(bytes: ByteArray): String = when {
-        bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte() -> "UTF-8"
-        bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte() -> "UTF-16LE"
-        bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte() -> "UTF-16BE"
-        isValidUtf8(bytes) -> "UTF-8"
-        else -> "windows-1252"
+    private fun detectEncoding(bytes: ByteArray): String {
+        detectBomCharset(bytes)?.let { return it.first.name() }
+        return if (isValidUtf8(bytes)) "UTF-8" else "windows-1252"
     }
 
     /**

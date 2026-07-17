@@ -20,6 +20,7 @@ import {
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const props = defineProps<{
@@ -206,7 +207,7 @@ async function handleSave() {
     <template #body>
       <div class="space-y-5">
         <UFormField :label="t('categories.rules.nameLabel')">
-          <UInput v-model="state.name" :placeholder="t('categories.rules.namePlaceholder')" class="w-full"/>
+          <AppInput v-model="state.name" :placeholder="t('categories.rules.namePlaceholder')" class="w-full"/>
         </UFormField>
 
         <UFormField :label="t('categories.rules.matchModeLabel')">
@@ -230,11 +231,11 @@ async function handleSave() {
                        v-model="row.operator"
                        :items="operatorOptions(row.field)"
                        class="w-32"/>
-            <UInput v-if="row.field === 'DESCRIPTION'"
+            <AppInput v-if="row.field === 'DESCRIPTION'"
                     v-model="row.value"
                     :placeholder="t('categories.rules.valuePlaceholder')"
                     class="flex-1 min-w-[8rem]"/>
-            <UInput v-else-if="row.field === 'AMOUNT'"
+            <AppInput v-else-if="row.field === 'AMOUNT'"
                     v-model="row.value"
                     class="flex-1 min-w-[8rem]"
                     type="number"/>
@@ -282,7 +283,7 @@ async function handleSave() {
 
         <div class="flex flex-wrap items-end gap-4">
           <UFormField :description="t('categories.rules.priorityDescription')" :label="t('categories.rules.priorityLabel')">
-            <UInput v-model="state.priority" :max="1000" :min="0" class="w-28" type="number"/>
+            <AppInput v-model="state.priority" :max="1000" :min="0" class="w-28" type="number"/>
           </UFormField>
           <UFormField :label="t('categories.rules.enabledLabel')">
             <USwitch v-model="state.enabled"/>
