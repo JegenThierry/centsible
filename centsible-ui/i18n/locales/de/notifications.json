@@ -5,6 +5,10 @@
     "empty": "Alles erledigt.",
     "markAllRead": "Alle als gelesen markieren",
     "markRead": "Als gelesen markieren",
-    "delete": "Benachrichtigung löschen"
+    "delete": "Benachrichtigung löschen",
+    "toasts": {
+      "updateFailedTitle": "Aktualisierung der Benachrichtigungen fehlgeschlagen",
+      "updateFailedBody": "Benachrichtigungen konnten nicht aktualisiert werden. Bitte erneut versuchen."
+    }
   }
 }

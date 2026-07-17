@@ -1,5 +1,6 @@
 import type {AxiosInstance} from "axios";
 import {postMultipart, validateRequest} from "~/composables/use-api";
+import {invalidateLedgerAggregates} from "~/utils/ledger-aggregates";
 import type {
   CsvProbeResponse,
   ImportDetection,
@@ -49,11 +50,15 @@ export function useImportService(api: AxiosInstance) {
     parserId: string,
     hints: ParseHints,
   ): Promise<ImportResult> {
-    return postMultipart<ImportResult>(api, `/imports/${encodeURIComponent(accountId)}`, {
+    const result = await postMultipart<ImportResult>(api, `/imports/${encodeURIComponent(accountId)}`, {
       file,
       parserId,
       hints: JSON.stringify(hints),
     });
+    // The only write in this service, and potentially hundreds of rows at once — drop the dashboard's
+    // memoized aggregates so its charts don't keep serving the pre-import picture.
+    invalidateLedgerAggregates();
+    return result;
   }
 
   async function listProfiles(): Promise<CsvProfileSummary[]> {

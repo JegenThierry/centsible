@@ -10,6 +10,7 @@ import type {BudgetVsActualPeriod} from "~/models/reports/budget-vs-actual";
 import type {SafeToSpend} from "~/models/reports/safe-to-spend";
 import type {NetWorthForecast} from "~/models/reports/forecast";
 import {isoDateRangeForMonthsBack} from "~/utils/date";
+import {createLatestRequestGate} from "~/utils/latest-request";
 
 export const useReportsStore = defineStore('reportsStore', () => {
   const reportsService = useReportsService(useApi());
@@ -44,24 +45,60 @@ export const useReportsStore = defineStore('reportsStore', () => {
     return typeof arg === 'number' ? isoDateRangeForMonthsBack(arg) : arg;
   }
 
-  async function runFetch<T>(label: string, loader: () => Promise<T>, fallback: () => void) {
+  /**
+   * One generation per range *batch*, not per fetch. The range-scoped reports race each other and
+   * differ wildly in cost (net worth over 24 months is far slower than over 3), so a per-fetch token
+   * would still let `cashFlow` and `cashFlowPrevious` settle from different batches and silently
+   * corrupt the KPI period-delta. They stand or fall together.
+   */
+  const rangeGate = createLatestRequestGate();
+
+  /**
+   * [isLatest] gates the assignment rather than the request: a batch that a newer range superseded
+   * still resolves, it just drops its payload instead of painting a stale range.
+   */
+  async function runFetch<T>(
+    label: string,
+    loader: () => Promise<T>,
+    apply: (value: T) => void,
+    fallback: () => void,
+    isLatest: () => boolean,
+  ) {
     inflight.value++;
     try {
-      return await loader();
+      const value = await loader();
+      if (isLatest()) apply(value);
     } catch (error) {
       adze.ns('reports').error(`Failed to fetch ${label}`, error);
-      fallback();
+      if (isLatest()) fallback();
     } finally {
       inflight.value--;
     }
   }
 
-  async function fetchNetWorth(range: RangeArg = 6) {
+  /**
+   * Loads every range-scoped report as one batch — the only way in, so the four can't be dispatched
+   * out of step with each other.
+   */
+  async function fetchRangeReports(range: RangeArg, previousRange: RangeArg) {
+    const isLatest = rangeGate.begin();
+    error.value = false;
+    await Promise.all([
+      fetchNetWorth(range, isLatest),
+      fetchCategorySpending(range, isLatest),
+      fetchCashFlow(range, isLatest),
+      fetchCashFlowPrevious(previousRange, isLatest),
+    ]);
+  }
+
+  async function fetchNetWorth(range: RangeArg, isLatest: () => boolean) {
     const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "net worth report",
-      async () => { netWorth.value = await reportsService.fetchNetWorth(startDate, endDate); },
+      () => reportsService.fetchNetWorth(startDate, endDate),
+      (value) => { netWorth.value = value; },
       () => { netWorth.value = []; error.value = true; },
+      isLatest,
     );
   }
 
@@ -69,55 +106,71 @@ export const useReportsStore = defineStore('reportsStore', () => {
     return reportsService.fetchNetWorthBreakdown(date);
   }
 
-  async function fetchCategorySpending(range: RangeArg = 6) {
+  async function fetchCategorySpending(range: RangeArg, isLatest: () => boolean) {
     const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "category spending report",
-      async () => { categorySpending.value = await reportsService.fetchCategorySpending(startDate, endDate); },
+      () => reportsService.fetchCategorySpending(startDate, endDate),
+      (value) => { categorySpending.value = value; },
       () => { categorySpending.value = []; error.value = true; },
+      isLatest,
     );
   }
 
-  async function fetchCashFlow(range: RangeArg = 6) {
+  async function fetchCashFlow(range: RangeArg, isLatest: () => boolean) {
     const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "cash flow report",
-      async () => { cashFlow.value = await reportsService.fetchCashFlow(startDate, endDate); },
+      () => reportsService.fetchCashFlow(startDate, endDate),
+      (value) => { cashFlow.value = value; },
       () => { cashFlow.value = []; error.value = true; },
+      isLatest,
     );
   }
 
-  async function fetchCashFlowPrevious(range: RangeArg = 6) {
+  async function fetchCashFlowPrevious(range: RangeArg, isLatest: () => boolean) {
     const {startDate, endDate} = resolveRange(range);
     await runFetch(
       "previous cash flow report",
-      async () => { cashFlowPrevious.value = await reportsService.fetchCashFlow(startDate, endDate); },
+      () => reportsService.fetchCashFlow(startDate, endDate),
+      (value) => { cashFlowPrevious.value = value; },
       // A failed comparison fetch just hides the deltas — it must not error the whole page.
       () => { cashFlowPrevious.value = []; },
+      isLatest,
     );
   }
+
+  // The reports below don't take the selected range, so nothing supersedes them: they're their own
+  // batch of one.
+  const always = () => true;
 
   async function fetchYearOverYear() {
     await runFetch(
       "year-over-year report",
-      async () => { yearOverYear.value = await reportsService.fetchYearOverYear(); },
+      () => reportsService.fetchYearOverYear(),
+      (value) => { yearOverYear.value = value; },
       () => { yearOverYear.value = null; error.value = true; },
+      always,
     );
   }
 
   async function fetchBudgetVsActual(periods: number = 6) {
     await runFetch(
       "budget-vs-actual report",
-      async () => { budgetVsActual.value = await reportsService.fetchBudgetVsActual(periods); },
+      () => reportsService.fetchBudgetVsActual(periods),
+      (value) => { budgetVsActual.value = value; },
       () => { budgetVsActual.value = []; error.value = true; },
+      always,
     );
   }
 
   async function fetchSafeToSpend() {
     await runFetch(
       "safe-to-spend",
-      async () => { safeToSpend.value = await reportsService.fetchSafeToSpend(); },
+      () => reportsService.fetchSafeToSpend(),
+      (value) => { safeToSpend.value = value; },
       () => { safeToSpend.value = null; safeToSpendError.value = true; },
+      always,
     );
   }
 
@@ -151,11 +204,10 @@ export const useReportsStore = defineStore('reportsStore', () => {
     pending,
     error,
     safeToSpendError,
-    fetchNetWorth,
+    // The four range-scoped fetches stay private: they're only correct as one batch, so
+    // `fetchRangeReports` is the only way to reach them.
+    fetchRangeReports,
     fetchNetWorthBreakdown,
-    fetchCategorySpending,
-    fetchCashFlow,
-    fetchCashFlowPrevious,
     fetchYearOverYear,
     fetchBudgetVsActual,
     fetchSafeToSpend,

@@ -13,11 +13,11 @@ import beer.thierry.centsible.api.model.integrations.TransactionImportPage
 import beer.thierry.centsible.api.services.integrations.IAccountProvider
 import beer.thierry.centsible.api.services.integrations.ITransactionImporter
 import beer.thierry.centsible.api.services.integrations.ProviderModule
+import beer.thierry.centsible.integrations.support.IntegrationApiException
 import beer.thierry.centsible.integrations.support.firstNonBlank
 import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
 import org.slf4j.LoggerFactory
-import org.springframework.web.client.RestClientResponseException
-import java.io.IOException
+import org.springframework.web.client.ResourceAccessException
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
@@ -91,23 +91,23 @@ class PaypalProviderModule(
     }
 
     override fun listExternalAccounts(ctx: ProviderContext): List<ExternalAccountDTO> {
+        val (clientId, clientSecret, environment) = readCredentials(ctx)
+        val token = client.obtainAccessToken(environment, clientId, clientSecret)
         val displayName = try {
-            val (clientId, clientSecret, environment) = readCredentials(ctx)
-            val token = client.obtainAccessToken(environment, clientId, clientSecret)
             val userInfo = client.fetchUserInfo(environment, token.accessToken)
             userInfo.email?.takeIf { it.isNotBlank() }
                 ?: userInfo.name?.takeIf { it.isNotBlank() }
-                ?: "PayPal"
-        } catch (e: RestClientResponseException) {
+                ?: DEFAULT_DISPLAY_NAME
+        } catch (e: IntegrationApiException) {
             log.warn(
                 "PayPal userinfo enrichment failed (HTTP {}); falling back to default display name. " +
                     "Confirm the REST app has the 'openid profile email' scopes enabled.",
-                e.statusCode.value(),
+                e.status.value(),
             )
-            "PayPal"
-        } catch (e: IOException) {
+            DEFAULT_DISPLAY_NAME
+        } catch (e: ResourceAccessException) {
             log.warn("PayPal userinfo network failure: {}; using default display name", e.javaClass.simpleName)
-            "PayPal"
+            DEFAULT_DISPLAY_NAME
         }
         return listOf(
             ExternalAccountDTO(
@@ -151,35 +151,32 @@ class PaypalProviderModule(
             ctx.userId, ctx.connectionId, environment, startDate, endDate,
         )
 
+        val chunkEnd = minOf(startDate.plus(MAX_WINDOW), endDate)
         val accumulated = mutableListOf<ImportedTransactionDTO>()
-        var chunkStart = startDate
         try {
-            while (chunkStart.isBefore(endDate)) {
-                val chunkEnd = minOf(chunkStart.plus(MAX_WINDOW), endDate)
-                var page = 1
-                while (true) {
-                    val response = client.fetchTransactions(environment, token.accessToken, chunkStart, chunkEnd, page)
-                    response.transactionDetails.forEach { detail ->
-                        mapTransaction(detail)?.let(accumulated::add)
-                    }
-                    if (page >= response.totalPages) break
-                    page += 1
+            var page = 1
+            while (true) {
+                val response = client.fetchTransactions(environment, token.accessToken, startDate, chunkEnd, page)
+                response.transactionDetails.forEach { detail ->
+                    mapTransaction(detail)?.let(accumulated::add)
                 }
-                chunkStart = chunkEnd
+                if (page >= response.totalPages) break
+                page += 1
             }
         } catch (ex: Exception) {
             log.error(
-                "Sync failed provider=PayPal userId={} connectionId={} processedBeforeFailure={}",
-                ctx.userId, ctx.connectionId, accumulated.size, ex,
+                "Sync failed provider=PayPal userId={} connectionId={} chunkStart={} chunkEnd={} processedBeforeFailure={}",
+                ctx.userId, ctx.connectionId, startDate, chunkEnd, accumulated.size, ex,
             )
             throw ex
         }
 
         log.info(
-            "Sync complete provider=PayPal userId={} connectionId={} processed={} elapsedMs={}",
-            ctx.userId, ctx.connectionId, accumulated.size, System.currentTimeMillis() - started,
+            "Sync window complete provider=PayPal userId={} connectionId={} processed={} chunkEnd={} caughtUp={} elapsedMs={}",
+            ctx.userId, ctx.connectionId, accumulated.size, chunkEnd, chunkEnd == endDate,
+            System.currentTimeMillis() - started,
         )
-        return TransactionImportPage(transactions = accumulated, nextCursor = endDate.toString())
+        return TransactionImportPage(transactions = accumulated, nextCursor = chunkEnd.toString())
     }
 
     private fun mapTransaction(detail: TransactionDetail): ImportedTransactionDTO? {
@@ -269,10 +266,15 @@ class PaypalProviderModule(
 
     companion object {
         private const val DEFAULT_ACCOUNT_ID = "paypal:default"
+        private const val DEFAULT_DISPLAY_NAME = "PayPal"
         private const val SAFETY_MARGIN_SECONDS = 300L
         private val DEFAULT_LOOKBACK: Duration = Duration.of(90, ChronoUnit.DAYS)
 
-        /** PayPal Reporting API rejects ranges wider than 31 days per call; importSince chunks accordingly. */
+        /**
+         * PayPal Reporting API rejects ranges wider than 31 days per call. importSince returns one
+         * window per invocation and advances the cursor to its end, so a long backfill is spread
+         * across polls instead of being accumulated in memory and restarted from scratch on failure.
+         */
         private val MAX_WINDOW: Duration = Duration.of(31, ChronoUnit.DAYS)
 
         private val PAYPAL_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatterBuilder()

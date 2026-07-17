@@ -27,10 +27,10 @@ import {useReportsStore} from "~/stores/reportsStore";
 import {useLoansStore} from "~/stores/loansStore";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useTransactionList} from "~/components/_organisms/transactions/utils/use-transaction-list";
-import {invalidateMonthlyAggregates, prefetchMonthlyAggregates} from "~/composables/use-monthly-aggregates";
-import {invalidateCategoryAggregates, prefetchCategoryAggregates} from "~/composables/use-category-aggregates";
-import {invalidateDailyAggregates, prefetchDailyAggregates} from "~/composables/use-daily-aggregates";
-import {invalidateAccountSnapshots, useAccountSnapshots} from "~/composables/use-account-snapshots";
+import {prefetchMonthlyAggregates} from "~/composables/use-monthly-aggregates";
+import {prefetchCategoryAggregates} from "~/composables/use-category-aggregates";
+import {prefetchDailyAggregates} from "~/composables/use-daily-aggregates";
+import {useAccountSnapshots} from "~/composables/use-account-snapshots";
 import {useDashboardPeriod} from "~/composables/use-dashboard-period";
 import type {CategoryDrillPayload} from "~/models/transactions/transaction-filters";
 
@@ -114,11 +114,9 @@ function onOpenCreateTransactionModal(): void {
   isCreateTransactionModalVisible.value = true;
 }
 
+// The write already dropped the aggregate caches on its way out of the service layer, so this only
+// has to re-read them.
 async function onCreated() {
-  invalidateMonthlyAggregates();
-  invalidateCategoryAggregates();
-  invalidateDailyAggregates();
-  invalidateAccountSnapshots();
   await accountStore.updateActiveAccount();
   await Promise.all([fetchData(), reloadSnapshots()]);
 }

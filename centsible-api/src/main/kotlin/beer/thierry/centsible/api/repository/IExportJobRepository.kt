@@ -23,7 +23,11 @@ interface IExportJobRepository {
 
     fun fetchPdf(jobId: UUID, userId: UUID): ExportPdf?
 
-    /** Resets the owned job (and its post-processing rows) back to pending, clearing prior PDF, error and lease. */
+    /**
+     * Resets the owned job (and its post-processing rows) back to pending, clearing prior PDF, error and lease.
+     * Only a settled (completed or failed) job may be retriggered — null otherwise, so a job a worker is
+     * mid-render on keeps its lease.
+     */
     fun retrigger(jobId: UUID, userId: UUID): ExportJobDTO?
 
     fun delete(jobId: UUID, userId: UUID): Boolean
@@ -38,7 +42,12 @@ interface IExportJobRepository {
 
     fun fetchPdfForWorker(jobId: UUID): ExportPdf?
 
-    fun markCompleted(jobId: UUID, pdf: ByteArray, pdfFilename: String)
+    /**
+     * Settles the job only while [workerId] still holds its lease; a no-op once the lease lapsed and
+     * another worker (or a retrigger) took the job over.
+     */
+    fun markCompleted(jobId: UUID, workerId: String, pdf: ByteArray, pdfFilename: String)
 
-    fun markFailed(jobId: UUID, errorMessage: String)
+    /** Fails the job only while [workerId] still holds its lease. See [markCompleted]. */
+    fun markFailed(jobId: UUID, workerId: String, errorMessage: String)
 }

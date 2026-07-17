@@ -3,10 +3,11 @@ import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {CategoryAggregate} from "~/models/transactions/transaction";
 import {createAsyncCache} from "~/utils/async-cache";
+import {registerLedgerAggregateCache} from "~/utils/ledger-aggregates";
 
 type TransactionService = ReturnType<typeof useTransactionService>;
 
-const cache = createAsyncCache<CategoryAggregate[]>(() => []);
+const cache = registerLedgerAggregateCache(createAsyncCache<CategoryAggregate[]>(() => []));
 
 function key(accountId: string, fromIso: string | null, toIso: string | null): string {
   return `${accountId}|${fromIso ?? ''}|${toIso ?? ''}`;
@@ -48,8 +49,10 @@ export function useCategoryAggregates(
   const service = useTransactionService(useApi());
   const data = ref<CategoryAggregate[]>([]);
   const loading = ref(false);
+  let token = 0;
 
   async function load() {
+    const current = ++token;
     const id = accountId();
     const from = fromIso();
     const to = toIso();
@@ -59,22 +62,19 @@ export function useCategoryAggregates(
     }
     loading.value = true;
     try {
-      data.value = await cache.loadOrCache(key(id, from, to), () =>
+      const result = await cache.loadOrCache(key(id, from, to), () =>
         fetchAggregates(service, id, from, to),
       );
+      if (current === token) data.value = result;
     } catch (e) {
       adze.ns('categories').error('Failed to load category aggregates', e);
-      data.value = [];
+      if (current === token) data.value = [];
     } finally {
-      loading.value = false;
+      if (current === token) loading.value = false;
     }
   }
 
   watch([accountId, fromIso, toIso], load, {immediate: true});
 
   return {data, loading, reload: load};
-}
-
-export function invalidateCategoryAggregates() {
-  cache.invalidate();
 }

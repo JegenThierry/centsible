@@ -35,6 +35,9 @@ class RecurringTransactionServiceTest {
 
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
+    // Wraps eq() in a non-null generic return so Kotlin doesn't null-check the platform-typed matcher.
+    private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value)
+
     @Mock
     private lateinit var repository: IRecurringTransactionRepository
 
@@ -154,6 +157,50 @@ class RecurringTransactionServiceTest {
         assertEquals(1, count)
         verify(currencyConversionService).convert(BigDecimal("10.00"), Currency.USD, Currency.EUR, today)
         verify(repository).materializeOnce(rule, conversion)
+    }
+
+    @Test
+    fun `a rule with unresolvable FX is skipped without aborting the pass for other rules`() {
+        // fetchDueRules orders by NEXT_RUN_AT ASC and a failing rule never advances it, so letting the
+        // exception escape would starve every later rule on every subsequent tick.
+        val today = LocalDate.now()
+        val poisonedAccountId = UUID.randomUUID()
+        val poisoned = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = poisonedAccountId,
+            amount = BigDecimal("10.00"),
+            frequency = Frequency.MONTHLY,
+            startDate = today,
+            nextRunAt = today,
+            active = true,
+            originalCurrency = Currency.USD,
+        )
+        val healthy = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = accountId,
+            amount = BigDecimal("25.00"),
+            frequency = Frequency.MONTHLY,
+            startDate = today,
+            nextRunAt = today,
+            active = true,
+        )
+        val conversion = ConversionResult(
+            BigDecimal("25.00"), BigDecimal("25.00"), Currency.EUR, Currency.EUR, BigDecimal.ONE, today, true
+        )
+        `when`(repository.fetchDueRules(today)).thenReturn(listOf(poisoned, healthy))
+        `when`(accountRepository.fetchAccountCurrency(poisonedAccountId)).thenReturn(Currency.EUR)
+        `when`(accountRepository.fetchAccountCurrency(accountId)).thenReturn(Currency.EUR)
+        `when`(currencyConversionService.convert(BigDecimal("10.00"), Currency.USD, Currency.EUR, today))
+            .thenThrow(LocalizedException.BadRequest("error.fx.providerUnavailable"))
+        `when`(currencyConversionService.convert(BigDecimal("25.00"), Currency.EUR, Currency.EUR, today))
+            .thenReturn(conversion)
+        `when`(repository.materializeOnce(healthy, conversion)).thenReturn(null)
+
+        val count = service.runMaterializationPass()
+
+        assertEquals(1, count)
+        verify(repository).materializeOnce(healthy, conversion)
+        verify(repository, never()).materializeOnce(eqArg(poisoned), anyArg())
     }
 
     @Test

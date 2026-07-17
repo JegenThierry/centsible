@@ -13,6 +13,14 @@ interface IBudgetAccountsRepository {
 
     /** Throws [beer.thierry.centsible.api.exceptions.LocalizedException.NotFound] when [id] is missing or not owned by [authenticatedUser]. */
     fun fetchAccountById(id: UUID, authenticatedUser: UserDTO): BudgetAccountDTO
+
+    /**
+     * [fetchAccountById] taking a row lock, for callers that derive a balance delta from the value
+     * read and then write it back. Must be called inside a transaction; concurrent callers block
+     * until the holder commits and then see the committed balance.
+     */
+    fun fetchAccountByIdForUpdate(id: UUID, authenticatedUser: UserDTO): BudgetAccountDTO
+
     fun createAccount(
         authenticatedUser: UserDTO,
         createBudgetAccountRequest: CreateBudgetAccountRequest

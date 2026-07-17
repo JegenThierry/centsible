@@ -3,10 +3,11 @@ import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {MonthlyAggregate} from "~/models/transactions/transaction";
 import {createAsyncCache} from "~/utils/async-cache";
+import {registerLedgerAggregateCache} from "~/utils/ledger-aggregates";
 
 type TransactionService = ReturnType<typeof useTransactionService>;
 
-const cache = createAsyncCache<MonthlyAggregate[]>(() => []);
+const cache = registerLedgerAggregateCache(createAsyncCache<MonthlyAggregate[]>(() => []));
 
 function key(accountId: string, months: number): string {
   return `${accountId}|${months}`;
@@ -34,8 +35,10 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
   const data = ref<MonthlyAggregate[]>([]);
   const loading = ref(false);
   const error = ref(false);
+  let token = 0;
 
   async function load() {
+    const current = ++token;
     const id = accountId();
     const m = months();
     if (!id) {
@@ -45,21 +48,20 @@ export function useMonthlyAggregates(accountId: () => string, months: () => numb
     loading.value = true;
     error.value = false;
     try {
-      data.value = await cache.loadOrCache(key(id, m), () => service.aggregateByMonth(id, m));
+      const result = await cache.loadOrCache(key(id, m), () => service.aggregateByMonth(id, m));
+      if (current === token) data.value = result;
     } catch (e) {
       adze.ns('dashboard').error('Failed to load monthly aggregates', e);
-      data.value = [];
-      error.value = true;
+      if (current === token) {
+        data.value = [];
+        error.value = true;
+      }
     } finally {
-      loading.value = false;
+      if (current === token) loading.value = false;
     }
   }
 
   watch([accountId, months], load, {immediate: true});
 
   return {data, loading, error, reload: load};
-}
-
-export function invalidateMonthlyAggregates() {
-  cache.invalidate();
 }

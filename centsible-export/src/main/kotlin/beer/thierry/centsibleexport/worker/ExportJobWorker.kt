@@ -35,11 +35,27 @@ class ExportJobWorker(
         val job = claimed.job
         val startNanos = System.nanoTime()
         log.info("Leased export job jobId={} type={} attempt={}", job.id, job.type, job.attemptCount)
+        // A render failure is marked FAILED below and never retried, so a job only accumulates
+        // attempts by killing the JVM mid-render (OOM/SIGKILL). Without this cap such a poison job
+        // is re-leased every lease-timeout forever, crash-looping the worker and starving every
+        // other user's exports.
+        if (job.attemptCount > workerProperties.maxAttempts) {
+            log.error(
+                "Dead-lettering export job jobId={} after {} attempts (max {})",
+                job.id, job.attemptCount, workerProperties.maxAttempts,
+            )
+            jobRepository.markFailed(
+                job.id,
+                workerProperties.id,
+                "Aborted after ${job.attemptCount} attempts; earlier attempts terminated the worker",
+            )
+            return
+        }
         try {
             val request = ExportRequest.parseFrom(claimed.payload)
             val format = request.format.toModelFormat()
             val rendered = renderers.find(job.type, format).render(request)
-            jobRepository.markCompleted(job.id, rendered.pdf, rendered.filename)
+            jobRepository.markCompleted(job.id, workerProperties.id, rendered.pdf, rendered.filename)
             val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
             log.info(
                 "Completed export job jobId={} format={} bytes={} elapsedMs={}",
@@ -48,7 +64,7 @@ class ExportJobWorker(
         } catch (ex: Exception) {
             val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
             log.error("Failed export job jobId={} elapsedMs={}", job.id, elapsedMs, ex)
-            jobRepository.markFailed(job.id, ex.failureReason())
+            jobRepository.markFailed(job.id, workerProperties.id, ex.failureReason())
         }
     }
 }

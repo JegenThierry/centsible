@@ -6,6 +6,7 @@ import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.contact.ContactDTO
+import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.loan.LoanDTO
 import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.notification.NotificationType
@@ -19,6 +20,7 @@ import beer.thierry.centsible.api.repository.INotificationRepository
 import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.core.services.notifications.NotificationService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -53,6 +55,7 @@ class NotificationServiceTest {
     @Mock private lateinit var recurring: IRecurringTransactionRepository
     @Mock private lateinit var accounts: IBudgetAccountsRepository
     @Mock private lateinit var connections: IProviderConnectionsRepository
+    @Mock private lateinit var currencyConversionService: ICurrencyConversionService
 
     @InjectMocks
     private lateinit var service: NotificationService
@@ -63,6 +66,12 @@ class NotificationServiceTest {
         name = "Checking",
         balance = BigDecimal("150.00"),
         currency = Currency.EUR,
+    )
+    private val jpyAccount = BudgetAccountDTO(
+        id = UUID.randomUUID(),
+        name = "Yen savings",
+        balance = BigDecimal("150.00"),
+        currency = Currency.JPY,
     )
 
     private fun settings(threshold: String?) =
@@ -133,6 +142,77 @@ class NotificationServiceTest {
 
         // 150.00 - 90.00 = 60.00 < 100.00 → the transfer drain must trigger the alert.
         verify(notifications, times(1))
+            .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `credits a cross-currency transfer destination with the converted amount`() {
+        // 1.00 EUR into a JPY account is ~160 JPY, not 1: crediting the raw source amount would leave
+        // the projection at 51.00 JPY and fire a shortfall that isn't real.
+        val transferIn = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = account.id,
+            destinationAccountId = jpyAccount.id,
+            amount = BigDecimal("1.00"),
+            frequency = Frequency.MONTHLY,
+            nextRunAt = LocalDate.now().plusDays(4),
+            active = true,
+            isTransfer = true,
+        )
+        val jpyExpense = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = jpyAccount.id,
+            amount = BigDecimal("100.00"),
+            frequency = Frequency.MONTHLY,
+            nextRunAt = LocalDate.now().plusDays(5),
+            active = true,
+            type = CategoryType.EXPENSE,
+        )
+        `when`(users.fetchNotificationSettings(user.id)).thenReturn(settings("100.00"))
+        `when`(accounts.fetchAllAccounts(user)).thenReturn(listOf(account, jpyAccount))
+        `when`(recurring.fetchAll(user, null)).thenReturn(listOf(transferIn, jpyExpense))
+        `when`(currencyConversionService.convert(BigDecimal("1.00"), Currency.EUR, Currency.JPY, LocalDate.now()))
+            .thenReturn(
+                ConversionResult(
+                    convertedAmount = BigDecimal("160.00"),
+                    originalAmount = BigDecimal("1.00"),
+                    originalCurrency = Currency.EUR,
+                    accountCurrency = Currency.JPY,
+                    rate = BigDecimal("160.00"),
+                    rateDate = LocalDate.now(),
+                    sameCurrency = false,
+                )
+            )
+
+        service.runScheduledChecks(user)
+
+        // 150.00 + 160.00 - 100.00 = 210.00 JPY, comfortably above the threshold.
+        verify(notifications, never())
+            .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `skips a cross-currency transfer credit when its FX rate cannot be resolved`() {
+        val transferIn = RecurringTransactionDTO(
+            id = UUID.randomUUID(),
+            accountId = account.id,
+            destinationAccountId = jpyAccount.id,
+            amount = BigDecimal("1.00"),
+            frequency = Frequency.MONTHLY,
+            nextRunAt = LocalDate.now().plusDays(4),
+            active = true,
+            isTransfer = true,
+        )
+        `when`(users.fetchNotificationSettings(user.id)).thenReturn(settings("100.00"))
+        `when`(accounts.fetchAllAccounts(user)).thenReturn(listOf(account, jpyAccount))
+        `when`(recurring.fetchAll(user, null)).thenReturn(listOf(transferIn))
+        `when`(currencyConversionService.convert(BigDecimal("1.00"), Currency.EUR, Currency.JPY, LocalDate.now()))
+            .thenThrow(RuntimeException("fx unavailable"))
+
+        service.runScheduledChecks(user)
+
+        // The destination credit drops out rather than crediting 1 raw EUR; neither account breaches.
+        verify(notifications, never())
             .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
     }
 

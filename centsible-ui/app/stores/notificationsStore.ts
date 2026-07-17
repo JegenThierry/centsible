@@ -11,6 +11,8 @@ const notificationFingerprint = (xs: Notification[]) =>
 
 export const useNotificationsStore = defineStore('notificationsStore', () => {
   const service = useNotificationService(useApi());
+  const apiErrors = useApiErrors();
+  const {t} = useNuxtApp().$i18n;
   const notifications = ref<Notification[]>([]);
   const unreadCount = ref(0);
   const loading = ref(false);
@@ -37,8 +39,17 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
     }
   }
 
+  function toastUpdateFailed(e: unknown) {
+    apiErrors.toastError(e, t('notifications.toasts.updateFailedTitle'), t('notifications.toasts.updateFailedBody'));
+  }
+
   async function markRead(id: string) {
-    await service.markRead(id);
+    try {
+      await service.markRead(id);
+    } catch (e) {
+      toastUpdateFailed(e);
+      return;
+    }
     const n = notifications.value.find((x) => x.id === id);
     if (n && !n.readAt) {
       n.readAt = new Date().toISOString();
@@ -47,7 +58,12 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
   }
 
   async function markAllRead() {
-    await service.markAllRead();
+    try {
+      await service.markAllRead();
+    } catch (e) {
+      toastUpdateFailed(e);
+      return;
+    }
     const now = new Date().toISOString();
     notifications.value.forEach((n) => {
       if (!n.readAt) n.readAt = now;
@@ -56,7 +72,12 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
   }
 
   async function remove(id: string) {
-    await service.remove(id);
+    try {
+      await service.remove(id);
+    } catch (e) {
+      toastUpdateFailed(e);
+      return;
+    }
     const idx = notifications.value.findIndex((n) => n.id === id);
     if (idx >= 0) {
       const [removed] = notifications.value.splice(idx, 1);

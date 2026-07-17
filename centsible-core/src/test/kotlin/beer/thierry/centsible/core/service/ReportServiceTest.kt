@@ -4,6 +4,8 @@ import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountSnapshotDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.currency.ConversionResult
+import beer.thierry.centsible.api.model.reports.CashFlowCurrencyPointDTO
+import beer.thierry.centsible.api.model.reports.CategorySpendingCurrencyPointDTO
 import beer.thierry.centsible.api.model.user.User
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
@@ -26,6 +28,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.YearMonth
 import java.time.ZoneOffset
 import java.util.UUID
 
@@ -130,5 +133,60 @@ class ReportServiceTest {
 
         assertEquals(BigDecimal("150.50"), points.last().balance)
         verify(currencyConversionService, never()).convert(anyArg(), anyArg(), anyArg(), anyArg())
+    }
+
+    private fun cashFlowBucket(currency: Currency, income: String, expense: String) =
+        CashFlowCurrencyPointDTO(YearMonth.now().toString(), currency, BigDecimal(income), BigDecimal(expense))
+
+    private fun spendingBucket(currency: Currency, amount: String) = CategorySpendingCurrencyPointDTO(
+        categoryId = 1L,
+        categoryName = "Groceries",
+        categoryColor = null,
+        yearMonth = YearMonth.now().toString(),
+        currency = currency,
+        amount = BigDecimal(amount),
+    )
+
+    @Test
+    fun `fetchCashFlow converts each account-currency bucket into the default currency`() {
+        `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount, usdAccount))
+        `when`(reportsRepository.fetchCashFlow(anyArg(), anyArg(), anyArg())).thenReturn(
+            listOf(
+                cashFlowBucket(Currency.EUR, income = "1000", expense = "400"),
+                cashFlowBucket(Currency.USD, income = "200", expense = "100"),
+            )
+        )
+        `when`(currencyConversionService.convert(BigDecimal.ONE, Currency.USD, Currency.EUR, LocalDate.now()))
+            .thenReturn(usdToEurRate("0.90"))
+
+        val points = service.fetchCashFlow(startDate, endDate, user)
+
+        // 1000 + 200*0.90 = 1180.00 income; 400 + 100*0.90 = 490.00 expense.
+        assertEquals(1, points.size)
+        assertEquals(BigDecimal("1180.00"), points.first().income)
+        assertEquals(BigDecimal("490.00"), points.first().expense)
+        assertEquals(BigDecimal("690.00"), points.first().net)
+    }
+
+    @Test
+    fun `fetchYearOverYear converts totals and per-category rows against the same rates`() {
+        `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount, usdAccount))
+        `when`(reportsRepository.fetchCashFlow(anyArg(), anyArg(), anyArg())).thenReturn(
+            listOf(
+                cashFlowBucket(Currency.EUR, income = "0", expense = "100"),
+                cashFlowBucket(Currency.USD, income = "0", expense = "100"),
+            )
+        )
+        `when`(reportsRepository.fetchCategorySpendingOverTime(anyArg(), anyArg(), anyArg())).thenReturn(
+            listOf(spendingBucket(Currency.EUR, "100"), spendingBucket(Currency.USD, "100"))
+        )
+        `when`(currencyConversionService.convert(BigDecimal.ONE, Currency.USD, Currency.EUR, LocalDate.now()))
+            .thenReturn(usdToEurRate("0.90"))
+
+        val result = service.fetchYearOverYear(user)
+
+        // 100 EUR + 100 USD * 0.90 = 190.00 on both sides: the card must not disagree with itself.
+        assertEquals(BigDecimal("190.00"), result.totals.thisYearExpense)
+        assertEquals(BigDecimal("190.00"), result.perCategory.single().thisYearAmount)
     }
 }

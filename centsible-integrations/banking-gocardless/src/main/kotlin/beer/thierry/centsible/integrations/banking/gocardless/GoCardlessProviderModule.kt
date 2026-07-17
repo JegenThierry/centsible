@@ -26,10 +26,12 @@ import beer.thierry.centsible.integrations.support.firstNonBlank
 import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
+import java.util.HexFormat
 
 class GoCardlessProviderModule(
     private val client: GoCardlessHttpClient,
@@ -245,6 +247,7 @@ class GoCardlessProviderModule(
             PROVIDER, ctx.userId, ctx.connectionId, accountIds.size, dateFrom,
         )
         val all = mutableListOf<ImportedTransactionDTO>()
+        val syntheticOccurrences = mutableMapOf<String, Int>()
         var skippedRows = 0
         var failedAccounts = 0
         for (accountId in accountIds) {
@@ -264,6 +267,12 @@ class GoCardlessProviderModule(
                     skippedRows++
                     continue
                 }
+                val amount = try {
+                    BigDecimal(tx.transactionAmount.amount)
+                } catch (_: NumberFormatException) {
+                    skippedRows++
+                    continue
+                }
                 val description = firstNonBlank(
                     tx.remittanceInformationUnstructured,
                     tx.remittanceInformationStructured,
@@ -271,13 +280,7 @@ class GoCardlessProviderModule(
                 ) ?: ""
                 val externalId = tx.internalTransactionId
                     ?: tx.transactionId
-                    ?: "$accountId:${tx.bookingDate ?: tx.bookingDateTime ?: ""}:${tx.transactionAmount.amount}"
-                val amount = try {
-                    BigDecimal(tx.transactionAmount.amount)
-                } catch (_: NumberFormatException) {
-                    skippedRows++
-                    continue
-                }
+                    ?: syntheticExternalId(accountId, tx, syntheticOccurrences)
                 val counterparty = firstNonBlank(tx.creditorName, tx.debtorName)
                 all += ImportedTransactionDTO(
                     externalId = externalId,
@@ -297,9 +300,20 @@ class GoCardlessProviderModule(
                 PROVIDER, ctx.userId, ctx.connectionId, skippedRows,
             )
         }
+        if (failedAccounts > 0) {
+            log.warn(
+                "Sync incomplete provider={} userId={} connectionId={} failedAccounts={} of {} fetched={} dateFrom={} elapsedMs={}",
+                PROVIDER, ctx.userId, ctx.connectionId, failedAccounts, accountIds.size, all.size, dateFrom,
+                System.currentTimeMillis() - started,
+            )
+            throw IllegalStateException(
+                "Transactions could not be fetched for $failedAccounts of ${accountIds.size} account(s); " +
+                    "keeping the sync cursor at $dateFrom so the window is retried instead of skipped"
+            )
+        }
         log.info(
-            "Sync complete provider={} userId={} connectionId={} processed={} skippedRows={} failedAccounts={} elapsedMs={}",
-            PROVIDER, ctx.userId, ctx.connectionId, all.size, skippedRows, failedAccounts,
+            "Sync complete provider={} userId={} connectionId={} processed={} skippedRows={} elapsedMs={}",
+            PROVIDER, ctx.userId, ctx.connectionId, all.size, skippedRows,
             System.currentTimeMillis() - started,
         )
         return TransactionImportPage(transactions = all, nextCursor = LocalDate.now().toString())
@@ -326,6 +340,49 @@ class GoCardlessProviderModule(
         return LocalDate.now().minusDays(days.toLong())
     }
 
+    /**
+     * Berlin Group permits a bank to send neither `internalTransactionId` nor `transactionId`, so
+     * a synthetic id has to stand in. It must distinguish two genuinely different rows (two 3.50
+     * coffees on one day) yet stay byte-identical across re-syncs, because TransactionService
+     * hashes it into the import_hash that dedups the batch — an unstable id duplicates rows, a
+     * colliding one silently drops them.
+     *
+     * The fingerprint covers every field the bank gives us; rows that still collide are
+     * indistinguishable, so they are numbered by their order of arrival. That order is stable
+     * because [occurrences] is keyed by the fingerprint (an unrelated row on the same day cannot
+     * shift a counter) and because every row sharing a fingerprint also shares a booking date:
+     * date_from windows are date-granular, so such rows are always fetched together, never split
+     * across two syncs.
+     */
+    private fun syntheticExternalId(
+        accountId: String,
+        tx: GoCardlessTransaction,
+        occurrences: MutableMap<String, Int>,
+    ): String {
+        val fingerprint = sha256Hex(
+            listOf(
+                accountId,
+                tx.bookingDate,
+                tx.bookingDateTime,
+                tx.valueDate,
+                tx.transactionAmount.amount,
+                tx.transactionAmount.currency,
+                tx.remittanceInformationUnstructured,
+                tx.remittanceInformationStructured,
+                tx.additionalInformation,
+                tx.creditorName,
+                tx.debtorName,
+            ).joinToString(FINGERPRINT_SEPARATOR) { it.orEmpty() }
+        )
+        val occurrence = occurrences.merge(fingerprint, 1, Int::plus)!!
+        return "$accountId:$fingerprint:$occurrence"
+    }
+
+    private fun sha256Hex(payload: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(Charsets.UTF_8))
+        return HexFormat.of().formatHex(digest)
+    }
+
     private fun parseOccurredAt(tx: GoCardlessTransaction): OffsetDateTime? {
         tx.bookingDateTime?.let {
             try {
@@ -349,6 +406,9 @@ class GoCardlessProviderModule(
         private const val MAX_REMOTE_OPTIONS = 50
         private const val CONSENT_LIFETIME_SECONDS = 90L * 86400L
         private val CONSENT_OK_STATUSES = setOf("LN", "GC")
+
+        /** ASCII unit separator: keeps fingerprint fields unambiguous; banks never send it. */
+        private const val FINGERPRINT_SEPARATOR = "\u001F"
         private val EEA_COUNTRY_CODES = setOf(
             "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
             "FR", "GB", "GR", "HR", "HU", "IE", "IS", "IT", "LI", "LT",

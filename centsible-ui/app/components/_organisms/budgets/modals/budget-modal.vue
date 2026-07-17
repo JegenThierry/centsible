@@ -26,6 +26,7 @@ const emit = defineEmits<{
 
 const service = useBudgetService(useApi());
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const isEdit = computed(() => !!props.budget);
@@ -87,7 +88,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
     isOpen.value = false;
   } catch (error) {
     const phase = props.budget ? 'edit' : 'create';
-    useApiErrors().toastError(error, t(`budgets.${phase}.toastErrorTitle`), t(`budgets.${phase}.toastErrorBody`));
+    toastError(error, t(`budgets.${phase}.toastErrorTitle`), t(`budgets.${phase}.toastErrorBody`));
   } finally {
     loading.value = false;
   }

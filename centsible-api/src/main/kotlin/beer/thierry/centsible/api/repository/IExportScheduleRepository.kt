@@ -33,6 +33,10 @@ interface IExportScheduleRepository {
     /** Cross-user: active schedules whose next run is on or before [today]. Used by the materializer. */
     fun fetchDue(today: LocalDate): List<ExportScheduleDTO>
 
-    /** Advances a schedule after a run: sets next_run_at and stamps last_run_at. */
-    fun markRun(id: UUID, nextRunAt: LocalDate)
+    /**
+     * Compare-and-swaps an active schedule from [expectedNextRunAt] to [nextRunAt], stamping last_run_at.
+     * True only for the caller that won the swap, so concurrent rest instances materialize a due
+     * schedule exactly once; false if another instance already advanced it (or it was deactivated).
+     */
+    fun markRun(id: UUID, expectedNextRunAt: LocalDate, nextRunAt: LocalDate): Boolean
 }

@@ -5,6 +5,10 @@
     "empty": "You're all caught up.",
     "markAllRead": "Mark all read",
     "markRead": "Mark read",
-    "delete": "Delete notification"
+    "delete": "Delete notification",
+    "toasts": {
+      "updateFailedTitle": "Notification update failed",
+      "updateFailedBody": "Could not update notifications. Please try again."
+    }
   }
 }

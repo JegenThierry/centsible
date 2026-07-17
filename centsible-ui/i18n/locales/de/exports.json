@@ -64,6 +64,8 @@
       "deletedBody": "Der Export wurde entfernt.",
       "deleteFailedTitle": "Export konnte nicht gelöscht werden",
       "deleteFailedBody": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      "downloadFailedTitle": "Export konnte nicht heruntergeladen werden",
+      "downloadFailedBody": "Die Datei ist möglicherweise nicht mehr verfügbar. Versuchen Sie, sie neu zu erstellen.",
       "retriggeredTitle": "Export neu gestartet",
       "retriggeredBody": "Der Export wird mit aktuellen Daten neu erstellt.",
       "retriggerFailedTitle": "Export konnte nicht neu gestartet werden",

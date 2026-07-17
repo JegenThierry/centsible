@@ -94,6 +94,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://centsible-db:5432/${POSTGRES_DB:-centsible}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      # Hikari defaults to 10 connections / 30s connection-timeout; those 10 are shared by every
+      # request thread plus the sync poller, so size the pool explicitly and fail fast instead.
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${HIKARI_MAX_POOL_SIZE:-20}
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: ${HIKARI_CONNECTION_TIMEOUT_MS:-10000}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-14400000}
       RESEND_API_KEY: ${RESEND_API_KEY}
@@ -109,7 +113,7 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
-      SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-framework}
+      SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-native}
       SERVER_SHUTDOWN: graceful
       SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 20s
       # Set to false if the reverse proxy on proxy-net already compresses responses.
@@ -174,7 +178,10 @@ services:
 
     restart: unless-stopped
     init: true
-    stop_grace_period: 30s
+    # Must exceed the app's 90s shutdown drain (see centsible-export application.properties), which in
+    # turn exceeds the 60s render timeout — otherwise a redeploy SIGKILLs a long render mid-flight and
+    # burns one of its EXPORT_MAX_ATTEMPTS.
+    stop_grace_period: 120s
 
     depends_on:
       centsible-migrations:
@@ -189,6 +196,12 @@ services:
       EXPORT_POLL_INTERVAL_MS: ${EXPORT_POLL_INTERVAL_MS:-2000}
       EXPORT_LEASE_TIMEOUT_SECONDS: ${EXPORT_LEASE_TIMEOUT_SECONDS:-300}
       EXPORT_RENDER_TIMEOUT_MS: ${EXPORT_RENDER_TIMEOUT_MS:-60000}
+      # Dead-letter a job as FAILED once its attempt count exceeds this, so a render that kills the
+      # worker (OOM mid-PDF) can't crash-loop on the same job forever.
+      EXPORT_MAX_ATTEMPTS: ${EXPORT_MAX_ATTEMPTS:-3}
+      # Only the two @Scheduled pollers touch the DB — keep the pool small and fail fast.
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${EXPORT_HIKARI_MAX_POOL_SIZE:-5}
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: ${HIKARI_CONNECTION_TIMEOUT_MS:-10000}
       JAVA_OPTS: ${EXPORT_JAVA_OPTS:--Xms256m -Xmx512m}
       TZ: ${TZ:-UTC}
 

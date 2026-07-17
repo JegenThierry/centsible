@@ -92,32 +92,39 @@ class RecurringTransactionService(
         val today = LocalDate.now()
         var count = 0
         for (rule in repository.fetchDueRules(today)) {
-            val isTransfer = rule.isTransfer || rule.destinationAccountId != null
-            val accountId = rule.accountId ?: continue
-            val accountCurrency = accountRepository.fetchAccountCurrency(accountId)
-            val destinationCurrency = if (isTransfer) {
-                val destId = rule.destinationAccountId ?: continue
-                accountRepository.fetchAccountCurrency(destId)
-            } else null
-            var working = if (isTransfer && !rule.isTransfer) rule.copy(isTransfer = true) else rule
-            while (working.active && (working.nextRunAt?.let { it <= today } == true)) {
-                val occurrenceDate = working.nextRunAt!!
-                val conversion = if (isTransfer) {
-                    currencyConversionService.convert(
-                        working.amount!!, accountCurrency, destinationCurrency!!, occurrenceDate,
-                    )
-                } else {
-                    currencyConversionService.convert(
-                        working.amount!!,
-                        working.originalCurrency ?: accountCurrency,
-                        accountCurrency,
-                        occurrenceDate,
-                    )
+            // One rule's failure (missing account, unresolvable FX) must not abort the pass: fetchDueRules
+            // orders by NEXT_RUN_AT ASC and a failing rule never advances it, so it would sort first —
+            // and starve every other user's rules — on every subsequent tick.
+            try {
+                val isTransfer = rule.isTransfer || rule.destinationAccountId != null
+                val accountId = rule.accountId ?: continue
+                val accountCurrency = accountRepository.fetchAccountCurrency(accountId)
+                val destinationCurrency = if (isTransfer) {
+                    val destId = rule.destinationAccountId ?: continue
+                    accountRepository.fetchAccountCurrency(destId)
+                } else null
+                var working = if (isTransfer && !rule.isTransfer) rule.copy(isTransfer = true) else rule
+                while (working.active && (working.nextRunAt?.let { it <= today } == true)) {
+                    val occurrenceDate = working.nextRunAt!!
+                    val conversion = if (isTransfer) {
+                        currencyConversionService.convert(
+                            working.amount!!, accountCurrency, destinationCurrency!!, occurrenceDate,
+                        )
+                    } else {
+                        currencyConversionService.convert(
+                            working.amount!!,
+                            working.originalCurrency ?: accountCurrency,
+                            accountCurrency,
+                            occurrenceDate,
+                        )
+                    }
+                    val newNext = repository.materializeOnce(working, conversion)
+                    count++
+                    if (newNext == null || newNext > today) break
+                    working = working.copy(nextRunAt = newNext)
                 }
-                val newNext = repository.materializeOnce(working, conversion)
-                count++
-                if (newNext == null || newNext > today) break
-                working = working.copy(nextRunAt = newNext)
+            } catch (e: Exception) {
+                log.warn("Materialization failed for recurring transaction {}; skipping rule", rule.id, e)
             }
         }
         if (count > 0) log.info("Materialized {} recurring transaction(s) for {}", count, today)

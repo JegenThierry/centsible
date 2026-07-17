@@ -4,8 +4,11 @@ import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.reports.SafeToSpendDTO
 import beer.thierry.centsible.api.model.user.UserDTO
+import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IReportsRepository
+import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.ISafeToSpendService
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -16,12 +19,17 @@ import java.time.YearMonth
 /**
  * Deterministic discretionary-headroom calculator for the current month. Reuses the same
  * transfer-excluded aggregation the cash-flow report uses for booked actuals (ADR-0015), and projects
- * the remaining month from active, non-transfer recurring rules. No AI.
+ * the remaining month from active, non-transfer recurring rules. Booked and upcoming amounts alike are
+ * converted into the user's default currency with the shared report rates, so accounts and rules in
+ * foreign currencies are never summed raw. No AI.
  */
 @Service
 class SafeToSpendService(
     private val reportsRepository: IReportsRepository,
     private val recurringRepository: IRecurringTransactionRepository,
+    private val accountsRepository: IBudgetAccountsRepository,
+    private val userRepository: IUserRepository,
+    private val currencyConversionService: ICurrencyConversionService,
 ) : ISafeToSpendService {
 
     override fun fetchForCurrentMonth(authenticatedUser: UserDTO): SafeToSpendDTO {
@@ -30,7 +38,8 @@ class SafeToSpendService(
         val monthStart = month.atDay(1)
         val monthEnd = month.atEndOfMonth()
 
-        val cashFlow = reportsRepository.fetchCashFlow(monthStart, monthEnd, authenticatedUser)
+        val rates = accountRatesFor(authenticatedUser, accountsRepository, userRepository, currencyConversionService)
+        val cashFlow = reportsRepository.fetchCashFlow(monthStart, monthEnd, authenticatedUser).convertedInto(rates)
         val actualIncome = cashFlow.sumOf { it.income }
         val alreadySpent = cashFlow.sumOf { it.expense }
 
@@ -40,9 +49,12 @@ class SafeToSpendService(
             if (!rule.active || rule.isTransfer) continue
             val amount = rule.amount ?: continue
             val type = rule.type ?: continue
+            // A rule's amount lands on its own account, so it converts at that account's rate; rules whose
+            // FX can't be resolved are excluded, mirroring the net-worth forecast.
+            val rate = rule.accountId?.let { rates.byAccount[it] } ?: continue
             val occurrences = occurrencesInWindow(rule, today, monthEnd)
             if (occurrences == 0) continue
-            val total = amount.multiply(occurrences.toBigDecimal())
+            val total = amount.multiply(rate).multiply(occurrences.toBigDecimal())
             when (type) {
                 CategoryType.INCOME -> upcomingIncome += total
                 CategoryType.EXPENSE -> upcomingExpenses += total
@@ -57,7 +69,7 @@ class SafeToSpendService(
 
         return SafeToSpendDTO(
             yearMonth = month.toString(),
-            currency = authenticatedUser.defaultCurrency,
+            currency = rates.target.name,
             actualIncome = actualIncome.setScale(2, RoundingMode.HALF_UP),
             upcomingIncome = upcomingIncome.setScale(2, RoundingMode.HALF_UP),
             expectedIncome = expectedIncome.setScale(2, RoundingMode.HALF_UP),

@@ -3,10 +3,11 @@ import adze from 'adze'
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import type {DailyAggregate} from "~/models/transactions/transaction";
 import {createAsyncCache} from "~/utils/async-cache";
+import {registerLedgerAggregateCache} from "~/utils/ledger-aggregates";
 
 type TransactionService = ReturnType<typeof useTransactionService>;
 
-const cache = createAsyncCache<DailyAggregate[]>(() => []);
+const cache = registerLedgerAggregateCache(createAsyncCache<DailyAggregate[]>(() => []));
 
 function key(accountId: string, days: number): string {
   return `${accountId}|${days}`;
@@ -30,8 +31,10 @@ export function useDailyAggregates(accountId: () => string, days: () => number) 
   const service = useTransactionService(useApi());
   const data = ref<DailyAggregate[]>([]);
   const loading = ref(false);
+  let token = 0;
 
   async function load() {
+    const current = ++token;
     const id = accountId();
     const d = days();
     if (!id) {
@@ -40,20 +43,17 @@ export function useDailyAggregates(accountId: () => string, days: () => number) 
     }
     loading.value = true;
     try {
-      data.value = await cache.loadOrCache(key(id, d), () => service.aggregateByDay(id, d));
+      const result = await cache.loadOrCache(key(id, d), () => service.aggregateByDay(id, d));
+      if (current === token) data.value = result;
     } catch (e) {
       adze.ns('dashboard').error('Failed to load daily aggregates', e);
-      data.value = [];
+      if (current === token) data.value = [];
     } finally {
-      loading.value = false;
+      if (current === token) loading.value = false;
     }
   }
 
   watch([accountId, days], load, {immediate: true});
 
   return {data, loading, reload: load};
-}
-
-export function invalidateDailyAggregates() {
-  cache.invalidate();
 }

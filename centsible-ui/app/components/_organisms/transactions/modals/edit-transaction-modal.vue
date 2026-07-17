@@ -15,7 +15,7 @@ import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {todayIsoDate} from "~/utils/date";
-import {AMOUNT_INPUT} from "~/utils/money";
+import {transactionSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -30,6 +30,7 @@ const api = useApi();
 const transactionService = useTransactionService(api);
 const tagService = useTagService(api);
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
@@ -57,15 +58,8 @@ const {
   accountId: computed(() => budgetAccountsStore.activeAccount?.id),
 });
 
-const schema = z.object({
-  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
-  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
-    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.form.amount'), min: AMOUNT_INPUT.min}))
-    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.form.amount'), max: AMOUNT_INPUT.max})),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
-    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
-});
+// Same schema as the create modal's standard mode — see utils/form-schemas.
+const schema = transactionSchema(t);
 type Schema = z.output<typeof schema>;
 
 function loadTransaction(transaction: Transaction) {
@@ -128,7 +122,7 @@ async function handleEdit(_event: FormSubmitEvent<Schema>) {
     toasts.success(t('transactions.edit.toastSuccessTitle'), t('transactions.edit.toastSuccessBody'));
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.edit.toastErrorTitle'), t('transactions.edit.toastErrorBody'));
+    toastError(error, t('transactions.edit.toastErrorTitle'), t('transactions.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }

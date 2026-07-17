@@ -15,9 +15,11 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class GoCardlessProviderModuleTest {
@@ -415,8 +417,13 @@ class GoCardlessProviderModuleTest {
         assertEquals("Refund", page.transactions[1].description)
     }
 
+    /**
+     * A failed account means its window was never fetched. Returning normally would let the
+     * orchestrator markSyncSuccess and advance the cursor past that window, losing every
+     * transaction in it for good; throwing keeps the cursor and surfaces the failure.
+     */
     @Test
-    fun `importSince continues across accounts when one upstream call fails`() {
+    fun `importSince throws instead of advancing the cursor when an account fetch fails`() {
         val client = mock(GoCardlessHttpClient::class.java)
         `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg()))
             .thenThrow(RuntimeException("upstream"))
@@ -433,14 +440,120 @@ class GoCardlessProviderModuleTest {
         )
         val module = newModule(client)
 
+        val ex = assertThrows(IllegalStateException::class.java) {
+            module.importSince(
+                ctx = ctx(
+                    config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1", "ACC-2"))
+                ),
+                cursor = "2024-01-01",
+            )
+        }
+
+        assertTrue(ex.message!!.contains("1 of 2"))
+        assertTrue(ex.message!!.contains("2024-01-01"))
+        verify(client).fetchAccountTransactions(eqArg("ACC-2"), anyArg())
+    }
+
+    @Test
+    fun `importSince advances the cursor to today when every account was fetched`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        `when`(client.fetchAccountTransactions(anyArg(), anyArg())).thenReturn(TransactionsResponse())
+        val module = newModule(client)
+
         val page = module.importSince(
-            ctx = ctx(
-                config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1", "ACC-2"))
-            ),
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
             cursor = "2024-01-01",
         )
 
-        assertEquals(1, page.transactions.size)
-        assertEquals("OK", page.transactions.single().externalId)
+        assertEquals(LocalDate.now().toString(), page.nextCursor)
+    }
+
+    private fun bookedResponse(vararg booked: GoCardlessTransaction) = TransactionsResponse(booked = booked.toList())
+
+    private fun coffee(remittance: String? = "Coffee") = GoCardlessTransaction(
+        bookingDate = "2024-01-15",
+        transactionAmount = GoCardlessAmount(amount = "-3.50", currency = "EUR"),
+        remittanceInformationUnstructured = remittance,
+        creditorName = "Cafe",
+    )
+
+    /**
+     * Berlin Group lets a bank omit both id fields. Two identical same-day rows must not collapse
+     * onto one synthetic id, or importBatch's ON CONFLICT DO NOTHING silently drops the second.
+     */
+    @Test
+    fun `importSince gives identical id-less rows on the same day distinct external ids`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg()))
+            .thenReturn(bookedResponse(coffee(), coffee()))
+        val module = newModule(client)
+
+        val page = module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-01",
+        )
+
+        assertEquals(2, page.transactions.size)
+        assertEquals(2, page.transactions.map { it.externalId }.distinct().size)
+    }
+
+    @Test
+    fun `synthetic external ids are stable across a re-sync of the same window`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg()))
+            .thenReturn(bookedResponse(coffee(), coffee(), coffee(remittance = "Lunch")))
+        val module = newModule(client)
+
+        val first = module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-01",
+        )
+        val second = module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-01",
+        )
+
+        assertEquals(
+            first.transactions.map { it.externalId },
+            second.transactions.map { it.externalId },
+        )
+    }
+
+    @Test
+    fun `synthetic external ids differ when only the remittance text differs`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg()))
+            .thenReturn(bookedResponse(coffee(), coffee(remittance = "Lunch")))
+        val module = newModule(client)
+
+        val page = module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-01",
+        )
+
+        assertEquals(2, page.transactions.map { it.externalId }.distinct().size)
+    }
+
+    @Test
+    fun `a bank-supplied transactionId still wins over the synthetic id`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg())).thenReturn(
+            bookedResponse(
+                GoCardlessTransaction(
+                    internalTransactionId = "INT-1",
+                    transactionId = "T-1",
+                    bookingDate = "2024-01-15",
+                    transactionAmount = GoCardlessAmount(amount = "-3.50", currency = "EUR"),
+                ),
+            )
+        )
+        val module = newModule(client)
+
+        val page = module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-01",
+        )
+
+        assertEquals("INT-1", page.transactions.single().externalId)
     }
 }

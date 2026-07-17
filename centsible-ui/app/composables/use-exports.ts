@@ -1,4 +1,5 @@
 import {computed, ref, watch} from 'vue';
+import adze from 'adze'
 import {useApi} from "~/composables/use-api";
 import {useExportService} from "~/services/export/export-service";
 import {useToasts} from "~/services/toasts/toast-service";
@@ -76,17 +77,25 @@ export function useExports() {
     }
   }
 
+  // Wired straight to a table event, so there is no caller to catch a rejection: rethrowing here
+  // just produced a second unhandled rejection on top of the toast.
   async function retrigger(jobId: string) {
     try {
       const updated = await service.retriggerExport(jobId);
       exports.value = exports.value.map((j) => (j.id === updated.id ? updated : j));
       toasts.success(t('exports.toasts.retriggeredTitle'), t('exports.toasts.retriggeredBody'));
     } catch (e) {
+      adze.ns('exports').error('Failed to retrigger export', e);
       toasts.error(t('exports.toasts.retriggerFailedTitle'), t('exports.toasts.retriggerFailedBody'));
-      throw e;
     }
   }
 
+  /**
+   * Unlike {@link retrigger}, this one keeps its rethrow: its only caller hands it to
+   * ConfirmationModal as `deleteCallback`, which awaits it inside a try/catch — so the rejection is
+   * handled, and it's what keeps the modal open on a failed delete instead of closing it as if the
+   * export were gone.
+   */
   async function remove(jobId: string) {
     try {
       await service.deleteExport(jobId);
@@ -98,8 +107,15 @@ export function useExports() {
     }
   }
 
+  // Nothing downstream catches this either (table event → here → axios), and a file cleaned up
+  // server-side or a 500 made the click do nothing at all except log an unhandled rejection.
   async function download(job: ExportJob) {
-    await service.downloadExport(job.id, job.pdfFilename ?? undefined);
+    try {
+      await service.downloadExport(job.id, job.pdfFilename ?? undefined);
+    } catch (e) {
+      adze.ns('exports').error('Failed to download export', e);
+      toasts.error(t('exports.toasts.downloadFailedTitle'), t('exports.toasts.downloadFailedBody'));
+    }
   }
 
   return {

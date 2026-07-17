@@ -18,6 +18,7 @@ import beer.thierry.jooq.generated.tables.references.EXPORT_POST_PROCESSING
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
@@ -28,6 +29,8 @@ class ExportJobRepository(
     private val dsl: DSLContext,
     private val ppMapper: ExportPostProcessingMapper,
 ) : IExportJobRepository {
+
+    private val log = LoggerFactory.getLogger(ExportJobRepository::class.java)
 
     @Transactional
     override fun enqueue(
@@ -68,7 +71,7 @@ class ExportJobRepository(
         val jobs = dsl.select(*JOB_COLUMNS)
             .from(EXPORT_JOBS)
             .where(EXPORT_JOBS.USER_ID.eq(userId))
-            .orderBy(EXPORT_JOBS.CREATED_AT.desc())
+            .orderBy(EXPORT_JOBS.CREATED_AT.desc(), EXPORT_JOBS.ID.desc())
             .limit(pageSize).offset(offset)
             .fetch { it.toJobDto(postProcessing = emptyList()) }
 
@@ -125,8 +128,17 @@ class ExportJobRepository(
             .setNull(EXPORT_JOBS.LOCKED_AT)
             .setNull(EXPORT_JOBS.LOCKED_BY)
             .setNull(EXPORT_JOBS.COMPLETED_AT)
+            // A retrigger is a fresh user request: reset the counter so the worker's max-attempts
+            // dead-letter cap applies per trigger, not across the job's lifetime.
+            .set(EXPORT_JOBS.ATTEMPT_COUNT, 0)
             .set(EXPORT_JOBS.MODIFIED_AT, OffsetDateTime.now())
-            .where(EXPORT_JOBS.ID.eq(jobId).and(EXPORT_JOBS.USER_ID.eq(userId)))
+            // Only a settled job may be retriggered: resetting a PENDING/IN_PROGRESS job would strip the
+            // lease from the worker rendering it, letting its markFailed land on the fresh attempt.
+            .where(
+                EXPORT_JOBS.ID.eq(jobId)
+                    .and(EXPORT_JOBS.USER_ID.eq(userId))
+                    .and(EXPORT_JOBS.STATUS.`in`(JooqExportStatus.COMPLETED, JooqExportStatus.FAILED))
+            )
             .execute()
         if (updated == 0) return null
 
@@ -136,6 +148,9 @@ class ExportJobRepository(
             .setNull(EXPORT_POST_PROCESSING.LOCKED_AT)
             .setNull(EXPORT_POST_PROCESSING.LOCKED_BY)
             .setNull(EXPORT_POST_PROCESSING.COMPLETED_AT)
+            // Same reasoning as the job's counter above — without this reset the worker's cap would
+            // dead-letter a retriggered job's steps on their first claim.
+            .set(EXPORT_POST_PROCESSING.ATTEMPT_COUNT, 0)
             .set(EXPORT_POST_PROCESSING.MODIFIED_AT, OffsetDateTime.now())
             .where(EXPORT_POST_PROCESSING.EXPORT_JOB_ID.eq(jobId))
             .execute()
@@ -181,9 +196,9 @@ class ExportJobRepository(
         return ClaimedExportJob(job, payload)
     }
 
-    override fun markCompleted(jobId: UUID, pdf: ByteArray, pdfFilename: String) {
+    override fun markCompleted(jobId: UUID, workerId: String, pdf: ByteArray, pdfFilename: String) {
         val now = OffsetDateTime.now()
-        dsl.update(EXPORT_JOBS)
+        val updated = dsl.update(EXPORT_JOBS)
             .set(EXPORT_JOBS.STATUS, JooqExportStatus.COMPLETED)
             .set(EXPORT_JOBS.PDF, pdf)
             .set(EXPORT_JOBS.PDF_FILENAME, pdfFilename)
@@ -192,21 +207,37 @@ class ExportJobRepository(
             .setNull(EXPORT_JOBS.LOCKED_BY)
             .set(EXPORT_JOBS.COMPLETED_AT, now)
             .set(EXPORT_JOBS.MODIFIED_AT, now)
-            .where(EXPORT_JOBS.ID.eq(jobId))
+            .where(leaseHeldBy(jobId, workerId))
             .execute()
+        if (updated == 0) {
+            log.warn("Dropped stale export completion jobId={} worker={} reason=lease-lost", jobId, workerId)
+        }
     }
 
-    override fun markFailed(jobId: UUID, errorMessage: String) {
+    override fun markFailed(jobId: UUID, workerId: String, errorMessage: String) {
         val now = OffsetDateTime.now()
-        dsl.update(EXPORT_JOBS)
+        val updated = dsl.update(EXPORT_JOBS)
             .set(EXPORT_JOBS.STATUS, JooqExportStatus.FAILED)
             .set(EXPORT_JOBS.ERROR_MESSAGE, errorMessage.take(2000))
             .setNull(EXPORT_JOBS.LOCKED_AT)
             .setNull(EXPORT_JOBS.LOCKED_BY)
             .set(EXPORT_JOBS.MODIFIED_AT, now)
-            .where(EXPORT_JOBS.ID.eq(jobId))
+            .where(leaseHeldBy(jobId, workerId))
             .execute()
+        if (updated == 0) {
+            log.warn("Dropped stale export failure jobId={} worker={} reason=lease-lost", jobId, workerId)
+        }
     }
+
+    /**
+     * Fences a settle against the lease the worker claimed under. A render outliving the lease is
+     * re-claimed by [claimNextPending] and may also be reset by [retrigger], so the losing worker's
+     * late outcome must not overwrite the winner's PDF or resurrect a job the user just retriggered.
+     */
+    private fun leaseHeldBy(jobId: UUID, workerId: String) =
+        EXPORT_JOBS.ID.eq(jobId)
+            .and(EXPORT_JOBS.LOCKED_BY.eq(workerId))
+            .and(EXPORT_JOBS.STATUS.eq(JooqExportStatus.IN_PROGRESS))
 
     private fun fetchPostProcessingFor(jobIds: List<UUID>): List<ExportPostProcessingDTO> {
         if (jobIds.isEmpty()) return emptyList()

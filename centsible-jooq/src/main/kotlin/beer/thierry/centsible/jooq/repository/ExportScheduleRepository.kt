@@ -77,14 +77,21 @@ class ExportScheduleRepository(private val dsl: DSLContext) : IExportScheduleRep
     override fun fetchDue(today: LocalDate): List<ExportScheduleDTO> =
         fetchWhere(EXPORT_SCHEDULES.ACTIVE.isTrue.and(EXPORT_SCHEDULES.NEXT_RUN_AT.le(today)))
 
-    override fun markRun(id: UUID, nextRunAt: LocalDate) {
+    override fun markRun(id: UUID, expectedNextRunAt: LocalDate, nextRunAt: LocalDate): Boolean {
         val now = OffsetDateTime.now()
-        dsl.update(EXPORT_SCHEDULES)
+        // Compare-and-swap on next_run_at: fetchDue takes no lock, so two rest instances firing the same
+        // cron both see the schedule as due. Only the instance whose UPDATE still matches the due date
+        // advances it — the other gets 0 rows and skips, instead of enqueueing a second export + email.
+        return dsl.update(EXPORT_SCHEDULES)
             .set(EXPORT_SCHEDULES.NEXT_RUN_AT, nextRunAt)
             .set(EXPORT_SCHEDULES.LAST_RUN_AT, now)
             .set(EXPORT_SCHEDULES.MODIFIED_AT, now)
-            .where(EXPORT_SCHEDULES.ID.eq(id))
-            .execute()
+            .where(
+                EXPORT_SCHEDULES.ID.eq(id)
+                    .and(EXPORT_SCHEDULES.NEXT_RUN_AT.eq(expectedNextRunAt))
+                    .and(EXPORT_SCHEDULES.ACTIVE.isTrue)
+            )
+            .execute() == 1
     }
 
     private fun fetchWhere(condition: Condition): List<ExportScheduleDTO> =

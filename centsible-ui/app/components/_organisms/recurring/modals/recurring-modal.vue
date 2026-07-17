@@ -30,6 +30,7 @@ const emit = defineEmits<{
 const api = useApi();
 const service = useRecurringTransactionService(api);
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
@@ -136,7 +137,7 @@ async function saveCreate() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.recurring.create.toastErrorTitle'), t('transactions.recurring.create.toastErrorBody'));
+    toastError(error, t('transactions.recurring.create.toastErrorTitle'), t('transactions.recurring.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -163,7 +164,7 @@ async function saveEdit(rule: RecurringTransaction) {
     emit('updated');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.recurring.edit.toastErrorTitle'), t('transactions.recurring.edit.toastErrorBody'));
+    toastError(error, t('transactions.recurring.edit.toastErrorTitle'), t('transactions.recurring.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }

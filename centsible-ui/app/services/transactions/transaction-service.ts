@@ -5,8 +5,19 @@ import type {
 import type {Currency} from "~/models/budget-account/currency";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {assertStatus, validateRequest} from "~/composables/use-api";
+import {invalidateLedgerAggregates} from "~/utils/ledger-aggregates";
 
 export function useTransactionService(api: AxiosInstance) {
+  /**
+   * Marks a successful write. Every mutating call below funnels through here so the dashboard's
+   * memoized aggregates are dropped no matter which page did the writing — leaving that to the
+   * caller is how the charts ended up serving pre-mutation money for a whole session.
+   */
+  function afterMutation<T>(result: T): T {
+    invalidateLedgerAggregates();
+    return result;
+  }
+
   /** Fetches a page of transactions for [accountId]; [page] is 1-based. */
   async function fetchTransactions(accountId: string, page: number = 1, size: number = 25, filters: TransactionFilters = {},): Promise<Transaction[]> {
     const params: Record<string, unknown> = {page: Math.max(0, page - 1), size};
@@ -25,26 +36,40 @@ export function useTransactionService(api: AxiosInstance) {
 
   async function createTransaction(accountId: string, transaction: Partial<TransactionRequest>): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}`, transaction);
-    return validateRequest<Transaction>(response);
+    return afterMutation(validateRequest<Transaction>(response));
   }
 
   async function updateTransaction(accountId: string, transactionId: string, transaction: Partial<TransactionRequest>): Promise<Transaction> {
     const response = await api.put<Transaction>(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`, transaction);
-    return validateRequest<Transaction>(response);
+    return afterMutation(validateRequest<Transaction>(response));
   }
 
   async function deleteTransaction(accountId: string, transactionId: string): Promise<void> {
     assertStatus(await api.delete(`/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`,));
+    invalidateLedgerAggregates();
+  }
+
+  /**
+   * Fire-and-forget delete for browser teardown. `keepalive` lets the request outlive the document,
+   * which axios cannot do — its XHR is cancelled the moment the page goes away. Mirrors the axios
+   * instance's baseURL and `withCredentials` (auth is an httpOnly cookie, so credentials must be
+   * sent explicitly). Nothing can be reported from here: by the time it resolves, the UI is gone.
+   */
+  function deleteTransactionOnUnload(accountId: string, transactionId: string): void {
+    const url = `${api.defaults.baseURL ?? ''}/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`;
+    void fetch(url, {method: 'DELETE', credentials: 'include', keepalive: true}).catch(() => {
+      // The document is being torn down; there is no toast, no retry, and no logger left to reach.
+    });
   }
 
   async function createTransfer(sourceAccountId: string, payload: TransferRequest): Promise<Transaction[]> {
     const response = await api.post<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer`, payload);
-    return validateRequest<Transaction[]>(response);
+    return afterMutation(validateRequest<Transaction[]>(response));
   }
 
   async function updateTransfer(sourceAccountId: string, transactionId: string, payload: TransferRequest): Promise<Transaction[]> {
     const response = await api.put<Transaction[]>(`/transactions/${encodeURIComponent(sourceAccountId)}/transfer/${encodeURIComponent(transactionId)}`, payload);
-    return validateRequest<Transaction[]>(response);
+    return afterMutation(validateRequest<Transaction[]>(response));
   }
 
   async function fetchTransfer(transactionId: string): Promise<TransferDetails> {
@@ -79,19 +104,19 @@ export function useTransactionService(api: AxiosInstance) {
     const response = await api.post<{
       affected: number
     }>(`/transactions/${encodeURIComponent(accountId)}/bulk-delete`, {ids});
-    return validateRequest<{ affected: number }>(response).affected;
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
   }
 
   async function bulkCategorize(accountId: string, ids: string[], categoryId: number): Promise<number> {
     const response = await api.post<{
       affected: number
     }>(`/transactions/${encodeURIComponent(accountId)}/bulk-categorize`, {ids, categoryId});
-    return validateRequest<{ affected: number }>(response).affected;
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
   }
 
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
-    return validateRequest<Transaction>(response);
+    return afterMutation(validateRequest<Transaction>(response));
   }
 
   async function previewConversion(accountId: string, amount: number, currency: Currency, date?: string): Promise<ConversionPreview> {
@@ -106,6 +131,7 @@ export function useTransactionService(api: AxiosInstance) {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    deleteTransactionOnUnload,
     createTransfer,
     updateTransfer,
     fetchTransfer,

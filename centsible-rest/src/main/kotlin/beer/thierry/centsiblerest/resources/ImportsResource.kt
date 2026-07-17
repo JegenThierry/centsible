@@ -7,6 +7,7 @@ import beer.thierry.centsible.api.services.imports.CsvColumnMappingDTO
 import beer.thierry.centsible.api.services.imports.CsvDialectDTO
 import beer.thierry.centsible.api.services.imports.IImportService
 import beer.thierry.centsible.api.services.imports.ImportDetection
+import beer.thierry.centsible.api.services.imports.ImportParseWarning
 import beer.thierry.centsible.api.services.imports.ImportPreview
 import beer.thierry.centsible.api.services.imports.ParseHintsDTO
 import beer.thierry.centsible.core.services.imports.ImportMappersImpl
@@ -75,6 +76,7 @@ class ImportsResource(
                 suggestedProfileId = suggested?.id,
                 suggestedProfileVersion = suggested?.version,
                 suggestedMapping = mapping,
+                warnings = probe.warnings.map { ImportParseWarning(it.code, it.message, it.sourceRow) },
             )
         )
     }
@@ -152,6 +154,7 @@ data class CsvProbeResponse(
     val suggestedProfileId: String?,
     val suggestedProfileVersion: Int?,
     val suggestedMapping: CsvColumnMappingDTO?,
+    val warnings: List<ImportParseWarning> = emptyList(),
 )
 
 data class CsvProfileSummary(

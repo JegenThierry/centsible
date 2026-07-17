@@ -63,8 +63,13 @@ function onDelete(connection: ProviderConnection) {
 async function confirmDelete() {
   const target = pendingDelete.value;
   if (!target) return;
-  await providersStore.deleteConnection(target.id);
-  pendingDelete.value = undefined;
+  try {
+    await providersStore.deleteConnection(target.id);
+  } catch {
+    // The store already toasted the failure; swallow so the click handler doesn't reject.
+  } finally {
+    pendingDelete.value = undefined;
+  }
 }
 
 async function onReconnect(connection: ProviderConnection) {

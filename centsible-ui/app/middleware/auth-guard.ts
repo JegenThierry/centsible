@@ -1,6 +1,6 @@
+import adze from 'adze';
 import {useAuthStore} from "~/stores/authStore";
 import {useAuthService} from "~/services/auth/auth-service";
-import {useToasts} from "~/services/toasts/toast-service";
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   if (to.path === '/auth') return;
@@ -10,7 +10,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (import.meta.client && from.path && authStore.isAuthenticated) return;
 
   const authService = useAuthService(useApi());
-  const toasts = import.meta.client ? useToasts() : null;
 
   try {
     const isVerified = await authService.verify();
@@ -22,6 +21,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       authStore.setAuthenticated(false);
       return navigateTo('/auth');
     }
-    toasts?.error("Verification failed", "Could not verify session with the server.");
+    adze.ns('auth').error('Session verification failed', error);
+    // Fail closed: rendering a protected page with an unverified session produces inconsistent
+    // authed/unauthed states. A retryable error page is also visible on the SSR path, where a
+    // toast is not.
+    throw createError({statusCode: 503, statusMessage: 'sessionUnavailable', fatal: true});
   }
 })

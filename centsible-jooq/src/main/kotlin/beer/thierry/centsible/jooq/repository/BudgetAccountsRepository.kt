@@ -44,6 +44,21 @@ class BudgetAccountsRepository(private val dsl: DSLContext) : IBudgetAccountsRep
             .fetchSingleInto(BudgetAccountDTO::class.java)
     }
 
+    override fun fetchAccountByIdForUpdate(id: UUID, authenticatedUser: UserDTO): BudgetAccountDTO {
+        return dsl.select(
+            ACCOUNTS.ID,
+            ACCOUNTS.NAME,
+            ACCOUNTS.BALANCE,
+            ACCOUNTS.INITIAL_BALANCE,
+            ACCOUNTS.CURRENCY,
+            ACCOUNTS.TYPE,
+        )
+            .from(ACCOUNTS)
+            .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id).and(ACCOUNTS.ID.eq(id)))
+            .forUpdate()
+            .fetchSingleInto(BudgetAccountDTO::class.java)
+    }
+
     override fun createAccount(
         authenticatedUser: UserDTO,
         createBudgetAccountRequest: CreateBudgetAccountRequest

@@ -100,33 +100,37 @@ class TransactionService(
         return transactions
     }
 
-    @Transactional
     override fun createTransaction(
         accountId: UUID,
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val (conversion, splits, resolvedForm) = prepareTransaction(accountId, transactionForm, authenticatedUser)
-        val (finalForm, ruleTagIds) = applyRuleEffects(accountId, resolvedForm, splits, conversion, authenticatedUser)
-        val transaction = transactionRepository.createTransaction(accountId, finalForm, conversion, authenticatedUser)
-        if (splits != null) {
-            transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
-            transaction.splits =
-                transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transaction.id!!))[transaction.id] ?: emptyList()
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
+        val conversion = resolveConversion(accountId, transactionForm, authenticatedUser)
+
+        return transactionTemplate.execute {
+            val (splits, resolvedForm) = prepareTransaction(transactionForm, conversion, authenticatedUser)
+            val (finalForm, ruleTagIds) = applyRuleEffects(accountId, resolvedForm, splits, conversion, authenticatedUser)
+            val transaction = transactionRepository.createTransaction(accountId, finalForm, conversion, authenticatedUser)
+            if (splits != null) {
+                transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
+                transaction.splits =
+                    transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transaction.id!!))[transaction.id] ?: emptyList()
+            }
+            if (ruleTagIds.isNotEmpty()) {
+                tagRepository.setTransactionTags(authenticatedUser, transaction.id!!, ruleTagIds.toList())
+                transaction.tags = tagRepository.fetchTagsForTransaction(authenticatedUser, transaction.id!!)
+            }
+            val adjustment = calculateAdjustment(transaction.type, transaction.amount)
+            accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
+            checkBudgetAlerts(authenticatedUser, splits?.map { it.categoryId }?.distinct() ?: listOf(finalForm.categoryId))
+            checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
+            log.info(
+                "Created transaction id={} accountId={} userId={} type={} amount={}",
+                transaction.id, accountId, authenticatedUser.id, transaction.type, transaction.amount,
+            )
+            transaction
         }
-        if (ruleTagIds.isNotEmpty()) {
-            tagRepository.setTransactionTags(authenticatedUser, transaction.id!!, ruleTagIds.toList())
-            transaction.tags = tagRepository.fetchTagsForTransaction(authenticatedUser, transaction.id!!)
-        }
-        val adjustment = calculateAdjustment(transaction.type, transaction.amount)
-        accountRepository.updateBalance(accountId, adjustment, authenticatedUser)
-        checkBudgetAlerts(authenticatedUser, splits?.map { it.categoryId }?.distinct() ?: listOf(finalForm.categoryId))
-        checkInlineTransactionAlerts(authenticatedUser, transaction, accountId)
-        log.info(
-            "Created transaction id={} accountId={} userId={} type={} amount={}",
-            transaction.id, accountId, authenticatedUser.id, transaction.type, transaction.amount,
-        )
-        return transaction
     }
 
     /**
@@ -159,41 +163,48 @@ class TransactionService(
         return form.copy(categoryId = effects.categoryId ?: form.categoryId) to effects.tagIds
     }
 
-    @Transactional
     override fun updateTransaction(
         transactionId: UUID,
         accountId: UUID,
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
-        val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
-        val oldSplitCategories = transactionRepository
-            .fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId]
-            ?.mapNotNull { it.category.id } ?: emptyList()
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
+        val conversion = resolveConversion(accountId, transactionForm, authenticatedUser)
 
-        val (conversion, splits, resolvedForm) = prepareTransaction(accountId, transactionForm, authenticatedUser)
-        val updatedTransaction =
-            transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
-        transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
-        updatedTransaction.splits = if (splits != null) {
-            transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId] ?: emptyList()
-        } else emptyList()
-        val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
+        return transactionTemplate.execute {
+            val oldTransaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+            if (oldTransaction.transferGroupId != null) {
+                throw LocalizedException.BadRequest("error.transfer.useTransferEndpoint")
+            }
+            val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
+            val oldSplitCategories = transactionRepository
+                .fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId]
+                ?.mapNotNull { it.category.id } ?: emptyList()
 
-        accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
-        val touchedCategories = (
-            oldSplitCategories +
-                listOfNotNull(oldTransaction.category.id, updatedTransaction.category.id) +
-                (splits?.map { it.categoryId } ?: emptyList())
-            ).distinct()
-        checkBudgetAlerts(authenticatedUser, touchedCategories)
-        checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
-        log.info(
-            "Updated transaction id={} accountId={} userId={} type={} amount={}",
-            transactionId, accountId, authenticatedUser.id, updatedTransaction.type, updatedTransaction.amount,
-        )
-        return updatedTransaction
+            val (splits, resolvedForm) = prepareTransaction(transactionForm, conversion, authenticatedUser)
+            val updatedTransaction =
+                transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
+            transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
+            updatedTransaction.splits = if (splits != null) {
+                transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId] ?: emptyList()
+            } else emptyList()
+            val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
+
+            accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
+            val touchedCategories = (
+                oldSplitCategories +
+                    listOfNotNull(oldTransaction.category.id, updatedTransaction.category.id) +
+                    (splits?.map { it.categoryId } ?: emptyList())
+                ).distinct()
+            checkBudgetAlerts(authenticatedUser, touchedCategories)
+            checkInlineTransactionAlerts(authenticatedUser, updatedTransaction, accountId)
+            log.info(
+                "Updated transaction id={} accountId={} userId={} type={} amount={}",
+                transactionId, accountId, authenticatedUser.id, updatedTransaction.type, updatedTransaction.amount,
+            )
+            updatedTransaction
+        }
     }
 
     @Transactional
@@ -230,7 +241,6 @@ class TransactionService(
         return deleted
     }
 
-    @Transactional
     override fun createTransfer(
         sourceAccountId: UUID,
         form: TransferForm,
@@ -243,24 +253,26 @@ class TransactionService(
         val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
         val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
 
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = currencyConversionService.convert(
             form.amount, source.currency, destination.currency, form.transactionDate
         )
 
-        val legs = transactionRepository.insertTransfer(
-            sourceAccountId, destinationAccountId, form, conversion, authenticatedUser
-        )
-        accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
-        accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
+        return transactionTemplate.execute {
+            val legs = transactionRepository.insertTransfer(
+                sourceAccountId, destinationAccountId, form, conversion, authenticatedUser
+            )
+            accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
+            accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
 
-        log.info(
-            "Created transfer groupId={} sourceAccountId={} destinationAccountId={} userId={} amount={}",
-            legs.firstOrNull()?.transferGroupId, sourceAccountId, destinationAccountId, authenticatedUser.id, form.amount,
-        )
-        return legs
+            log.info(
+                "Created transfer groupId={} sourceAccountId={} destinationAccountId={} userId={} amount={}",
+                legs.firstOrNull()?.transferGroupId, sourceAccountId, destinationAccountId, authenticatedUser.id, form.amount,
+            )
+            legs
+        }
     }
 
-    @Transactional
     override fun updateTransfer(
         transactionId: UUID,
         sourceAccountId: UUID,
@@ -271,43 +283,47 @@ class TransactionService(
             ?: throw LocalizedException.BadRequest("error.transfer.destinationRequired")
         if (sourceAccountId == destinationAccountId) throw LocalizedException.BadRequest("error.transfer.sameAccount")
 
-        val existing = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
-        val groupId = existing.transferGroupId
-            ?: throw LocalizedException.BadRequest("error.transfer.notATransfer")
-
-        val oldLegs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
-        val sourceLeg = oldLegs.firstOrNull { it.type == CategoryType.EXPENSE }
-            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
-        val destinationLeg = oldLegs.firstOrNull { it.type == CategoryType.INCOME }
-            ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
-
         val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
         val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
+
+        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = currencyConversionService.convert(
             form.amount, source.currency, destination.currency, form.transactionDate
         )
 
-        oldLegs.forEach { leg ->
-            accountRepository.updateBalance(
-                leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
+        return transactionTemplate.execute {
+            val existing = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
+            val groupId = existing.transferGroupId
+                ?: throw LocalizedException.BadRequest("error.transfer.notATransfer")
+
+            val oldLegs = transactionRepository.fetchTransferLegs(groupId, authenticatedUser)
+            val sourceLeg = oldLegs.firstOrNull { it.type == CategoryType.EXPENSE }
+                ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
+            val destinationLeg = oldLegs.firstOrNull { it.type == CategoryType.INCOME }
+                ?: throw LocalizedException.BadRequest("error.transfer.legNotFound")
+
+            oldLegs.forEach { leg ->
+                accountRepository.updateBalance(
+                    leg.accountId, calculateAdjustment(leg.type, leg.amount).negate(), authenticatedUser
+                )
+            }
+
+            val legs = transactionRepository.updateTransfer(
+                sourceLegId = sourceLeg.id,
+                destinationLegId = destinationLeg.id,
+                sourceAccountId = sourceAccountId,
+                destinationAccountId = destinationAccountId,
+                form = form,
+                conversion = conversion,
+                authenticatedUser = authenticatedUser,
             )
+
+            accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
+            accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
+
+            log.info("Updated transfer in place groupId={} userId={}", groupId, authenticatedUser.id)
+            legs
         }
-
-        val legs = transactionRepository.updateTransfer(
-            sourceLegId = sourceLeg.id,
-            destinationLegId = destinationLeg.id,
-            sourceAccountId = sourceAccountId,
-            destinationAccountId = destinationAccountId,
-            form = form,
-            conversion = conversion,
-            authenticatedUser = authenticatedUser,
-        )
-
-        accountRepository.updateBalance(sourceAccountId, form.amount.negate(), authenticatedUser)
-        accountRepository.updateBalance(destinationAccountId, conversion.convertedAmount, authenticatedUser)
-
-        log.info("Updated transfer in place groupId={} userId={}", groupId, authenticatedUser.id)
-        return legs
     }
 
     override fun fetchTransfer(transactionId: UUID, authenticatedUser: UserDTO): TransferDetailsDTO {
@@ -371,7 +387,10 @@ class TransactionService(
         val classification = categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))[categoryId]
             ?: throw categoryNotFound(categoryId)
         if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
+        // Transfer legs keep their managed Transfer in/out category (ADR-0015); they are skipped, not rejected.
         val oldTransactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
+            .filter { it.transferGroupId == null }
+        if (oldTransactions.isEmpty()) return 0
         val affectedIds = oldTransactions.map { it.id!! }
         val updated = transactionRepository.updateCategoryForTransactions(
             accountId, affectedIds, categoryId, authenticatedUser
@@ -518,7 +537,9 @@ class TransactionService(
         form: SetBalanceForm,
         authenticatedUser: UserDTO,
     ): TransactionDTO {
-        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
+        // Locked read: the delta below is applied as a relative increment, so two concurrent
+        // adjustments reading the same balance would both apply and overshoot the target.
+        val account = accountRepository.fetchAccountByIdForUpdate(accountId, authenticatedUser)
         val delta = form.newBalance.subtract(account.balance)
         if (delta.signum() == 0) {
             throw LocalizedException.BadRequest("error.balance.unchanged")
@@ -578,36 +599,47 @@ class TransactionService(
      * stored amount, each in a non-managed category of the transaction's own type.
      */
     private data class PreparedTransaction(
-        val conversion: ConversionResult,
         val splits: List<TransactionSplitForm>?,
         val resolvedForm: TransactionForm,
     )
 
     /**
-     * Shared create/update prologue: fetch the account for its currency, convert the amount into
-     * it, resolve the effective category type, validate/normalize splits, and fold the resolved
-     * type and primary category back into the form. Create and update diverge only afterwards (a
-     * single balance adjustment vs. a delta against the old transaction).
+     * Fetches the account for its currency (which also gates ownership) and converts the form's
+     * amount into it. Callers must invoke this above their transaction: resolving a rate can hit
+     * the FX provider over HTTP.
      */
-    private fun prepareTransaction(
+    private fun resolveConversion(
         accountId: UUID,
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO,
-    ): PreparedTransaction {
+    ): ConversionResult {
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val conversion = currencyConversionService.convert(
+        return currencyConversionService.convert(
             transactionForm.amount,
             transactionForm.currency ?: account.currency,
             account.currency,
             transactionForm.transactionDate,
         )
+    }
+
+    /**
+     * Shared create/update prologue: resolve the effective category type, validate/normalize splits
+     * against the already-converted amount, and fold the resolved type and primary category back
+     * into the form. Create and update diverge only afterwards (a single balance adjustment vs. a
+     * delta against the old transaction).
+     */
+    private fun prepareTransaction(
+        transactionForm: TransactionForm,
+        conversion: ConversionResult,
+        authenticatedUser: UserDTO,
+    ): PreparedTransaction {
         val resolvedType = resolveType(authenticatedUser, transactionForm.categoryId, transactionForm.type)
         val splits = normalizeSplits(transactionForm, conversion.convertedAmount, resolvedType, authenticatedUser)
         val resolvedForm = transactionForm.copy(
             type = resolvedType,
             categoryId = splits?.first()?.categoryId ?: transactionForm.categoryId,
         )
-        return PreparedTransaction(conversion, splits, resolvedForm)
+        return PreparedTransaction(splits, resolvedForm)
     }
 
     private fun normalizeSplits(

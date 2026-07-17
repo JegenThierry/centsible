@@ -2,7 +2,6 @@ package beer.thierry.centsible.core.services.reports
 
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetPeriodType
-import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
@@ -24,7 +23,6 @@ import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.IReportService
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -45,7 +43,8 @@ class ReportService(
     private val recurringRepository: IRecurringTransactionRepository,
 ) : IReportService {
 
-    private val log = LoggerFactory.getLogger(ReportService::class.java)
+    private fun ratesFor(authenticatedUser: UserDTO): ConversionRates =
+        accountRatesFor(authenticatedUser, accountsRepository, userRepository, currencyConversionService)
 
     override fun fetchNetWorthOverTime(
         startDate: LocalDate,
@@ -60,7 +59,7 @@ class ReportService(
 
         val opening = reportsRepository.fetchLatestSnapshotPerAccountAsOf(openingOffset, authenticatedUser)
         val snapshots = reportsRepository.fetchUserSnapshotsBetween(startOffset, endOffset, authenticatedUser)
-        val rates = accountRatesFor(authenticatedUser)
+        val rates = ratesFor(authenticatedUser)
 
         val accountBalances = mutableMapOf<UUID, BigDecimal>()
         for (snapshot in opening) accountBalances[snapshot.accountId] = snapshot.balance
@@ -88,7 +87,7 @@ class ReportService(
 
         val today = LocalDate.now()
         val horizonEnd = today.plusMonths(months.toLong())
-        val rates = accountRatesFor(authenticatedUser)
+        val rates = ratesFor(authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
         // Forecasting starts from the live net worth (current per-account balances), not the history.
         val startingTotal = totalOf(accounts.associate { it.id to it.balance }, rates)
@@ -169,7 +168,7 @@ class ReportService(
         val asOf = OffsetDateTime.of(date, LocalTime.MAX, ZoneOffset.UTC)
         val snapshots = reportsRepository.fetchLatestSnapshotPerAccountAsOf(asOf, authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
-        val rates = accountRatesFor(authenticatedUser)
+        val rates = ratesFor(authenticatedUser)
         val balances = mutableMapOf<UUID, BigDecimal>()
         for (s in snapshots) balances[s.accountId] = s.balance
 
@@ -194,6 +193,7 @@ class ReportService(
     ): List<CategorySpendingSeriesDTO> {
         require(!startDate.isAfter(endDate)) { "Start date must not be after end date" }
         return reportsRepository.fetchCategorySpendingOverTime(startDate, endDate, authenticatedUser)
+            .convertedInto(ratesFor(authenticatedUser))
     }
 
     override fun fetchCashFlow(
@@ -203,6 +203,7 @@ class ReportService(
     ): List<CashFlowPointDTO> {
         require(!startDate.isAfter(endDate)) { "Start date must not be after end date" }
         return reportsRepository.fetchCashFlow(startDate, endDate, authenticatedUser)
+            .convertedInto(ratesFor(authenticatedUser))
     }
 
     override fun fetchYearOverYear(authenticatedUser: UserDTO): YearOverYearDTO {
@@ -211,10 +212,13 @@ class ReportService(
         val (thisStart, thisEnd) = yearRange(thisYear)
         val (lastStart, lastEnd) = yearRange(lastYear)
 
-        val thisYearFlow = reportsRepository.fetchCashFlow(thisStart, thisEnd, authenticatedUser)
-        val lastYearFlow = reportsRepository.fetchCashFlow(lastStart, lastEnd, authenticatedUser)
+        val rates = ratesFor(authenticatedUser)
+        val thisYearFlow = reportsRepository.fetchCashFlow(thisStart, thisEnd, authenticatedUser).convertedInto(rates)
+        val lastYearFlow = reportsRepository.fetchCashFlow(lastStart, lastEnd, authenticatedUser).convertedInto(rates)
         val thisSeries = reportsRepository.fetchCategorySpendingOverTime(thisStart, thisEnd, authenticatedUser)
+            .convertedInto(rates)
         val lastSeries = reportsRepository.fetchCategorySpendingOverTime(lastStart, lastEnd, authenticatedUser)
+            .convertedInto(rates)
 
         val totals = YearOverYearTotalsDTO(
             thisYearIncome = thisYearFlow.sumOf { it.income },
@@ -284,34 +288,6 @@ class ReportService(
         limit = b.amountLimit + b.rolloverAmount,
         spent = b.amountSpent,
     )
-
-    private data class ConversionRates(val target: Currency, val byAccount: Map<UUID, BigDecimal?>)
-
-    /**
-     * Today's FX multiplier into the user's default currency, per account. Accounts whose rate
-     * cannot be resolved map to null and are excluded from totals (mirrors LoanService.totalOutstanding).
-     */
-    private fun accountRatesFor(authenticatedUser: UserDTO): ConversionRates {
-        // The JWT principal doesn't carry defaultCurrency (it would go stale anyway) — re-fetch,
-        // mirroring LoanService.totalOutstanding.
-        val target = Currency.parseOrNull(
-            userRepository.findUserById(authenticatedUser.id)?.defaultCurrency ?: authenticatedUser.defaultCurrency
-        ) ?: Currency.EUR
-        val today = LocalDate.now()
-        val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
-        val rateByCurrency = accounts.map { it.currency }.distinct().associateWith { currency ->
-            if (currency == target) {
-                BigDecimal.ONE
-            } else {
-                runCatching { currencyConversionService.convert(BigDecimal.ONE, currency, target, today).rate }
-                    .getOrElse {
-                        log.warn("Excluding {} accounts from net worth: FX {}->{} unavailable", currency, currency, target, it)
-                        null
-                    }
-            }
-        }
-        return ConversionRates(target, accounts.associate { it.id to rateByCurrency[it.currency] })
-    }
 
     private fun totalOf(balances: Map<UUID, BigDecimal>, rates: ConversionRates): BigDecimal =
         balances.entries

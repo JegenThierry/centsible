@@ -15,6 +15,7 @@ const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const {success} = useToasts();
+const {toastError} = useApiErrors();
 const {t, locale} = useI18n();
 
 const state = reactive({
@@ -86,7 +87,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
       await navigateTo({path: '/auth/check-email', query: {email: state.email}});
     })
     .catch((err) => {
-      useApiErrors().toastError(err, t('auth.register.toastErrorTitle'), t('auth.register.toastErrorFallback'));
+      toastError(err, t('auth.register.toastErrorTitle'), t('auth.register.toastErrorFallback'));
     })
     .finally(() => loading.value = false);
 }

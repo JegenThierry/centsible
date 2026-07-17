@@ -5,6 +5,10 @@
     "empty": "Tout est à jour.",
     "markAllRead": "Tout marquer comme lu",
     "markRead": "Marquer comme lu",
-    "delete": "Supprimer la notification"
+    "delete": "Supprimer la notification",
+    "toasts": {
+      "updateFailedTitle": "Échec de la mise à jour des notifications",
+      "updateFailedBody": "Impossible de mettre à jour les notifications. Veuillez réessayer."
+    }
   }
 }

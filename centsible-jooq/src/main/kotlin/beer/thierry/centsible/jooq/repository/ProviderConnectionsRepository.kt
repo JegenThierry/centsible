@@ -129,6 +129,16 @@ class ProviderConnectionsRepository(
                         PROVIDER_CONNECTIONS.LOCKED_AT.isNull
                             .or(PROVIDER_CONNECTIONS.LOCKED_AT.lt(leaseCutoff))
                     )
+                    // A failed sync leaves LAST_SYNC_AT untouched, so without this a connection that
+                    // errors is due again on the very next poll and retries every poll-interval-ms
+                    // forever. MODIFIED_AT is the last attempt (claim and markSyncError both stamp it)
+                    // and markSyncSuccess clears LAST_ERROR, so this backs a failing connection off by
+                    // a full sync interval without stamping LAST_SYNC_AT, which the UI shows as
+                    // "Last synced".
+                    .and(
+                        PROVIDER_CONNECTIONS.LAST_ERROR.isNull
+                            .or(PROVIDER_CONNECTIONS.MODIFIED_AT.lt(syncCutoff))
+                    )
             )
             .orderBy(PROVIDER_CONNECTIONS.LAST_SYNC_AT.asc().nullsFirst())
             .limit(1)

@@ -285,6 +285,29 @@ function flushPendingDeletes() {
   for (const id of Array.from(pendingDeletes.value.keys())) void commitDelete(id);
 }
 
+/**
+ * Browser teardown, which `onBeforeUnmount` never sees: closing the tab, F5, or following an
+ * external link inside the undo window would otherwise drop the DELETE entirely — the user watched
+ * the row vanish and got a "deleted" toast, but the transaction is still there next session. In a
+ * finance app that reads as corruption, so the pending deletes go out as keepalive requests that
+ * outlive the document.
+ *
+ * Marked `committing` so a bfcache restore doesn't let the timers fire a second DELETE for rows
+ * that have already been sent.
+ */
+function flushPendingDeletesOnUnload() {
+  for (const [id, pending] of pendingDeletes.value) {
+    if (pending.committing) continue;
+    pending.committing = true;
+    clearTimeout(pending.timer);
+    transactionService.deleteTransactionOnUnload(pending.accountId, id);
+  }
+}
+
+// `pagehide`, not `beforeunload`: it's the one teardown event that fires reliably on mobile and
+// with the bfcache. useEventListener unregisters it with the component.
+useEventListener('pagehide', flushPendingDeletesOnUnload);
+
 /** Transfers span two ledger rows and can't be cleanly restored — delete straight away, no undo. */
 async function deleteTransferNow(accountId: string, transaction: Transaction) {
   const entity = t('transactions.transfer.entity');

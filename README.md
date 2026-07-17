@@ -108,7 +108,7 @@ Docker Compose is used for **deployment only** — there is no Docker-based dev 
 
 This starts PostgreSQL, a one-shot migration runner, the REST API, the export worker, and the UI. Postgres and the export worker stay internal to `centsible-net`; only `centsible-rest:8080` and `centsible-ui:3000` are reachable, and only by the reverse proxy over `proxy-net`.
 
-The reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) terminates TLS and forwards to `centsible-ui:3000` and `centsible-rest:8080`, passing `X-Forwarded-Proto: https` and `X-Forwarded-Host` (the REST service trusts these via `SERVER_FORWARD_HEADERS_STRATEGY=framework`). Pick one topology in your proxy config:
+The reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) terminates TLS and forwards to `centsible-ui:3000` and `centsible-rest:8080`, passing `X-Forwarded-Proto: https`, `X-Forwarded-Host` and `X-Forwarded-For` (the REST service trusts these via `SERVER_FORWARD_HEADERS_STRATEGY=native`, which also derives the rate limiter's client IP from the last hop it doesn't trust rather than the forgeable leftmost one). Pick one topology in your proxy config:
 
 | Topology | Proxy routing | `.env` values |
 |:---|:---|:---|
@@ -245,7 +245,7 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 | `ADMIN_USERNAME`                    | Username of the account granted the admin view (list/delete users, resend verification emails). Changing it requires a restart                       | empty                            |
 | `AUTH_COOKIE_SECURE`                | Sets the `Secure` flag on the auth cookie. MUST be `true` in prod (ProductionGuard enforces under `prod` profile)                                    | `false`                          |
 | `AUTH_COOKIE_DOMAIN`                | Cookie `Domain` attribute. Set when UI and API share a parent domain                                                                                 | empty                            |
-| `SERVER_FORWARD_HEADERS_STRATEGY`   | `framework` honours `X-Forwarded-*` from a trusted proxy. Use `none` if no proxy — otherwise the rate-limit client-IP becomes spoofable              | `framework`                      |
+| `SERVER_FORWARD_HEADERS_STRATEGY`   | `native` honours `X-Forwarded-*` via Tomcat's RemoteIpValve, resolving the client IP against the trusted `server.tomcat.remoteip.internal-proxies` ranges. `framework` takes the leftmost, client-forgeable `X-Forwarded-For` entry and makes the rate-limit IP spoofable. Use `none` if no proxy | `native`                         |
 | `JAVA_OPTS`                         | JVM options for the REST container                                                                                                                   | `-Xms128m -Xmx384m`              |
 
 ### Email (Resend)

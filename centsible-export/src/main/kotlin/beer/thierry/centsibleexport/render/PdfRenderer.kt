@@ -1,6 +1,6 @@
 package beer.thierry.centsibleexport.render
 
-import com.microsoft.playwright.Browser
+import beer.thierry.centsibleexport.config.BrowserPool
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.LoadState
 import com.microsoft.playwright.options.Margin
@@ -13,7 +13,7 @@ import java.io.StringWriter
 @Component
 class PdfRenderer(
     private val pebbleEngine: PebbleEngine,
-    private val browser: Browser,
+    private val browserPool: BrowserPool,
     // Bounds setContent/waitForLoadState so a template that references an unreachable resource
     // (NETWORKIDLE would otherwise block forever) cannot pin the shared scheduler thread past the lease.
     @param:Value("\${export.render.timeout-ms:60000}") private val renderTimeoutMs: Double,
@@ -42,7 +42,7 @@ class PdfRenderer(
         return writer.toString()
     }
 
-    private fun htmlToPdfBytes(html: String): ByteArray = browser.newPage().use { page ->
+    private fun htmlToPdfBytes(html: String): ByteArray = browserPool.withPage { page ->
         page.setDefaultTimeout(renderTimeoutMs)
         page.setContent(html)
         page.waitForLoadState(LoadState.NETWORKIDLE)
