@@ -3,10 +3,11 @@ import adze from 'adze'
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
 import type {BudgetAccountSnapshot} from "~/models/budget-account/budget-account";
 import {createAsyncCache} from "~/utils/async-cache";
+import {registerLedgerAggregateCache} from "~/utils/ledger-aggregates";
 
 type AccountService = ReturnType<typeof useBudgetAccountService>;
 
-const cache = createAsyncCache<BudgetAccountSnapshot[]>(() => []);
+const cache = registerLedgerAggregateCache(createAsyncCache<BudgetAccountSnapshot[]>(() => []));
 
 function key(accountId: string, fromIso: string | null, toIso: string | null): string {
   return `${accountId}|${fromIso ?? ''}|${toIso ?? ''}`;
@@ -46,8 +47,10 @@ export function useAccountSnapshots(
   const service = useBudgetAccountService(useApi());
   const data = ref<BudgetAccountSnapshot[]>([]);
   const loading = ref(false);
+  let token = 0;
 
   async function load() {
+    const current = ++token;
     const id = accountId();
     const from = fromIso();
     const to = toIso();
@@ -57,22 +60,19 @@ export function useAccountSnapshots(
     }
     loading.value = true;
     try {
-      data.value = await cache.loadOrCache(key(id, from, to), () =>
+      const result = await cache.loadOrCache(key(id, from, to), () =>
         fetchSnapshots(service, id, from, to),
       );
+      if (current === token) data.value = result;
     } catch (e) {
       adze.ns('budget-accounts').error('Failed to load account snapshots', e);
-      data.value = [];
+      if (current === token) data.value = [];
     } finally {
-      loading.value = false;
+      if (current === token) loading.value = false;
     }
   }
 
   watch([accountId, fromIso, toIso], load, {immediate: true});
 
   return {data, loading, reload: load};
-}
-
-export function invalidateAccountSnapshots() {
-  cache.invalidate();
 }

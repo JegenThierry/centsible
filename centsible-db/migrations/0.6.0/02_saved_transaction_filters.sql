@@ -1,6 +1,3 @@
--- Saved transaction filter views: a named, user-scoped snapshot of the transaction filter set,
--- stored as a JSONB payload mirroring the api TransactionFilters DTO so re-applying a view is a
--- straight deserialize. Owner-scoped like every other user-owned table (ADR-0003).
 CREATE TABLE IF NOT EXISTS saved_transaction_filters
 (
     id          BIGSERIAL PRIMARY KEY,

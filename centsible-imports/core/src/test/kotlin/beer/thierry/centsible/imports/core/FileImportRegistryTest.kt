@@ -101,6 +101,48 @@ class FileImportRegistryTest {
     }
 
     @Test
+    fun `detect lets a sniff override an ambiguous txt extension and text-plain MIME`() {
+        val csv = FakeParser(
+            id = "csv",
+            supportedExtensions = setOf("csv", "tsv", "txt"),
+            supportedMimeTypes = setOf("text/csv", "text/plain"),
+        )
+        val ofx = FakeParser(
+            id = "ofx",
+            supportedExtensions = setOf("ofx"),
+            sniffMatches = true,
+        )
+
+        val registry = FileImportRegistry(parsers = listOf(csv, ofx), profiles = emptyList())
+
+        val detected = registry.detect(
+            bytes = "OFXHEADER:100\nDATA:OFXSGML\n\n<OFX><BANKMSGSRSV1>".toByteArray(),
+            filename = "statement.txt",
+            mimeType = "text/plain",
+        )
+        assertSame(ofx, detected)
+    }
+
+    @Test
+    fun `detect keeps an ambiguous txt extension match when nothing sniffs`() {
+        val csv = FakeParser(
+            id = "csv",
+            supportedExtensions = setOf("csv", "tsv", "txt"),
+            supportedMimeTypes = setOf("text/csv", "text/plain"),
+        )
+        val ofx = FakeParser(id = "ofx", supportedExtensions = setOf("ofx"))
+
+        val registry = FileImportRegistry(parsers = listOf(csv, ofx), profiles = emptyList())
+
+        val detected = registry.detect(
+            bytes = "Date,Description,Amount\n2026-01-15,Coffee,-3.50".toByteArray(),
+            filename = "export.txt",
+            mimeType = "text/plain",
+        )
+        assertSame(csv, detected)
+    }
+
+    @Test
     fun `detect returns null when nothing claims the file`() {
         val csv = FakeParser(id = "csv", supportedExtensions = setOf("csv"))
 

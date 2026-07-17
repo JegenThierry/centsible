@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>();
 const accountService = useBudgetAccountService(useApi());
 const toast = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const isOpen = defineModel<boolean>({required: true})
@@ -88,7 +89,7 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
     navigateTo(`/${createdAccount.id}/dashboard`);
     emit('created');
   } catch (error) {
-    useApiErrors().toastError(error, t('accounts.modals.create.toastErrorTitle'), t('accounts.modals.create.toastErrorBody'));
+    toastError(error, t('accounts.modals.create.toastErrorTitle'), t('accounts.modals.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }

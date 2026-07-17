@@ -9,7 +9,7 @@ import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
-import {AMOUNT_INPUT} from "~/utils/money";
+import {transferSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -23,6 +23,7 @@ const emit = defineEmits<{
 const api = useApi();
 const transactionService = useTransactionService(api);
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
 
@@ -30,18 +31,8 @@ const form = ref<TransferForm>(makeBlankForm());
 const loading = ref(false);
 const formId = useId();
 
-const schema = z.object({
-  sourceAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})})
-    .min(1, t('common.validation.required', {field: t('transactions.transfer.fromAccount')})),
-  destinationAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})})
-    .min(1, t('common.validation.required', {field: t('transactions.transfer.toAccount')})),
-  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.transfer.amount')})})
-    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.transfer.amount'), min: AMOUNT_INPUT.min}))
-    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.transfer.amount'), max: AMOUNT_INPUT.max})),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
-    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
-});
+// Same schema as the create modal's transfer mode — see utils/form-schemas.
+const schema = transferSchema(t);
 type Schema = z.output<typeof schema>;
 
 function makeBlankForm(): TransferForm {
@@ -66,7 +57,7 @@ async function loadTransfer() {
     };
     nextTick(captureSnapshot);
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.loadErrorBody'));
+    toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.loadErrorBody'));
     isOpen.value = false;
   }
 }
@@ -104,7 +95,7 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
     emit('updated');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.toastErrorBody'));
+    toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.toastErrorBody'));
   } finally {
     loading.value = false;
   }

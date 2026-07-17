@@ -13,6 +13,7 @@ const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organ
 
 const store = useTagsStore();
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const draftOpen = ref(false);
@@ -52,7 +53,7 @@ async function saveDraft() {
     }
     draftOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('categories.tags.toastSaveFailedTitle'), t('categories.tags.toastSaveFailedBody'));
+    toastError(error, t('categories.tags.toastSaveFailedTitle'), t('categories.tags.toastSaveFailedBody'));
   } finally {
     saving.value = false;
   }

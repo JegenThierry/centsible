@@ -15,6 +15,7 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useReportsStore} from "~/stores/reportsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
 import {Currency} from "~/models/budget-account/currency";
+import {watchDebounced} from "@vueuse/core";
 import {useReportDateRange} from "~/composables/use-report-date-range";
 import {previousIsoDateRange} from "~/utils/date";
 
@@ -38,18 +39,12 @@ function onNetWorthPointClick(date: string) {
 
 async function refresh() {
   if (isCustom.value && !isCustomValid.value) return;
-  reportsStore.error = false;
   const range = isCustom.value
     ? {startDate: resolved.value.startDate, endDate: resolved.value.endDate}
     : resolved.value.months;
   // The equal-length window right before the selected range powers the KPI strip's period deltas.
   const previousRange = previousIsoDateRange(resolved.value.startDate, resolved.value.endDate);
-  await Promise.all([
-    reportsStore.fetchNetWorth(range),
-    reportsStore.fetchCategorySpending(range),
-    reportsStore.fetchCashFlow(range),
-    reportsStore.fetchCashFlowPrevious(previousRange),
-  ]);
+  await reportsStore.fetchRangeReports(range, previousRange);
 }
 
 // Neither takes the selected range, so neither belongs in refresh().
@@ -60,7 +55,11 @@ function loadRangeIndependent(): Promise<unknown> {
   ]);
 }
 
-watch([preset, customFrom, customTo], () => refresh());
+// Debounced so a burst of range edits (typing into the custom-date fields) costs one batch instead
+// of one per keystroke. It does NOT make ordering safe — two changes further apart than the window
+// still dispatch overlapping batches, and the slower one can land last. reportsStore's per-batch
+// generation is what discards a superseded batch's results.
+watchDebounced([preset, customFrom, customTo], () => refresh(), {debounce: 400});
 
 onMounted(async () => {
   const loadAccounts = accountsStore.availableAccounts.length === 0

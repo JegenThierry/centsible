@@ -35,6 +35,7 @@ const importService = useImportService(api);
 const categoryService = useCategoryService(api);
 const accountsStore = useBudgetAccountsStore();
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const step = ref<Step>('upload');
@@ -150,7 +151,7 @@ async function detectAndProceed() {
       step.value = 'review';
     }
   } catch (error) {
-    useApiErrors().toastError(
+    toastError(
       error,
       t('transactions.advancedImport.errorTitle'),
       t('transactions.advancedImport.detectFailedBody'),
@@ -167,7 +168,7 @@ async function previewWithMapping() {
     preview.value = await importService.preview(file.value, detection.value.parserId, buildHints(), 50);
     step.value = 'review';
   } catch (error) {
-    useApiErrors().toastError(
+    toastError(
       error,
       t('transactions.advancedImport.errorTitle'),
       t('transactions.advancedImport.detectFailedBody'),
@@ -208,7 +209,7 @@ async function saveProfile() {
       t('transactions.advancedImport.savedProfiles.savedBody', {name: created.name}),
     );
   } catch (error) {
-    useApiErrors().toastError(
+    toastError(
       error,
       t('transactions.advancedImport.savedProfiles.saveFailedTitle'),
       t('transactions.advancedImport.savedProfiles.saveFailedBody'),
@@ -238,7 +239,7 @@ async function commit() {
     emit('imported');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(
+    toastError(
       error,
       t('transactions.advancedImport.errorTitle'),
       t('transactions.advancedImport.commitFailedBody'),

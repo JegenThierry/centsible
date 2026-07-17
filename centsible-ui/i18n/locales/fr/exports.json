@@ -64,6 +64,8 @@
       "deletedBody": "L'export a été supprimé.",
       "deleteFailedTitle": "Impossible de supprimer l'export",
       "deleteFailedBody": "Une erreur est survenue. Veuillez réessayer.",
+      "downloadFailedTitle": "Impossible de télécharger l'export",
+      "downloadFailedBody": "Le fichier n'est peut-être plus disponible. Essayez de le régénérer.",
       "retriggeredTitle": "Export relancé",
       "retriggeredBody": "L'export est régénéré avec les données actuelles.",
       "retriggerFailedTitle": "Impossible de relancer l'export",

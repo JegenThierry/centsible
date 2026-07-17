@@ -21,6 +21,7 @@ const emit = defineEmits<{
 
 const accountStore = useBudgetAccountsStore();
 const toast = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const isOpen = defineModel<boolean>({required: true})
@@ -73,7 +74,7 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
     isOpen.value = false;
     emit('updated');
   } catch (error) {
-    useApiErrors().toastError(error, t('accounts.modals.edit.toastErrorTitle'), t('accounts.modals.edit.toastErrorBody'));
+    toastError(error, t('accounts.modals.edit.toastErrorTitle'), t('accounts.modals.edit.toastErrorBody'));
   } finally {
     loading.value = false;
   }

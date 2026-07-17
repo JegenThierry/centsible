@@ -3,6 +3,7 @@ package beer.thierry.centsible.imports.csv
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.ParseHints
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -56,6 +57,12 @@ class CsvFileParserTest {
     }
 
     @Test
+    fun `sniff rejects OFX content so it cannot shadow the OFX parser on a txt upload`() {
+        val ofx = "OFXHEADER:100\nDATA:OFXSGML\n\n<OFX><BANKMSGSRSV1><STMTTRN><NAME>Shop, Inc</NAME>"
+        assertFalse(parser.sniff(ofx.toByteArray(), "statement.txt"))
+    }
+
+    @Test
     fun `probe strips a UTF-8 BOM so the first header cell stays clean`() {
         val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
         val csv = bom + "Date;Description;Amount\n2026-01-01;Test;1.23".toByteArray()
@@ -95,5 +102,40 @@ class CsvFileParserTest {
         val probe = parser.probe(csv, ParseHints())
         assertEquals("windows-1252", probe.detectedDialect.encoding)
         assertEquals(listOf("Datum", "Beschreibung", "Betrag"), probe.header)
+    }
+
+    @Test
+    fun `parse reports an unterminated quote as a warning instead of throwing`() {
+        val csv = "Date,Description,Amount\n2026-01-15,\"unterminated,-3.50\n".toByteArray()
+
+        val hints = ParseHints(
+            defaultCategoryId = 42L,
+            csvMapping = CsvColumnMapping(
+                dateColumn = 0,
+                descriptionColumn = 1,
+                amountColumn = 2,
+                dateFormat = "yyyy-MM-dd",
+            ),
+        )
+
+        val result = parser.parse(csv, hints)
+
+        assertTrue(result.rows.isEmpty())
+        assertEquals(listOf("csv.unparseable"), result.warnings.map { it.code })
+        assertTrue(
+            result.warnings.single().message.contains("EOF reached before encapsulated token finished"),
+            "warning should carry the commons-csv reason, was '${result.warnings.single().message}'",
+        )
+    }
+
+    @Test
+    fun `probe reports an unterminated quote as a warning instead of throwing`() {
+        val csv = "Date;Description;Amount\n2026-01-01;\"unterminated;1.23\n".toByteArray()
+
+        val probe = parser.probe(csv, ParseHints())
+
+        assertTrue(probe.header.isEmpty())
+        assertTrue(probe.sample.isEmpty())
+        assertEquals(listOf("csv.unparseable"), probe.warnings.map { it.code })
     }
 }

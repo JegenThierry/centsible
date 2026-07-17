@@ -12,6 +12,9 @@ export function createAsyncCache<T>(empty: () => T) {
   const cache = new Map<string, CacheEntry<T>>();
 
   async function loadOrCache(key: string, loader: () => Promise<T>): Promise<T> {
+    // Module scope is shared across every request on the SSR server — caching there would grow
+    // unbounded and never invalidate between requests, so only the client memoizes.
+    if (import.meta.server) return loader();
     const entry = cache.get(key);
     if (entry) {
       if (entry.promise) return entry.promise;

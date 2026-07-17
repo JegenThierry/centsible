@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import {z} from 'zod';
 import type {FormSubmitEvent} from '@nuxt/ui';
 import {type SetBalanceForm as SetBalanceFormModel, type TransactionForm, type TransferForm as TransferFormModel} from "~/models/transactions/transaction";
 import {CategorySystemKey, CategoryType} from "~/models/category/category";
@@ -22,7 +21,7 @@ import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {resolveSplitPayload} from "~/utils/transaction";
 import {todayIsoDate} from "~/utils/date";
-import {AMOUNT_INPUT, BALANCE_INPUT, MONEY_FIELD_MAX} from "~/utils/money";
+import {loanSchema, setBalanceSchema, transactionSchema, transferSchema} from "~/utils/form-schemas";
 
 const {t} = useI18n();
 
@@ -47,6 +46,7 @@ const tagService = useTagService(api);
 const loansStore = useLoansStore();
 const categoriesStore = useCategoriesStore();
 const toasts = useToasts();
+const {toastError} = useApiErrors();
 const budgetAccountsStore = useBudgetAccountsStore();
 
 type Mode = 'standard' | 'transfer' | 'lending' | 'setBalance';
@@ -65,78 +65,12 @@ const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 const activeAccountBalance = computed(() => budgetAccountsStore.activeAccount?.balance ?? 0);
 
-const optionalNumber = (min: number, max: number, label: string) =>
-  z.preprocess(
-    (v) => (v === '' || v === undefined || v === null) ? undefined : v,
-    z.coerce.number({message: t('common.validation.number', {field: label})})
-      .min(min, t('common.validation.min', {field: label, min}))
-      .max(max, t('common.validation.max', {field: label, max}))
-      .optional(),
-  );
-
-const schemaStd = z.object({
-  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
-  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.amount')})})
-    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.form.amount'), min: AMOUNT_INPUT.min}))
-    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.form.amount'), max: AMOUNT_INPUT.max})),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
-    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
-});
-
-const schemaTransfer = z.object({
-  sourceAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})})
-    .min(1, t('common.validation.required', {field: t('transactions.transfer.fromAccount')})),
-  destinationAccountId: z.string({message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})})
-    .min(1, t('common.validation.required', {field: t('transactions.transfer.toAccount')})),
-  amount: z.coerce.number({message: t('common.validation.number', {field: t('transactions.transfer.amount')})})
-    .min(AMOUNT_INPUT.min, t('common.validation.min', {field: t('transactions.transfer.amount'), min: AMOUNT_INPUT.min}))
-    .max(AMOUNT_INPUT.max, t('common.validation.max', {field: t('transactions.transfer.amount'), max: AMOUNT_INPUT.max})),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
-    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
-});
-
-const schemaSetBalance = z.object({
-  newBalance: z.coerce.number({message: t('common.validation.number', {field: t('transactions.form.modes.setBalance.newBalance')})})
-    .min(BALANCE_INPUT.min, t('common.validation.min', {field: t('transactions.form.modes.setBalance.newBalance'), min: BALANCE_INPUT.min}))
-    .max(BALANCE_INPUT.max, t('common.validation.max', {field: t('transactions.form.modes.setBalance.newBalance'), max: BALANCE_INPUT.max})),
-  category: z.custom((v) => v != null && typeof v === 'object', {message: t('common.validation.required', {field: t('transactions.form.category')})}),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('transactions.form.description')}))
-    .max(255, t('common.validation.maxLength', {field: t('transactions.form.description'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('transactions.form.date')})),
-});
-
-const contactLabel = computed(() => t('contacts.loans.form.pickContact'));
-const accountLabel = computed(() => t('contacts.loans.form.fromAccountLabel'));
-
-const schemaLoan = z.object({
-  contactId: z.string().optional(),
-  newContactFirstName: z.string().max(100, t('common.validation.maxLength', {field: t('contacts.loans.form.newFirstNameLabel'), max: 100})).optional(),
-  newContactLastName: z.string().max(100, t('common.validation.maxLength', {field: t('contacts.loans.form.newLastNameLabel'), max: 100})).optional(),
-  accountId: z.string().optional(),
-  affectBalance: z.boolean(),
-  lentAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.lentLabel')})})
-    .min(0.01, t('common.validation.min', {field: t('contacts.loans.form.lentLabel'), min: 0.01}))
-    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: t('contacts.loans.form.lentLabel'), max: MONEY_FIELD_MAX})),
-  owedAmount: z.coerce.number({message: t('common.validation.number', {field: t('contacts.loans.form.owedLabel')})})
-    .min(0, t('common.validation.min', {field: t('contacts.loans.form.owedLabel'), min: 0}))
-    .max(MONEY_FIELD_MAX, t('common.validation.max', {field: t('contacts.loans.form.owedLabel'), max: MONEY_FIELD_MAX})),
-  interestRate: optionalNumber(0, 999.99, t('contacts.loans.form.interestRateLabel')),
-  description: z.string().trim().min(1, t('common.validation.required', {field: t('contacts.loans.form.descriptionLabel')}))
-    .max(255, t('common.validation.maxLength', {field: t('contacts.loans.form.descriptionLabel'), max: 255})),
-  transactionDate: z.string().min(1, t('common.validation.required', {field: t('contacts.loans.form.dateLabel')})),
-  dueDate: z.string().optional(),
-  notes: z.string().max(500, t('common.validation.maxLength', {field: t('contacts.loans.form.notesLabel'), max: 500})).optional(),
-})
-  .refine((d) => !!d.contactId || !!d.newContactFirstName?.trim(), {
-    message: t('common.validation.required', {field: contactLabel.value}),
-    path: ['contactId'],
-  })
-  .refine((d) => !d.affectBalance || !!d.accountId, {
-    message: t('common.validation.required', {field: accountLabel.value}),
-    path: ['accountId'],
-  });
+// Shared with the edit modals via utils/form-schemas — create and edit must validate the same
+// entity the same way, or a constraint fix lands on one modal and not the other.
+const schemaStd = transactionSchema(t);
+const schemaTransfer = transferSchema(t);
+const schemaSetBalance = setBalanceSchema(t);
+const schemaLoan = loanSchema(t);
 
 const balanceAdjustmentCategory = computed(() =>
   categoriesStore.categories.find(c => c.systemKey === CategorySystemKey.BalanceAdjustment),
@@ -277,7 +211,7 @@ async function saveTransfer() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.toastErrorBody'));
+    toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -327,7 +261,7 @@ async function saveStandard() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
+    toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -340,7 +274,7 @@ async function saveLending() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
+    toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }
@@ -365,7 +299,7 @@ async function saveSetBalance() {
     emit('created');
     isOpen.value = false;
   } catch (error) {
-    useApiErrors().toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
+    toastError(error, t('transactions.create.toastErrorTitle'), t('transactions.create.toastErrorBody'));
   } finally {
     loading.value = false;
   }

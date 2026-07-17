@@ -12,6 +12,7 @@ const {t} = useI18n();
 
 const api = useApi();
 const {success} = useToasts();
+const {toastError} = useApiErrors();
 
 const state = reactive({
   username: '',
@@ -33,7 +34,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
       success(t('auth.forgotPassword.toastSuccessTitle'), t('auth.forgotPassword.toastSuccessBody'));
     })
     .catch((err) => {
-      useApiErrors().toastError(err, t('auth.forgotPassword.toastErrorTitle'), t('auth.forgotPassword.toastErrorBody'));
+      toastError(err, t('auth.forgotPassword.toastErrorTitle'), t('auth.forgotPassword.toastErrorBody'));
     })
     .finally(() => loading.value = false);
 }

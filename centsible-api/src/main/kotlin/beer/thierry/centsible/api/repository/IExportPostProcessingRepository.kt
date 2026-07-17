@@ -13,7 +13,12 @@ interface IExportPostProcessingRepository {
      */
     fun claimNextPending(workerId: String, leaseTimeoutSeconds: Long): ExportPostProcessingDTO?
 
-    fun markCompleted(id: UUID)
+    /**
+     * Settles the step only while [workerId] still holds its lease; a no-op once the lease lapsed and
+     * another worker took the step over, so a slow send cannot overwrite the outcome of the retry.
+     */
+    fun markCompleted(id: UUID, workerId: String)
 
-    fun markFailed(id: UUID, errorMessage: String)
+    /** Fails the step only while [workerId] still holds its lease. See [markCompleted]. */
+    fun markFailed(id: UUID, workerId: String, errorMessage: String)
 }

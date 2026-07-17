@@ -14,7 +14,9 @@ import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.io.IOException
 import java.io.StringReader
+import java.io.UncheckedIOException
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -62,7 +64,15 @@ class CsvFileParser : FileFormatParser {
      */
     fun probe(bytes: ByteArray, hints: ParseHints, sampleRows: Int = 5): CsvProbe {
         val dialect = hints.csvDialect ?: detectDialect(bytes)
-        val all = readAllRecords(bytes, dialect)
+        val all = readAllRecords(bytes, dialect).getOrElse { ex ->
+            log.warn("CSV unparseable bytes={} reason={}", bytes.size, ex.message)
+            return CsvProbe(
+                header = emptyList(),
+                sample = emptyList(),
+                detectedDialect = dialect,
+                warnings = listOf(ParseWarning("csv.unparseable", ex.message ?: "CSV could not be parsed", null)),
+            )
+        }
         val header = if (dialect.hasHeader && all.isNotEmpty()) all.first() else emptyList()
         val dataStart = if (dialect.hasHeader) 1 else 0
         val sample = all.drop(dataStart).take(sampleRows)
@@ -77,7 +87,13 @@ class CsvFileParser : FileFormatParser {
             }
             val defaultCategoryId = requireDefaultCategoryId(hints, "CsvFileParser")
             val dialect = hints.csvDialect ?: detectDialect(bytes)
-            val all = readAllRecords(bytes, dialect)
+            val all = readAllRecords(bytes, dialect).getOrElse { ex ->
+                log.warn("CSV unparseable bytes={} reason={}", bytes.size, ex.message)
+                return ParsedFile(
+                    rows = emptyList(),
+                    warnings = listOf(ParseWarning("csv.unparseable", ex.message ?: "CSV could not be parsed", null)),
+                )
+            }
             val dataStart = if (dialect.hasHeader) 1 else 0
             val dateParser = DateTimeFormatter.ofPattern(mapping.dateFormat, hints.locale ?: Locale.ENGLISH)
 
@@ -102,12 +118,29 @@ class CsvFileParser : FileFormatParser {
      * Run commons-csv over the whole file and materialize every record as a list of cells.
      * Centralised so [probe] and [parse] both use the same parsing pass and we don't need to
      * fight commons-csv's evolving header-handling API.
+     *
+     * Tokenizing is where a malformed file blows up — a download truncated inside a quoted field,
+     * or a stray quote under a dialect whose quote char doesn't match, leaves commons-csv at EOF
+     * with an unfinished token. That is a property of the upload, not a bug, so it comes back as a
+     * failed [Result] for callers to report as a `csv.unparseable` warning. The commons-csv cause
+     * carries the diagnosable message ("(startline 2) EOF reached before encapsulated token
+     * finished"); the [UncheckedIOException] wrapping it only repeats that cause's toString.
      */
-    private fun readAllRecords(bytes: ByteArray, dialect: CsvDialect): List<List<String>> {
+    private fun readAllRecords(bytes: ByteArray, dialect: CsvDialect): Result<List<List<String>>> {
         val text = decode(bytes, dialect.encoding)
         val format = csvFormat(dialect)
-        return CSVParser.parse(StringReader(text), format).use { parser ->
-            parser.map { record -> (0 until record.size()).map { i -> record[i] ?: "" } }
+        return try {
+            Result.success(
+                CSVParser.parse(StringReader(text), format).use { parser ->
+                    parser.map { record -> (0 until record.size()).map { i -> record[i] ?: "" } }
+                }
+            )
+        } catch (ex: UncheckedIOException) {
+            Result.failure(ex.cause ?: ex)
+        } catch (ex: IOException) {
+            Result.failure(ex)
+        } catch (ex: IllegalStateException) {
+            Result.failure(ex)
         }
     }
 

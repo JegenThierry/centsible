@@ -16,6 +16,9 @@ interface IExportScheduleService {
     /** Active schedules due on or before [today] (all users), for the materializer to enqueue. */
     fun fetchDue(today: LocalDate): List<ExportScheduleDTO>
 
-    /** Records that a schedule ran and moves it to [nextRunAt]. */
-    fun markRun(id: UUID, nextRunAt: LocalDate)
+    /**
+     * Claims a due schedule by moving it from [expectedNextRunAt] to [nextRunAt] and stamping last_run_at.
+     * True only for the caller that won the claim — enqueue the export only then.
+     */
+    fun markRun(id: UUID, expectedNextRunAt: LocalDate, nextRunAt: LocalDate): Boolean
 }

@@ -12,6 +12,13 @@ spring.datasource.username=<username>
 spring.datasource.password=<password>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
+# --- Connection pool ---
+# Hikari defaults to 10 connections and a 30s connection-timeout; those 10 are shared by every
+# Tomcat request thread plus the sync-orchestrator poller, so under load requests queue for 30s
+# and then cascade into 500s. Size the pool explicitly and fail fast instead.
+spring.datasource.hikari.maximum-pool-size=${HIKARI_MAX_POOL_SIZE:20}
+spring.datasource.hikari.connection-timeout=${HIKARI_CONNECTION_TIMEOUT_MS:10000}
+
 # --- jOOQ ---
 spring.jooq.sql-dialect=postgres
 
@@ -32,6 +39,20 @@ mfa.encryption-salt=${MFA_ENCRYPTION_SALT:}
 # CORS allow-list (comma-separated, no wildcards).
 cors.allowed-origins=http://localhost:3000
 
+# --- Reverse proxy / client IP ---
+# NATIVE hands X-Forwarded-* to Tomcat's RemoteIpValve, which walks X-Forwarded-For right-to-left,
+# drops the hops matching internal-proxies and uses the first one it doesn't trust as remoteAddr.
+# FRAMEWORK (Spring's ForwardedHeaderFilter) instead takes the *leftmost* XFF entry — a value the
+# client appends to, so any caller can forge it. AuthRateLimitFilter buckets per remoteAddr, so
+# under FRAMEWORK an attacker mints a fresh bucket per request. Boot registers the filter only for
+# `framework` and the valve only for `native`, so exactly one of the two is ever active.
+server.forward-headers-strategy=${SERVER_FORWARD_HEADERS_STRATEGY:native}
+# Proxy addresses whose X-Forwarded-* headers are trusted; CIDR list or regex. Boot's default covers
+# loopback and the RFC1918/CGNAT ranges Docker bridge networks sit on, which is what the compose
+# deployment needs. Override only if your proxy reaches the API from a public address — and list the
+# proxy alone, never a range that includes clients.
+# server.tomcat.remoteip.internal-proxies=192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8, 127.0.0.0/8
+
 # ============================================================================
 # Lifecycle
 # ============================================================================
@@ -41,6 +62,14 @@ cors.allowed-origins=http://localhost:3000
 # timeout so the JVM can finish draining before SIGKILL.
 server.shutdown=graceful
 spring.lifecycle.timeout-per-shutdown-phase=20s
+
+# ============================================================================
+# Scheduling
+# ============================================================================
+# Four @Scheduled tasks (sync orchestrator, notification sweep, recurring transactions at 00:05,
+# export-schedule materializer at 00:15) share this pool; Spring's default single thread lets one
+# slow provider backfill delay or skip the crons behind it.
+spring.task.scheduling.pool.size=${SCHEDULING_POOL_SIZE:4}
 
 # ============================================================================
 # Response compression

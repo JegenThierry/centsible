@@ -7,6 +7,7 @@ import beer.thierry.jooq.generated.enums.PostProcessingStatus as JooqPostProcess
 import beer.thierry.jooq.generated.tables.references.EXPORT_JOBS
 import beer.thierry.jooq.generated.tables.references.EXPORT_POST_PROCESSING
 import org.jooq.DSLContext
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
@@ -17,6 +18,8 @@ class ExportPostProcessingRepository(
     private val dsl: DSLContext,
     private val ppMapper: ExportPostProcessingMapper,
 ) : IExportPostProcessingRepository {
+
+    private val log = LoggerFactory.getLogger(ExportPostProcessingRepository::class.java)
 
     override fun fetchByJob(jobId: UUID): List<ExportPostProcessingDTO> =
         dsl.select(*POST_PROCESSING_COLUMNS)
@@ -57,28 +60,44 @@ class ExportPostProcessingRepository(
         return ppMapper.toDto(updated)
     }
 
-    override fun markCompleted(id: UUID) {
+    override fun markCompleted(id: UUID, workerId: String) {
         val now = OffsetDateTime.now()
-        dsl.update(EXPORT_POST_PROCESSING)
+        val updated = dsl.update(EXPORT_POST_PROCESSING)
             .set(EXPORT_POST_PROCESSING.STATUS, JooqPostProcessingStatus.COMPLETED)
             .setNull(EXPORT_POST_PROCESSING.ERROR_MESSAGE)
             .setNull(EXPORT_POST_PROCESSING.LOCKED_AT)
             .setNull(EXPORT_POST_PROCESSING.LOCKED_BY)
             .set(EXPORT_POST_PROCESSING.COMPLETED_AT, now)
             .set(EXPORT_POST_PROCESSING.MODIFIED_AT, now)
-            .where(EXPORT_POST_PROCESSING.ID.eq(id))
+            .where(leaseHeldBy(id, workerId))
             .execute()
+        if (updated == 0) {
+            log.warn("Dropped stale post-processing completion ppId={} worker={} reason=lease-lost", id, workerId)
+        }
     }
 
-    override fun markFailed(id: UUID, errorMessage: String) {
+    override fun markFailed(id: UUID, workerId: String, errorMessage: String) {
         val now = OffsetDateTime.now()
-        dsl.update(EXPORT_POST_PROCESSING)
+        val updated = dsl.update(EXPORT_POST_PROCESSING)
             .set(EXPORT_POST_PROCESSING.STATUS, JooqPostProcessingStatus.FAILED)
             .set(EXPORT_POST_PROCESSING.ERROR_MESSAGE, errorMessage.take(2000))
             .setNull(EXPORT_POST_PROCESSING.LOCKED_AT)
             .setNull(EXPORT_POST_PROCESSING.LOCKED_BY)
             .set(EXPORT_POST_PROCESSING.MODIFIED_AT, now)
-            .where(EXPORT_POST_PROCESSING.ID.eq(id))
+            .where(leaseHeldBy(id, workerId))
             .execute()
+        if (updated == 0) {
+            log.warn("Dropped stale post-processing failure ppId={} worker={} reason=lease-lost", id, workerId)
+        }
     }
+
+    /**
+     * Fences a settle against the lease the worker claimed under. A send outliving the lease is re-claimed
+     * by [claimNextPending], so the losing worker's late outcome must not mark a step the winner already
+     * emailed as FAILED — a user retriggering that would send a third copy.
+     */
+    private fun leaseHeldBy(id: UUID, workerId: String) =
+        EXPORT_POST_PROCESSING.ID.eq(id)
+            .and(EXPORT_POST_PROCESSING.LOCKED_BY.eq(workerId))
+            .and(EXPORT_POST_PROCESSING.STATUS.eq(JooqPostProcessingStatus.IN_PROGRESS))
 }

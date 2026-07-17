@@ -57,33 +57,38 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .fetch()
 
         val byType = rows.groupBy { parsePeriodType(it[BUDGETS.PERIOD_TYPE]) }
-        val currentSums = mutableMapOf<Long, BigDecimal>()
-        val previousSums = mutableMapOf<Long, BigDecimal>()
+        // Keyed by category *and* period type: a category may legally hold one budget per period type
+        // (uq_budgets_user_category_period), and each one is summed over its own window.
+        val currentSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
+        val previousSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
 
         for ((periodType, group) in byType) {
             val categoryIds = group.map { it[BUDGETS.CATEGORY_ID]!! }
             val (curFrom, curTo) = periodWindow(periodType, yearMonth)
-            currentSums.putAll(sumByCategory(authenticatedUser, categoryIds, curFrom, curTo))
+            currentSums.putAll(sumByCategory(authenticatedUser, categoryIds, curFrom, curTo).keyedBy(periodType))
 
             if (group.any { it[BUDGETS.ROLLOVER_ENABLED] == true }) {
                 val (prevFrom, prevTo) = previousPeriod(periodType, yearMonth)
-                previousSums.putAll(sumByCategory(authenticatedUser, categoryIds, prevFrom, prevTo))
+                previousSums.putAll(sumByCategory(authenticatedUser, categoryIds, prevFrom, prevTo).keyedBy(periodType))
             }
         }
 
         return rows.map { record ->
             val periodType = parsePeriodType(record[BUDGETS.PERIOD_TYPE])
-            val categoryId = record[BUDGETS.CATEGORY_ID]!!
-            val spent = currentSums[categoryId] ?: BigDecimal.ZERO
+            val key = record[BUDGETS.CATEGORY_ID]!! to periodType
+            val spent = currentSums[key] ?: BigDecimal.ZERO
             val rolloverEnabled = record[BUDGETS.ROLLOVER_ENABLED] == true
             val rollover = if (rolloverEnabled) {
-                val leftover = record[BUDGETS.AMOUNT_LIMIT]!!.subtract(previousSums[categoryId] ?: BigDecimal.ZERO)
+                val leftover = record[BUDGETS.AMOUNT_LIMIT]!!.subtract(previousSums[key] ?: BigDecimal.ZERO)
                 if (leftover.signum() > 0) leftover else BigDecimal.ZERO
             } else BigDecimal.ZERO
 
             mapToDTO(record, periodKeyFor(periodType, yearMonth), spent, periodType, rolloverEnabled, rollover)
         }
     }
+
+    private fun Map<Long, BigDecimal>.keyedBy(periodType: BudgetPeriodType): Map<Pair<Long, BudgetPeriodType>, BigDecimal> =
+        mapKeys { (categoryId, _) -> categoryId to periodType }
 
     private fun sumByCategory(
         user: UserDTO,

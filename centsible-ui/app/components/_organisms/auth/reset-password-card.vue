@@ -13,6 +13,7 @@ const {t} = useI18n();
 const route = useRoute();
 const api = useApi();
 const {success, error} = useToasts();
+const {toastError} = useApiErrors();
 
 const token = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''));
 const tokenMissing = computed(() => token.value.length === 0);
@@ -57,7 +58,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
       error(t('auth.resetPassword.toastErrorTitle'), t('auth.resetPassword.toastInvalidLinkBody'));
     })
     .catch((err) => {
-      useApiErrors().toastError(err, t('auth.resetPassword.toastErrorTitle'), t('auth.resetPassword.toastErrorBody'));
+      toastError(err, t('auth.resetPassword.toastErrorTitle'), t('auth.resetPassword.toastErrorBody'));
     })
     .finally(() => loading.value = false);
 }

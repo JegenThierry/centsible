@@ -64,6 +64,8 @@
       "deletedBody": "The export has been removed.",
       "deleteFailedTitle": "Could not delete export",
       "deleteFailedBody": "Something went wrong. Please try again.",
+      "downloadFailedTitle": "Could not download export",
+      "downloadFailedBody": "The file may no longer be available. Try regenerating it.",
       "retriggeredTitle": "Export retriggered",
       "retriggeredBody": "The export is being regenerated with current data.",
       "retriggerFailedTitle": "Could not retrigger export",

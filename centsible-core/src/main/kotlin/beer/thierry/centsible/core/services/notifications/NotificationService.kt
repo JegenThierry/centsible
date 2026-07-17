@@ -2,6 +2,7 @@ package beer.thierry.centsible.core.services.notifications
 
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.integrations.ProviderConnectionStatus
 import beer.thierry.centsible.api.model.notification.NotificationDTO
@@ -16,7 +17,9 @@ import beer.thierry.centsible.api.repository.INotificationRepository
 import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
+import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.notifications.INotificationService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -49,7 +52,10 @@ class NotificationService(
     private val recurring: IRecurringTransactionRepository,
     private val accounts: IBudgetAccountsRepository,
     private val connections: IProviderConnectionsRepository,
+    private val currencyConversionService: ICurrencyConversionService,
 ) : INotificationService {
+
+    private val log = LoggerFactory.getLogger(NotificationService::class.java)
 
     override fun list(user: UserDTO, limit: Int): List<NotificationDTO> = notifications.list(user, limit)
 
@@ -280,8 +286,8 @@ class NotificationService(
      * [PROJECTED_SHORTFALL_HORIZON_DAYS] using its active recurring rules (income/expense on the
      * account plus transfers in/out) and alerts the first time it is projected to dip below the
      * user's [NotificationSettingsDTO.lowBalanceThreshold]. Accounts already under the threshold are
-     * left to the reactive [evaluateLowBalance] alert. Everything is in each account's own currency,
-     * so no FX conversion is involved.
+     * left to the reactive [evaluateLowBalance] alert. Amounts are already in each account's own
+     * currency, except a transfer's destination credit — see [deltaForAccount].
      */
     private fun evaluateProjectedShortfall(
         user: UserDTO,
@@ -300,6 +306,7 @@ class NotificationService(
         // Occurrence dates depend only on the rule and the shared window, not the account, so walk
         // each rule's calendar once instead of re-walking it for every account.
         val datesByRule = activeRules.associateWith { occurrenceDatesInWindow(it, today, horizonEnd) }
+        val currencyByAccount = userAccounts.associate { it.id to it.currency }
 
         for (account in userAccounts) {
             // Already below the line — the reactive low-balance alert owns this case.
@@ -307,7 +314,8 @@ class NotificationService(
 
             val impacts = activeRules.asSequence()
                 .flatMap { rule ->
-                    val delta = deltaForAccount(rule, account.id) ?: return@flatMap emptySequence()
+                    val delta = deltaForAccount(rule, account.id, currencyByAccount)
+                        ?: return@flatMap emptySequence()
                     datesByRule.getValue(rule).asSequence().map { it to delta }
                 }
                 .sortedBy { it.first }
@@ -337,11 +345,16 @@ class NotificationService(
     }
 
     /** Signed impact of one occurrence of [rule] on [accountId], or null if the rule doesn't touch it. */
-    private fun deltaForAccount(rule: RecurringTransactionDTO, accountId: UUID): BigDecimal? {
+    private fun deltaForAccount(
+        rule: RecurringTransactionDTO,
+        accountId: UUID,
+        currencyByAccount: Map<UUID, Currency>,
+    ): BigDecimal? {
         val amount = rule.amount ?: return null
         return when {
             rule.isTransfer && rule.accountId == accountId -> amount.negate()
-            rule.isTransfer && rule.destinationAccountId == accountId -> amount
+            rule.isTransfer && rule.destinationAccountId == accountId ->
+                creditedToDestination(amount, currencyByAccount[rule.accountId], currencyByAccount[accountId])
             !rule.isTransfer && rule.accountId == accountId -> when (rule.type) {
                 CategoryType.INCOME -> amount
                 CategoryType.EXPENSE -> amount.negate()
@@ -349,6 +362,22 @@ class NotificationService(
             }
             else -> null
         }
+    }
+
+    /**
+     * A transfer's amount is entered in the source account's currency (ADR-0015), so the destination
+     * leg is credited with the converted amount — the same conversion the materializer applies per
+     * occurrence. Rules whose FX can't be resolved drop out of the projection rather than crediting a
+     * raw foreign amount.
+     */
+    private fun creditedToDestination(amount: BigDecimal, from: Currency?, to: Currency?): BigDecimal? {
+        if (from == null || to == null) return null
+        if (from == to) return amount
+        return runCatching { currencyConversionService.convert(amount, from, to, LocalDate.now()).convertedAmount }
+            .getOrElse {
+                log.warn("Excluding recurring transfer from shortfall projection: FX {}->{} unavailable", from, to, it)
+                null
+            }
     }
 
     /** Occurrence dates of [rule] within [windowStart]..[windowEnd], respecting its end date. */

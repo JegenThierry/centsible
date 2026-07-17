@@ -35,10 +35,21 @@ class JwtAuthenticationFilter(
             ?.let(::parseUserDTO)
             ?.also { user ->
                 SecurityContextHolder.getContext().authentication = buildAuthentication(user, request)
-                userService.recordUserActivity(user.id)
+                recordActivity(user)
             }
 
         filterChain.doFilter(request, response)
+    }
+
+    /**
+     * "Last seen" bookkeeping runs on every authenticated request but nothing depends on it. A
+     * failure here (pool exhaustion, lost connection) would escape the filter chain past the
+     * @ControllerAdvice and surface as a bare container 500, so it must never decide request fate.
+     */
+    private fun recordActivity(user: UserDTO) = try {
+        userService.recordUserActivity(user.id)
+    } catch (ex: Exception) {
+        logger.warn("Could not record last activity for userId=${user.id}: ${ex.message}")
     }
 
     private fun extractToken(request: HttpServletRequest): String? {

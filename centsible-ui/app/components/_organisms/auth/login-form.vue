@@ -13,6 +13,7 @@ const api = useApi();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const {success} = useToasts();
+const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const state = reactive({
@@ -44,7 +45,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
       await navigateTo('/accounts');
     })
     .catch((err) => {
-      useApiErrors().toastError(err, t('auth.login.toastErrorTitle'), t('auth.login.toastErrorGeneric'));
+      toastError(err, t('auth.login.toastErrorTitle'), t('auth.login.toastErrorGeneric'));
     })
     .finally(() => loading.value = false);
 }

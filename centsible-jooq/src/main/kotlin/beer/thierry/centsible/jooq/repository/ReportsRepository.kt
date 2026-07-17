@@ -1,10 +1,10 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountSnapshotDTO
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.reports.CashFlowPointDTO
-import beer.thierry.centsible.api.model.reports.CategorySpendingSeriesDTO
-import beer.thierry.centsible.api.model.reports.MonthlyCategoryAmountDTO
+import beer.thierry.centsible.api.model.reports.CashFlowCurrencyPointDTO
+import beer.thierry.centsible.api.model.reports.CategorySpendingCurrencyPointDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
@@ -68,15 +68,18 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         startDate: LocalDate,
         endDate: LocalDate,
         authenticatedUser: UserDTO,
-    ): List<CategorySpendingSeriesDTO> {
+    ): List<CategorySpendingCurrencyPointDTO> {
         val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
         val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
         val total = DSL.sum(effectiveAmount)
 
-        val rows = dsl.select(
+        // Grouped by the account's currency for the same reason as fetchCashFlow: amounts are stored in
+        // their account's own currency and must be converted before they can be summed together.
+        return dsl.select(
             CATEGORIES.ID,
             CATEGORIES.NAME,
             CATEGORIES.COLOR,
+            ACCOUNTS.CURRENCY,
             TXN_MONTH_KEY,
             total,
         )
@@ -88,33 +91,30 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
                 ACCOUNTS.USER_ID.eq(authenticatedUser.id)
                     .and(expenseInPeriod(startDate, endDate))
             )
-            .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, TXN_MONTH_KEY)
+            .groupBy(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, ACCOUNTS.CURRENCY, TXN_MONTH_KEY)
             .fetch()
-
-        return rows
-            .groupBy { it[CATEGORIES.ID]!! }
-            .map { (categoryId, group) ->
-                val first = group.first()
-                CategorySpendingSeriesDTO(
-                    categoryId = categoryId,
-                    categoryName = first[CATEGORIES.NAME] ?: "",
-                    categoryColor = first[CATEGORIES.COLOR],
-                    totals = group
-                        .map { MonthlyCategoryAmountDTO(it[TXN_MONTH_KEY]!!, it[total] ?: BigDecimal.ZERO) }
-                        .sortedBy { it.yearMonth },
+            .map { r ->
+                CategorySpendingCurrencyPointDTO(
+                    categoryId = r[CATEGORIES.ID]!!,
+                    categoryName = r[CATEGORIES.NAME] ?: "",
+                    categoryColor = r[CATEGORIES.COLOR],
+                    yearMonth = r[TXN_MONTH_KEY]!!,
+                    currency = Currency.valueOf(r[ACCOUNTS.CURRENCY]!!),
+                    amount = r[total] ?: BigDecimal.ZERO,
                 )
             }
-            .sortedBy { it.categoryName }
     }
 
     override fun fetchCashFlow(
         startDate: LocalDate,
         endDate: LocalDate,
         authenticatedUser: UserDTO,
-    ): List<CashFlowPointDTO> {
+    ): List<CashFlowCurrencyPointDTO> {
         val total = DSL.sum(TRANSACTIONS.AMOUNT)
 
-        val rows = dsl.select(TXN_MONTH_KEY, TRANSACTIONS.TYPE, total)
+        // Grouped by the account's currency: amounts live in their account's own currency, so summing
+        // across currencies here would produce a meaningless number the caller could not unmix.
+        val rows = dsl.select(TXN_MONTH_KEY, ACCOUNTS.CURRENCY, TRANSACTIONS.TYPE, total)
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
             .where(
@@ -122,13 +122,13 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
                     .and(TRANSACTIONS.TRANSACTION_DATE.between(startDate, endDate))
                     .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
             )
-            .groupBy(TXN_MONTH_KEY, TRANSACTIONS.TYPE)
+            .groupBy(TXN_MONTH_KEY, ACCOUNTS.CURRENCY, TRANSACTIONS.TYPE)
             .fetch()
 
-        val income = mutableMapOf<String, BigDecimal>()
-        val expense = mutableMapOf<String, BigDecimal>()
+        val income = mutableMapOf<Pair<String, Currency>, BigDecimal>()
+        val expense = mutableMapOf<Pair<String, Currency>, BigDecimal>()
         for (r in rows) {
-            val key = r[TXN_MONTH_KEY] ?: continue
+            val key = (r[TXN_MONTH_KEY] ?: continue) to Currency.valueOf(r[ACCOUNTS.CURRENCY]!!)
             val amount = r[total] ?: BigDecimal.ZERO
             when (r[TRANSACTIONS.TYPE]) {
                 CategoryType.INCOME.value -> income[key] = (income[key] ?: BigDecimal.ZERO) + amount
@@ -136,11 +136,14 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
             }
         }
 
-        val keys = (income.keys + expense.keys).distinct().sorted()
-        return keys.map { k ->
-            val i = income[k] ?: BigDecimal.ZERO
-            val e = expense[k] ?: BigDecimal.ZERO
-            CashFlowPointDTO(k, i, e, i - e)
+        val keys = (income.keys + expense.keys).distinct().sortedWith(compareBy({ it.first }, { it.second }))
+        return keys.map { (yearMonth, currency) ->
+            CashFlowCurrencyPointDTO(
+                yearMonth = yearMonth,
+                currency = currency,
+                income = income[yearMonth to currency] ?: BigDecimal.ZERO,
+                expense = expense[yearMonth to currency] ?: BigDecimal.ZERO,
+            )
         }
     }
 }

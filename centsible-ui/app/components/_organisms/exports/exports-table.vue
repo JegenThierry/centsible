@@ -96,6 +96,7 @@ function postProcessingLabel(job: ExportJob): string {
           {
             label: t('exports.table.retrigger'),
             icon: 'i-lucide-refresh-cw',
+            disabled: row.original.status !== 'COMPLETED' && row.original.status !== 'FAILED',
             onSelect: () => emit('retrigger', row.original.id),
           },
           {

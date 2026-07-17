@@ -7,6 +7,11 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:postgres}
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jooq.sql-dialect=postgres
 
+# Only the two @Scheduled pollers touch the DB — Hikari's default of 10 connections just holds
+# idle connections open against the shared Postgres. Fail fast instead of queueing 30s.
+spring.datasource.hikari.maximum-pool-size=${HIKARI_MAX_POOL_SIZE:5}
+spring.datasource.hikari.connection-timeout=${HIKARI_CONNECTION_TIMEOUT_MS:10000}
+
 # This service is internal: no inbound auth. Disable Spring Security autoconfig.
 spring.autoconfigure.exclude=\
   org.springframework.boot.security.autoconfigure.servlet.SecurityAutoConfiguration,\
@@ -15,6 +20,9 @@ spring.autoconfigure.exclude=\
 export.worker.id=${random.uuid}
 export.worker.poll-interval-ms=${EXPORT_POLL_INTERVAL_MS:2000}
 export.worker.lease-timeout-seconds=${EXPORT_LEASE_TIMEOUT_SECONDS:300}
+# A job whose earlier attempts killed the worker (OOM/SIGKILL mid-render) is dead-lettered as
+# FAILED once its attempt count exceeds this, instead of being re-leased and crash-looping forever.
+export.worker.max-attempts=${EXPORT_MAX_ATTEMPTS:3}
 # Playwright default timeout for the render page (setContent/waitForLoadState) — keep well below
 # the lease timeout so a hung render fails the job instead of losing the lease mid-flight.
 export.render.timeout-ms=${EXPORT_RENDER_TIMEOUT_MS:60000}
@@ -28,12 +36,14 @@ spring.task.scheduling.pool.size=2
 # --- Graceful shutdown ---
 # Drain on SIGTERM instead of severing (Spring's default is IMMEDIATE). server.shutdown drains the
 # embedded server; await-termination lets the @Scheduled poll loop finish the export it's rendering so
-# a redeploy doesn't SIGKILL mid-PDF and waste a full lease window + attempt. Keep the compose
-# stop_grace_period above these timeouts so the JVM can drain before SIGKILL.
+# a redeploy doesn't SIGKILL mid-PDF and waste a full lease window + attempt. These must exceed the
+# worst-case render (export.render.timeout-ms above, 60s) or a redeploy kills long jobs mid-flight and
+# burns a dead-letter attempt each time. Keep the compose stop_grace_period above these timeouts so
+# the JVM can drain before SIGKILL.
 server.shutdown=graceful
-spring.lifecycle.timeout-per-shutdown-phase=20s
+spring.lifecycle.timeout-per-shutdown-phase=90s
 spring.task.scheduling.shutdown.await-termination=true
-spring.task.scheduling.shutdown.await-termination-period=20s
+spring.task.scheduling.shutdown.await-termination-period=90s
 
 resend.api.key=${RESEND_API_KEY:dummy}
 resend.from.email=${RESEND_FROM_EMAIL:onboarding@resend.dev}

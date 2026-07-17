@@ -2,6 +2,7 @@ import {defineStore} from 'pinia';
 import adze from 'adze'
 import type {Budget} from "~/models/budget/budget";
 import {useBudgetService} from "~/services/budget/budget-service";
+import {createLatestRequestGate} from "~/utils/latest-request";
 
 export const useBudgetsStore = defineStore('budgetsStore', () => {
   const service = useBudgetService(useApi());
@@ -13,32 +14,36 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const historyLoading = ref(false);
   const historyError = ref(false);
 
-  async function fetchCurrentMonth() {
+  // Both month entry points write `items`, so they share one gate: picking March (slow) then April
+  // (fast) must not leave March's spent/limit sitting under an April heading.
+  const itemsGate = createLatestRequestGate();
+
+  /** Shared loader for `items`; a superseded response leaves state to whichever call outran it. */
+  async function loadItems(month?: string) {
+    const isLatest = itemsGate.begin();
     loading.value = true;
     error.value = false;
     try {
-      items.value = await service.fetchAll();
+      const data = await service.fetchAll(month);
+      if (isLatest()) items.value = data;
     } catch (e) {
-      adze.ns('budgets').error('Failed to fetch budgets', e);
-      items.value = [];
-      error.value = true;
+      adze.ns('budgets').error('Failed to fetch budgets', {month: month ?? 'current'}, e);
+      if (isLatest()) {
+        items.value = [];
+        error.value = true;
+      }
     } finally {
-      loading.value = false;
+      if (isLatest()) loading.value = false;
     }
   }
 
-  async function fetchForMonth(month: string) {
-    loading.value = true;
-    error.value = false;
-    try {
-      items.value = await service.fetchAll(month);
-    } catch (e) {
-      adze.ns('budgets').error('Failed to fetch budgets for month', month, e);
-      items.value = [];
-      error.value = true;
-    } finally {
-      loading.value = false;
-    }
+  function fetchCurrentMonth() {
+    return loadItems();
+  }
+
+  /** [month] is `YYYY-MM`. */
+  function fetchForMonth(month: string) {
+    return loadItems(month);
   }
 
   async function fetchHistory(months: string[]) {

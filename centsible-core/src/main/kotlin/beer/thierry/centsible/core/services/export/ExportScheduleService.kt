@@ -48,7 +48,8 @@ class ExportScheduleService(
 
     override fun fetchDue(today: LocalDate): List<ExportScheduleDTO> = repository.fetchDue(today)
 
-    override fun markRun(id: UUID, nextRunAt: LocalDate) = repository.markRun(id, nextRunAt)
+    override fun markRun(id: UUID, expectedNextRunAt: LocalDate, nextRunAt: LocalDate): Boolean =
+        repository.markRun(id, expectedNextRunAt, nextRunAt)
 
     /**
      * First run aligns to the next calendar boundary so each run's trailing window is a clean period:
