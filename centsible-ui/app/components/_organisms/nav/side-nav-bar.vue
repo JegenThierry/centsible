@@ -24,18 +24,25 @@ const items = computed(() => {
     primary.push(
       {label: t('nav.sidebar.dashboard'), to: `/${accountId}/dashboard`, icon: 'i-lucide-layout-dashboard', target: '_self'},
       {label: t('nav.sidebar.transactions'), to: `/${accountId}/transactions`, icon: 'i-lucide-arrow-right-left', target: '_self'},
-      {
-        label: t('nav.sidebar.plan'),
-        icon: 'i-lucide-target',
-        defaultOpen: true,
-        children: [
-          {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
-          {label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'},
-          {label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'},
-        ],
-      },
     );
   }
+
+  // Budgets and loans are ledger-wide (no account FK), so they stay visible without an
+  // active account; only recurring is account-scoped and appears when one is selected.
+  const planChildren: any[] = [
+    {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
+  ];
+  if (accountId) {
+    planChildren.push({label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'});
+  }
+  planChildren.push({label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'});
+
+  primary.push({
+    label: t('nav.sidebar.plan'),
+    icon: 'i-lucide-target',
+    defaultOpen: true,
+    children: planChildren,
+  });
 
   const manage: any[] = [
     {label: t('nav.sidebar.sections.manage'), type: 'label'},

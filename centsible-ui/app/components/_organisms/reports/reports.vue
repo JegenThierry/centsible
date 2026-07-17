@@ -14,7 +14,7 @@ import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue"
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {useReportsStore} from "~/stores/reportsStore";
 import {useBudgetAccountsStore} from "~/stores/budgetAccountsStore";
-import {Currency} from "~/models/budget-account/currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 import {watchDebounced} from "@vueuse/core";
 import {useReportDateRange} from "~/composables/use-report-date-range";
 import {previousIsoDateRange} from "~/utils/date";
@@ -25,9 +25,9 @@ const {t} = useI18n();
 
 const {preset, customFrom, customTo, resolved, isCustom, isCustomValid} = useReportDateRange('reports');
 
-const displayCurrency = computed<Currency>(
-  () => accountsStore.availableAccounts[0]?.currency ?? Currency.EUR
-);
+// Reports are cross-account (net worth, category spending), so amounts render in the
+// user's default currency rather than any single account's.
+const displayCurrency = useDefaultCurrency();
 
 const breakdownOpen = ref(false);
 const breakdownDate = ref<string | null>(null);

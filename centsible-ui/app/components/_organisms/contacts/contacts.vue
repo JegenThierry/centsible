@@ -17,7 +17,7 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import {todayIsoDate} from "~/utils/date";
 import type {Contact} from "~/models/contact/contact";
 import {useToasts} from "~/services/toasts/toast-service";
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 
 const contactsStore = useContactsStore();
 const loansStore = useLoansStore();
@@ -31,7 +31,7 @@ const isDeleteContactOpen = ref(false);
 const isCreateLoanOpen = ref(false);
 const selectedContact = ref<Contact>();
 
-const currency = useActiveCurrency();
+const currency = useDefaultCurrency();
 
 function openDetail(contact: Contact) {
   navigateTo(`/contacts/${contact.id}`);
