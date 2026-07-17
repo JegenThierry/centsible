@@ -7,10 +7,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
-/**
- * Sweeps all users on a slow cadence (every 6 hours by default) to emit non-transaction-driven
- * notifications: upcoming/overdue loans, upcoming recurring rules, low-balance alerts.
- */
 @Component
 class NotificationScheduler(
     private val notificationService: INotificationService,

@@ -25,11 +25,6 @@ import java.util.*
 @Repository
 class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
 
-    /**
-     * BUDGETS + joined CATEGORIES columns read by [mapToDTO], shared by both reads. Includes
-     * BUDGETS.CATEGORY_ID (needed by the spent-aggregation pass); it is a harmless unused extra
-     * column for the single-budget read.
-     */
     private val budgetProjection: Array<Field<*>> = arrayOf(
         BUDGETS.ID,
         BUDGETS.AMOUNT_LIMIT,
@@ -57,8 +52,6 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .fetch()
 
         val byType = rows.groupBy { parsePeriodType(it[BUDGETS.PERIOD_TYPE]) }
-        // Keyed by category *and* period type: a category may legally hold one budget per period type
-        // (uq_budgets_user_category_period), and each one is summed over its own window.
         val currentSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
         val previousSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
 

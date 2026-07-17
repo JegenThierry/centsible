@@ -37,8 +37,6 @@ async function save() {
   try {
     const payload: NotificationSettings = {
       ...settings.value,
-      // The two threshold fields carry real toggle logic (null = disabled); everything else
-      // (days-ahead ints, budgetAlertsEnabled, and any future plain field) rides the spread.
       largeTransactionThreshold: enableLargeTxn.value ? Number(settings.value.largeTransactionThreshold ?? 0) : null,
       lowBalanceThreshold: enableLowBalance.value ? Number(settings.value.lowBalanceThreshold ?? 0) : null,
       loanDueDaysAhead: Number(settings.value.loanDueDaysAhead ?? 0),

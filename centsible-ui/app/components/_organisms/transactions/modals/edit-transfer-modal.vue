@@ -31,7 +31,6 @@ const form = ref<TransferForm>(makeBlankForm());
 const loading = ref(false);
 const formId = useId();
 
-// Same schema as the create modal's transfer mode — see utils/form-schemas.
 const schema = transferSchema(t);
 type Schema = z.output<typeof schema>;
 

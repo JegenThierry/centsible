@@ -9,11 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * Exposes the deterministic "safe to spend" figure for the current month. Its own
- * single-responsibility controller (ADR-0011); authorization is enforced in the service (ADR-0003),
- * so this controller only forwards the authenticated principal.
- */
 @RequestMapping("/api/reports/safe-to-spend")
 @RestController
 class SafeToSpendResource(

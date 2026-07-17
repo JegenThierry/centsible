@@ -20,12 +20,10 @@ const entity = computed(() =>
   isTransfer.value ? t('transactions.transfer.entity') : t('transactions.delete.entity'),
 );
 
-// Regular deletes get an undo window, so promise it in the copy; transfers are truly irreversible.
 const body = computed(() =>
   isTransfer.value ? undefined : t('transactions.delete.confirmUndoable'),
 );
 
-/** Pure confirmation gate — the transaction list owns the actual (deferred, undoable) delete. */
 async function onConfirm() {
   emit('confirm');
 }

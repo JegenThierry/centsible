@@ -9,13 +9,6 @@ export const useAuthStore = defineStore('authStore', () => {
 
   const isAuthenticated = ref(false)
 
-  /**
-   * Cookie-backed so the /auth/2fa guard can read it during SSR; an in-memory ref is always false on
-   * the server, which bounced a reloading user out of a challenge they were mid-way through. This is a
-   * non-httpOnly hint that grants no authority — the real gate stays the httpOnly `pre_auth` cookie the
-   * backend verifies. maxAge mirrors PENDING_TTL in AuthCookieSupport.kt so the hint cannot outlive the
-   * challenge it describes.
-   */
   const twoFactorPending = useCookie<boolean>('centsible_2fa_pending', {
     maxAge: 300,
     sameSite: 'strict',
@@ -35,6 +28,7 @@ export const useAuthStore = defineStore('authStore', () => {
     isAuthenticated.value = false
     twoFactorPending.value = false
     useUserStore().clear();
+    resetAllStores();
     authService.logout().catch((error) => {
       adze.ns('auth').warn('Server logout failed; cookie may still be valid until it expires.', error)
     })
@@ -51,6 +45,7 @@ export const useAuthStore = defineStore('authStore', () => {
     isAuthenticated.value = false
     twoFactorPending.value = false
     useUserStore().clear()
+    resetAllStores()
     await navigateTo('/auth')
   }
 

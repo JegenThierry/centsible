@@ -10,12 +10,9 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const history = ref<{month: string; budgets: Budget[]}[]>([]);
   const loading = ref(false);
   const error = ref(false);
-  // Separate from `loading`: history loads concurrently with the selected month.
   const historyLoading = ref(false);
   const historyError = ref(false);
 
-  // Both month entry points write `items`, so they share one gate: picking March (slow) then April
-  // (fast) must not leave March's spent/limit sitting under an April heading.
   const itemsGate = createLatestRequestGate();
 
   /** Shared loader for `items`; a superseded response leaves state to whichever call outran it. */
@@ -41,7 +38,6 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     return loadItems();
   }
 
-  /** [month] is `YYYY-MM`. */
   function fetchForMonth(month: string) {
     return loadItems(month);
   }

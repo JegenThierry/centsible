@@ -3,10 +3,6 @@ import adze from 'adze';
 import {useImportService} from '~/services/imports/import-service';
 import type {ImportMappingTemplate, ImportMappingTemplateForm} from '~/models/imports/imports';
 
-/**
- * User-saved CSV import profiles. Backs the "saved profiles" picker in the import wizard so a
- * recurring statement from the same bank can be re-imported without re-doing the column mapping.
- */
 export const useImportTemplatesStore = defineStore('importTemplatesStore', () => {
   const service = useImportService(useApi());
 

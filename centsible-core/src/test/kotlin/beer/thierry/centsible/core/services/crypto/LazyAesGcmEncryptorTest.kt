@@ -49,7 +49,6 @@ class LazyAesGcmEncryptorTest {
     fun `isConfigured reflects a present key without building the encryptor`() {
         assertTrue(cipher().isConfigured)
         assertFalse(cipher(key = "").isConfigured)
-        // a blank key must not fail until the encryptor is actually used
         assertFalse(cipher(key = " ").isConfigured)
     }
 

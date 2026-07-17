@@ -66,7 +66,6 @@ async function confirmDelete() {
   try {
     await providersStore.deleteConnection(target.id);
   } catch {
-    // The store already toasted the failure; swallow so the click handler doesn't reject.
   } finally {
     pendingDelete.value = undefined;
   }

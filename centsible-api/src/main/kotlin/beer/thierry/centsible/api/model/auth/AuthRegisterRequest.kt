@@ -30,7 +30,6 @@ data class AuthRegisterRequest(
     @field:Size(max = 100, message = "{validation.lastName.tooLong}")
     var lastName: String = "",
 
-    /** Optional. Defaults to 'en' if omitted or unrecognised. Used for the confirmation email locale and the user's stored preference. */
     @field:Pattern(
         regexp = "^(en|fr|de)?$",
         message = "{validation.locale.unsupported}"

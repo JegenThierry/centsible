@@ -407,7 +407,6 @@ class GoCardlessProviderModule(
         private const val CONSENT_LIFETIME_SECONDS = 90L * 86400L
         private val CONSENT_OK_STATUSES = setOf("LN", "GC")
 
-        /** ASCII unit separator: keeps fingerprint fields unambiguous; banks never send it. */
         private const val FINGERPRINT_SEPARATOR = "\u001F"
         private val EEA_COUNTRY_CODES = setOf(
             "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",

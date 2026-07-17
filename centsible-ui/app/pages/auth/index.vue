@@ -12,7 +12,6 @@ definePageMeta({
 
       return navigateTo('/accounts');
     },
-    // Fresh instance with no users yet → send the operator to first-run setup.
     'setup-guard',
   ]
 })

@@ -15,10 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * First-run setup. Public by design but self-disabling: once any user exists, [status] reports
- * needsSetup=false and [create] is rejected in the service layer (ADR-0003 keeps the guard there).
- */
 @RequestMapping("/api/setup")
 @RestController
 class SetupResource(

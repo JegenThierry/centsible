@@ -10,6 +10,12 @@ const {t} = useI18n();
 
 const active = computed(() => accountStore.activeAccount);
 
+onMounted(() => {
+  if (accountStore.availableAccounts.length === 0) {
+    accountStore.updateAvailableAccounts();
+  }
+});
+
 function currencyIcon(currency: string): string | undefined {
   return currencyOptions.find(c => c.value === currency)?.icon;
 }

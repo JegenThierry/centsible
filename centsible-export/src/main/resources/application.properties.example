@@ -1,52 +1,79 @@
+# ============================================================================
+# Application identity
+# ============================================================================
 spring.application.name=centsible-export
 server.port=8081
 
+# ============================================================================
+# Persistence
+# ============================================================================
+# --- Datasource ---
 spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/centsible-db}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:postgres}
 spring.datasource.driver-class-name=org.postgresql.Driver
+
+# --- jOOQ ---
 spring.jooq.sql-dialect=postgres
 
-# Only the two @Scheduled pollers touch the DB — Hikari's default of 10 connections just holds
-# idle connections open against the shared Postgres. Fail fast instead of queueing 30s.
+# --- Connection pool ---
+# Maximum datasource connections; sized explicitly so requests fail fast instead of queueing.
 spring.datasource.hikari.maximum-pool-size=${HIKARI_MAX_POOL_SIZE:5}
+# Milliseconds to wait for a pool connection before failing.
 spring.datasource.hikari.connection-timeout=${HIKARI_CONNECTION_TIMEOUT_MS:10000}
 
-# This service is internal: no inbound auth. Disable Spring Security autoconfig.
+# --- Security autoconfig ---
+# Internal service with no inbound auth, so Spring Security autoconfig is disabled.
 spring.autoconfigure.exclude=\
   org.springframework.boot.security.autoconfigure.servlet.SecurityAutoConfiguration,\
   org.springframework.boot.security.autoconfigure.servlet.UserDetailsServiceAutoConfiguration
 
+# ============================================================================
+# Worker
+# ============================================================================
+# Unique worker identity used to claim job leases.
 export.worker.id=${random.uuid}
+# How often the export worker polls for queued jobs (ms).
 export.worker.poll-interval-ms=${EXPORT_POLL_INTERVAL_MS:2000}
+# Lease TTL after which an unfinished job is reclaimable by another worker (s).
 export.worker.lease-timeout-seconds=${EXPORT_LEASE_TIMEOUT_SECONDS:300}
-# A job whose earlier attempts killed the worker (OOM/SIGKILL mid-render) is dead-lettered as
-# FAILED once its attempt count exceeds this, instead of being re-leased and crash-looping forever.
+# Attempts before a repeatedly-crashing job is dead-lettered as FAILED.
 export.worker.max-attempts=${EXPORT_MAX_ATTEMPTS:3}
-# Playwright default timeout for the render page (setContent/waitForLoadState) — keep well below
-# the lease timeout so a hung render fails the job instead of losing the lease mid-flight.
+
+# --- Render ---
+# Playwright timeout for a single PDF render (ms).
 export.render.timeout-ms=${EXPORT_RENDER_TIMEOUT_MS:60000}
-# Exports matching more rows than this are rejected. Raise only alongside the worker's heap.
+# Reject exports matching more rows than this; raise only alongside the worker heap.
 export.render.max-transaction-rows=${EXPORT_MAX_TRANSACTION_ROWS:20000}
 
-# Two pollers (@Scheduled export + post-processing) share this pool; Spring's default single
-# thread would let one slow render also stall post-processing.
+# ============================================================================
+# Scheduling
+# ============================================================================
+# Thread-pool size shared by the `@Scheduled` tasks so a slow one can't block the rest.
 spring.task.scheduling.pool.size=2
 
-# --- Graceful shutdown ---
-# Drain on SIGTERM instead of severing (Spring's default is IMMEDIATE). server.shutdown drains the
-# embedded server; await-termination lets the @Scheduled poll loop finish the export it's rendering so
-# a redeploy doesn't SIGKILL mid-PDF and waste a full lease window + attempt. These must exceed the
-# worst-case render (export.render.timeout-ms above, 60s) or a redeploy kills long jobs mid-flight and
-# burns a dead-letter attempt each time. Keep the compose stop_grace_period above these timeouts so
-# the JVM can drain before SIGKILL.
+# ============================================================================
+# Lifecycle
+# ============================================================================
+# Drain in-flight requests on SIGTERM instead of severing them.
 server.shutdown=graceful
+# Maximum time to wait for in-flight work to drain before forcing shutdown.
 spring.lifecycle.timeout-per-shutdown-phase=90s
+# Let the scheduled poll loop finish its in-flight render before shutdown completes.
 spring.task.scheduling.shutdown.await-termination=true
+# Maximum time to wait for scheduled tasks to finish draining before forcing shutdown.
 spring.task.scheduling.shutdown.await-termination-period=90s
 
+# ============================================================================
+# Email
+# ============================================================================
+# API key for the Resend email service.
 resend.api.key=${RESEND_API_KEY:dummy}
+# "From" address on outbound mail.
 resend.from.email=${RESEND_FROM_EMAIL:onboarding@resend.dev}
 
+# ============================================================================
+# Observability
+# ============================================================================
 management.endpoints.web.exposure.include=health
 management.endpoint.health.show-details=never

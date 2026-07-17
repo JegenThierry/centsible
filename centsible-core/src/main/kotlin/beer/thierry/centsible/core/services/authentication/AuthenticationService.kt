@@ -145,8 +145,6 @@ class AuthenticationService(
         if (userRepository.countUsers() > 0) {
             throw LocalizedException.Forbidden("error.setup.alreadyCompleted")
         }
-        // When an admin username is configured, the first account must claim it — so the bootstrapped
-        // user is the designated admin, and a stranger can't grab a fresh instance before the operator.
         if (adminEnabled && adminUsername.isNotBlank() && authRequest.username != adminUsername) {
             throw LocalizedException.BadRequest("error.setup.adminUsernameMismatch", adminUsername)
         }
@@ -164,7 +162,7 @@ class AuthenticationService(
 
         val created = userRepository.createUser(authRequest, passwordHash, sha256(rawToken), tokenExpiresAt)
             ?: throw LocalizedException.InternalError("error.auth.userCreateFailed")
-        userRepository.confirmUser(created.id) // first admin skips email verification by design
+        userRepository.confirmUser(created.id)
         log.info("First-run setup created admin user userId={} username='{}'", created.id, created.username)
         return AuthResponse(generateJwt(created))
     }

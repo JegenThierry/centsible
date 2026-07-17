@@ -56,7 +56,6 @@ export function useExportSchedules() {
     }
   }
 
-  /** Pause/resume without opening the editor. */
   async function toggleActive(schedule: ExportSchedule) {
     await update(schedule.id, {
       title: schedule.title,

@@ -24,23 +24,30 @@ const items = computed(() => {
     primary.push(
       {label: t('nav.sidebar.dashboard'), to: `/${accountId}/dashboard`, icon: 'i-lucide-layout-dashboard', target: '_self'},
       {label: t('nav.sidebar.transactions'), to: `/${accountId}/transactions`, icon: 'i-lucide-arrow-right-left', target: '_self'},
-      {
-        label: t('nav.sidebar.plan'),
-        icon: 'i-lucide-target',
-        defaultOpen: true,
-        children: [
-          {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
-          {label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'},
-          {label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'},
-        ],
-      },
     );
   }
+
+  const planChildren: any[] = [
+    {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
+  ];
+  if (accountId) {
+    planChildren.push({label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'});
+  }
+  planChildren.push({label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'});
+
+  primary.push({
+    label: t('nav.sidebar.plan'),
+    icon: 'i-lucide-target',
+    defaultOpen: true,
+    children: planChildren,
+  });
 
   const manage: any[] = [
     {label: t('nav.sidebar.sections.manage'), type: 'label'},
     {label: t('nav.sidebar.reports'), to: '/reports', icon: 'i-lucide-trending-up', target: '_self'},
     {label: t('nav.sidebar.categories'), to: '/categories', icon: 'i-lucide-tag', target: '_self'},
+    {label: t('nav.sidebar.rules'), to: '/rules', icon: 'i-lucide-wand-sparkles', target: '_self'},
+    {label: t('nav.sidebar.tags'), to: '/tags', icon: 'i-lucide-hash', target: '_self'},
     {label: t('nav.sidebar.contacts'), to: '/contacts', icon: 'i-lucide-users', target: '_self'},
   ];
 

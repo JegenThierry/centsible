@@ -36,10 +36,6 @@ interface CsvBankProfile {
     fun toMapping(): CsvColumnMapping
 }
 
-/**
- * Returned by [CsvBankProfile.matches]. The registry sorts profiles by score and picks the
- * winner; ties prefer profiles whose [CsvBankProfile.locale] matches the user's.
- */
 @JvmInline
 value class MatchScore(val value: Int) : Comparable<MatchScore> {
     override fun compareTo(other: MatchScore): Int = value.compareTo(other.value)
@@ -53,15 +49,6 @@ value class MatchScore(val value: Int) : Comparable<MatchScore> {
     }
 }
 
-/**
- * Which CSV column carries which field. All indices are 0-based and refer to the source file's
- * columns AFTER header detection. The wizard prefills this from a matching [CsvBankProfile] and
- * lets the user override before committing.
- *
- * Banks split amount in two conventions; exactly one of these patterns must be set per mapping:
- *   - [amountColumn] alone: single signed column
- *   - [debitColumn] and [creditColumn]: two unsigned columns, only one populated per row
- */
 data class CsvColumnMapping(
     val dateColumn: Int,
     val descriptionColumn: Int,
@@ -74,6 +61,5 @@ data class CsvColumnMapping(
     val dateFormat: String = "yyyy-MM-dd",
     val decimalSeparator: Char = '.',
     val thousandsSeparator: Char? = null,
-    /** True = debits appear as POSITIVE amounts in the source file (typical for bank exports). */
     val debitsArePositive: Boolean = true,
 )

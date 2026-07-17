@@ -80,7 +80,6 @@ class ReportServiceTest {
 
         val points = service.fetchNetWorthOverTime(startDate, endDate, user)
 
-        // 100 EUR + 200 USD * 0.90 = 280.00 EUR
         assertEquals(BigDecimal("280.00"), points.last().balance)
     }
 
@@ -99,7 +98,6 @@ class ReportServiceTest {
 
     @Test
     fun `fetchNetWorthOverTime converts into the stored default currency, not the JWT principal's`() {
-        // The principal always carries the fallback "EUR"; the user's real setting lives in the DB.
         `when`(userRepository.findUserById(user.id)).thenReturn(User(id = user.id, defaultCurrency = "USD"))
         `when`(accountsRepository.fetchAllAccounts(user)).thenReturn(listOf(eurAccount))
         `when`(reportsRepository.fetchUserSnapshotsBetween(anyArg(), anyArg(), anyArg()))
@@ -119,7 +117,6 @@ class ReportServiceTest {
 
         val points = service.fetchNetWorthOverTime(startDate, endDate, user)
 
-        // 100 EUR * 1.10 = 110.00 USD
         assertEquals(BigDecimal("110.00"), points.last().balance)
     }
 
@@ -161,7 +158,6 @@ class ReportServiceTest {
 
         val points = service.fetchCashFlow(startDate, endDate, user)
 
-        // 1000 + 200*0.90 = 1180.00 income; 400 + 100*0.90 = 490.00 expense.
         assertEquals(1, points.size)
         assertEquals(BigDecimal("1180.00"), points.first().income)
         assertEquals(BigDecimal("490.00"), points.first().expense)
@@ -185,7 +181,6 @@ class ReportServiceTest {
 
         val result = service.fetchYearOverYear(user)
 
-        // 100 EUR + 100 USD * 0.90 = 190.00 on both sides: the card must not disagree with itself.
         assertEquals(BigDecimal("190.00"), result.totals.thisYearExpense)
         assertEquals(BigDecimal("190.00"), result.perCategory.single().thisYearAmount)
     }

@@ -11,17 +11,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 
-/**
- * Encrypts and decrypts the per-connection credentials blob (a Map<String, String> of secret
- * fields) at rest. Uses Spring Security Crypto's 256-bit AES-GCM via Encryptors.stronger.
- *
- * Both the password and the salt come from env (INTEGRATIONS_ENCRYPTION_KEY /
- * INTEGRATIONS_ENCRYPTION_SALT). The encryptor is built lazily so a fresh dev checkout with
- * no integrations configured does not break startup. As a safety net, when at least one
- * credentialled provider (anything other than AuthType.NONE) is registered, the cipher fails
- * fast at boot via the [validateAtBoot] @PostConstruct hook — so a misconfigured production
- * deploy is caught at startup, not on the first user trying to connect.
- */
 @Component
 class CredentialCipher(
     @Value("\${integrations.encryption-key:}") private val encryptionKey: String,

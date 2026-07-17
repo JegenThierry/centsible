@@ -3,7 +3,7 @@ import type {Contact} from "~/models/contact/contact";
 import ContactAvatar from "~/components/_atoms/contacts/contact-avatar.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import EditDeleteActions from "~/components/_molecules/buttons/edit-delete-actions.vue";
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 
 defineProps<{
   contact: Contact;
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const {t} = useI18n();
-const currency = useActiveCurrency();
+const currency = useDefaultCurrency();
 </script>
 
 <template>

@@ -14,10 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-/**
- * Per-transaction tag assignment. Separate single-responsibility controller (ADR-0011) grouped under
- * the transaction path; ownership of both the transaction and the tags is enforced in the service.
- */
 @RequestMapping("/api/transactions/{transactionId}/tags")
 @RestController
 class TransactionTagsResource(

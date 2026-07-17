@@ -37,12 +37,6 @@ class AuthCookieIssuer(
         .also { if (cookieDomain.isNotBlank()) it.domain(cookieDomain) }
 }
 
-/**
- * Issues the short-lived pre-auth cookie that bridges password-verify and the TOTP challenge.
- * Distinct from the real session cookie: a different name, a path scoped to the auth endpoints,
- * and a 5-minute lifetime. It carries no authority of its own — the JwtAuthenticationFilter never
- * reads it — so it can never stand in for a real JWT.
- */
 @Component
 class PreAuthCookieIssuer(
     @Value("\${auth.cookie.secure:false}") private val cookieSecure: Boolean,

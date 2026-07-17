@@ -27,12 +27,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
-/**
- * Extends [ResponseEntityExceptionHandler] so Spring MVC's own exceptions (missing parameter or
- * multipart part, unsupported method/media type, unknown URL, ...) keep their proper 4xx status
- * instead of falling into the catch-all below as 500s. Its hooks are overridden rather than left to
- * the defaults, which would answer with an RFC-7807 ProblemDetail instead of our [ErrorResponse].
- */
 @ControllerAdvice
 class GlobalExceptionHandler(
     private val messageSource: MessageSource,
@@ -134,8 +128,6 @@ class GlobalExceptionHandler(
     ): ResponseEntity<Any> {
         val cause = ex.mostSpecificCause.message?.lineSequence()?.firstOrNull().orEmpty()
         log.warn("Malformed request body: {}", cause.ifBlank { ex.message })
-        // The parser cause stays in the logs only — it can echo request payload fragments and
-        // internal class names (ADR-0004). The correlation id lets an operator find it.
         return frameworkError(
             HttpStatus.BAD_REQUEST, t("error.request.malformed"), request, headers, MDC.get(MDC_REQUEST_ID),
         )
@@ -146,8 +138,6 @@ class GlobalExceptionHandler(
         ex: MethodArgumentTypeMismatchException,
         request: WebRequest,
     ): ResponseEntity<ErrorResponse> {
-        // The converter cause names the internal enum/class it failed to build ("No enum constant
-        // beer.thierry...CategoryType.BOGUS") and is untranslated, so it stays log-only (ADR-0004).
         val fieldErrors = mapOf(ex.name to t("validation.generic.invalid"))
         log.warn("Type mismatch on parameter '{}': {}", ex.name, ex.mostSpecificCause.message)
         return error(HttpStatus.BAD_REQUEST, t("error.validation.failed"), request, fieldErrors = fieldErrors)
@@ -168,8 +158,6 @@ class GlobalExceptionHandler(
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ErrorResponse> {
         log.warn("IllegalArgumentException: {}", ex.message)
-        // `require(...)` messages are developer-facing English precondition text, not localized
-        // user copy (ADR-0004) — the client gets the generic key, the log keeps the specifics.
         return error(HttpStatus.BAD_REQUEST, t("error.request.invalid"), request, details = MDC.get(MDC_REQUEST_ID))
     }
 
@@ -179,8 +167,6 @@ class GlobalExceptionHandler(
         status: HttpStatusCode,
         request: WebRequest,
     ): ResponseEntity<Any> {
-        // Servlet-level multipart rejection happens before any resource code runs; without this
-        // handler it falls through to the generic 500 instead of a clean 413.
         log.warn("Upload rejected: exceeds spring.servlet.multipart.max-file-size ({})", maxFileSize)
         return frameworkError(
             HttpStatus.PAYLOAD_TOO_LARGE, t("error.upload.tooLarge", maxFileSize.toMegabytes()), request, headers,
@@ -193,8 +179,6 @@ class GlobalExceptionHandler(
         status: HttpStatusCode,
         request: WebRequest,
     ): ResponseEntity<Any> {
-        // Every unknown URL raises this since Boot 3.2 — scanners alone would fill the log with
-        // stack traces at error level.
         log.debug("No handler for {} {}", ex.httpMethod, ex.resourcePath)
         return frameworkError(status, t("error.request.notFound"), request, headers)
     }
@@ -203,7 +187,6 @@ class GlobalExceptionHandler(
         ex: AsyncRequestNotUsableException,
         request: WebRequest,
     ): ResponseEntity<Any>? {
-        // The client is already gone and the response is unusable; there is nothing to send back.
         log.debug("Async request no longer usable: {}", ex.message)
         return null
     }
@@ -225,8 +208,6 @@ class GlobalExceptionHandler(
             return frameworkError(statusCode, t("error.unexpected"), request, headers, MDC.get(MDC_REQUEST_ID))
         }
         log.warn("Request rejected status={} type={}: {}", statusCode.value(), ex.javaClass.simpleName, ex.message)
-        // ex.message names the required parameter/part or the offending media type — useful in the
-        // log, but it is untranslated developer text, so the client gets the generic key (ADR-0004).
         return frameworkError(statusCode, t("error.request.invalid"), request, headers, MDC.get(MDC_REQUEST_ID))
     }
 

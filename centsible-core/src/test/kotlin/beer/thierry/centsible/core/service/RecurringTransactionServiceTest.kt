@@ -35,7 +35,6 @@ class RecurringTransactionServiceTest {
 
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
-    // Wraps eq() in a non-null generic return so Kotlin doesn't null-check the platform-typed matcher.
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value)
 
     @Mock
@@ -161,8 +160,6 @@ class RecurringTransactionServiceTest {
 
     @Test
     fun `a rule with unresolvable FX is skipped without aborting the pass for other rules`() {
-        // fetchDueRules orders by NEXT_RUN_AT ASC and a failing rule never advances it, so letting the
-        // exception escape would starve every later rule on every subsequent tick.
         val today = LocalDate.now()
         val poisonedAccountId = UUID.randomUUID()
         val poisoned = RecurringTransactionDTO(

@@ -6,13 +6,6 @@ import beer.thierry.centsible.imports.core.MatchScore
 import org.springframework.stereotype.Component
 import java.util.Locale
 
-/**
- * Revolut personal CSV export. Header:
- *   Type,Product,Started Date,Completed Date,Description,Amount,Fee,Currency,State,Balance
- *
- * Single signed amount column; debits are NEGATIVE. Independent of locale because Revolut
- * exports always use English headers and ISO dates.
- */
 @Component
 class RevolutProfile : CsvBankProfile {
     override val id = "revolut"

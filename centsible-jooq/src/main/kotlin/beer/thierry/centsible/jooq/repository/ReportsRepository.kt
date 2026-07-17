@@ -73,8 +73,6 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
         val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
         val total = DSL.sum(effectiveAmount)
 
-        // Grouped by the account's currency for the same reason as fetchCashFlow: amounts are stored in
-        // their account's own currency and must be converted before they can be summed together.
         return dsl.select(
             CATEGORIES.ID,
             CATEGORIES.NAME,
@@ -112,8 +110,6 @@ class ReportsRepository(private val dsl: DSLContext) : IReportsRepository {
     ): List<CashFlowCurrencyPointDTO> {
         val total = DSL.sum(TRANSACTIONS.AMOUNT)
 
-        // Grouped by the account's currency: amounts live in their account's own currency, so summing
-        // across currencies here would produce a meaningless number the caller could not unmix.
         val rows = dsl.select(TXN_MONTH_KEY, ACCOUNTS.CURRENCY, TRANSACTIONS.TYPE, total)
             .from(TRANSACTIONS)
             .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))

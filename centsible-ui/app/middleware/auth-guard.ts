@@ -22,9 +22,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/auth');
     }
     adze.ns('auth').error('Session verification failed', error);
-    // Fail closed: rendering a protected page with an unverified session produces inconsistent
-    // authed/unauthed states. A retryable error page is also visible on the SSR path, where a
-    // toast is not.
     throw createError({statusCode: 503, statusMessage: 'sessionUnavailable', fatal: true});
   }
 })

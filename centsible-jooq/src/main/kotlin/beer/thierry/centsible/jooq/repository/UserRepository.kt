@@ -38,7 +38,6 @@ private fun normaliseCurrency(currency: String?): String =
 
 private val NOTIFICATION_SETTINGS = field("notification_settings", JSONB::class.java)
 
-/** last_seen_at is only rewritten when older than this, so per-request stamping stays cheap. */
 private const val LAST_SEEN_THROTTLE_MINUTES = 15L
 
 private val log = LoggerFactory.getLogger(UserRepository::class.java)

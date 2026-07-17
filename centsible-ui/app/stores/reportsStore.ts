@@ -17,22 +17,16 @@ export const useReportsStore = defineStore('reportsStore', () => {
   const netWorth = ref<NetWorthPoint[]>([]);
   const categorySpending = ref<CategorySpendingSeries[]>([]);
   const cashFlow = ref<CashFlowPoint[]>([]);
-  // Same-shape cash flow for the immediately-preceding period, powering the KPI strip's deltas.
   const cashFlowPrevious = ref<CashFlowPoint[]>([]);
   const yearOverYear = ref<YearOverYear | null>(null);
   const budgetVsActual = ref<BudgetVsActualPeriod[]>([]);
   const safeToSpend = ref<SafeToSpend | null>(null);
-  // The forecast is forward-looking and independent of the report date range, so it carries its own
-  // loading/error/horizon state instead of the page-level inflight/error — toggling the horizon must
-  // not skeleton the whole page.
   const forecast = ref<NetWorthForecast | null>(null);
   const forecastMonths = ref(6);
   const forecastLoading = ref(false);
   const forecastError = ref(false);
   const inflight = ref(0);
   const pending = computed(() => inflight.value > 0);
-  // Set when a report load fails so consumers can show an error state with retry instead of an
-  // empty chart that reads as "no data yet". Cleared by the consumer before it refetches.
   const error = ref(false);
   const safeToSpendError = ref(false);
 
@@ -45,12 +39,6 @@ export const useReportsStore = defineStore('reportsStore', () => {
     return typeof arg === 'number' ? isoDateRangeForMonthsBack(arg) : arg;
   }
 
-  /**
-   * One generation per range *batch*, not per fetch. The range-scoped reports race each other and
-   * differ wildly in cost (net worth over 24 months is far slower than over 3), so a per-fetch token
-   * would still let `cashFlow` and `cashFlowPrevious` settle from different batches and silently
-   * corrupt the KPI period-delta. They stand or fall together.
-   */
   const rangeGate = createLatestRequestGate();
 
   /**
@@ -134,14 +122,11 @@ export const useReportsStore = defineStore('reportsStore', () => {
       "previous cash flow report",
       () => reportsService.fetchCashFlow(startDate, endDate),
       (value) => { cashFlowPrevious.value = value; },
-      // A failed comparison fetch just hides the deltas — it must not error the whole page.
       () => { cashFlowPrevious.value = []; },
       isLatest,
     );
   }
 
-  // The reports below don't take the selected range, so nothing supersedes them: they're their own
-  // batch of one.
   const always = () => true;
 
   async function fetchYearOverYear() {
@@ -204,8 +189,6 @@ export const useReportsStore = defineStore('reportsStore', () => {
     pending,
     error,
     safeToSpendError,
-    // The four range-scoped fetches stay private: they're only correct as one batch, so
-    // `fetchRangeReports` is the only way to reach them.
     fetchRangeReports,
     fetchNetWorthBreakdown,
     fetchYearOverYear,

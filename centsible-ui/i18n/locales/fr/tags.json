@@ -1,0 +1,25 @@
+{
+  "tags": {
+    "page": {
+      "title": "Étiquettes",
+      "description": "Organisez vos transactions avec des étiquettes réutilisables"
+    },
+    "newTag": "Nouvelle étiquette",
+    "nameLabel": "Nom",
+    "namePlaceholder": "ex. remboursable, vacances",
+    "colorLabel": "Couleur",
+    "emptyTitle": "Aucune étiquette",
+    "emptyDescription": "Créez des étiquettes pour marquer des transactions au-delà des catégories — par ex. remboursable ou un voyage.",
+    "entity": "étiquette",
+    "editAria": "Modifier l'étiquette",
+    "deleteAria": "Supprimer l'étiquette",
+    "toasts": {
+      "createdTitle": "Étiquette créée",
+      "createdBody": "{name} a été ajoutée.",
+      "updatedTitle": "Étiquette mise à jour",
+      "updatedBody": "{name} a été enregistrée.",
+      "saveFailedTitle": "Échec de l'enregistrement de l'étiquette",
+      "saveFailedBody": "L'étiquette n'a pas pu être enregistrée. Veuillez réessayer."
+    }
+  }
+}

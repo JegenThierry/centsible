@@ -9,12 +9,6 @@ export function useChartTheme(currencyRef: MaybeRefOrGetter<Currency>) {
   const tickColor = computed(() => isDark.value ? '#a3a3a3' : '#737373');
   const gridColor = computed(() => isDark.value ? '#262626' : '#e5e5e5');
 
-  /**
-   * Chart.js paints on <canvas>, which can't read CSS variables, so the app's design tokens are
-   * resolved to concrete colors at runtime. A throwaway probe element lets the browser resolve the
-   * full var() chain (e.g. --ui-color-primary-500 → --color-blush-500 → an rgb() string). Colors are
-   * re-resolved whenever the palette (theme switch) or the light/dark mode changes.
-   */
   const FALLBACK = {primary: '#ee387e', success: '#22c55e', error: '#ef4444'};
 
   function resolveToken(varName: string, fallback: string): string {

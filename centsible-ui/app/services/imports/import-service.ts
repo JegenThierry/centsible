@@ -55,8 +55,6 @@ export function useImportService(api: AxiosInstance) {
       parserId,
       hints: JSON.stringify(hints),
     });
-    // The only write in this service, and potentially hundreds of rows at once — drop the dashboard's
-    // memoized aggregates so its charts don't keep serving the pre-import picture.
     invalidateLedgerAggregates();
     return result;
   }
@@ -71,7 +69,6 @@ export function useImportService(api: AxiosInstance) {
     return validateRequest<ParserSummary[]>(response);
   }
 
-  /** User-saved CSV import profiles (column mapping + dialect), reusable across imports. */
   async function listTemplates(): Promise<ImportMappingTemplate[]> {
     const response = await api.get<ImportMappingTemplate[]>(`/imports/templates`);
     return validateRequest<ImportMappingTemplate[]>(response);

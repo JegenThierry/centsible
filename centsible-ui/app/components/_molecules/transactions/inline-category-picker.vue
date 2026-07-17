@@ -1,5 +1,4 @@
 <script lang="ts">
-/** Module scope: an inline literal would hand USelectMenu a new object identity on every row re-render. */
 const SELECT_MENU_UI = {
   base: 'group w-fit cursor-pointer rounded-md -mx-1 px-1 py-0.5 hover:bg-elevated focus-visible:outline-2 focus-visible:outline-primary',
   trailingIcon: 'hidden',
@@ -11,12 +10,6 @@ const SELECT_MENU_UI = {
 import type {Category} from "~/models/category/category";
 import CategoryBadge from "~/components/_molecules/badges/category-badge.vue";
 
-/**
- * Inline, click-to-edit category control for a transaction row: renders the category as a clickable
- * {@link CategoryBadge} that opens a searchable {@link USelectMenu}. Presentational only — it takes
- * the assignable [options] and emits the picked category upward; the owning organism performs the
- * mutation (ADR-0006/0008). Reuses Nuxt UI's `USelectMenu` for search + keyboard navigation.
- */
 const props = defineProps<{
   category?: Category | null;
   options: Category[];
@@ -28,7 +21,6 @@ const emit = defineEmits<{
 
 const {t} = useI18n();
 
-/** Resolve to the option instance sharing the active id so the menu marks the current category. */
 const selected = computed(() => props.options.find((c) => c.id === props.category?.id));
 
 function onSelect(category: Category | undefined) {

@@ -79,9 +79,6 @@ class ExportScheduleRepository(private val dsl: DSLContext) : IExportScheduleRep
 
     override fun markRun(id: UUID, expectedNextRunAt: LocalDate, nextRunAt: LocalDate): Boolean {
         val now = OffsetDateTime.now()
-        // Compare-and-swap on next_run_at: fetchDue takes no lock, so two rest instances firing the same
-        // cron both see the schedule as due. Only the instance whose UPDATE still matches the due date
-        // advances it — the other gets 0 rows and skips, instead of enqueueing a second export + email.
         return dsl.update(EXPORT_SCHEDULES)
             .set(EXPORT_SCHEDULES.NEXT_RUN_AT, nextRunAt)
             .set(EXPORT_SCHEDULES.LAST_RUN_AT, now)

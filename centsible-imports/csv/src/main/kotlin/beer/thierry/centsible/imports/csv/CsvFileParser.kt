@@ -29,12 +29,6 @@ import java.util.Locale
 private val CURRENCY_NOISE = setOf('€', '$', '£', '¥', '₣', '¤', '₽', '₹')
 private val WINDOWS_1252 = Charset.forName("windows-1252")
 
-/**
- * CSV file parser. Stateless; one Spring bean serves every import. The CSV format itself can't
- * tell the parser what each column means, so [requiresMapping] is true and [parse] needs
- * [ParseHints.csvMapping]. Use [probe] from the REST layer to extract the header for profile
- * matching before asking the user to confirm or tweak the mapping.
- */
 @Component
 class CsvFileParser : FileFormatParser {
     private val log = LoggerFactory.getLogger(javaClass)

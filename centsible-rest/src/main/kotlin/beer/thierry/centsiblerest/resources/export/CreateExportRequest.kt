@@ -17,7 +17,6 @@ data class CreateExportRequest(
     @field:NotBlank @field:Size(max = 200) var title: String? = null,
     @field:NotNull @field:Valid var params: ExportRequestParams? = null,
     @field:Valid var postProcessing: List<PostProcessingRequest>? = null,
-    /** Output format. Defaults to PDF to preserve existing client behavior. */
     var format: ExportFormat = ExportFormat.PDF,
 )
 

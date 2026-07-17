@@ -24,7 +24,6 @@ const columns = computed<TableColumn<AdminUser>[]>(() => [
   {id: 'actions', header: ''},
 ]);
 
-/** An account is stale after 90 days without a request, login, or recorded transaction. */
 const STALE_AFTER_MS = 90 * 24 * 60 * 60 * 1000;
 
 function lastActivityMs(user: AdminUser): number | null {
@@ -62,7 +61,6 @@ async function resendVerification(user: AdminUser) {
   try {
     await adminStore.resendVerification(user.id);
   } catch {
-    // the store already surfaced the failure as a toast
   } finally {
     resendPendingId.value = null;
   }
@@ -70,7 +68,6 @@ async function resendVerification(user: AdminUser) {
 
 function refresh() {
   adminStore.fetchUsers().catch(() => {
-    // the store already surfaced the failure as a toast
   });
 }
 

@@ -56,9 +56,6 @@ class SecurityConfig(
             }
 
             authorizeHttpRequests {
-                // Container-internal ERROR dispatch (to /error) runs the chain again without the
-                // caller's authentication; without this, every security-produced 403 is rewritten
-                // to 401 by the entry point. Clients cannot spoof the dispatch type.
                 authorize(DispatcherTypeRequestMatcher(DispatcherType.ERROR), permitAll)
                 authorize("/api/auth/register", permitAll)
                 authorize("/api/auth/login", permitAll)
@@ -72,7 +69,6 @@ class SecurityConfig(
                 authorize("/api/system", permitAll)
                 authorize("/api/integrations/oauth/callback/**", permitAll)
                 authorize(EndpointRequest.to("health"), permitAll)
-                // Defense in depth: the service layer re-checks the caller against admin.username.
                 authorize("/api/admin/**", hasRole("ADMIN"))
                 authorize(anyRequest, authenticated)
             }

@@ -20,7 +20,6 @@ export interface CategoryForm {
   type: CategoryType;
 }
 
-/** Stable [systemKey] values for system categories, used to resolve them at runtime. */
 export const CategorySystemKey = {
   BalanceAdjustment: 'BALANCE_ADJUSTMENT',
 } as const;

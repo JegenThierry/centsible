@@ -58,7 +58,6 @@ export function useTransactionService(api: AxiosInstance) {
   function deleteTransactionOnUnload(accountId: string, transactionId: string): void {
     const url = `${api.defaults.baseURL ?? ''}/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`;
     void fetch(url, {method: 'DELETE', credentials: 'include', keepalive: true}).catch(() => {
-      // The document is being torn down; there is no toast, no retry, and no logger left to reach.
     });
   }
 

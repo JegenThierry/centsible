@@ -92,9 +92,6 @@ class RecurringTransactionService(
         val today = LocalDate.now()
         var count = 0
         for (rule in repository.fetchDueRules(today)) {
-            // One rule's failure (missing account, unresolvable FX) must not abort the pass: fetchDueRules
-            // orders by NEXT_RUN_AT ASC and a failing rule never advances it, so it would sort first —
-            // and starve every other user's rules — on every subsequent tick.
             try {
                 val isTransfer = rule.isTransfer || rule.destinationAccountId != null
                 val accountId = rule.accountId ?: continue

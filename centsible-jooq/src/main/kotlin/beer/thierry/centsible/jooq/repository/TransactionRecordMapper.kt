@@ -9,14 +9,6 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.Field
 import org.jooq.Record
 
-/**
- * Shared projection and mapping for `transactions ⨝ categories` rows.
- *
- * Repositories that produce [TransactionDTO]s should select [columns] (alongside
- * any extra fields they need) and pass each [Record] through [mapTransaction] —
- * or [mapTransactionOrNull] when the join is left-joined and the transaction may
- * be absent.
- */
 internal object TransactionRecordMapper {
 
     val columns: Array<Field<*>> = arrayOf(

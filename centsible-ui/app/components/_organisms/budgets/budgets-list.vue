@@ -11,7 +11,7 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 const BudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 import {format, parseISO, subMonths} from 'date-fns';
 import {formatMonthYearLabel} from "~/utils/date";
 
@@ -34,7 +34,7 @@ const existingCombos = computed(() =>
   store.items.map((b) => ({categoryId: b.category.id, periodType: b.periodType})),
 );
 
-const currency = useActiveCurrency();
+const currency = useDefaultCurrency();
 
 function monthsBack(from: string, count: number): string {
   return format(subMonths(parseISO(`${from}-01`), count), MONTH_FMT);

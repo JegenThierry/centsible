@@ -10,14 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.UUID
 
-/**
- * Wraps a provider sync invocation with proactive OAuth token refresh.
- *
- * The orchestrator calls [withFreshTokens] before each capability call. If the credentials
- * contain an OAuth envelope nearing expiry (and the provider implements IOAuthFlowProvider),
- * we ask the provider for a fresh envelope, persist it atomically, and return a context that
- * reflects the new tokens. Providers without OAuth pass through unchanged.
- */
 @Component
 class TokenRefreshGuard(
     private val repository: IProviderConnectionsRepository,

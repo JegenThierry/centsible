@@ -1,0 +1,79 @@
+{
+  "rules": {
+    "page": {
+      "title": "Règles",
+      "description": "Catégorisez et étiquetez automatiquement vos transactions"
+    },
+    "newRule": "Nouvelle règle",
+    "emptyTitle": "Aucune règle",
+    "emptyDescription": "Créez une règle pour catégoriser et étiqueter automatiquement les transactions importées, synchronisées et existantes.",
+    "entity": "règle",
+    "applyAria": "Appliquer la règle aux transactions existantes",
+    "editAria": "Modifier la règle",
+    "deleteAria": "Supprimer la règle",
+    "removeAria": "Retirer",
+    "appliedTitle": "Règle appliquée",
+    "appliedBody": "{count} transaction(s) existante(s) mise(s) à jour.",
+    "disabledBadge": "Désactivée",
+    "nameLabel": "Nom de la règle",
+    "namePlaceholder": "ex. Abonnement Netflix",
+    "matchModeLabel": "Correspondance",
+    "matchAll": "Toutes les conditions",
+    "matchAny": "Au moins une condition",
+    "conditionsLabel": "Conditions",
+    "addCondition": "Ajouter une condition",
+    "noConditions": "Ajoutez au moins une condition.",
+    "actionsLabel": "Actions",
+    "addAction": "Ajouter une action",
+    "noActions": "Ajoutez au moins une action.",
+    "priorityLabel": "Priorité",
+    "priorityDescription": "Les règles de priorité plus élevée l'emportent pour la catégorie.",
+    "enabledLabel": "Activée",
+    "valuePlaceholder": "ex. Migros, Netflix, CFF",
+    "selectCategory": "Choisir une catégorie",
+    "selectTag": "Choisir une étiquette",
+    "selectAccount": "Choisir un compte",
+    "selectDirection": "Choisir un type",
+    "createTitle": "Nouvelle règle",
+    "editTitle": "Modifier la règle",
+    "modalDescription": "Catégorisez et étiquetez automatiquement les transactions qui correspondent à vos conditions.",
+    "createSubmit": "Créer",
+    "editSubmit": "Enregistrer",
+    "field": {
+      "DESCRIPTION": "Description",
+      "AMOUNT": "Montant",
+      "DIRECTION": "Type",
+      "ACCOUNT": "Compte"
+    },
+    "operator": {
+      "CONTAINS": "contient",
+      "EQUALS": "est égal à",
+      "STARTS_WITH": "commence par",
+      "GT": "supérieur à",
+      "GTE": "au moins",
+      "LT": "inférieur à",
+      "LTE": "au plus",
+      "IS": "est"
+    },
+    "actionType": {
+      "SET_CATEGORY": "Définir la catégorie",
+      "ADD_TAG": "Ajouter une étiquette"
+    },
+    "direction": {
+      "INCOME": "Revenu",
+      "EXPENSE": "Dépense"
+    },
+    "toasts": {
+      "createdTitle": "Règle créée",
+      "createdBody": "La règle a été ajoutée.",
+      "updatedTitle": "Règle mise à jour",
+      "updatedBody": "La règle a été enregistrée.",
+      "fetchFailedTitle": "Échec du chargement des règles",
+      "fetchFailedBody": "Impossible de charger les règles.",
+      "createFailedTitle": "Échec de la création de la règle",
+      "updateFailedTitle": "Échec de la mise à jour de la règle",
+      "applyFailedTitle": "Échec de l'application de la règle",
+      "genericErrorBody": "Une erreur est survenue."
+    }
+  }
+}

@@ -2,15 +2,6 @@ package beer.thierry.centsible.api.model.integrations
 
 import java.time.Instant
 
-/**
- * Stable convention for OAuth2 token storage inside the encrypted credentials Map<String,String>.
- *
- * Provider modules never read or write these raw keys directly — they go through the helpers below
- * and through TokenRefreshGuard which mutates the live envelope before each provider call.
- *
- * We pack everything into the existing credentials map (rather than adding new DB columns) so the
- * schema does not need to change every time a provider has a new token field.
- */
 object OAuthCredentialKeys {
     const val ACCESS_TOKEN = "oauth.access_token"
     const val REFRESH_TOKEN = "oauth.refresh_token"

@@ -16,13 +16,6 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.YearMonth
 
-/**
- * Deterministic discretionary-headroom calculator for the current month. Reuses the same
- * transfer-excluded aggregation the cash-flow report uses for booked actuals (ADR-0015), and projects
- * the remaining month from active, non-transfer recurring rules. Booked and upcoming amounts alike are
- * converted into the user's default currency with the shared report rates, so accounts and rules in
- * foreign currencies are never summed raw. No AI.
- */
 @Service
 class SafeToSpendService(
     private val reportsRepository: IReportsRepository,
@@ -49,8 +42,6 @@ class SafeToSpendService(
             if (!rule.active || rule.isTransfer) continue
             val amount = rule.amount ?: continue
             val type = rule.type ?: continue
-            // A rule's amount lands on its own account, so it converts at that account's rate; rules whose
-            // FX can't be resolved are excluded, mirroring the net-worth forecast.
             val rate = rule.accountId?.let { rates.byAccount[it] } ?: continue
             val occurrences = occurrencesInWindow(rule, today, monthEnd)
             if (occurrences == 0) continue

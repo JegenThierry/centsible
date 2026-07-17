@@ -8,12 +8,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
 
-/**
- * Spring Boot 4 binds @RequestBody with Jackson 3, discovering modules from the classpath. Without
- * `tools.jackson.module:jackson-module-kotlin` it cannot use Kotlin's primary constructor and falls
- * back to the synthetic no-arg one, leaving `val` properties at their defaults — which silently
- * blanked every 2FA code. Mirrors that discovery so dropping the dependency fails here, not in prod.
- */
 class JacksonKotlinBindingTest {
 
     private val mapper = JsonMapper.builder().findAndAddModules().build()

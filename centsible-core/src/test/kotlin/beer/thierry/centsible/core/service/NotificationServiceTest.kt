@@ -36,16 +36,11 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-/**
- * Unit tests for [NotificationService]'s scheduled checks: the projected-shortfall projection math
- * plus the loan-due and recurring-upcoming reminders driven off the per-user look-ahead settings.
- */
 @ExtendWith(MockitoExtension::class)
 class NotificationServiceTest {
 
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
 
-    // Wraps eq() in a non-null generic return so Kotlin doesn't null-check the platform-typed matcher.
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value)
 
     @Mock private lateinit var notifications: INotificationRepository
@@ -97,7 +92,6 @@ class NotificationServiceTest {
 
     @Test
     fun `projects a shortfall when a recurring expense pushes the account below the threshold`() {
-        // 150.00 balance, one 80.00 expense in 5 days → 70.00, under the 100.00 threshold.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(settings("100.00"))
         `when`(accounts.fetchAllAccounts(user)).thenReturn(listOf(account))
         `when`(recurring.fetchAll(user, null)).thenReturn(listOf(expenseRule("80.00", 5)))
@@ -110,7 +104,6 @@ class NotificationServiceTest {
 
     @Test
     fun `stays quiet when the projected balance never dips below the threshold`() {
-        // 150.00 - 30.00 = 120.00, still above the 100.00 threshold.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(settings("100.00"))
         `when`(accounts.fetchAllAccounts(user)).thenReturn(listOf(account))
         `when`(recurring.fetchAll(user, null)).thenReturn(listOf(expenseRule("30.00", 5)))
@@ -123,7 +116,6 @@ class NotificationServiceTest {
 
     @Test
     fun `a recurring transfer out of the account counts against its projection`() {
-        // Transfers net to zero across net worth, but genuinely drain a single account.
         val transferOut = RecurringTransactionDTO(
             id = UUID.randomUUID(),
             accountId = account.id,
@@ -140,15 +132,12 @@ class NotificationServiceTest {
 
         service.runScheduledChecks(user)
 
-        // 150.00 - 90.00 = 60.00 < 100.00 → the transfer drain must trigger the alert.
         verify(notifications, times(1))
             .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
     }
 
     @Test
     fun `credits a cross-currency transfer destination with the converted amount`() {
-        // 1.00 EUR into a JPY account is ~160 JPY, not 1: crediting the raw source amount would leave
-        // the projection at 51.00 JPY and fire a shortfall that isn't real.
         val transferIn = RecurringTransactionDTO(
             id = UUID.randomUUID(),
             accountId = account.id,
@@ -186,7 +175,6 @@ class NotificationServiceTest {
 
         service.runScheduledChecks(user)
 
-        // 150.00 + 160.00 - 100.00 = 210.00 JPY, comfortably above the threshold.
         verify(notifications, never())
             .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
     }
@@ -211,7 +199,6 @@ class NotificationServiceTest {
 
         service.runScheduledChecks(user)
 
-        // The destination credit drops out rather than crediting 1 raw EUR; neither account breaches.
         verify(notifications, never())
             .create(anyArg(), eqArg(NotificationType.PROJECTED_SHORTFALL), anyArg(), anyArg(), anyArg())
     }
@@ -228,7 +215,6 @@ class NotificationServiceTest {
 
     @Test
     fun `warns about a loan approaching its due date`() {
-        // Default loanDueDaysAhead = 3; a loan due in 2 days is inside the window.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(NotificationSettingsDTO())
         `when`(loans.fetchAllLoans(user)).thenReturn(listOf(openLoan(dueInDays = 2)))
 
@@ -251,7 +237,6 @@ class NotificationServiceTest {
 
     @Test
     fun `stays quiet for a loan due beyond the look-ahead window`() {
-        // Default loanDueDaysAhead = 3; a loan due in 10 days is out of range.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(NotificationSettingsDTO())
         `when`(loans.fetchAllLoans(user)).thenReturn(listOf(openLoan(dueInDays = 10)))
 
@@ -263,7 +248,6 @@ class NotificationServiceTest {
 
     @Test
     fun `warns about a recurring rule running within the look-ahead window`() {
-        // Default recurringDueDaysAhead = 2; a rule running tomorrow is inside the window.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(NotificationSettingsDTO())
         `when`(recurring.fetchAll(user, null)).thenReturn(listOf(expenseRule("40.00", 1)))
 
@@ -275,7 +259,6 @@ class NotificationServiceTest {
 
     @Test
     fun `stays quiet for a recurring rule running beyond the look-ahead window`() {
-        // Default recurringDueDaysAhead = 2; a rule 10 days out is out of range.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(NotificationSettingsDTO())
         `when`(recurring.fetchAll(user, null)).thenReturn(listOf(expenseRule("40.00", 10)))
 
@@ -306,7 +289,6 @@ class NotificationServiceTest {
 
     @Test
     fun `does not raise budget alerts when the user has turned them off`() {
-        // budgetAlertsEnabled = false must short-circuit before any budget is even fetched.
         `when`(users.fetchNotificationSettings(user.id)).thenReturn(NotificationSettingsDTO(budgetAlertsEnabled = false))
 
         service.maybeRaiseBudgetAlerts(user, null)

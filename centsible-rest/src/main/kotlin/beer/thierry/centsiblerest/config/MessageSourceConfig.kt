@@ -9,13 +9,6 @@ import org.springframework.web.servlet.LocaleResolver
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver
 import java.util.Locale
 
-/**
- * App-wide internationalisation: validation messages, exception responses, and email copy
- * all resolve through the same message bundle (`messages_{en,fr,de}.properties` on the
- * classpath). The active locale comes from the `Accept-Language` header that the UI attaches
- * to every request via its axios plugin; falling back to English keeps API testing clients
- * (Bruno, curl) functional without ceremony.
- */
 @Configuration
 class MessageSourceConfig {
 

@@ -9,11 +9,6 @@ import org.springframework.web.util.HtmlUtils
 import java.io.StringWriter
 import java.util.Locale
 
-/**
- * Shared layout + copy plumbing for transactional emails. Each callsite supplies a CTA URL and
- * a message-bundle key prefix (see [EmailTemplateRenderer.buildCopy]); the layout and styling
- * are deliberately identical so branding stays consistent.
- */
 data class EmailCopy(
     val subject: String,
     val preheader: String,

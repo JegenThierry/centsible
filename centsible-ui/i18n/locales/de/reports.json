@@ -2,7 +2,9 @@
   "reports": {
     "page": {
       "title": "Berichte",
-      "description": "Visualisiere Ausgaben, Einnahmen und Nettovermögen im Zeitverlauf."
+      "description": "Visualisiere Ausgaben, Einnahmen und Nettovermögen im Zeitverlauf.",
+      "partialErrorTitle": "Einige Berichte konnten nicht geladen werden",
+      "partialErrorBody": "Ein Teil dieser Seite konnte nicht geladen werden. Die unten angezeigten Berichte sind möglicherweise unvollständig."
     },
     "ranges": {
       "3m": "Letzte 3 Monate",

@@ -105,7 +105,6 @@ class TransactionService(
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = resolveConversion(accountId, transactionForm, authenticatedUser)
 
         return transactionTemplate.execute {
@@ -169,7 +168,6 @@ class TransactionService(
         transactionForm: TransactionForm,
         authenticatedUser: UserDTO
     ): TransactionDTO {
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = resolveConversion(accountId, transactionForm, authenticatedUser)
 
         return transactionTemplate.execute {
@@ -253,7 +251,6 @@ class TransactionService(
         val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
         val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
 
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = currencyConversionService.convert(
             form.amount, source.currency, destination.currency, form.transactionDate
         )
@@ -286,7 +283,6 @@ class TransactionService(
         val source = accountRepository.fetchAccountById(sourceAccountId, authenticatedUser)
         val destination = accountRepository.fetchAccountById(destinationAccountId, authenticatedUser)
 
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversion = currencyConversionService.convert(
             form.amount, source.currency, destination.currency, form.transactionDate
         )
@@ -387,7 +383,6 @@ class TransactionService(
         val classification = categoriesRepository.fetchCategoryClassifications(authenticatedUser, listOf(categoryId))[categoryId]
             ?: throw categoryNotFound(categoryId)
         if (classification.isManaged) throw LocalizedException.BadRequest("error.category.managedAssign")
-        // Transfer legs keep their managed Transfer in/out category (ADR-0015); they are skipped, not rejected.
         val oldTransactions = transactionRepository.fetchTransactionsByIds(accountId, ids, authenticatedUser)
             .filter { it.transferGroupId == null }
         if (oldTransactions.isEmpty()) return 0
@@ -432,7 +427,6 @@ class TransactionService(
 
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
 
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversions = convertRows(rows, account.currency)
 
         return transactionTemplate.execute {
@@ -503,7 +497,6 @@ class TransactionService(
                 currency = parseProviderCurrency(tx.currency),
             )
         }
-        // Must stay above transactionTemplate: resolving a rate can hit the FX provider over HTTP.
         val conversions = convertRows(rows, account.currency)
         val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
 
@@ -537,8 +530,6 @@ class TransactionService(
         form: SetBalanceForm,
         authenticatedUser: UserDTO,
     ): TransactionDTO {
-        // Locked read: the delta below is applied as a relative increment, so two concurrent
-        // adjustments reading the same balance would both apply and overshoot the target.
         val account = accountRepository.fetchAccountByIdForUpdate(accountId, authenticatedUser)
         val delta = form.newBalance.subtract(account.balance)
         if (delta.signum() == 0) {

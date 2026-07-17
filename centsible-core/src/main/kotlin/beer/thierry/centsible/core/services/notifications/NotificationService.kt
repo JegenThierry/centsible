@@ -34,13 +34,10 @@ private val THRESHOLD = BigDecimal("0.85")
 private val EXCEEDED = BigDecimal("1.00")
 private const val PACE_MIN_DAYS = 4
 
-/** How many days before a provider consent lapses we start warning the user. */
 private const val CONSENT_EXPIRY_LEAD_DAYS = 7L
 
-/** How far ahead we project each account's recurring cash flow when warning about an upcoming shortfall. */
 private const val PROJECTED_SHORTFALL_HORIZON_DAYS = 30L
 
-/** Safety cap on generated occurrences per rule while projecting (a daily rule over 30d is ~30). */
 private const val MAX_SHORTFALL_OCCURRENCES = 200
 
 @Service
@@ -101,8 +98,6 @@ class NotificationService(
 
     override fun runScheduledChecks(user: UserDTO) {
         val settings = users.fetchNotificationSettings(user.id)
-        // Fetched once and threaded into every check that needs them, rather than each evaluator
-        // re-reading the same user-scoped tables on the same sweep.
         val recurringRules = recurring.fetchAll(user)
         val userAccounts = accounts.fetchAllAccounts(user)
         evaluateLoanDue(user, settings)
@@ -136,7 +131,6 @@ class NotificationService(
             val expiresAt = parseInstant(connection.config["consentExpiresAt"]) ?: continue
             val expiryDate = LocalDate.ofInstant(expiresAt, ZoneOffset.UTC)
             val daysUntil = ChronoUnit.DAYS.between(today, expiryDate)
-            // Already-expired consents surface as sync failures instead; here we only warn ahead of time.
             if (daysUntil < 0 || daysUntil > CONSENT_EXPIRY_LEAD_DAYS) continue
             emitIfNew(
                 user,
@@ -303,13 +297,10 @@ class NotificationService(
 
         val today = LocalDate.now()
         val horizonEnd = today.plusDays(PROJECTED_SHORTFALL_HORIZON_DAYS)
-        // Occurrence dates depend only on the rule and the shared window, not the account, so walk
-        // each rule's calendar once instead of re-walking it for every account.
         val datesByRule = activeRules.associateWith { occurrenceDatesInWindow(it, today, horizonEnd) }
         val currencyByAccount = userAccounts.associate { it.id to it.currency }
 
         for (account in userAccounts) {
-            // Already below the line — the reactive low-balance alert owns this case.
             if (account.balance < threshold) continue
 
             val impacts = activeRules.asSequence()

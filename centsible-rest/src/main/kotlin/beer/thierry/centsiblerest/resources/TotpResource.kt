@@ -19,10 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * TOTP two-factor enrollment and management for the signed-in user. All endpoints require
- * authentication (the login-challenge step lives on /api/auth/2fa/challenge, which runs pre-auth).
- */
 @RequestMapping("/api/auth/2fa")
 @RestController
 class TotpResource(

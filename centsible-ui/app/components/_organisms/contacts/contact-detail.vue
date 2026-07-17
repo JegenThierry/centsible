@@ -18,7 +18,7 @@ const ContactModal = defineAsyncComponent(() => import("~/components/_organisms/
 const DeleteContactModal = defineAsyncComponent(() => import("~/components/_organisms/contacts/modals/delete-contact-modal.vue"));
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 
 const props = defineProps<{
   contactId: string;
@@ -41,7 +41,7 @@ const selectedLoan = ref<Loan>();
 
 const contact = computed<Contact | undefined>(() => contactsStore.findContactById(props.contactId));
 const loans = computed<Loan[]>(() => loansStore.loansByContact[props.contactId] ?? []);
-const currency = useActiveCurrency();
+const currency = useDefaultCurrency();
 
 function openRepayment(loan: Loan) {
   selectedLoan.value = loan;

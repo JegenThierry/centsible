@@ -21,6 +21,8 @@ const sectionKey = computed<string | null>(() => {
   if (p.startsWith('/loans')) return 'nav.sidebar.loans';
   if (p.startsWith('/reports')) return 'nav.sidebar.reports';
   if (p.startsWith('/categories')) return 'nav.sidebar.categories';
+  if (p.startsWith('/rules')) return 'nav.sidebar.rules';
+  if (p.startsWith('/tags')) return 'nav.sidebar.tags';
   if (p.startsWith('/contacts')) return 'nav.sidebar.contacts';
   if (p.startsWith('/exports')) return 'nav.sidebar.exports';
   if (p.startsWith('/attachments')) return 'nav.sidebar.documents';
@@ -46,7 +48,6 @@ const items = computed(() => {
 </script>
 
 <template>
-  <!-- Hidden when there is only a single crumb (e.g. the accounts list already names itself in the page header). -->
   <UBreadcrumb
     v-if="items.length > 1"
     :items="items"

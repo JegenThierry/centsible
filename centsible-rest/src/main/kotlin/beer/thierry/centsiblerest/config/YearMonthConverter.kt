@@ -7,10 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
-/**
- * Binds `?month=YYYY-MM` request params to [YearMonth]. A malformed value surfaces as a
- * `MethodArgumentTypeMismatchException`, which the global exception handler maps to HTTP 400.
- */
 @Configuration
 class YearMonthConverter : WebMvcConfigurer, Converter<String, YearMonth> {
 

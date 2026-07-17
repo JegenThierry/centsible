@@ -43,6 +43,8 @@ const groups = computed(() => {
     {label: t('nav.sidebar.loans'), icon: 'i-lucide-hand-coins', onSelect: () => go('/loans')},
     {label: t('nav.sidebar.reports'), icon: 'i-lucide-trending-up', onSelect: () => go('/reports')},
     {label: t('nav.sidebar.categories'), icon: 'i-lucide-tag', onSelect: () => go('/categories')},
+    {label: t('nav.sidebar.rules'), icon: 'i-lucide-wand-sparkles', onSelect: () => go('/rules')},
+    {label: t('nav.sidebar.tags'), icon: 'i-lucide-hash', onSelect: () => go('/tags')},
     {label: t('nav.sidebar.contacts'), icon: 'i-lucide-users', onSelect: () => go('/contacts')},
     {label: t('nav.sidebar.exports'), icon: 'i-lucide-file-text', onSelect: () => go('/exports')},
     {label: t('nav.sidebar.documents'), icon: 'i-lucide-paperclip', onSelect: () => go('/attachments')},
@@ -65,7 +67,6 @@ const groups = computed(() => {
 
 <template>
   <div class="contents">
-    <!-- Faux-input trigger (≥ sm) -->
     <button
       :aria-label="t('nav.search.placeholder')"
       class="hidden sm:flex items-center gap-2 h-8 ps-2.5 pe-1.5 w-44 lg:w-56 rounded-md bg-elevated ring ring-default text-muted hover:bg-accented hover:text-default transition-colors"
@@ -80,7 +81,6 @@ const groups = computed(() => {
       </span>
     </button>
 
-    <!-- Icon-only trigger (< sm) -->
     <AppButton
       :aria-label="t('nav.search.placeholder')"
       class="sm:hidden"

@@ -6,13 +6,6 @@ import beer.thierry.centsible.api.model.integrations.FieldType
 import beer.thierry.centsible.api.model.integrations.ProviderDescriptor
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 
-/**
- * Reference provider with no external dependencies — it implements no capability mixins, so the
- * sync orchestrator treats each tick as a no-op. Its purpose is to validate the framework
- * end-to-end (registry → descriptor endpoint → connection CRUD → dynamic UI) and to serve as a
- * copy-paste template for real providers. Real providers add capability interfaces
- * (IAccountProvider, ITransactionImporter, IQuoteProvider) and their own SDKs.
- */
 class ManualProviderModule : ProviderModule {
     override val descriptor = ProviderDescriptor(
         key = "manual",

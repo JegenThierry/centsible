@@ -35,7 +35,6 @@ const state = reactive<{
   type: props.account?.type ?? AccountType.CHECKING,
 })
 
-// Re-seed the form whenever the modal is (re)opened for a given account.
 const {requestClose} = useModalDirtyGuard({
   isOpen,
   loading,

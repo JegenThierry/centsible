@@ -270,11 +270,6 @@ class PaypalProviderModule(
         private const val SAFETY_MARGIN_SECONDS = 300L
         private val DEFAULT_LOOKBACK: Duration = Duration.of(90, ChronoUnit.DAYS)
 
-        /**
-         * PayPal Reporting API rejects ranges wider than 31 days per call. importSince returns one
-         * window per invocation and advances the cursor to its end, so a long backfill is spread
-         * across polls instead of being accumulated in memory and restarted from scratch on failure.
-         */
         private val MAX_WINDOW: Duration = Duration.of(31, ChronoUnit.DAYS)
 
         private val PAYPAL_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatterBuilder()

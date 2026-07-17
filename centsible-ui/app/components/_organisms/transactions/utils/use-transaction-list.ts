@@ -22,8 +22,6 @@ export function useTransactionList(
   const loadingMore = ref(false)
   const hasMore = ref(true)
   const error = ref(false)
-  // Monotonic token so a slow in-flight load can't clobber the results of a newer one
-  // (fast filter/search typing or quick account switches). Only the latest request applies.
   let requestToken = 0
 
   async function loadTransactions(reset = false) {
@@ -38,8 +36,6 @@ export function useTransactionList(
       loadingMore.value = true
     }
 
-    // Keep the currently rendered rows in place while a reset loads so the list
-    // doesn't flash empty on every committed filter change; they're replaced on arrival.
     const requestedPage = reset ? 1 : page.value
 
     try {
