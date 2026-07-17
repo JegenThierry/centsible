@@ -5,10 +5,6 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
-/**
- * A recurring export. A materializer enqueues an ordinary export job each period for the just-ended
- * window (a MONTHLY schedule exports last month, WEEKLY exports last week) and advances [nextRunAt].
- */
 data class ExportScheduleDTO(
     var id: UUID? = null,
     var userId: UUID? = null,

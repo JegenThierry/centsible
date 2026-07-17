@@ -9,9 +9,6 @@ import {Frequency} from '~/models/recurring/recurring-transaction';
  */
 type TranslateFn = ReturnType<typeof useI18n>['t'];
 
-// --- field builders ---------------------------------------------------------
-// Small zod fragments for the patterns that recurred across every create/edit form schema.
-
 /** Trimmed, required text: non-empty and length-capped, with localized messages. */
 export function requiredString(t: TranslateFn, label: string, max: number) {
   return z.string().trim()
@@ -65,9 +62,6 @@ export function requiredObject(t: TranslateFn, label: string) {
     message: t('common.validation.required', {field: label}),
   });
 }
-
-// --- per-domain factories ---------------------------------------------------
-// One schema per domain, shared by the create and edit modals (which were byte-identical).
 
 export function contactSchema(t: TranslateFn) {
   const firstNameLabel = t('contacts.form.firstNameLabel');
@@ -145,12 +139,10 @@ export function loanSchema(t: TranslateFn) {
     dueDate: z.string().optional(),
     notes: optionalString(t, t('contacts.loans.form.notesLabel'), 500),
   })
-    // Either an existing contact or enough to create one.
     .refine((d) => !!d.contactId || !!d.newContactFirstName?.trim(), {
       message: t('common.validation.required', {field: contactLabel}),
       path: ['contactId'],
     })
-    // An account is only meaningful once the loan actually moves money.
     .refine((d) => !d.affectBalance || !!d.accountId, {
       message: t('common.validation.required', {field: accountLabel}),
       path: ['accountId'],

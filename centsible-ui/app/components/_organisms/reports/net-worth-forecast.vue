@@ -9,7 +9,6 @@ import {useReportsStore} from "~/stores/reportsStore";
 import {useChartTheme} from "~/composables/use-chart-theme";
 
 const props = defineProps<{
-  // Fallback display currency until the forecast (which is authoritative) has loaded.
   currency: Currency;
 }>();
 
@@ -22,7 +21,6 @@ const forecastCurrency = computed<Currency>(() => reportsStore.forecast?.currenc
 const points = computed(() => reportsStore.forecast?.points ?? []);
 const occurrences = computed(() => reportsStore.forecast?.occurrences ?? []);
 
-// points[0] is today's actual net worth; the last point is the projected horizon balance.
 const endBalance = computed(() => points.value[points.value.length - 1]?.balance ?? 0);
 const delta = computed(() => endBalance.value - (points.value[0]?.balance ?? 0));
 

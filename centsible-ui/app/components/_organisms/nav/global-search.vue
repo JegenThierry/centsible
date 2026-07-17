@@ -67,7 +67,6 @@ const groups = computed(() => {
 
 <template>
   <div class="contents">
-    <!-- Faux-input trigger (≥ sm) -->
     <button
       :aria-label="t('nav.search.placeholder')"
       class="hidden sm:flex items-center gap-2 h-8 ps-2.5 pe-1.5 w-44 lg:w-56 rounded-md bg-elevated ring ring-default text-muted hover:bg-accented hover:text-default transition-colors"
@@ -82,7 +81,6 @@ const groups = computed(() => {
       </span>
     </button>
 
-    <!-- Icon-only trigger (< sm) -->
     <AppButton
       :aria-label="t('nav.search.placeholder')"
       class="sm:hidden"

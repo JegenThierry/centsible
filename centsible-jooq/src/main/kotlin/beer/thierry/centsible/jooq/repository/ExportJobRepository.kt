@@ -128,12 +128,8 @@ class ExportJobRepository(
             .setNull(EXPORT_JOBS.LOCKED_AT)
             .setNull(EXPORT_JOBS.LOCKED_BY)
             .setNull(EXPORT_JOBS.COMPLETED_AT)
-            // A retrigger is a fresh user request: reset the counter so the worker's max-attempts
-            // dead-letter cap applies per trigger, not across the job's lifetime.
             .set(EXPORT_JOBS.ATTEMPT_COUNT, 0)
             .set(EXPORT_JOBS.MODIFIED_AT, OffsetDateTime.now())
-            // Only a settled job may be retriggered: resetting a PENDING/IN_PROGRESS job would strip the
-            // lease from the worker rendering it, letting its markFailed land on the fresh attempt.
             .where(
                 EXPORT_JOBS.ID.eq(jobId)
                     .and(EXPORT_JOBS.USER_ID.eq(userId))
@@ -148,8 +144,6 @@ class ExportJobRepository(
             .setNull(EXPORT_POST_PROCESSING.LOCKED_AT)
             .setNull(EXPORT_POST_PROCESSING.LOCKED_BY)
             .setNull(EXPORT_POST_PROCESSING.COMPLETED_AT)
-            // Same reasoning as the job's counter above — without this reset the worker's cap would
-            // dead-letter a retriggered job's steps on their first claim.
             .set(EXPORT_POST_PROCESSING.ATTEMPT_COUNT, 0)
             .set(EXPORT_POST_PROCESSING.MODIFIED_AT, OffsetDateTime.now())
             .where(EXPORT_POST_PROCESSING.EXPORT_JOB_ID.eq(jobId))

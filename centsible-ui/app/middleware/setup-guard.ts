@@ -6,7 +6,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   try {
     needsSetup = await useSetupService(useApi()).status();
   } catch {
-    return; // status unreachable — don't trap the user on this page
+    return;
   }
   if (needsSetup && to.path !== '/setup') return navigateTo('/setup');
   if (!needsSetup && to.path === '/setup') return navigateTo('/auth');

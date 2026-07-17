@@ -22,20 +22,15 @@ data class NotificationDTO(
     val type: NotificationType,
     val title: String,
     val body: String,
-    /** Structured payload whose keys depend on [type] (e.g. the related account or budget id). */
     val data: Map<String, String> = emptyMap(),
     val readAt: OffsetDateTime? = null,
     val createdAt: OffsetDateTime,
 )
 
-/**
- * Per-user notification thresholds. Null values mean the alert is disabled.
- */
 data class NotificationSettingsDTO(
     val largeTransactionThreshold: BigDecimal? = null,
     val lowBalanceThreshold: BigDecimal? = null,
     val loanDueDaysAhead: Int = 3,
     val recurringDueDaysAhead: Int = 2,
-    /** Master switch for the category-budget alerts (threshold / exceeded / pace). Defaults on. */
     val budgetAlertsEnabled: Boolean = true,
 )

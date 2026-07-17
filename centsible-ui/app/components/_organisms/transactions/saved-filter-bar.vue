@@ -6,7 +6,6 @@ import ModalFooterActions from "~/components/_molecules/modals/modal-footer-acti
 
 const props = defineProps<{
   filters: TransactionFilters;
-  /** Only offer to save when the current filters actually narrow the list. */
   canSave: boolean;
 }>();
 
@@ -46,7 +45,6 @@ function isActive(f: TransactionFilters): boolean {
 }
 
 function apply(filters: TransactionFilters) {
-  // Hand the parent its own copy so later edits don't mutate the stored view.
   emit('apply', {...filters});
 }
 

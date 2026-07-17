@@ -9,7 +9,6 @@ export const RULE_FIELDS: RuleField[] = ['DESCRIPTION', 'AMOUNT', 'DIRECTION', '
 export const RULE_ACTION_TYPES: RuleActionType[] = ['SET_CATEGORY', 'ADD_TAG'];
 export const DIRECTIONS = ['INCOME', 'EXPENSE'] as const;
 
-/** Operators valid for each field — mirrors the backend RuleService validation. */
 export const OPERATORS_BY_FIELD: Record<RuleField, RuleOperator[]> = {
   DESCRIPTION: ['CONTAINS', 'EQUALS', 'STARTS_WITH'],
   AMOUNT: ['GT', 'GTE', 'LT', 'LTE', 'EQUALS'],

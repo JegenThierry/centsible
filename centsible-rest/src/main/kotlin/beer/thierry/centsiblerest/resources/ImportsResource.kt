@@ -25,11 +25,6 @@ import java.util.UUID
 
 private const val MAX_IMPORT_BYTES = 5L * 1024 * 1024
 
-/**
- * REST surface for the file-import wizard. Format-agnostic endpoints (detect, preview, commit)
- * delegate to [IImportService]; CSV-specific endpoints (probe, profiles) live here because they
- * leak CSV details that the rest of the codebase doesn't need to see.
- */
 @RequestMapping("/api/imports")
 @RestController
 class ImportsResource(

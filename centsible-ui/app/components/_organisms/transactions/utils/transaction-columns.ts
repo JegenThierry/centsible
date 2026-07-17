@@ -104,7 +104,6 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
           ])
         }
         const category = row.original.category
-        // Transfers keep a static badge — their category is managed by the transfer, not free-editable.
         if (row.original.transferGroupId) {
           return h(CategoryBadge, {
             name: category?.name,
@@ -148,7 +147,6 @@ export function createTransactionColumns(options: TransactionColumnsOptions): Ta
       id: 'actions',
       meta: {class: {td: 'text-right'}},
       cell: ({row}) => {
-        // IOUs are carved from an expense; transfers and income can't be split.
         const canSplit = transactionType(row.original) === CategoryType.EXPENSE && !row.original.transferGroupId
         const items = [
           {

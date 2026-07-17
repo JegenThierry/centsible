@@ -37,7 +37,6 @@ internal fun baseMeta(request: ExportRequest): Map<String, Any?> {
 internal fun formatDate(date: LocalDate?, locale: Locale, pattern: String = "d MMM yyyy"): String =
     date?.format(DateTimeFormatter.ofPattern(pattern, locale)) ?: "—"
 
-/** Stable, sortable epoch-second suffix for generated PDF filenames. */
 internal fun filenameTimestamp(): Long = OffsetDateTime.now(ZoneOffset.UTC).toEpochSecond()
 
 internal fun slug(s: String): String =

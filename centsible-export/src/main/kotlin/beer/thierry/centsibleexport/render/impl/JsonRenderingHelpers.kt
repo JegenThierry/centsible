@@ -7,11 +7,6 @@ import beer.thierry.centsibleexport.render.RenderedExport
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 
-/**
- * Base class that wires a JSON renderer into the [ExportRenderer] SPI. Subclasses build a
- * structured envelope (typically `envelopeHeader(...) + ("data" to <something>)`); this class
- * serializes it via Jackson with pretty-printing and packages the bytes.
- */
 abstract class JsonExportRenderer(
     private val objectMapper: ObjectMapper,
 ) : ExportRenderer {

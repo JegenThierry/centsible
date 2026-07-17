@@ -89,12 +89,8 @@ class ReportService(
         val horizonEnd = today.plusMonths(months.toLong())
         val rates = ratesFor(authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
-        // Forecasting starts from the live net worth (current per-account balances), not the history.
         val startingTotal = totalOf(accounts.associate { it.id to it.balance }, rates)
 
-        // Every upcoming occurrence in [today, horizonEnd], converted to the default currency. Transfers
-        // are skipped (they net to zero across accounts); rules whose FX can't be resolved are excluded,
-        // mirroring how those accounts drop out of net worth.
         val occurrences = recurringRepository.fetchAll(authenticatedUser)
             .asSequence()
             .filter { it.active && !it.isTransfer }
@@ -121,8 +117,6 @@ class ReportService(
             .sortedBy { it.date }
             .toList()
 
-        // Step the running balance forward. Today stays anchored to the actual net worth; occurrences
-        // dated today fold into the running total but don't move the anchor point.
         val pointByDate = sortedMapOf(today to startingTotal)
         var running = startingTotal
         for (occ in occurrences) {
@@ -134,7 +128,6 @@ class ReportService(
                 pointByDate[occ.date] = running.setScale(2, RoundingMode.HALF_UP)
             }
         }
-        // Always extend the line to the horizon so the axis is stable even with no occurrences.
         pointByDate.putIfAbsent(horizonEnd, running.setScale(2, RoundingMode.HALF_UP))
 
         val points = pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
@@ -292,7 +285,6 @@ class ReportService(
     private fun totalOf(balances: Map<UUID, BigDecimal>, rates: ConversionRates): BigDecimal =
         balances.entries
             .sumOf { (accountId, balance) ->
-                // Unknown account (e.g. since deleted) keeps face value; unresolvable FX is excluded.
                 when (val rate = rates.byAccount.getOrDefault(accountId, BigDecimal.ONE)) {
                     null -> BigDecimal.ZERO
                     else -> balance.multiply(rate)
@@ -301,7 +293,6 @@ class ReportService(
             .setScale(2, RoundingMode.HALF_UP)
 
     private companion object {
-        // Loop backstop for cadence stepping; comfortably covers daily rules over the 24-month cap.
         const val MAX_FORECAST_OCCURRENCES = 800
     }
 }

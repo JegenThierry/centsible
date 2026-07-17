@@ -2,19 +2,9 @@ package beer.thierry.centsible.imports.core
 
 import org.springframework.stereotype.Component
 
-/**
- * Extensions and MIME types that say "text" and nothing more. Several banks deliver OFX or QIF
- * statements under them, so a parser claiming one of these has not actually identified the file
- * and must back its claim with a content sniff.
- */
 private val AMBIGUOUS_EXTENSIONS = setOf("txt")
 private val AMBIGUOUS_MIME_TYPES = setOf("text/plain")
 
-/**
- * Aggregates every [FileFormatParser] and [CsvBankProfile] discovered via Spring component
- * scanning. Adding a new format or bank profile = drop the implementation in any module that
- * centsible-rest depends on; no registration code changes here.
- */
 @Component
 class FileImportRegistry(
     parsers: List<FileFormatParser>,

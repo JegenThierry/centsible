@@ -6,15 +6,6 @@ import beer.thierry.centsible.imports.core.MatchScore
 import org.springframework.stereotype.Component
 import java.util.Locale
 
-/**
- * N26 Germany CSV export. Sample header (as of v1):
- *   "Booking Date","Value Date","Partner Name","Partner Iban","Type","Payment Reference",
- *   "Account Name","Amount (EUR)","Original Amount","Original Currency","Exchange Rate"
- *
- * Single signed amount column; debits are NEGATIVE in N26 exports, so [debitsArePositive] is
- * false. Bump [version] if N26 changes the header — saved user mappings record this number so
- * the wizard can warn about format drift.
- */
 @Component
 class N26DeProfile : CsvBankProfile {
     override val id = "n26-de"

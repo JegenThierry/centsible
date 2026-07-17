@@ -39,8 +39,6 @@ internal fun accountRatesFor(
     users: IUserRepository,
     currencyConversion: ICurrencyConversionService,
 ): ConversionRates {
-    // The JWT principal doesn't carry defaultCurrency (it would go stale anyway) — re-fetch,
-    // mirroring LoanService.totalOutstanding.
     val target = Currency.parseOrNull(
         users.findUserById(authenticatedUser.id)?.defaultCurrency ?: authenticatedUser.defaultCurrency
     ) ?: Currency.EUR

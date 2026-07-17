@@ -65,8 +65,6 @@ const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 const activeAccountBalance = computed(() => budgetAccountsStore.activeAccount?.balance ?? 0);
 
-// Shared with the edit modals via utils/form-schemas — create and edit must validate the same
-// entity the same way, or a constraint fix lands on one modal and not the other.
 const schemaStd = transactionSchema(t);
 const schemaTransfer = transferSchema(t);
 const schemaSetBalance = setBalanceSchema(t);

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/** CRUD for saved transaction filter views. Authorization is enforced in the service layer (ADR-0003). */
 @RequestMapping("/api/saved-filters")
 @RestController
 class SavedFiltersResource(

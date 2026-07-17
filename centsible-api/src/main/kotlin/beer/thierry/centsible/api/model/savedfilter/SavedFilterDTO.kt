@@ -5,11 +5,6 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 
-/**
- * A named, user-scoped snapshot of a transaction filter set (ADR-0003 owner-scoped). [filters] is
- * stored opaquely — whatever filter object the client saves is replayed back verbatim, so the server
- * never needs to know the client's filter schema (which differs from the backend query params).
- */
 data class SavedFilterDTO(
     var id: Long? = null,
     var name: String = "",

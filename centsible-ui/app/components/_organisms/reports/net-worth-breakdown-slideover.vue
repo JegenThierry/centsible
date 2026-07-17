@@ -18,8 +18,6 @@ const {t} = useI18n();
 const rows = ref<AccountBalanceAtDate[]>([]);
 const loading = ref(false);
 
-// Sum the converted balances so a mixed-currency portfolio totals correctly (accounts whose FX
-// rate is unavailable are excluded, matching the backend's net-worth line).
 const total = computed(() => rows.value.reduce((sum, r) => sum + Number(r.convertedBalance ?? 0), 0));
 const displayCurrency = computed(() => rows.value[0]?.targetCurrency ?? rows.value[0]?.currency);
 

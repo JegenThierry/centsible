@@ -54,7 +54,6 @@ interface IProviderConnectionsRepository {
     fun markSyncError(id: UUID, errorMessage: String)
 }
 
-/** Domain projection of a stored connection — no credentials, no sync internals. */
 data class ProviderConnectionRecord(
     val id: UUID,
     val providerKey: String,
@@ -67,7 +66,6 @@ data class ProviderConnectionRecord(
     val modifiedAt: OffsetDateTime,
 )
 
-/** Everything the sync orchestrator needs to run one connection. Encrypted credentials only. */
 data class ProviderSyncCandidate(
     val connectionId: UUID,
     val userId: UUID,

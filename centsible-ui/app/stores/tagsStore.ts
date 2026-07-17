@@ -3,7 +3,6 @@ import adze from 'adze';
 import {useTagService} from '~/services/tag/tag-service';
 import type {Tag, TagForm} from '~/models/tag/tag';
 
-/** User tags. Backs the tag-management UI and the transaction tag picker (ADR-0008). */
 export const useTagsStore = defineStore('tagsStore', () => {
   const service = useTagService(useApi());
 

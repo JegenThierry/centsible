@@ -14,8 +14,6 @@ import java.io.StringWriter
 class PdfRenderer(
     private val pebbleEngine: PebbleEngine,
     private val browserPool: BrowserPool,
-    // Bounds setContent/waitForLoadState so a template that references an unreachable resource
-    // (NETWORKIDLE would otherwise block forever) cannot pin the shared scheduler thread past the lease.
     @param:Value("\${export.render.timeout-ms:60000}") private val renderTimeoutMs: Double,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)

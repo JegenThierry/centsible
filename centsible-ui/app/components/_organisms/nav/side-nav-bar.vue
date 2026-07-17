@@ -27,8 +27,6 @@ const items = computed(() => {
     );
   }
 
-  // Budgets and loans are ledger-wide (no account FK), so they stay visible without an
-  // active account; only recurring is account-scoped and appears when one is selected.
   const planChildren: any[] = [
     {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
   ];

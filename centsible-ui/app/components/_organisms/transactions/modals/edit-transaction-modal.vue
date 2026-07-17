@@ -58,7 +58,6 @@ const {
   accountId: computed(() => budgetAccountsStore.activeAccount?.id),
 });
 
-// Same schema as the create modal's standard mode — see utils/form-schemas.
 const schema = transactionSchema(t);
 type Schema = z.output<typeof schema>;
 

@@ -2,7 +2,9 @@
   "reports": {
     "page": {
       "title": "Reports",
-      "description": "Visualise your spending, income, and net worth over time."
+      "description": "Visualise your spending, income, and net worth over time.",
+      "partialErrorTitle": "Some reports couldn't be loaded",
+      "partialErrorBody": "Part of this page failed to load. The reports shown below may be incomplete."
     },
     "ranges": {
       "3m": "Last 3 months",

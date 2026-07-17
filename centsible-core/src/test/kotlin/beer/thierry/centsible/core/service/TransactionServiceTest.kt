@@ -481,7 +481,6 @@ class TransactionServiceTest {
     fun `updateTransaction rejects a transfer leg edited as a normal transaction`() {
         val transactionId = UUID.randomUUID()
         val form = TransactionForm(BigDecimal("40.00"), 2L, "Salary", LocalDate.now())
-        // Stubbed leniently: without the transfer guard this edit would otherwise go through.
         lenient().`when`(categoriesRepository.fetchCategoryClassifications(user, listOf(2L)))
             .thenReturn(mapOf(2L to CategoryClassification(CategoryType.INCOME, false)))
         `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(

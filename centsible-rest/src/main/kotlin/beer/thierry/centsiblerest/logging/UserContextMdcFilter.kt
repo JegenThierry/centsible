@@ -13,12 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 const val MDC_USER_ID = "userId"
 
-/**
- * Reads the authenticated principal (populated by `JwtAuthenticationFilter`) and exposes
- * its id via MDC. Ordered LOWEST_PRECEDENCE so it runs after every security filter; absent
- * a principal (e.g. /api/auth/login, /api/system, /api/integrations/oauth/callback), no
- * `userId` key is set and the log pattern falls back to its default.
- */
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
 class UserContextMdcFilter : OncePerRequestFilter() {

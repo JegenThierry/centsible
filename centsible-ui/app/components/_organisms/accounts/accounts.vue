@@ -8,6 +8,8 @@ import AccountsBalanceBreakdown from "~/components/_molecules/accounts/accounts-
 import CreateBudgetAccountButton from "~/components/_organisms/buttons/create-budget-account-button.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
+import AppEmptyState from "~/components/_molecules/feedback/app-empty-state.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import ExportButton from "~/components/_molecules/exports/export-button.vue";
 import EditAccountModal from "~/components/_organisms/accounts/modals/edit-account-modal.vue";
 import DeleteAccountModal from "~/components/_organisms/accounts/modals/delete-account-modal.vue";
@@ -22,6 +24,7 @@ const editTarget = ref<BudgetAccount>();
 const isEditOpen = ref(false);
 const deleteTarget = ref<BudgetAccount>();
 const isDeleteOpen = ref(false);
+const loadFailed = ref(false);
 
 function onEdit(account: BudgetAccount): void {
   editTarget.value = account;
@@ -33,8 +36,8 @@ function onDelete(account: BudgetAccount): void {
   isDeleteOpen.value = true;
 }
 
-function load(): void {
-  accountStore.updateAvailableAccounts();
+async function load(): Promise<void> {
+  loadFailed.value = !(await accountStore.updateAvailableAccounts());
   refreshTrends();
 }
 
@@ -44,10 +47,9 @@ function onRefresh(): void {
 
 accountStore.clearActiveAccount();
 
-// `onboarding-guard` has already fetched the list; mutations patch the store in place, so it stays current.
-onMounted(() => {
+onMounted(async () => {
   if (accountStore.availableAccounts.length === 0) {
-    accountStore.updateAvailableAccounts();
+    loadFailed.value = !(await accountStore.updateAvailableAccounts());
   }
   refreshTrends();
 });
@@ -81,6 +83,20 @@ onMounted(() => {
       <div v-if="accountStore.pending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <CardSkeleton v-for="i in 3" :key="i"/>
       </div>
+
+      <AppEmptyState v-else-if="loadFailed"
+                     icon="i-lucide-triangle-alert"
+                     :title="t('common.states.error')">
+        <template #actions>
+          <AppButton class="w-full sm:w-auto justify-center"
+                     color="neutral"
+                     variant="soft"
+                     icon="i-lucide-refresh-cw"
+                     @click="onRefresh">
+            {{ t('common.actions.retry') }}
+          </AppButton>
+        </template>
+      </AppEmptyState>
 
       <div v-else class="flex justify-center py-10 sm:py-20">
         <NoAccountAction @refresh-accounts="onRefresh"/>

@@ -21,11 +21,6 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 
-/**
- * Where to redirect the user's browser after the OAuth callback finishes. In a split deployment
- * the UI is on a different host from the API; defaults to integrations.base-url for single-host
- * setups.
- */
 private const val UI_BASE_URL_EXPRESSION = "\${integrations.ui-base-url:\${integrations.base-url:}}"
 
 @RequestMapping("/api/integrations")

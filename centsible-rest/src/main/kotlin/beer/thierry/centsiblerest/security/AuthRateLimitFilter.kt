@@ -47,21 +47,13 @@ class AuthRateLimitFilter(private val objectMapper: ObjectMapper) : OncePerReque
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        // remoteAddr is what RemoteIpValve resolved from X-Forwarded-For against the trusted
-        // internal-proxies list (server.forward-headers-strategy=native), not the forgeable
-        // leftmost hop.
         val ipProbe = consume("ip:${request.remoteAddr ?: "unknown"}")
         if (!ipProbe.isConsumed) return reject(request, response, "ip", ipProbe)
 
-        // Only past the IP limit is the body worth reading: a caller already over its own limit must
-        // not be able to mint a subject bucket per attempt and churn the cache. Its 10/min ceiling is
-        // what bounds how many subject keys one address can create.
         val body = bufferedBody(request)
         val forwarded = body?.let { CachedBodyRequest(request, it) } ?: request
         val subject = subjectKey(request, body)
 
-        // Both identities must have capacity: the IP bucket alone lets a botnet spray one account
-        // from a thousand addresses, the subject bucket alone lets one host walk the user list.
         var remaining = ipProbe.remainingTokens
         if (subject != null) {
             val subjectProbe = consume(subject)
@@ -114,7 +106,6 @@ class AuthRateLimitFilter(private val objectMapper: ObjectMapper) : OncePerReque
         objectMapper.readTree(body).path("username").asText("")
             .trim().lowercase(Locale.ROOT).ifBlank { null }
     } catch (ex: IOException) {
-        // An unparseable body is the controller's 400 to raise; fall back to the IP bucket alone.
         log.debug("Could not read username from auth request body: {}", ex.message)
         null
     }

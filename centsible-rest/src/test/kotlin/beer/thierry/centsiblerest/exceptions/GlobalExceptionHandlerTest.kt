@@ -28,8 +28,6 @@ class GlobalExceptionHandlerTest {
 
     private val handler = GlobalExceptionHandler(StaticMessageSource(), DataSize.ofMegabytes(11))
 
-    // A real ServletWebRequest always describes itself; the mock has to be told to, or the
-    // `details ?: request.getDescription(false)` fallback hands Kotlin a null platform value.
     private val request = mock(WebRequest::class.java).also {
         `when`(it.getDescription(false)).thenReturn("uri=/api/test")
     }

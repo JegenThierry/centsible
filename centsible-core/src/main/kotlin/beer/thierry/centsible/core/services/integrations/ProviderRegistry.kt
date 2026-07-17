@@ -6,11 +6,6 @@ import beer.thierry.centsible.api.services.integrations.ProviderModule
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
-/**
- * Spring discovers every ProviderModule bean across all :centsible-integrations:* modules
- * on the classpath and injects them as a List here. That list IS the plugin registration — there
- * is no central manifest, no service-loader, no reflection magic.
- */
 @Service
 class ProviderRegistry(modules: List<ProviderModule>) : IProviderRegistry {
 

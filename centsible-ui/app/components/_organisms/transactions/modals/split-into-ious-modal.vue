@@ -11,7 +11,6 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 
 const props = defineProps<{
   transaction: Transaction;
-  // The table's display currency (transactions have no currency of their own).
   currency: Currency;
 }>();
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -32,7 +31,6 @@ function blankRow(): ShareRow {
   return {mode: 'existing', contact: undefined, newName: '', amount: null};
 }
 
-// v-if in the parent remounts this on every open, so a fresh single row is the natural default.
 const shares = ref<ShareRow[]>([blankRow()]);
 
 onMounted(() => {
@@ -72,7 +70,6 @@ function toggleMode(share: ShareRow) {
 }
 
 function splitEvenly() {
-  // Split the bill evenly across everyone at the table — the people listed plus you.
   const perPerson = Math.round((total.value / (shares.value.length + 1)) * 100) / 100;
   shares.value = shares.value.map((s) => ({...s, amount: perPerson}));
 }
@@ -93,7 +90,6 @@ async function submit() {
     emit('created');
     isOpen.value = false;
   } catch {
-    // Toast is surfaced by the store.
   }
 }
 </script>

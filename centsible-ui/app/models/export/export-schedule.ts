@@ -2,7 +2,6 @@ import type {ExportFormat, ExportType} from "~/models/export/export-job";
 
 export type ScheduleFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
-/** Frequencies offered in the UI. DAILY is accepted by the backend but omitted as too noisy for reports. */
 export const SCHEDULE_FREQUENCIES: ScheduleFrequency[] = ['WEEKLY', 'MONTHLY', 'YEARLY'];
 
 /** A recurring export. Each run emails the just-ended period (monthly → last month, weekly → last week). */

@@ -17,11 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-/**
- * CRUD for user-saved CSV import profiles. Mounted under /api/imports so it groups with the import
- * wizard, but kept as its own single-responsibility controller (ADR-0011). Authorization lives in
- * the service/repository layer (ADR-0003); this controller only forwards the authenticated principal.
- */
 @RequestMapping("/api/imports/templates")
 @RestController
 class ImportMappingTemplatesResource(

@@ -15,12 +15,6 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   const availableAccounts = ref<BudgetAccount[]>([]);
   const pending = ref(false);
 
-  /**
-   * Guards every write to `activeAccount`. Navigating to a slow account A then quickly to a fast
-   * account B used to leave A's late response sitting on B's page — the header showed A's balance
-   * and the transaction-list watcher paged A's rows into B's list. One gate, not one per action:
-   * they all race for the same ref.
-   */
   const activeAccountGate = createLatestRequestGate();
 
   /** Returns whether the list was actually refreshed, so callers can tell an empty list from a failed fetch. */
@@ -49,7 +43,6 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
     } catch (error) {
       adze.ns('budget-accounts').error('Failed to update active account', error);
     } finally {
-      // A superseded refresh leaves `pending` to whichever request outran it.
       if (isLatest()) pending.value = false;
     }
   }
@@ -72,7 +65,6 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
   }
 
   function clearActiveAccount() {
-    // Supersede first: an in-flight fetch would otherwise resurrect the account we just cleared.
     activeAccountGate.supersede();
     activeAccount.value = undefined;
   }
@@ -83,8 +75,6 @@ export const useBudgetAccountsStore = defineStore('budgetAccountsStore', () => {
       const updated = await accountService.updateAccount(id, form);
       availableAccounts.value = availableAccounts.value.map((account) => account.id === id ? updated : account);
       if (activeAccount.value?.id === id) {
-        // Freshest truth for this account — supersede any in-flight fetch so an older response
-        // can't land afterwards and roll the edit back.
         activeAccountGate.supersede();
         activeAccount.value = updated;
       }

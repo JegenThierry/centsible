@@ -122,7 +122,6 @@ onMounted(() => {
                    :legend="t('transactions.recurring.form.modeLegend')"
                    orientation="horizontal"/>
 
-    <!-- Standard (single-account) fields -->
     <template v-if="!form.isTransfer">
       <CategorySelect name="category"
                       v-model="form.category"
@@ -148,7 +147,6 @@ onMounted(() => {
       </UFormField>
     </template>
 
-    <!-- Transfer fields -->
     <template v-else>
       <AccountSelect name="sourceAccountId"
                      v-model="sourceAccount"

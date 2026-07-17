@@ -7,15 +7,6 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import kotlin.reflect.KClass
 
-/**
- * Composed password-strength constraint: non-blank, at most 72 characters (the bcrypt input limit),
- * and matching the shared complexity pattern (lower + upper + digit + special, length ≥ 8). Bundles
- * the three message keys that every password field used identically, so registration and password
- * reset can no longer drift apart.
- *
- * No `@ReportAsSingleViolation`: each failing component still reports its own message, exactly as the
- * three separate field annotations did before.
- */
 @MustBeDocumented
 @NotBlank(message = "{validation.password.required}")
 @Size(max = 72, message = "{validation.password.tooLong}")

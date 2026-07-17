@@ -20,7 +20,6 @@ const {t} = useI18n();
 
 const typeLabel = (type: ExportType): string => t(`exports.types.${type}`);
 
-/** The export worker has no MessageSource, so a LocalizedException reaches `errorMessage` as its raw bundle key. */
 const ERROR_KEY_MAP: Record<string, string> = {
   'error.export.tooManyTransactions': 'exports.errors.tooManyTransactions',
 };

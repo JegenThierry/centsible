@@ -4,7 +4,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 
-/** The two legs sharing a [transferGroupId] collapsed into one source-to-destination transfer view. */
 data class TransferDetailsDTO(
     var transferGroupId: UUID,
     var sourceAccountId: UUID,

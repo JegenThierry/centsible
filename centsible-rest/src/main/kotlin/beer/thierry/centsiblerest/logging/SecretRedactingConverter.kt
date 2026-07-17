@@ -3,18 +3,6 @@ package beer.thierry.centsiblerest.logging
 import ch.qos.logback.classic.pattern.MessageConverter
 import ch.qos.logback.classic.spi.ILoggingEvent
 
-/**
- * Replaces likely-secret substrings in formatted log messages with `***REDACTED***`.
- *
- * Patterns covered:
- *  - JSON-style key/value pairs: "access_token":"…", "refresh_token":"…", "client_secret":"…",
- *    "secret_key":"…", "secret_id":"…", "api_key":"…", "password":"…", "token":"…", "authorization":"Bearer …"
- *  - Querystring-style: access_token=…, refresh_token=…, client_secret=…
- *  - HTTP header values: Authorization: Bearer ABC… (case-insensitive)
- *
- * We do NOT touch the value of `state` (the OAuth state token) — it is HMAC-signed and not
- * sensitive on its own, and keeping it visible helps debug OAuth callback failures.
- */
 class SecretRedactingConverter : MessageConverter() {
     override fun convert(event: ILoggingEvent): String =
         redact(super.convert(event))

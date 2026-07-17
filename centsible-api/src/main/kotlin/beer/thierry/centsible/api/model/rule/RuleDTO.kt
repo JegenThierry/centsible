@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 import java.util.UUID
 
-/** One match condition of a rule (e.g. DESCRIPTION CONTAINS "netflix", AMOUNT GTE "100"). */
 data class RuleConditionDTO(
     val id: UUID? = null,
     val field: RuleField,
@@ -20,7 +19,6 @@ data class RuleConditionDTO(
     val value: String,
 )
 
-/** One action of a rule. Exactly one of [category]/[tag] is set, matching [type]. */
 data class RuleActionDTO(
     val id: UUID? = null,
     val type: RuleActionType,

@@ -48,7 +48,6 @@ const items = computed(() => {
 </script>
 
 <template>
-  <!-- Hidden when there is only a single crumb (e.g. the accounts list already names itself in the page header). -->
   <UBreadcrumb
     v-if="items.length > 1"
     :items="items"

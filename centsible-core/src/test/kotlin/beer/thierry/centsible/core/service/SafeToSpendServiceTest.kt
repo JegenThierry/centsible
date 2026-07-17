@@ -220,7 +220,6 @@ class SafeToSpendServiceTest {
 
         val result = service.fetchForCurrentMonth(user)
 
-        // 1000 EUR + 200 USD * 0.90 = 1180.00 EUR; 100 USD * 0.90 = 90.00 EUR
         assertEquals(money("1180.00"), result.actualIncome)
         assertEquals(money("90.00"), result.alreadySpent)
         assertEquals(money("1090.00"), result.safeToSpend)
@@ -239,7 +238,6 @@ class SafeToSpendServiceTest {
 
         val result = service.fetchForCurrentMonth(user)
 
-        // 100 USD * 0.90 = 90.00 EUR, never 100 raw.
         assertEquals(money("90.00"), result.upcomingExpenses)
         assertEquals(money("-90.00"), result.safeToSpend)
     }
@@ -262,7 +260,6 @@ class SafeToSpendServiceTest {
 
         val result = service.fetchForCurrentMonth(user)
 
-        // Only the EUR account's figures survive; nothing foreign leaks through unconverted.
         assertEquals(money("1000.00"), result.actualIncome)
         assertEquals(money("0.00"), result.alreadySpent)
         assertEquals(money("50.00"), result.upcomingExpenses)

@@ -69,15 +69,12 @@ interface IOAuthFlowProvider {
 
 data class OAuthAuthorizationStart(
     val authorizationUrl: String,
-    /** Non-secret state persisted to connection.config before the user is redirected. */
     val configPatch: Map<String, Any?> = emptyMap(),
 )
 
 data class OAuthCallbackResult(
     val envelope: OAuthCredentialEnvelope,
-    /** Extra non-secret state to merge into connection.config (e.g. accountIds). */
     val configPatch: Map<String, Any?> = emptyMap(),
-    /** Extra secret state to merge into encrypted credentials (rarely needed). */
     val extraCredentials: Map<String, String> = emptyMap(),
 )
 

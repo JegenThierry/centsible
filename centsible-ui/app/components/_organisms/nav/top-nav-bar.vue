@@ -24,8 +24,6 @@ function onToggleOpen() {
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) return;
-  // Best effort: this runs on every authenticated page, and a transient failure here must not
-  // become an unhandled rejection — a genuine 401 is handled by the axios interceptor.
   await userStore.fetchMyselfBestEffort();
   const stored = userStore.user?.locale;
   if (stored && stored !== locale.value) await setLocale(stored as 'en' | 'fr' | 'de');

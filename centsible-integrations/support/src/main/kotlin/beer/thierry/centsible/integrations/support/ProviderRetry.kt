@@ -10,19 +10,6 @@ import java.time.Duration
 
 private val log = LoggerFactory.getLogger(ProviderRetry::class.java)
 
-/**
- * Thin façade over a resilience4j [Retry] tailored for outbound provider HTTP calls.
- *
- * Wrapping the resilience4j type means downstream integration modules can call `.call { ... }`
- * without dragging resilience4j onto their compile classpath, and lets the policy be tuned in
- * exactly one place.
- *
- * Retries only on transient conditions (IOException, ResourceAccessException, HTTP 429, HTTP
- * 5xx); 4xx responses surface immediately because they signal misconfiguration or expired
- * credentials, neither of which benefits from a retry.
- *
- * Defaults: 3 attempts, exponential backoff 500 ms → 1 s → 2 s (capped at 5 s).
- */
 class ProviderRetry internal constructor(private val delegate: Retry) {
     fun <T> call(block: () -> T): T = delegate.executeCallable(block)
 }
