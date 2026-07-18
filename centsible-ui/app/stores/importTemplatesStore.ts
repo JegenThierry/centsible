@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import adze from 'adze';
 import {useImportService} from '~/services/imports/import-service';
+import {upsertSortedByName} from '~/utils/upsert';
 import type {ImportMappingTemplate, ImportMappingTemplateForm} from '~/models/imports/imports';
 
 export const useImportTemplatesStore = defineStore('importTemplatesStore', () => {
@@ -26,7 +27,7 @@ export const useImportTemplatesStore = defineStore('importTemplatesStore', () =>
     loading.value = true;
     try {
       const created = await service.createTemplate(form);
-      templates.value = [...templates.value, created].sort((a, b) => a.name.localeCompare(b.name));
+      upsertSortedByName(templates, created);
       return created;
     } finally {
       loading.value = false;

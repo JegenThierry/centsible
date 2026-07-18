@@ -19,11 +19,11 @@ class NotificationsResource(private val service: INotificationService) {
     fun list(
         @RequestParam(defaultValue = "50") limit: Int,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<NotificationDTO>> = ResponseEntity.ok(service.list(user, limit))
+    ): List<NotificationDTO> = service.list(user, limit)
 
     @GetMapping("/unread-count")
-    fun unreadCount(@AuthenticationPrincipal user: UserDTO): ResponseEntity<Map<String, Int>> =
-        ResponseEntity.ok(mapOf("count" to service.countUnread(user)))
+    fun unreadCount(@AuthenticationPrincipal user: UserDTO): Map<String, Int> =
+        mapOf("count" to service.countUnread(user))
 
     @PostMapping("/{id}/read")
     fun markRead(@PathVariable id: UUID, @AuthenticationPrincipal user: UserDTO): ResponseEntity<Void> {
@@ -33,10 +33,10 @@ class NotificationsResource(private val service: INotificationService) {
     }
 
     @PostMapping("/read-all")
-    fun markAllRead(@AuthenticationPrincipal user: UserDTO): ResponseEntity<Map<String, Int>> {
+    fun markAllRead(@AuthenticationPrincipal user: UserDTO): Map<String, Int> {
         val affected = service.markAllRead(user)
         log.info("Marked all notifications read userId={} affected={}", user.id, affected)
-        return ResponseEntity.ok(mapOf("affected" to affected))
+        return mapOf("affected" to affected)
     }
 
     @DeleteMapping("/{id}")

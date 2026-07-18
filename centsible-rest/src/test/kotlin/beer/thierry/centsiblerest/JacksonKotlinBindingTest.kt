@@ -1,7 +1,6 @@
 package beer.thierry.centsiblerest
 
 import beer.thierry.centsible.api.model.auth.PasswordChangeRequest
-import beer.thierry.centsible.api.model.auth.TotpChallengeRequest
 import beer.thierry.centsible.api.model.auth.TotpCodeRequest
 import beer.thierry.centsible.api.model.user.AccountDeletionRequest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,7 +14,7 @@ class JacksonKotlinBindingTest {
     @Test
     fun `val constructor properties bind from the request body`() {
         assertEquals("123456", mapper.readValue("""{"code":"123456"}""", TotpCodeRequest::class.java).code)
-        assertEquals("654321", mapper.readValue("""{"code":"654321"}""", TotpChallengeRequest::class.java).code)
+        assertEquals("654321", mapper.readValue("""{"code":"654321"}""", TotpCodeRequest::class.java).code)
     }
 
     @Test

@@ -1,6 +1,6 @@
 package beer.thierry.centsiblerest.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -13,7 +13,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 
 class AuthRateLimitFilterTest {
 
-    private val filter = AuthRateLimitFilter(ObjectMapper())
+    private val filter = AuthRateLimitFilter(JsonMapper.builder().build())
 
     private fun loginRequest(ip: String, username: String): MockHttpServletRequest =
         MockHttpServletRequest("POST", "/api/auth/login").apply {

@@ -31,7 +31,7 @@ dependencies {
     implementation(libs.spring.data.commons)
 
     implementation(libs.kotlin.reflect)
-    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson3.databind)
     implementation(libs.jackson3.module.kotlin)
     runtimeOnly(libs.postgresql)
 

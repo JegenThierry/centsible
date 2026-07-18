@@ -2,8 +2,8 @@ package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.model.export.ExportPostProcessingDTO
 import beer.thierry.jooq.generated.tables.references.EXPORT_POST_PROCESSING
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.jooq.Record
 import org.springframework.stereotype.Component
 

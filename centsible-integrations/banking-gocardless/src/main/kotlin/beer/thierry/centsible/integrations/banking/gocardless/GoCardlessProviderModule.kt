@@ -23,7 +23,9 @@ import beer.thierry.centsible.api.services.integrations.OAuthCallbackResult
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.banking.gocardless.GoCardlessHttpClient.Companion.PROVIDER
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.nonBlankString
 import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
+import beer.thierry.centsible.integrations.support.requiredString
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.security.MessageDigest
@@ -83,10 +85,8 @@ class GoCardlessProviderModule(
     )
 
     override fun testConnection(ctx: ProviderContext) {
-        val country = ctx.config["country"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("country is required")
-        val institutionId = ctx.config["institutionId"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("institutionId is required")
+        val country = ctx.config.requiredString("country", "country")
+        val institutionId = ctx.config.requiredString("institutionId", "institutionId")
         if (country !in EEA_COUNTRY_CODES) {
             throw IllegalArgumentException("Unsupported country code: $country")
         }
@@ -97,7 +97,7 @@ class GoCardlessProviderModule(
 
     override fun fetchOptions(ctx: ProviderContext, request: RemoteOptionsRequest): List<SelectOption> {
         if (request.fieldName != "institutionId") return emptyList()
-        val country = request.values["country"]?.toString()?.takeIf { it.isNotBlank() } ?: return emptyList()
+        val country = request.values.nonBlankString("country") ?: return emptyList()
         val query = request.query?.trim()?.lowercase()
         val institutions = try {
             client.listInstitutions(country)
@@ -126,8 +126,7 @@ class GoCardlessProviderModule(
      * orchestrator writes before the user is redirected.
      */
     override fun buildAuthorizationUrl(request: OAuthStartRequest): OAuthAuthorizationStart {
-        val institutionId = request.config["institutionId"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("institutionId is required")
+        val institutionId = request.config.requiredString("institutionId", "institutionId")
         val historicalDays = parseHistoricalDays(request.config["historicalDays"])
         log.info(
             "OAuth begin provider={} userId={} connectionId={} institutionId={}",
@@ -150,7 +149,7 @@ class GoCardlessProviderModule(
     }
 
     override fun completeAuthorization(request: OAuthCallbackRequest): OAuthCallbackResult {
-        val requisitionId = request.config["pendingRequisitionId"]?.toString()?.takeIf { it.isNotBlank() }
+        val requisitionId = request.config.nonBlankString("pendingRequisitionId")
             ?: run {
                 log.warn(
                     "OAuth callback for connection with no pending requisition provider={} userId={} connectionId={}",

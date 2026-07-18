@@ -1,5 +1,5 @@
-import {endOfMonth, endOfYear, format, startOfMonth, startOfYear, subMonths} from 'date-fns';
-import {ISO_DATE} from "~/utils/date";
+import {endOfMonth, endOfYear, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {toIsoDate as iso} from "~/utils/date";
 
 export type DateRangePreset = 'CURRENT_MONTH' | 'PAST_3_MONTHS' | 'YEAR' | 'ALL_TIME' | 'CUSTOM';
 
@@ -20,10 +20,6 @@ export interface DateWindow extends IsoDateRange {
   from: Date | null;
   to: Date | null;
   months: number;
-}
-
-function iso(date: Date): string {
-  return format(date, ISO_DATE);
 }
 
 /** Resolves a preset to a concrete window; ALL_TIME yields null [from]/[to] so range tests match everything. */

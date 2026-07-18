@@ -24,23 +24,23 @@ class ImportMappingTemplatesResource(
 ) {
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<ImportMappingTemplateDTO>> =
-        ResponseEntity.ok(service.fetchAll(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<ImportMappingTemplateDTO> =
+        service.fetchAll(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: ImportMappingTemplateForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ImportMappingTemplateDTO> =
-        ResponseEntity.ok(service.create(user, form))
+    ): ImportMappingTemplateDTO =
+        service.create(user, form)
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: UUID,
         @Valid @RequestBody form: ImportMappingTemplateForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ImportMappingTemplateDTO> =
-        ResponseEntity.ok(service.update(user, id, form))
+    ): ImportMappingTemplateDTO =
+        service.update(user, id, form)
 
     @DeleteMapping("/{id}")
     fun delete(

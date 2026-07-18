@@ -23,7 +23,6 @@ import jakarta.validation.constraints.Min
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -53,7 +52,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(required = false) amountMax: BigDecimal?,
         @RequestParam(required = false) sort: TransactionSort?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<TransactionDTO>> {
+    ): List<TransactionDTO> {
         val filters = TransactionFilters(
             search = search,
             categoryIds = categoryIds,
@@ -66,9 +65,7 @@ class TransactionResource(private val transactionService: ITransactionService) {
             sort = sort ?: TransactionSort.DATE_DESC,
         )
         val page = pageable.pageNumber + 1
-        return ResponseEntity.ok(
-            transactionService.fetchTransactions(accountId, authenticatedUser, page, pageable.pageSize, filters)
-        )
+        return transactionService.fetchTransactions(accountId, authenticatedUser, page, pageable.pageSize, filters)
     }
 
     @PostMapping("/{accountId}")
@@ -76,10 +73,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> {
+    ): TransactionDTO {
         val created = transactionService.createTransaction(accountId, transactionRequest, authenticatedUser)
         log.info("Created transaction id={} accountId={} userId={}", created.id, accountId, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{accountId}/{transactionId}")
@@ -88,10 +85,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable transactionId: UUID,
         @Valid @RequestBody transactionRequest: TransactionForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> {
+    ): TransactionDTO {
         val updated = transactionService.updateTransaction(transactionId, accountId, transactionRequest, authenticatedUser)
         log.info("Updated transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
-        return ResponseEntity.ok(updated)
+        return updated
     }
 
     @PostMapping("/{accountId}/transfer")
@@ -99,10 +96,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody form: TransferForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<TransactionDTO>> {
+    ): List<TransactionDTO> {
         val legs = transactionService.createTransfer(accountId, form, authenticatedUser)
         log.info("Created transfer sourceAccountId={} userId={} legs={}", accountId, authenticatedUser.id, legs.size)
-        return ResponseEntity.ok(legs)
+        return legs
     }
 
     @PutMapping("/{accountId}/transfer/{transactionId}")
@@ -111,18 +108,18 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable transactionId: UUID,
         @Valid @RequestBody form: TransferForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<TransactionDTO>> {
+    ): List<TransactionDTO> {
         val legs = transactionService.updateTransfer(transactionId, accountId, form, authenticatedUser)
         log.info("Updated transfer txId={} sourceAccountId={} userId={}", transactionId, accountId, authenticatedUser.id)
-        return ResponseEntity.ok(legs)
+        return legs
     }
 
     @GetMapping("/transfer/{transactionId}")
     fun fetchTransfer(
         @PathVariable transactionId: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransferDetailsDTO> =
-        ResponseEntity.ok(transactionService.fetchTransfer(transactionId, authenticatedUser))
+    ): TransferDetailsDTO =
+        transactionService.fetchTransfer(transactionId, authenticatedUser)
 
     @GetMapping("/{accountId}/aggregates/by-category")
     fun aggregateByCategory(
@@ -131,14 +128,14 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam(required = false) fromDate: LocalDate?,
         @RequestParam(required = false) toDate: LocalDate?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<CategoryAggregateDTO>> {
+    ): List<CategoryAggregateDTO> {
         val (from, to) = when {
             fromDate != null && toDate != null -> fromDate to toDate
             month != null -> month.atDay(1) to month.atEndOfMonth()
             else -> YearMonth.now().let { it.atDay(1) to it.atEndOfMonth() }
         }
         require(!to.isBefore(from)) { "toDate must not be before fromDate" }
-        return ResponseEntity.ok(transactionService.aggregateByCategory(accountId, authenticatedUser, from, to))
+        return transactionService.aggregateByCategory(accountId, authenticatedUser, from, to)
     }
 
     @GetMapping("/{accountId}/aggregates/by-month")
@@ -146,26 +143,26 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @RequestParam(defaultValue = "6") @Min(1) @Max(36) months: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<MonthlyAggregateDTO>> =
-        ResponseEntity.ok(transactionService.aggregateByMonth(accountId, authenticatedUser, months))
+    ): List<MonthlyAggregateDTO> =
+        transactionService.aggregateByMonth(accountId, authenticatedUser, months)
 
     @GetMapping("/{accountId}/aggregates/by-day")
     fun aggregateByDay(
         @PathVariable accountId: UUID,
         @RequestParam(defaultValue = "371") @Min(1) @Max(731) days: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<DailyAggregateDTO>> =
-        ResponseEntity.ok(transactionService.aggregateByDay(accountId, authenticatedUser, days))
+    ): List<DailyAggregateDTO> =
+        transactionService.aggregateByDay(accountId, authenticatedUser, days)
 
     @PostMapping("/{accountId}/import")
     fun importTransactions(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: ImportTransactionsRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ImportResult> {
+    ): ImportResult {
         val result = transactionService.importBatch(accountId, request, authenticatedUser)
         log.info("Imported transactions accountId={} userId={} count={}", accountId, authenticatedUser.id, request.rows.size)
-        return ResponseEntity.ok(result)
+        return result
     }
 
     @DeleteMapping("/{accountId}/{transactionId}")
@@ -173,10 +170,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @PathVariable transactionId: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> {
+    ): TransactionDTO {
         val deleted = transactionService.deleteTransaction(transactionId, accountId, authenticatedUser)
         log.info("Deleted transaction id={} accountId={} userId={}", transactionId, accountId, authenticatedUser.id)
-        return ResponseEntity.ok(deleted)
+        return deleted
     }
 
     @PostMapping("/{accountId}/bulk-delete")
@@ -184,10 +181,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: BulkIdsRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BulkResult> {
+    ): BulkResult {
         val affected = transactionService.bulkDelete(accountId, request.ids, authenticatedUser)
         log.info("Bulk-deleted transactions accountId={} userId={} affected={}", accountId, authenticatedUser.id, affected)
-        return ResponseEntity.ok(BulkResult(affected))
+        return BulkResult(affected)
     }
 
     @PostMapping("/{accountId}/bulk-categorize")
@@ -195,13 +192,13 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: BulkCategorizeRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BulkResult> {
+    ): BulkResult {
         val affected = transactionService.bulkUpdateCategory(accountId, request.ids, request.categoryId, authenticatedUser)
         log.info(
             "Bulk-categorized transactions accountId={} userId={} categoryId={} affected={}",
             accountId, authenticatedUser.id, request.categoryId, affected,
         )
-        return ResponseEntity.ok(BulkResult(affected))
+        return BulkResult(affected)
     }
 
     @PostMapping("/{accountId}/set-balance")
@@ -209,10 +206,10 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: SetBalanceForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<TransactionDTO> {
+    ): TransactionDTO {
         val adjustment = transactionService.createBalanceAdjustment(accountId, request, authenticatedUser)
         log.info("Set balance accountId={} userId={} adjustmentTxId={}", accountId, authenticatedUser.id, adjustment.id)
-        return ResponseEntity.ok(adjustment)
+        return adjustment
     }
 
     @GetMapping("/{accountId}/conversion-preview")
@@ -222,10 +219,8 @@ class TransactionResource(private val transactionService: ITransactionService) {
         @RequestParam currency: Currency,
         @RequestParam(required = false) date: LocalDate?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ConversionResult> =
-        ResponseEntity.ok(
-            transactionService.previewConversion(accountId, amount, currency, date ?: LocalDate.now(), authenticatedUser)
-        )
+    ): ConversionResult =
+        transactionService.previewConversion(accountId, amount, currency, date ?: LocalDate.now(), authenticatedUser)
 }
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())

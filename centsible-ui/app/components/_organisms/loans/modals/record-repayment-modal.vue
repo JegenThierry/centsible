@@ -5,9 +5,8 @@ import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import type {Loan, RepaymentForm as RepaymentFormModel} from "~/models/loan/loan";
 import RepaymentForm from "~/components/_molecules/loans/repayment-form.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 
 const props = defineProps<{
@@ -25,7 +24,6 @@ const {t} = useI18n();
 
 const form = ref<RepaymentFormModel>(makeBlankForm());
 const loading = ref(false);
-const formId = useId();
 
 const accountLabel = t('contacts.loans.repayment.form.toAccountLabel');
 const amountLabel = t('contacts.loans.repayment.form.amountLabel');
@@ -66,12 +64,10 @@ function makeBlankForm(): RepaymentFormModel {
   };
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => form.value = makeBlankForm(),
-});
+const getSnapshot = () => form.value;
+const onResetOnOpen = () => {
+  form.value = makeBlankForm();
+};
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
   if (!props.loan?.id || !props.loan.contact.id) return;
@@ -90,21 +86,18 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="description"
-          :title="t('contacts.loans.repayment.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm v-if="loan" :id="formId" :schema="schema" :state="form" @submit="handleSave">
-        <RepaymentForm v-model="form" :max-amount="Number(loan.outstanding)" :currency="loan.currency"/>
-      </UForm>
+  <FormModal v-model="isOpen"
+             :description="description"
+             :title="t('contacts.loans.repayment.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="getSnapshot"
+             :on-reset-on-open="onResetOnOpen"
+             :submit-label="t('contacts.loans.repayment.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <RepaymentForm v-if="loan" v-model="form" :max-amount="Number(loan.outstanding)" :currency="loan.currency"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t('contacts.loans.repayment.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

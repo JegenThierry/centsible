@@ -17,6 +17,7 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import beer.thierry.jooq.generated.tables.references.USERS
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -119,7 +120,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
         if (asOfDate == null) return fetchAccountsByIds(userId, emptyList())
 
         val signedAmount = DSL.case_()
-            .`when`(TRANSACTIONS.TYPE.eq("INCOME"), TRANSACTIONS.AMOUNT)
+            .`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
             .otherwise(TRANSACTIONS.AMOUNT.neg())
 
         val asOfBalance = ACCOUNTS.INITIAL_BALANCE.plus(
@@ -179,11 +180,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
         val repaidTotal = DSL.coalesce(repaidByLoan.field("repaid_total", BigDecimal::class.java), BigDecimal.ZERO)
         val outstanding = LOANS.OWED_AMOUNT.minus(repaidTotal)
 
-        val contactName = CONTACTS.FIRST_NAME.concat(
-            DSL.case_()
-                .`when`(CONTACTS.LAST_NAME.isNull, DSL.value(""))
-                .otherwise(DSL.value(" ").concat(CONTACTS.LAST_NAME))
-        )
+        val contactName = contactNameExpr()
 
         val conditions = mutableListOf<Condition>(LOANS.USER_ID.eq(userId))
         if (contactId != null) conditions += LOANS.CONTACT_ID.eq(contactId)
@@ -237,11 +234,7 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
     private fun contactSummaryQuery(userId: UUID) =
         dsl.select(
             CONTACT_BALANCES.CONTACT_ID,
-            CONTACTS.FIRST_NAME.concat(
-                DSL.case_()
-                    .`when`(CONTACTS.LAST_NAME.isNull, DSL.value(""))
-                    .otherwise(DSL.value(" ").concat(CONTACTS.LAST_NAME))
-            ).`as`("contact_name"),
+            contactNameExpr().`as`("contact_name"),
             CONTACT_BALANCES.TOTAL_LENT,
             CONTACT_BALANCES.TOTAL_OWED,
             CONTACT_BALANCES.TOTAL_REPAID,
@@ -251,6 +244,13 @@ class ExportDataRepository(private val dsl: DSLContext) : IExportDataRepository 
             .from(CONTACT_BALANCES)
             .join(CONTACTS).on(CONTACTS.ID.eq(CONTACT_BALANCES.CONTACT_ID))
             .where(CONTACT_BALANCES.USER_ID.eq(userId))
+
+    /** `first_name [ + " " + last_name]` — the contact's display name, last name appended only when present. */
+    private fun contactNameExpr(): Field<String> = CONTACTS.FIRST_NAME.concat(
+        DSL.case_()
+            .`when`(CONTACTS.LAST_NAME.isNull, DSL.value(""))
+            .otherwise(DSL.value(" ").concat(CONTACTS.LAST_NAME))
+    )
 
     private fun mapContactSummary(r: org.jooq.Record): ExportContactSummaryRow =
         ExportContactSummaryRow(

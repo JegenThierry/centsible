@@ -21,8 +21,8 @@ class AdminResource(private val adminService: IAdminService) {
     private val log = LoggerFactory.getLogger(AdminResource::class.java)
 
     @GetMapping("/users")
-    fun listUsers(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<AdminUserDTO>> =
-        ResponseEntity.ok(adminService.listUsers(authenticatedUser))
+    fun listUsers(@AuthenticationPrincipal authenticatedUser: UserDTO): List<AdminUserDTO> =
+        adminService.listUsers(authenticatedUser)
 
     @DeleteMapping("/users/{id}")
     fun deleteUser(
@@ -31,7 +31,7 @@ class AdminResource(private val adminService: IAdminService) {
     ): ResponseEntity<Void> {
         adminService.deleteUser(authenticatedUser, id)
         log.info("Admin deleted user id={} adminId={}", id, authenticatedUser.id)
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/users/{id}/resend-verification")

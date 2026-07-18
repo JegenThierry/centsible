@@ -155,7 +155,7 @@ export function recurringSchema(t: TranslateFn) {
   return z.object({
     amount: boundedNumber(t, amountLabel, AMOUNT_INPUT.min, AMOUNT_INPUT.max),
     description: requiredString(t, descriptionLabel, 255),
-    frequency: z.nativeEnum(Frequency, {message: t('common.validation.required', {field: t('transactions.recurring.form.frequency')})}),
+    frequency: z.enum(Frequency, {message: t('common.validation.required', {field: t('transactions.recurring.form.frequency')})}),
     startDate: requiredDate(t, t('transactions.recurring.form.startDate')),
     isTransfer: z.boolean(),
     category: z.any().optional(),
@@ -164,13 +164,13 @@ export function recurringSchema(t: TranslateFn) {
   }).superRefine((d, ctx) => {
     if (d.isTransfer) {
       if (!d.sourceAccountId) {
-        ctx.addIssue({code: z.ZodIssueCode.custom, path: ['sourceAccountId'], message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})});
+        ctx.addIssue({code: 'custom', path: ['sourceAccountId'], message: t('common.validation.required', {field: t('transactions.transfer.fromAccount')})});
       }
       if (!d.destinationAccountId) {
-        ctx.addIssue({code: z.ZodIssueCode.custom, path: ['destinationAccountId'], message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})});
+        ctx.addIssue({code: 'custom', path: ['destinationAccountId'], message: t('common.validation.required', {field: t('transactions.transfer.toAccount')})});
       }
     } else if (!d.category) {
-      ctx.addIssue({code: z.ZodIssueCode.custom, path: ['category'], message: t('common.validation.required', {field: t('transactions.recurring.form.category')})});
+      ctx.addIssue({code: 'custom', path: ['category'], message: t('common.validation.required', {field: t('transactions.recurring.form.category')})});
     }
   });
 }

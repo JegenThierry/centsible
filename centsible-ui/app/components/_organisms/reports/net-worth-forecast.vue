@@ -47,7 +47,7 @@ onMounted(() => {
           <p class="text-xs text-muted">{{ t('reports.forecast.subtitle') }}</p>
         </div>
         <UButtonGroup size="xs">
-          <UButton v-for="h in HORIZONS"
+          <AppButton v-for="h in HORIZONS"
                    :key="h"
                    :color="h === reportsStore.forecastMonths ? 'primary' : 'neutral'"
                    :variant="h === reportsStore.forecastMonths ? 'solid' : 'outline'"

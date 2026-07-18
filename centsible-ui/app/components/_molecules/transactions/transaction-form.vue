@@ -8,6 +8,7 @@ import RuleSuggestionHint from "~/components/_atoms/labels/rule-suggestion-hint.
 import CurrencySelect from "~/components/_atoms/inputs/currency-select.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
 import AppRadioGroup from "~/components/_atoms/ui/app-radio-group.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useCategoriesStore} from "~/stores/categoriesStore";
 import {useTagsStore} from "~/stores/tagsStore";
@@ -222,7 +223,7 @@ onMounted(() => {
                        :trailing-text="form.currency"
                        type="number"/>
           </div>
-          <UButton color="neutral"
+          <AppButton color="neutral"
                    variant="ghost"
                    icon="i-lucide-x"
                    :aria-label="t('transactions.form.split.remove')"
@@ -232,14 +233,14 @@ onMounted(() => {
         </div>
 
         <div class="flex items-center justify-between">
-          <UButton color="neutral"
+          <AppButton color="neutral"
                    variant="subtle"
                    size="xs"
                    icon="i-lucide-plus"
                    :disabled="disabled"
                    @click="addSplitRow">
             {{ t('transactions.form.split.add') }}
-          </UButton>
+          </AppButton>
           <span class="text-xs"
                 :class="splitsBalanced ? 'text-success' : 'text-error'">
             <template v-if="splitsBalanced">{{ t('transactions.form.split.balanced') }}</template>

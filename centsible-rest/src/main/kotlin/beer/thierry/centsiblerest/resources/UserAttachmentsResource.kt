@@ -3,7 +3,6 @@ package beer.thierry.centsiblerest.resources
 import beer.thierry.centsible.api.model.transaction.AttachmentEnrichedDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.IAttachmentService
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,6 +18,6 @@ class UserAttachmentsResource(private val service: IAttachmentService) {
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "25") size: Int,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<AttachmentEnrichedDTO>> =
-        ResponseEntity.ok(service.listForUser(user, page, size))
+    ): List<AttachmentEnrichedDTO> =
+        service.listForUser(user, page, size)
 }

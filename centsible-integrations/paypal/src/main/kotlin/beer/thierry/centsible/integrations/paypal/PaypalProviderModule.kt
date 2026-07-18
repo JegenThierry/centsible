@@ -15,7 +15,9 @@ import beer.thierry.centsible.api.services.integrations.ITransactionImporter
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.support.IntegrationApiException
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.nonBlankString
 import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
+import beer.thierry.centsible.integrations.support.requiredString
 import org.slf4j.LoggerFactory
 import org.springframework.web.client.ResourceAccessException
 import java.math.BigDecimal
@@ -76,7 +78,7 @@ class PaypalProviderModule(
                 type = FieldType.STRING,
                 required = false,
                 placeholder = "2024-01-01",
-                helpText = "ISO date for the first import. Defaults to 90 days ago (PayPal's hard maximum window per call).",
+                helpText = "ISO date for the first import. Defaults to 90 days ago; each sync imports up to 31 days (PayPal's per-call limit) and continues on the next poll.",
             ),
         ),
     )
@@ -95,9 +97,7 @@ class PaypalProviderModule(
         val token = client.obtainAccessToken(environment, clientId, clientSecret)
         val displayName = try {
             val userInfo = client.fetchUserInfo(environment, token.accessToken)
-            userInfo.email?.takeIf { it.isNotBlank() }
-                ?: userInfo.name?.takeIf { it.isNotBlank() }
-                ?: DEFAULT_DISPLAY_NAME
+            firstNonBlank(userInfo.email, userInfo.name) ?: DEFAULT_DISPLAY_NAME
         } catch (e: IntegrationApiException) {
             log.warn(
                 "PayPal userinfo enrichment failed (HTTP {}); falling back to default display name. " +
@@ -135,7 +135,7 @@ class PaypalProviderModule(
 
         val now = Instant.now()
         val endDate = now.minusSeconds(SAFETY_MARGIN_SECONDS)
-        val configuredStart = (ctx.config["startDate"] as? String)?.takeIf { it.isNotBlank() }
+        val configuredStart = ctx.config.nonBlankString("startDate")
         val startDate = resolveStartDate(cursor, configuredStart, now)
 
         if (!startDate.isBefore(endDate)) {
@@ -201,8 +201,10 @@ class PaypalProviderModule(
             info.invoiceId,
         ) ?: "PayPal ${info.transactionEventCode ?: "transaction"}"
 
-        val counterparty = detail.payerInfo?.payerName?.alternateFullName?.takeIf { it.isNotBlank() }
-            ?: detail.payerInfo?.emailAddress?.takeIf { it.isNotBlank() }
+        val counterparty = firstNonBlank(
+            detail.payerInfo?.payerName?.alternateFullName,
+            detail.payerInfo?.emailAddress,
+        )
 
         return ImportedTransactionDTO(
             externalId = info.transactionId,
@@ -241,12 +243,10 @@ class PaypalProviderModule(
      * defeating the cipher. Non-secret fields (`clientId`, `environment`) live in `ctx.config`.
      */
     private fun readCredentials(ctx: ProviderContext): Triple<String, String, String> {
-        val clientId = (ctx.config["clientId"] as? String)?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("PayPal clientId is required")
-        val clientSecret = ctx.credentials["clientSecret"]?.takeIf { it.isNotBlank() }
+        val clientId = ctx.config.requiredString("clientId", "PayPal clientId")
+        val clientSecret = ctx.credentials.nonBlankString("clientSecret")
             ?: throw IllegalArgumentException("PayPal clientSecret is missing from encrypted credentials")
-        val environment = (ctx.config["environment"] as? String)?.takeIf { it.isNotBlank() }
-            ?: "live"
+        val environment = ctx.config.nonBlankString("environment") ?: "live"
         return Triple(clientId, clientSecret, environment)
     }
 

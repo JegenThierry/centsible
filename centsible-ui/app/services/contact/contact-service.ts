@@ -1,27 +1,9 @@
 import type {AxiosInstance} from "axios";
-import {assertStatus, postMultipart, validateRequest} from "~/composables/use-api";
+import {crudResource, postMultipart, validateRequest} from "~/composables/use-api";
 import type {Contact, ContactForm} from "~/models/contact/contact";
 
 export function useContactService(api: AxiosInstance) {
-  async function fetchContacts(): Promise<Contact[]> {
-    const response = await api.get<Contact[]>('/contacts');
-    return validateRequest<Contact[]>(response);
-  }
-
-  async function fetchContact(id: string): Promise<Contact> {
-    const response = await api.get<Contact>(`/contacts/${encodeURIComponent(id)}`);
-    return validateRequest<Contact>(response);
-  }
-
-  async function createContact(form: ContactForm): Promise<Contact> {
-    const response = await api.post<Contact>('/contacts', form);
-    return validateRequest<Contact>(response);
-  }
-
-  async function updateContact(id: string, form: ContactForm): Promise<Contact> {
-    const response = await api.put<Contact>(`/contacts/${encodeURIComponent(id)}`, form);
-    return validateRequest<Contact>(response);
-  }
+  const resource = crudResource<Contact, string, ContactForm>(api, '/contacts');
 
   async function updateContactPicture(id: string, file: File): Promise<Contact> {
     return postMultipart<Contact>(api, `/contacts/${encodeURIComponent(id)}/picture`, {file});
@@ -32,17 +14,13 @@ export function useContactService(api: AxiosInstance) {
     return validateRequest<Contact>(response);
   }
 
-  async function deleteContact(id: string): Promise<void> {
-    assertStatus(await api.delete(`/contacts/${encodeURIComponent(id)}`));
-  }
-
   return {
-    fetchContacts,
-    fetchContact,
-    createContact,
-    updateContact,
+    fetchContacts: (): Promise<Contact[]> => resource.list(),
+    fetchContact: (id: string): Promise<Contact> => resource.get(id),
+    createContact: (form: ContactForm): Promise<Contact> => resource.create(form),
+    updateContact: (id: string, form: ContactForm): Promise<Contact> => resource.update(id, form),
     updateContactPicture,
     removeContactPicture,
-    deleteContact,
+    deleteContact: (id: string): Promise<void> => resource.remove(id),
   }
 }

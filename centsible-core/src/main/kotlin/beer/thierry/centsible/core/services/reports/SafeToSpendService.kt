@@ -10,6 +10,7 @@ import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.ISafeToSpendService
+import beer.thierry.centsible.core.services.recurring.occurrenceDatesInWindow
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -77,20 +78,7 @@ class SafeToSpendService(
         rule: RecurringTransactionDTO,
         windowStart: LocalDate,
         windowEnd: LocalDate,
-    ): Int {
-        val frequency = rule.frequency ?: return 0
-        val hardEnd = rule.endDate
-        var date = rule.nextRunAt ?: return 0
-        var count = 0
-        var guard = 0
-        while (!date.isAfter(windowEnd) && guard < MAX_OCCURRENCES) {
-            if (hardEnd != null && date.isAfter(hardEnd)) break
-            if (!date.isBefore(windowStart)) count++
-            date = frequency.advance(date)
-            guard++
-        }
-        return count
-    }
+    ): Int = occurrenceDatesInWindow(rule, windowStart, windowEnd, MAX_OCCURRENCES).size
 
     private companion object {
         const val MAX_OCCURRENCES = 400

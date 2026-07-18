@@ -3,7 +3,7 @@ package beer.thierry.centsibleexport.render.impl
 import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.repository.IExportDataRepository
 import beer.thierry.centsible.export.proto.ExportRequest
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.util.UUID

@@ -51,7 +51,7 @@ internal object TransactionRecordMapper {
     fun mapTransactionOrNull(record: Record): TransactionDTO? =
         if (record[TRANSACTIONS.ID] != null) mapTransaction(record) else null
 
-    private fun mapCategory(record: Record) = CategoryDTO(
+    internal fun mapCategory(record: Record) = CategoryDTO(
         id = record[CATEGORIES.ID],
         name = record[CATEGORIES.NAME],
         icon = record[CATEGORIES.ICON],

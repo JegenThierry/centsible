@@ -11,7 +11,6 @@ import beer.thierry.centsible.api.model.reports.YearOverYearDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.reports.IReportService
 import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,53 +27,53 @@ class ReportsResource(private val reportService: IReportService) {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<NetWorthPointDTO>> =
-        ResponseEntity.ok(reportService.fetchNetWorthOverTime(startDate, endDate, authenticatedUser))
+    ): List<NetWorthPointDTO> =
+        reportService.fetchNetWorthOverTime(startDate, endDate, authenticatedUser)
 
     @GetMapping("/net-worth/breakdown")
     fun fetchNetWorthBreakdown(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<AccountBalanceAtDateDTO>> =
-        ResponseEntity.ok(reportService.fetchAccountBalancesOnDate(date, authenticatedUser))
+    ): List<AccountBalanceAtDateDTO> =
+        reportService.fetchAccountBalancesOnDate(date, authenticatedUser)
 
     @GetMapping("/category-spending")
     fun fetchCategorySpending(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<CategorySpendingSeriesDTO>> =
-        ResponseEntity.ok(reportService.fetchCategorySpendingOverTime(startDate, endDate, authenticatedUser))
+    ): List<CategorySpendingSeriesDTO> =
+        reportService.fetchCategorySpendingOverTime(startDate, endDate, authenticatedUser)
 
     @GetMapping("/cash-flow")
     fun fetchCashFlow(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<CashFlowPointDTO>> =
-        ResponseEntity.ok(reportService.fetchCashFlow(startDate, endDate, authenticatedUser))
+    ): List<CashFlowPointDTO> =
+        reportService.fetchCashFlow(startDate, endDate, authenticatedUser)
 
     @GetMapping("/forecast")
     fun fetchForecast(
         @RequestParam(defaultValue = "6") months: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<NetWorthForecastDTO> {
+    ): NetWorthForecastDTO {
         if (months !in 1..24) throw LocalizedException.BadRequest("error.report.monthsOutOfRange")
-        return ResponseEntity.ok(reportService.fetchNetWorthForecast(months, authenticatedUser))
+        return reportService.fetchNetWorthForecast(months, authenticatedUser)
     }
 
     @GetMapping("/year-over-year")
     fun fetchYearOverYear(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<YearOverYearDTO> =
-        ResponseEntity.ok(reportService.fetchYearOverYear(authenticatedUser))
+    ): YearOverYearDTO =
+        reportService.fetchYearOverYear(authenticatedUser)
 
     @GetMapping("/budget-vs-actual")
     fun fetchBudgetVsActual(
         @RequestParam(defaultValue = "6") periods: Int,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<BudgetVsActualPeriodDTO>> {
+    ): List<BudgetVsActualPeriodDTO> {
         if (periods !in 1..24) throw LocalizedException.BadRequest("error.report.periodsOutOfRange")
-        return ResponseEntity.ok(reportService.fetchBudgetVsActualHistory(periods, authenticatedUser))
+        return reportService.fetchBudgetVsActualHistory(periods, authenticatedUser)
     }
 }

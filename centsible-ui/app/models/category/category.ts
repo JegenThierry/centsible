@@ -13,12 +13,7 @@ export interface Category {
   systemKey?: string | null;
 }
 
-export interface CategoryForm {
-  name: string;
-  icon: string;
-  color: string;
-  type: CategoryType;
-}
+export type CategoryForm = Pick<Category, 'name' | 'icon' | 'color' | 'type'>;
 
 export const CategorySystemKey = {
   BalanceAdjustment: 'BALANCE_ADJUSTMENT',

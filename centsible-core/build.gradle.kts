@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.spring.tx)
     implementation(libs.spring.web)
     implementation(libs.spring.security.crypto)
-    implementation(libs.jackson.databind)
+    implementation(libs.jackson3.databind)
     implementation(libs.caffeine)
     implementation(libs.totp)
     implementation(libs.pebble)

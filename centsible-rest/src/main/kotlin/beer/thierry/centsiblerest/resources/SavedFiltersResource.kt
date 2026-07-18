@@ -23,23 +23,23 @@ class SavedFiltersResource(
 ) {
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<SavedFilterDTO>> =
-        ResponseEntity.ok(service.fetchAll(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<SavedFilterDTO> =
+        service.fetchAll(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: SavedFilterForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<SavedFilterDTO> =
-        ResponseEntity.ok(service.create(user, form))
+    ): SavedFilterDTO =
+        service.create(user, form)
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,
         @Valid @RequestBody form: SavedFilterForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<SavedFilterDTO> =
-        ResponseEntity.ok(service.update(user, id, form))
+    ): SavedFilterDTO =
+        service.update(user, id, form)
 
     @DeleteMapping("/{id}")
     fun delete(

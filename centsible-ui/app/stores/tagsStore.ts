@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import adze from 'adze';
 import {useTagService} from '~/services/tag/tag-service';
+import {upsertSortedByName} from '~/utils/upsert';
 import type {Tag, TagForm} from '~/models/tag/tag';
 
 export const useTagsStore = defineStore('tagsStore', () => {
@@ -24,13 +25,13 @@ export const useTagsStore = defineStore('tagsStore', () => {
   /** Throws on failure so callers can surface a localized toast (e.g. duplicate name). */
   async function create(form: TagForm): Promise<Tag> {
     const created = await service.create(form);
-    tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name));
+    upsertSortedByName(tags, created);
     return created;
   }
 
   async function update(id: number, form: TagForm): Promise<Tag> {
     const updated = await service.update(id, form);
-    tags.value = tags.value.map(t => (t.id === id ? updated : t)).sort((a, b) => a.name.localeCompare(b.name));
+    upsertSortedByName(tags, updated);
     return updated;
   }
 

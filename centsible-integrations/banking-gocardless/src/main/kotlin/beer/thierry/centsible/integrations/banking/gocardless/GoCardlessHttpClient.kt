@@ -39,19 +39,12 @@ class GoCardlessHttpClient(
 
     fun listInstitutions(country: String): List<Institution> {
         requireNonBlank(country, "country")
-        val token = ensureToken()
         val uri = UriComponentsBuilder.fromUriString("/institutions/")
             .queryParam("country", country)
             .build(true)
             .toUriString()
         log.debug("GET /institutions provider={} country={}", PROVIDER, country)
-        val raw: Array<InstitutionDto> = retry.call {
-            restClient.get()
-                .uri(uri)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchangeOrThrow(PROVIDER, context = "institutions country=$country")
-        }
+        val raw: Array<InstitutionDto> = authedGet(uri, context = "institutions country=$country")
         log.info("Listed institutions provider={} country={} count={}", PROVIDER, country, raw.size)
         return raw.map { Institution(id = it.id, name = it.name, bic = it.bic, logo = it.logo) }
     }
@@ -59,7 +52,6 @@ class GoCardlessHttpClient(
     fun createEndUserAgreement(institutionId: String, maxHistoricalDays: Int): String {
         requireNonBlank(institutionId, "institutionId")
         require(maxHistoricalDays in 1..730) { "maxHistoricalDays out of range" }
-        val token = ensureToken()
         val body = mapOf(
             "institution_id" to institutionId,
             "max_historical_days" to maxHistoricalDays,
@@ -67,15 +59,7 @@ class GoCardlessHttpClient(
             "access_scope" to listOf("balances", "details", "transactions"),
         )
         log.debug("POST /agreements/enduser provider={} institutionId={} historicalDays={}", PROVIDER, institutionId, maxHistoricalDays)
-        val resp: AgreementDto = retry.call {
-            restClient.post()
-                .uri("/agreements/enduser/")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(body)
-                .exchangeOrThrow(PROVIDER, context = "agreements/enduser")
-        }
+        val resp: AgreementDto = authedPost("/agreements/enduser/", body, context = "agreements/enduser")
         log.info("End-user agreement created provider={} institutionId={} agreementId={}", PROVIDER, institutionId, resp.id)
         return resp.id
     }
@@ -90,7 +74,6 @@ class GoCardlessHttpClient(
         requireNonBlank(agreementId, "agreementId")
         requireNonBlank(redirectUri, "redirectUri")
         requireNonBlank(reference, "reference")
-        val token = ensureToken()
         val body = mapOf(
             "institution_id" to institutionId,
             "agreement" to agreementId,
@@ -99,30 +82,15 @@ class GoCardlessHttpClient(
             "user_language" to "EN",
         )
         log.debug("POST /requisitions provider={} institutionId={} agreementId={}", PROVIDER, institutionId, agreementId)
-        val resp: RequisitionDto = retry.call {
-            restClient.post()
-                .uri("/requisitions/")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(body)
-                .exchangeOrThrow(PROVIDER, context = "requisitions")
-        }
+        val resp: RequisitionDto = authedPost("/requisitions/", body, context = "requisitions")
         log.info("Requisition created provider={} requisitionId={} status={}", PROVIDER, resp.id, resp.status)
         return resp.toResponse()
     }
 
     fun fetchRequisition(requisitionId: String): RequisitionResponse {
         requireNonBlank(requisitionId, "requisitionId")
-        val token = ensureToken()
         log.debug("GET /requisitions/{} provider={}", requisitionId, PROVIDER)
-        val resp: RequisitionDto = retry.call {
-            restClient.get()
-                .uri("/requisitions/{id}/", requisitionId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchangeOrThrow(PROVIDER, context = "requisitions/$requisitionId")
-        }
+        val resp: RequisitionDto = authedGet("/requisitions/{id}/", requisitionId, context = "requisitions/$requisitionId")
         log.info(
             "Fetched requisition provider={} requisitionId={} status={} accounts={}",
             PROVIDER, resp.id, resp.status, resp.accounts?.size ?: 0,
@@ -132,15 +100,8 @@ class GoCardlessHttpClient(
 
     fun fetchAccountDetails(accountId: String): AccountDetails {
         requireNonBlank(accountId, "accountId")
-        val token = ensureToken()
         log.debug("GET /accounts/{}/details provider={}", accountId, PROVIDER)
-        val resp: AccountDetailsEnvelope = retry.call {
-            restClient.get()
-                .uri("/accounts/{id}/details/", accountId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchangeOrThrow(PROVIDER, context = "accounts/$accountId/details")
-        }
+        val resp: AccountDetailsEnvelope = authedGet("/accounts/{id}/details/", accountId, context = "accounts/$accountId/details")
         val a = resp.account
         return AccountDetails(
             iban = a?.iban,
@@ -152,24 +113,50 @@ class GoCardlessHttpClient(
 
     fun fetchAccountTransactions(accountId: String, dateFrom: LocalDate?): TransactionsResponse {
         requireNonBlank(accountId, "accountId")
-        val token = ensureToken()
         val builder = UriComponentsBuilder.fromUriString("/accounts/{id}/transactions/")
         if (dateFrom != null) builder.queryParam("date_from", dateFrom.toString())
         val uriTemplate = builder.build(false).toUriString()
         log.debug("GET /accounts/{}/transactions provider={} dateFrom={}", accountId, PROVIDER, dateFrom)
-        val envelope: TransactionsEnvelope = retry.call {
-            restClient.get()
-                .uri(uriTemplate, accountId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchangeOrThrow(PROVIDER, context = "accounts/$accountId/transactions")
-        }
+        val envelope: TransactionsEnvelope = authedGet(uriTemplate, accountId, context = "accounts/$accountId/transactions")
         val booked = envelope.transactions?.booked ?: emptyList()
         log.info(
             "Fetched transactions provider={} accountId={} bookedCount={} dateFrom={}",
             PROVIDER, accountId, booked.size, dateFrom,
         )
         return TransactionsResponse(booked = booked)
+    }
+
+    /**
+     * Ensures a valid bearer token, then issues an authenticated GET and deserializes the body to
+     * [T]. [uriVars] expand any `{...}` placeholders in [uri]. Collapses the ensureToken + retry +
+     * bearer/accept boilerplate every read endpoint repeated.
+     */
+    private inline fun <reified T : Any> authedGet(uri: String, vararg uriVars: Any, context: String): T {
+        val token = ensureToken()
+        return retry.call {
+            restClient.get()
+                .uri(uri, *uriVars)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchangeOrThrow(PROVIDER, context = context)
+        }
+    }
+
+    /**
+     * Ensures a valid bearer token, then issues an authenticated JSON POST of [body] and
+     * deserializes the response to [T]. Counterpart to [authedGet] for write endpoints.
+     */
+    private inline fun <reified T : Any> authedPost(uri: String, body: Any, context: String): T {
+        val token = ensureToken()
+        return retry.call {
+            restClient.post()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(body)
+                .exchangeOrThrow(PROVIDER, context = context)
+        }
     }
 
     private fun ensureToken(): String {
@@ -311,8 +298,6 @@ data class InstitutionDto(
     @JsonProperty("id") val id: String,
     @JsonProperty("name") val name: String,
     @JsonProperty("bic") val bic: String? = null,
-    @JsonProperty("transaction_total_days") val transactionTotalDays: String? = null,
-    @JsonProperty("countries") val countries: List<String> = emptyList(),
     @JsonProperty("logo") val logo: String? = null,
 )
 

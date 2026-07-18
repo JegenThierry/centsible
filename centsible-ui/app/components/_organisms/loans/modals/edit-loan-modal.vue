@@ -6,9 +6,8 @@ import type {FormSubmitEvent} from '@nuxt/ui'
 import {type Loan, type LoanUpdateForm, cleanOptionalNumber, computeOwedFromLent, hasInterestRate} from "~/models/loan/loan";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import DateInput from "~/components/_atoms/inputs/date-input.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 
 const props = defineProps<{
   loan?: Loan;
@@ -25,7 +24,6 @@ const {t} = useI18n();
 
 const form = ref<LoanUpdateForm>(makeForm());
 const loading = ref(false);
-const formId = useId();
 
 const owedLabel = t('contacts.loans.form.owedLabel');
 const interestLabel = t('contacts.loans.form.interestRateLabel');
@@ -61,12 +59,10 @@ function makeForm(): LoanUpdateForm {
   };
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => form.value = makeForm(),
-});
+const getSnapshot = () => form.value;
+const onResetOnOpen = () => {
+  form.value = makeForm();
+};
 
 const hasInterest = computed(() => hasInterestRate(form.value.interestRate));
 
@@ -97,60 +93,57 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t('contacts.loans.edit.description')"
-          :title="t('contacts.loans.edit.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" class="space-y-4" @submit="handleSave">
-        <BaseInput name="description"
-                   v-model="form.description"
-                   :max-length="255"
-                   :label="t('contacts.loans.form.descriptionLabel')"
-                   :placeholder="t('contacts.loans.form.descriptionPlaceholder')"
-                   required
-                   type="text"/>
+  <FormModal v-model="isOpen"
+             :description="t('contacts.loans.edit.description')"
+             :title="t('contacts.loans.edit.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="getSnapshot"
+             :on-reset-on-open="onResetOnOpen"
+             :submit-label="t('contacts.loans.edit.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <BaseInput name="description"
+                 v-model="form.description"
+                 :max-length="255"
+                 :label="t('contacts.loans.form.descriptionLabel')"
+                 :placeholder="t('contacts.loans.form.descriptionPlaceholder')"
+                 required
+                 type="text"/>
 
-        <BaseInput name="interestRate"
-                   v-model="form.interestRate"
-                   :max="999.99"
-                   :min="0"
-                   :label="t('contacts.loans.form.interestRateLabel')"
-                   :description="t('contacts.loans.form.interestRateDescription')"
-                   :placeholder="t('contacts.loans.form.interestRatePlaceholder')"
-                   trailing-text="%"
-                   type="number"/>
+      <BaseInput name="interestRate"
+                 v-model="form.interestRate"
+                 :max="999.99"
+                 :min="0"
+                 :label="t('contacts.loans.form.interestRateLabel')"
+                 :description="t('contacts.loans.form.interestRateDescription')"
+                 :placeholder="t('contacts.loans.form.interestRatePlaceholder')"
+                 trailing-text="%"
+                 type="number"/>
 
-        <BaseInput name="owedAmount"
-                   v-model="form.owedAmount"
-                   :max="MONEY_FIELD_MAX"
-                   :min="0"
-                   :description="hasInterest ? t('contacts.loans.form.owedComputedDescription') : t('contacts.loans.form.owedDescription')"
-                   :disabled="hasInterest"
-                   :label="t('contacts.loans.form.owedLabel')"
-                   :placeholder="t('contacts.loans.form.owedPlaceholder')"
-                   :trailing-text="loan?.currency"
-                   required
-                   type="number"/>
+      <BaseInput name="owedAmount"
+                 v-model="form.owedAmount"
+                 :max="MONEY_FIELD_MAX"
+                 :min="0"
+                 :description="hasInterest ? t('contacts.loans.form.owedComputedDescription') : t('contacts.loans.form.owedDescription')"
+                 :disabled="hasInterest"
+                 :label="t('contacts.loans.form.owedLabel')"
+                 :placeholder="t('contacts.loans.form.owedPlaceholder')"
+                 :trailing-text="loan?.currency"
+                 required
+                 type="number"/>
 
-        <DateInput name="dueDate"
-                   v-model="form.dueDate"
-                   :label="t('contacts.loans.form.dueDateLabel')"/>
+      <DateInput name="dueDate"
+                 v-model="form.dueDate"
+                 :label="t('contacts.loans.form.dueDateLabel')"/>
 
-        <BaseInput name="notes"
-                   v-model="form.notes"
-                   :max-length="500"
-                   :label="t('contacts.loans.form.notesLabel')"
-                   :placeholder="t('contacts.loans.form.notesPlaceholder')"
-                   type="text"/>
-      </UForm>
+      <BaseInput name="notes"
+                 v-model="form.notes"
+                 :max-length="500"
+                 :label="t('contacts.loans.form.notesLabel')"
+                 :placeholder="t('contacts.loans.form.notesPlaceholder')"
+                 type="text"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t('contacts.loans.edit.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

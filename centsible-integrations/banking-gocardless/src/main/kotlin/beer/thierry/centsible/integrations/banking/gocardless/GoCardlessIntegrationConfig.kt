@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.client.RestClient
 
 @Configuration
 @ConditionalOnProperty(value = ["integrations.banking-gocardless.enabled"], havingValue = "true", matchIfMissing = false)
@@ -37,10 +36,7 @@ class GoCardlessIntegrationConfig(
 
     @Bean
     fun goCardlessHttpClient(httpTimeouts: HttpTimeoutProperties): GoCardlessHttpClient = GoCardlessHttpClient(
-        restClient = RestClient.builder()
-            .baseUrl(apiBase)
-            .requestFactory(httpTimeouts.requestFactory())
-            .build(),
+        restClient = httpTimeouts.restClientBuilder(apiBase).build(),
         secretId = secretId,
         secretKey = secretKey,
     )

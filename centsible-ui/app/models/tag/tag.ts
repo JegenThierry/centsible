@@ -6,7 +6,4 @@ export interface Tag {
   modifiedAt?: string | null;
 }
 
-export interface TagForm {
-  name: string;
-  color: string;
-}
+export type TagForm = Pick<Tag, 'name' | 'color'>;

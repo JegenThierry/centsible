@@ -1,7 +1,6 @@
 package beer.thierry.centsible.jooq.repository
 
 import beer.thierry.centsible.api.exceptions.LocalizedException
-import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
@@ -26,6 +25,7 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_TAGS
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -164,12 +164,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .where(
                 TRANSACTIONS.ID.eq(transactionId)
                     .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
-                    .and(
-                        TRANSACTIONS.ACCOUNT_ID.`in`(
-                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
-                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                        )
-                    )
+                    .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id)))
             ).execute()
 
         if (updated == 0) {
@@ -186,12 +181,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .where(
                 TRANSACTIONS.ID.eq(transactionId)
                     .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
-                    .and(
-                        TRANSACTIONS.ACCOUNT_ID.`in`(
-                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS)
-                                .where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                        )
-                    )
+                    .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id)))
             ).execute()
 
         if (deleted == 0) {
@@ -313,9 +303,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
     private fun transferLegOwnershipCondition(legId: UUID, authenticatedUser: UserDTO) =
         TRANSACTIONS.ID.eq(legId).and(
-            TRANSACTIONS.ACCOUNT_ID.`in`(
-                dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-            )
+            TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id))
         )
 
     override fun fetchTransferLegs(transferGroupId: UUID, authenticatedUser: UserDTO): List<TransferLeg> =
@@ -340,11 +328,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         return dsl.deleteFrom(TRANSACTIONS)
             .where(
                 TRANSACTIONS.ID.`in`(ids)
-                    .and(
-                        TRANSACTIONS.ACCOUNT_ID.`in`(
-                            dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                        )
-                    )
+                    .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id)))
             )
             .execute()
     }
@@ -383,17 +367,13 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
     private fun bulkOwnershipCondition(accountId: UUID, ids: List<UUID>, user: UserDTO) =
         TRANSACTIONS.ID.`in`(ids)
             .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
-            .and(
-                TRANSACTIONS.ACCOUNT_ID.`in`(
-                    dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(user.id))
-                )
-            )
+            .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(user.id)))
 
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate
     ): List<CategoryAggregateDTO> {
-        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
-        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
+        val effectiveAmount = effectiveAmount()
+        val effectiveCategoryId = effectiveCategoryId()
         val total = DSL.sum(effectiveAmount).`as`("total")
 
         return dsl.select(CATEGORIES.ID, CATEGORIES.NAME, CATEGORIES.COLOR, CATEGORIES.ICON, total)
@@ -426,15 +406,9 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         val firstMonth = YearMonth.from(today).minusMonths((months - 1).toLong())
         val start = firstMonth.atDay(1)
 
-        val monthExpr = DSL.field("to_char({0}, 'YYYY-MM')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("ym")
-        val incomeExpr = DSL.sum(
-            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
-                .otherwise(BigDecimal.ZERO)
-        ).`as`("income")
-        val expenseExpr = DSL.sum(
-            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value), TRANSACTIONS.AMOUNT)
-                .otherwise(BigDecimal.ZERO)
-        ).`as`("expense")
+        val monthExpr = TXN_MONTH_KEY.`as`("ym")
+        val incomeExpr = incomeSum().`as`("income")
+        val expenseExpr = expenseSum().`as`("expense")
 
         val rows = dsl.select(monthExpr, incomeExpr, expenseExpr)
             .from(TRANSACTIONS)
@@ -466,14 +440,8 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         val start = LocalDate.now().minusDays((days - 1).toLong())
 
         val dayExpr = DSL.field("to_char({0}, 'YYYY-MM-DD')", String::class.java, TRANSACTIONS.TRANSACTION_DATE).`as`("day")
-        val incomeExpr = DSL.sum(
-            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.INCOME.value), TRANSACTIONS.AMOUNT)
-                .otherwise(BigDecimal.ZERO)
-        ).`as`("income")
-        val expenseExpr = DSL.sum(
-            DSL.case_().`when`(TRANSACTIONS.TYPE.eq(CategoryType.EXPENSE.value), TRANSACTIONS.AMOUNT)
-                .otherwise(BigDecimal.ZERO)
-        ).`as`("expense")
+        val incomeExpr = incomeSum().`as`("income")
+        val expenseExpr = expenseSum().`as`("expense")
 
         return dsl.select(dayExpr, incomeExpr, expenseExpr)
             .from(TRANSACTIONS)
@@ -589,9 +557,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .set(TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 TRANSACTIONS.ID.`in`(ids).and(
-                    TRANSACTIONS.ACCOUNT_ID.`in`(
-                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                    )
+                    TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id))
                 )
             )
             .execute()
@@ -620,14 +586,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                     id = r[TRANSACTION_SPLITS.ID],
                     amount = r[TRANSACTION_SPLITS.AMOUNT],
                     note = r[TRANSACTION_SPLITS.NOTE],
-                    category = CategoryDTO(
-                        id = r[CATEGORIES.ID],
-                        name = r[CATEGORIES.NAME],
-                        icon = r[CATEGORIES.ICON],
-                        color = r[CATEGORIES.COLOR],
-                        type = r[CATEGORIES.TYPE]?.let { CategoryType.fromValue(it) },
-                        isSystem = r[CATEGORIES.USER_ID] == null,
-                    ),
+                    category = TransactionRecordMapper.mapCategory(r),
                 )
             }
             .groupBy({ it.first }, { it.second })
@@ -649,12 +608,12 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         if (splits.isEmpty()) return
 
         val now = OffsetDateTime.now()
-        var step = dsl.insertInto(
+        val step = dsl.insertInto(
             TRANSACTION_SPLITS,
             TRANSACTION_SPLITS.TRANSACTION_ID, TRANSACTION_SPLITS.CATEGORY_ID,
             TRANSACTION_SPLITS.AMOUNT, TRANSACTION_SPLITS.NOTE, TRANSACTION_SPLITS.CREATED_AT,
         )
-        splits.forEach { step = step.values(transactionId, it.categoryId, it.amount, it.note, now) }
+        splits.forEach { step.values(transactionId, it.categoryId, it.amount, it.note, now) }
         step.execute()
     }
 
@@ -676,4 +635,13 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
 
     private fun baseCondition(accountId: UUID, authenticatedUser: UserDTO) =
         TRANSACTIONS.ACCOUNT_ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
+
+    private fun incomeSum(): Field<BigDecimal?> = signedTypeSum(CategoryType.INCOME)
+
+    private fun expenseSum(): Field<BigDecimal?> = signedTypeSum(CategoryType.EXPENSE)
+
+    private fun signedTypeSum(type: CategoryType): Field<BigDecimal?> = DSL.sum(
+        DSL.case_().`when`(TRANSACTIONS.TYPE.eq(type.value), TRANSACTIONS.AMOUNT)
+            .otherwise(BigDecimal.ZERO)
+    )
 }

@@ -19,8 +19,8 @@ class ContactsResource(private val contactService: IContactService) {
     private val log = LoggerFactory.getLogger(ContactsResource::class.java)
 
     @GetMapping
-    fun list(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<ContactDTO>> =
-        ResponseEntity.ok(contactService.fetchAllContacts(authenticatedUser))
+    fun list(@AuthenticationPrincipal authenticatedUser: UserDTO): List<ContactDTO> =
+        contactService.fetchAllContacts(authenticatedUser)
 
     @GetMapping("/{id}")
     fun get(
@@ -36,10 +36,10 @@ class ContactsResource(private val contactService: IContactService) {
     fun create(
         @Valid @RequestBody form: ContactForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<ContactDTO> {
+    ): ContactDTO {
         val created = contactService.createContact(authenticatedUser, form)
         log.info("Created contact id={} userId={}", created.id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -83,9 +83,7 @@ class ContactsResource(private val contactService: IContactService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
         val deleted = contactService.deleteContact(authenticatedUser, id)
-        return if (deleted) {
-            log.info("Deleted contact id={} userId={}", id, authenticatedUser.id)
-            ResponseEntity.ok().build()
-        } else ResponseEntity.notFound().build()
+        if (deleted) log.info("Deleted contact id={} userId={}", id, authenticatedUser.id)
+        return deleted.toDeleteResponse()
     }
 }

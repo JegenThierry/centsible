@@ -15,7 +15,7 @@ private class FakeRenderer(
     override fun supports(): ExportType = type
     override fun supportedFormat(): ExportFormat = format
     override fun render(request: ExportRequest): RenderedExport =
-        RenderedExport(pdf = ByteArray(0), filename = "fake-${type.name}.${format.name.lowercase()}")
+        RenderedExport(bytes = ByteArray(0), filename = "fake-${type.name}.${format.name.lowercase()}")
 }
 
 class RendererRegistryTest {

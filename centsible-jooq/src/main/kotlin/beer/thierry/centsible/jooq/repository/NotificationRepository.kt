@@ -5,7 +5,7 @@ import beer.thierry.centsible.api.model.notification.NotificationType
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.INotificationRepository
 import beer.thierry.jooq.generated.tables.references.NOTIFICATIONS
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.impl.DSL
@@ -88,28 +88,28 @@ class NotificationRepository(
     override fun hasRecent(user: UserDTO, type: NotificationType, budgetId: String, sincePeriodKey: String): Boolean {
         val periodField = DSL.field("data->>'periodKey'", String::class.java)
         val budgetField = DSL.field("data->>'budgetId'", String::class.java)
-        val count = dsl.selectCount()
-            .from(NOTIFICATIONS)
-            .where(
-                NOTIFICATIONS.USER_ID.eq(user.id)
-                    .and(NOTIFICATIONS.TYPE.eq(type.name))
-                    .and(budgetField.eq(budgetId))
-                    .and(periodField.eq(sincePeriodKey))
-            )
-            .fetchOne(0, Int::class.java) ?: 0
-        return count > 0
+        return dsl.fetchExists(
+            dsl.selectOne()
+                .from(NOTIFICATIONS)
+                .where(
+                    NOTIFICATIONS.USER_ID.eq(user.id)
+                        .and(NOTIFICATIONS.TYPE.eq(type.name))
+                        .and(budgetField.eq(budgetId))
+                        .and(periodField.eq(sincePeriodKey))
+                )
+        )
     }
 
     override fun existsByDedupKey(user: UserDTO, type: NotificationType, dedupKey: String): Boolean {
-        val count = dsl.selectCount()
-            .from(NOTIFICATIONS)
-            .where(
-                NOTIFICATIONS.USER_ID.eq(user.id)
-                    .and(NOTIFICATIONS.TYPE.eq(type.name))
-                    .and(DEDUP_KEY_FIELD.eq(dedupKey))
-            )
-            .fetchOne(0, Int::class.java) ?: 0
-        return count > 0
+        return dsl.fetchExists(
+            dsl.selectOne()
+                .from(NOTIFICATIONS)
+                .where(
+                    NOTIFICATIONS.USER_ID.eq(user.id)
+                        .and(NOTIFICATIONS.TYPE.eq(type.name))
+                        .and(DEDUP_KEY_FIELD.eq(dedupKey))
+                )
+        )
     }
 
     private fun parseData(jsonb: JSONB?): Map<String, String> {

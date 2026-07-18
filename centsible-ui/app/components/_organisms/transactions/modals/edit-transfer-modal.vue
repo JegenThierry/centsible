@@ -2,12 +2,11 @@
 import {z} from 'zod';
 import type {FormSubmitEvent} from '@nuxt/ui';
 import type {Transaction, TransferForm} from "~/models/transactions/transaction";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import TransferFormFields from "~/components/_molecules/transactions/transfer-form.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 import {transferSchema} from "~/utils/form-schemas";
 
@@ -29,7 +28,8 @@ const {t} = useI18n();
 
 const form = ref<TransferForm>(makeBlankForm());
 const loading = ref(false);
-const formId = useId();
+// FormModal exposes captureSnapshot so we can re-baseline the dirty guard once the async load lands.
+const formModal = ref<{captureSnapshot: () => void} | null>(null);
 
 const schema = transferSchema(t);
 type Schema = z.output<typeof schema>;
@@ -44,6 +44,16 @@ function makeBlankForm(): TransferForm {
   };
 }
 
+function snapshot() {
+  return form.value;
+}
+
+function resetOnOpen() {
+  form.value = makeBlankForm();
+  if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
+  loadTransfer();
+}
+
 async function loadTransfer() {
   try {
     const details = await transactionService.fetchTransfer(props.transaction.id);
@@ -54,23 +64,12 @@ async function loadTransfer() {
       description: details.description ?? '',
       transactionDate: details.transactionDate.split('T')[0]!,
     };
-    nextTick(captureSnapshot);
+    nextTick(() => formModal.value?.captureSnapshot());
   } catch (error) {
     toastError(error, t('transactions.transfer.toastErrorTitle'), t('transactions.transfer.loadErrorBody'));
     isOpen.value = false;
   }
 }
-
-const {requestClose, captureSnapshot} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => {
-    form.value = makeBlankForm();
-    if (budgetAccountsStore.availableAccounts.length === 0) budgetAccountsStore.updateAvailableAccounts();
-    loadTransfer();
-  },
-});
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
@@ -102,23 +101,21 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t('transactions.transfer.editDescription')"
-          :title="t('transactions.transfer.editTitle')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
-        <TransferFormFields v-model="form"
-                            :accounts="budgetAccountsStore.availableAccounts"
-                            :disabled="loading"/>
-      </UForm>
+  <FormModal ref="formModal"
+             v-model="isOpen"
+             :description="t('transactions.transfer.editDescription')"
+             :title="t('transactions.transfer.editTitle')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="snapshot"
+             :on-reset-on-open="resetOnOpen"
+             :submit-label="t('transactions.edit.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <TransferFormFields v-model="form"
+                          :accounts="budgetAccountsStore.availableAccounts"
+                          :disabled="loading"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t('transactions.edit.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

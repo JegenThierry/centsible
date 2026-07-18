@@ -6,7 +6,6 @@ enum class RuleField {
     val value: String get() = name
 
     companion object {
-        fun fromValue(value: String): RuleField =
-            entries.find { it.name == value } ?: throw IllegalArgumentException("Unknown rule field: $value")
+        fun fromValue(value: String): RuleField = valueOf(value)
     }
 }

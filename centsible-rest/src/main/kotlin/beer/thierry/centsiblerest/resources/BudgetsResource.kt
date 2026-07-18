@@ -22,17 +22,17 @@ class BudgetsResource(private val service: IBudgetService) {
     fun list(
         @RequestParam(required = false) month: YearMonth?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<BudgetDTO>> =
-        ResponseEntity.ok(service.fetchAllForMonth(authenticatedUser, month ?: YearMonth.now()))
+    ): List<BudgetDTO> =
+        service.fetchAllForMonth(authenticatedUser, month ?: YearMonth.now())
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: BudgetForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetDTO> {
+    ): BudgetDTO {
         val created = service.create(form, authenticatedUser)
         log.info("Created budget id={} userId={}", created.id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -40,10 +40,10 @@ class BudgetsResource(private val service: IBudgetService) {
         @PathVariable id: UUID,
         @Valid @RequestBody form: BudgetForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetDTO> {
+    ): BudgetDTO {
         val updated = service.update(id, form, authenticatedUser)
         log.info("Updated budget id={} userId={}", id, authenticatedUser.id)
-        return ResponseEntity.ok(updated)
+        return updated
     }
 
     @DeleteMapping("/{id}")

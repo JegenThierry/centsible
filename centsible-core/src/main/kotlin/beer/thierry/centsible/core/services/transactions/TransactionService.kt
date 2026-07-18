@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.rule.RuleContext
+import beer.thierry.centsible.api.model.rule.RuleDTO
 import beer.thierry.centsible.api.model.rule.RuleMatching
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
@@ -77,6 +78,9 @@ class TransactionService(
         }
     }
 
+    private fun fetchSplits(id: UUID, user: UserDTO) =
+        transactionRepository.fetchSplitsByTransactionIds(user, listOf(id))[id] ?: emptyList()
+
     override fun fetchTransactions(
         accountId: UUID,
         authenticatedUser: UserDTO,
@@ -92,11 +96,13 @@ class TransactionService(
         if (ids.isEmpty()) return transactions
 
         val counts = attachmentRepository.countByTransactionIds(authenticatedUser, ids)
-        transactions.forEach { it.attachmentCount = counts[it.id] ?: 0 }
         val tagsByTransaction = tagRepository.fetchTagsByTransactionIds(authenticatedUser, ids)
-        transactions.forEach { it.tags = tagsByTransaction[it.id] ?: emptyList() }
         val splitsByTransaction = transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, ids)
-        transactions.forEach { it.splits = splitsByTransaction[it.id] ?: emptyList() }
+        transactions.forEach {
+            it.attachmentCount = counts[it.id] ?: 0
+            it.tags = tagsByTransaction[it.id] ?: emptyList()
+            it.splits = splitsByTransaction[it.id] ?: emptyList()
+        }
         return transactions
     }
 
@@ -113,8 +119,7 @@ class TransactionService(
             val transaction = transactionRepository.createTransaction(accountId, finalForm, conversion, authenticatedUser)
             if (splits != null) {
                 transactionRepository.replaceSplits(transaction.id!!, splits, authenticatedUser)
-                transaction.splits =
-                    transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transaction.id!!))[transaction.id] ?: emptyList()
+                transaction.splits = fetchSplits(transaction.id!!, authenticatedUser)
             }
             if (ruleTagIds.isNotEmpty()) {
                 tagRepository.setTransactionTags(authenticatedUser, transaction.id!!, ruleTagIds.toList())
@@ -176,17 +181,13 @@ class TransactionService(
                 throw LocalizedException.BadRequest("error.transfer.useTransferEndpoint")
             }
             val oldAdjustment = calculateAdjustment(oldTransaction.type, oldTransaction.amount)
-            val oldSplitCategories = transactionRepository
-                .fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId]
-                ?.mapNotNull { it.category.id } ?: emptyList()
+            val oldSplitCategories = fetchSplits(transactionId, authenticatedUser).mapNotNull { it.category.id }
 
             val (splits, resolvedForm) = prepareTransaction(transactionForm, conversion, authenticatedUser)
             val updatedTransaction =
                 transactionRepository.updateTransaction(transactionId, accountId, resolvedForm, conversion, authenticatedUser)
             transactionRepository.replaceSplits(transactionId, splits ?: emptyList(), authenticatedUser)
-            updatedTransaction.splits = if (splits != null) {
-                transactionRepository.fetchSplitsByTransactionIds(authenticatedUser, listOf(transactionId))[transactionId] ?: emptyList()
-            } else emptyList()
+            updatedTransaction.splits = if (splits != null) fetchSplits(transactionId, authenticatedUser) else emptyList()
             val newAdjustment = calculateAdjustment(updatedTransaction.type, updatedTransaction.amount)
 
             accountRepository.updateBalance(accountId, newAdjustment.subtract(oldAdjustment), authenticatedUser)
@@ -439,8 +440,7 @@ class TransactionService(
                 val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
                 val type = resolveType(classification, row.type)
                 val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
-                    RuleMatching.evaluate(rules, RuleContext(row.description, row.amount, type, accountId)).categoryId
-                        ?: row.categoryId
+                    categoryViaRules(rules, row.description, row.amount, type, accountId, row.categoryId)
                 } else {
                     row.categoryId
                 }
@@ -448,21 +448,13 @@ class TransactionService(
             }
 
             val hashes = resolvedRows.map { rowHash(accountId, it) }
-            val outcome = transactionRepository.importBatch(accountId, resolvedRows, conversions, hashes, authenticatedUser)
-
-            if (outcome.netBalanceAdjustment.signum() != 0) {
-                accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-                checkBudgetAlerts(authenticatedUser, resolvedRows.map { it.categoryId }.distinct())
-            }
+            val result = finishImport(accountId, resolvedRows, conversions, hashes, authenticatedUser)
 
             log.info(
                 "Imported transaction batch accountId={} userId={} totalRows={} inserted={} skippedDuplicates={}",
-                accountId, authenticatedUser.id, rows.size, outcome.insertedCount, rows.size - outcome.insertedCount,
+                accountId, authenticatedUser.id, rows.size, result.imported, result.skippedDuplicates,
             )
-            ImportResult(
-                imported = outcome.insertedCount,
-                skippedDuplicates = rows.size - outcome.insertedCount,
-            )
+            result
         }
     }
 
@@ -489,8 +481,7 @@ class TransactionService(
             val amount = tx.amount.abs()
             ImportTransactionRow(
                 amount = amount,
-                categoryId = RuleMatching.evaluate(rules, RuleContext(description, amount, type, accountId)).categoryId
-                    ?: fallbackCategoryId,
+                categoryId = categoryViaRules(rules, description, amount, type, accountId, fallbackCategoryId),
                 description = description,
                 transactionDate = tx.occurredAt.toLocalDate(),
                 type = type,
@@ -501,28 +492,56 @@ class TransactionService(
         val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
 
         return transactionTemplate.execute {
-            val outcome = transactionRepository.importBatch(
-                accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId
-            )
-            if (outcome.netBalanceAdjustment.signum() != 0) {
-                accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
-                checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
-            }
+            val result = finishImport(accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId)
 
             log.info(
                 "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
                 accountId, providerConnectionId, authenticatedUser.id, transactions.size,
-                outcome.insertedCount, priced.size - outcome.insertedCount,
+                result.imported, result.skippedDuplicates,
             )
-            ImportResult(
-                imported = outcome.insertedCount,
-                skippedDuplicates = priced.size - outcome.insertedCount,
-            )
+            result
         }
     }
 
     private fun providerRowHash(providerConnectionId: UUID, externalId: String): String =
         sha256Hex("provider:$providerConnectionId:$externalId")
+
+    /** Rule-driven category for one import row, falling back to [fallbackCategoryId] when no rule matches. */
+    private fun categoryViaRules(
+        rules: List<RuleDTO>,
+        description: String,
+        amount: BigDecimal,
+        type: CategoryType,
+        accountId: UUID,
+        fallbackCategoryId: Long,
+    ): Long =
+        RuleMatching.evaluate(rules, RuleContext(description, amount, type, accountId)).categoryId ?: fallbackCategoryId
+
+    /**
+     * Shared import tail for [importBatch] and [importProviderTransactions]: persist the already-resolved
+     * [rows], apply the net balance delta and re-check budget alerts only when it actually moved, then
+     * package the insert/skip counts. Callers own their row-building and their own structured log line.
+     */
+    private fun finishImport(
+        accountId: UUID,
+        rows: List<ImportTransactionRow>,
+        conversions: List<ConversionResult>,
+        hashes: List<String>,
+        authenticatedUser: UserDTO,
+        providerConnectionId: UUID? = null,
+    ): ImportResult {
+        val outcome = transactionRepository.importBatch(
+            accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId
+        )
+        if (outcome.netBalanceAdjustment.signum() != 0) {
+            accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
+            checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
+        }
+        return ImportResult(
+            imported = outcome.insertedCount,
+            skippedDuplicates = rows.size - outcome.insertedCount,
+        )
+    }
 
     @Transactional
     override fun createBalanceAdjustment(
@@ -583,12 +602,7 @@ class TransactionService(
             }
         }
 
-    /**
-     * Validates the form's optional split breakdown against the transaction's stored ([storedAmount])
-     * amount and [type], returning the splits when the transaction is a split or null when it is a
-     * simple single-category one. A split needs at least two positive slices that sum exactly to the
-     * stored amount, each in a non-managed category of the transaction's own type.
-     */
+    /** Outcome of [prepareTransaction]: the validated splits (null when single-category) and the resolved form. */
     private data class PreparedTransaction(
         val splits: List<TransactionSplitForm>?,
         val resolvedForm: TransactionForm,
@@ -633,6 +647,12 @@ class TransactionService(
         return PreparedTransaction(splits, resolvedForm)
     }
 
+    /**
+     * Validates the form's optional split breakdown against the transaction's stored ([storedAmount])
+     * amount and [type], returning the splits when the transaction is a split or null when it is a
+     * simple single-category one. A split needs at least two positive slices that sum exactly to the
+     * stored amount, each in a non-managed category of the transaction's own type.
+     */
     private fun normalizeSplits(
         form: TransactionForm,
         storedAmount: BigDecimal,

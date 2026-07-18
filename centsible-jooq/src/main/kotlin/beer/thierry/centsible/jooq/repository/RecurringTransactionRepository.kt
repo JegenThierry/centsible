@@ -151,9 +151,7 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
             .set(RECURRING_TRANSACTIONS.MODIFIED_AT, OffsetDateTime.now())
             .where(
                 RECURRING_TRANSACTIONS.ID.eq(id).and(
-                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(
-                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                    )
+                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id))
                 )
             )
             .execute()
@@ -166,9 +164,7 @@ class RecurringTransactionRepository(private val dsl: DSLContext) : IRecurringTr
         val deleted = dsl.deleteFrom(RECURRING_TRANSACTIONS)
             .where(
                 RECURRING_TRANSACTIONS.ID.eq(id).and(
-                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(
-                        dsl.select(ACCOUNTS.ID).from(ACCOUNTS).where(ACCOUNTS.USER_ID.eq(authenticatedUser.id))
-                    )
+                    RECURRING_TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id))
                 )
             )
             .execute()

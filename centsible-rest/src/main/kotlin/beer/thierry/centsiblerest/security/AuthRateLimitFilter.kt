@@ -1,6 +1,7 @@
 package beer.thierry.centsiblerest.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.core.JacksonException
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.github.bucket4j.Bandwidth
 import io.github.bucket4j.Bucket
@@ -103,9 +104,10 @@ class AuthRateLimitFilter(private val objectMapper: ObjectMapper) : OncePerReque
         }
 
     private fun username(body: ByteArray): String? = try {
-        objectMapper.readTree(body).path("username").asText("")
+        objectMapper.readTree(body).path("username").asString("")
             .trim().lowercase(Locale.ROOT).ifBlank { null }
-    } catch (ex: IOException) {
+    } catch (ex: JacksonException) {
+        // An unparseable body is the controller's 400 to raise; fall back to the IP bucket alone.
         log.debug("Could not read username from auth request body: {}", ex.message)
         null
     }

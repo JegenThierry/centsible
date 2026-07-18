@@ -4,12 +4,11 @@ import type {FormSubmitEvent} from '@nuxt/ui'
 import {Frequency, type RecurringTransaction, type RecurringTransactionForm} from "~/models/recurring/recurring-transaction";
 import {Currency} from "~/models/budget-account/currency";
 import {CategoryType} from "~/models/category/category";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import RecurringFormFields from "~/components/_molecules/recurring/recurring-form.vue";
 import {useRecurringTransactionService} from "~/services/recurring/recurring-transaction-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {recurringSchema} from "~/utils/form-schemas";
 import {todayIsoDate} from "~/utils/date";
 
@@ -38,7 +37,8 @@ const isEdit = computed(() => !!props.rule);
 
 const form = ref<RecurringTransactionForm>(props.rule ? toForm(props.rule) : (props.seed ?? makeBlankForm()));
 const loading = ref(false);
-const formId = useId();
+// FormModal exposes captureSnapshot so we can re-baseline the dirty guard when the rule prop changes.
+const formModal = ref<{captureSnapshot: () => void} | null>(null);
 
 const schema = recurringSchema(t);
 type Schema = z.output<typeof schema>;
@@ -94,17 +94,18 @@ function buildPayload() {
   };
 }
 
-const {requestClose, captureSnapshot} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => { form.value = props.rule ? toForm(props.rule) : (props.seed ?? makeBlankForm()); },
-});
+function snapshot() {
+  return form.value;
+}
+
+function resetOnOpen() {
+  form.value = props.rule ? toForm(props.rule) : (props.seed ?? makeBlankForm());
+}
 
 watch(() => props.rule, (rule) => {
   if (!rule) return;
   form.value = toForm(rule);
-  nextTick(captureSnapshot);
+  nextTick(() => formModal.value?.captureSnapshot());
 });
 
 function handleSave(_event: FormSubmitEvent<Schema>) {
@@ -172,23 +173,21 @@ async function saveEdit(rule: RecurringTransaction) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t(isEdit ? 'transactions.recurring.edit.description' : 'transactions.recurring.create.description')"
-          :title="t(isEdit ? 'transactions.recurring.edit.title' : 'transactions.recurring.create.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
-        <RecurringFormFields v-model="form"
-                             :disabled="loading"
-                             :source-locked="isEdit"/>
-      </UForm>
+  <FormModal ref="formModal"
+             v-model="isOpen"
+             :description="t(isEdit ? 'transactions.recurring.edit.description' : 'transactions.recurring.create.description')"
+             :title="t(isEdit ? 'transactions.recurring.edit.title' : 'transactions.recurring.create.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="snapshot"
+             :on-reset-on-open="resetOnOpen"
+             :submit-label="t(isEdit ? 'transactions.recurring.edit.submit' : 'transactions.recurring.create.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <RecurringFormFields v-model="form"
+                           :disabled="loading"
+                           :source-locked="isEdit"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t(isEdit ? 'transactions.recurring.edit.submit' : 'transactions.recurring.create.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

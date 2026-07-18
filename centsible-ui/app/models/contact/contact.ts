@@ -13,7 +13,4 @@ export interface Contact {
   createdAt?: string;
 }
 
-export interface ContactForm {
-  firstName: string;
-  lastName?: string;
-}
+export type ContactForm = Pick<Contact, 'firstName' | 'lastName'>;

@@ -1,6 +1,5 @@
 package beer.thierry.centsiblerest.config
 
-import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -16,19 +15,15 @@ class CorsConfig(
 
     private val log = LoggerFactory.getLogger(CorsConfig::class.java)
 
-    @PostConstruct
-    fun logAllowedOrigins() {
-        val origins = parseOrigins()
+    private val origins: List<String> = parseOrigins()
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
         if (origins.isEmpty()) {
             log.warn("CORS allowed-origins list is empty; all cross-origin requests will be rejected.")
         } else {
             log.info("CORS allowed origins: {}", origins)
         }
-    }
-
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val origins = parseOrigins()
 
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = origins

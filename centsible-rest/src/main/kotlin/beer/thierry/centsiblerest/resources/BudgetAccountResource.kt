@@ -24,10 +24,10 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
     fun createAccount(
         @Valid @RequestBody createBudgetAccountRequest: CreateBudgetAccountRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetAccountDTO> {
+    ): BudgetAccountDTO {
         val created = budgetAccountService.createAccount(createBudgetAccountRequest, authenticatedUser)
         log.info("Created budget account id={} userId={}", created.id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -35,10 +35,10 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
         @PathVariable id: String,
         @Valid @RequestBody updateBudgetAccountRequest: UpdateBudgetAccountRequest,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetAccountDTO> {
+    ): BudgetAccountDTO {
         val updated = budgetAccountService.updateAccount(id, updateBudgetAccountRequest, authenticatedUser)
         log.info("Updated budget account id={} userId={}", updated.id, authenticatedUser.id)
-        return ResponseEntity.ok(updated)
+        return updated
     }
 
     @DeleteMapping("/{id}")
@@ -52,15 +52,15 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
     }
 
     @GetMapping("")
-    fun fetchAccounts(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<List<BudgetAccountDTO>> =
-        ResponseEntity.ok(budgetAccountService.fetchAccounts(authenticatedUser))
+    fun fetchAccounts(@AuthenticationPrincipal authenticatedUser: UserDTO): List<BudgetAccountDTO> =
+        budgetAccountService.fetchAccounts(authenticatedUser)
 
     @GetMapping("/{id}")
     fun findAccount(
         @PathVariable id: String,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<BudgetAccountDTO> =
-        ResponseEntity.ok(budgetAccountService.fetchAccountById(id, authenticatedUser))
+    ): BudgetAccountDTO =
+        budgetAccountService.fetchAccountById(id, authenticatedUser)
 
     @GetMapping("/{id}/snapshots")
     fun fetchSnapshots(
@@ -68,6 +68,6 @@ class BudgetAccountResource(private val budgetAccountService: IBudgetAccountServ
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<BudgetAccountSnapshotDTO>> =
-        ResponseEntity.ok(budgetAccountService.fetchAccountSnapshots(id, startDate, endDate, authenticatedUser))
+    ): List<BudgetAccountSnapshotDTO> =
+        budgetAccountService.fetchAccountSnapshots(id, startDate, endDate, authenticatedUser)
 }

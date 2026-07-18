@@ -5,9 +5,8 @@ import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import {type LoanForm as LoanFormModel, cleanOptionalNumber} from "~/models/loan/loan";
 import LoanForm from "~/components/_organisms/loans/loan-form.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {todayIsoDate} from "~/utils/date";
 
 const props = defineProps<{
@@ -25,7 +24,6 @@ const {t} = useI18n();
 
 const form = ref<LoanFormModel>(makeBlankForm());
 const loading = ref(false);
-const formId = useId();
 
 const contactLabel = t('contacts.loans.form.pickContact');
 const firstNameLabel = t('contacts.loans.form.newFirstNameLabel');
@@ -95,12 +93,10 @@ function makeBlankForm(): LoanFormModel {
   };
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => form.value = makeBlankForm(),
-});
+const getSnapshot = () => form.value;
+const onResetOnOpen = () => {
+  form.value = makeBlankForm();
+};
 
 async function handleSave(_event: FormSubmitEvent<Schema>) {
   loading.value = true;
@@ -117,21 +113,18 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t('contacts.loans.create.description')"
-          :title="t('contacts.loans.create.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
-        <LoanForm v-model="form" :lock-contact="!!contactId"/>
-      </UForm>
+  <FormModal v-model="isOpen"
+             :description="t('contacts.loans.create.description')"
+             :title="t('contacts.loans.create.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="getSnapshot"
+             :on-reset-on-open="onResetOnOpen"
+             :submit-label="t('contacts.loans.create.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <LoanForm v-model="form" :lock-contact="!!contactId"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t('contacts.loans.create.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

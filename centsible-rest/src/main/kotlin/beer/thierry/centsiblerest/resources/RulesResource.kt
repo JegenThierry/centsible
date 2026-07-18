@@ -25,17 +25,17 @@ class RulesResource(private val ruleService: IRuleService) {
     private val log = LoggerFactory.getLogger(RulesResource::class.java)
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<RuleDTO>> =
-        ResponseEntity.ok(ruleService.list(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<RuleDTO> =
+        ruleService.list(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: RuleForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<RuleDTO> {
+    ): RuleDTO {
         val created = ruleService.create(user, form)
         log.info("Created rule id={} userId={}", created.id, user.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -43,29 +43,27 @@ class RulesResource(private val ruleService: IRuleService) {
         @PathVariable id: UUID,
         @Valid @RequestBody form: RuleForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<RuleDTO> =
-        ResponseEntity.ok(ruleService.update(user, id, form))
+    ): RuleDTO =
+        ruleService.update(user, id, form)
 
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<Void> =
-        if (ruleService.delete(user, id)) {
-            log.info("Deleted rule id={} userId={}", id, user.id)
-            ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+    ): ResponseEntity<Void> {
+        val deleted = ruleService.delete(user, id)
+        if (deleted) log.info("Deleted rule id={} userId={}", id, user.id)
+        return deleted.toDeleteResponse()
+    }
 
     @PostMapping("/{id}/apply")
     fun apply(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ApplyRuleResult> {
+    ): ApplyRuleResult {
         val updated = ruleService.applyToExisting(user, id)
         log.info("Applied rule id={} to {} transaction(s) userId={}", id, updated, user.id)
-        return ResponseEntity.ok(ApplyRuleResult(updated))
+        return ApplyRuleResult(updated)
     }
 }
 
