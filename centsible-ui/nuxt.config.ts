@@ -16,6 +16,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: {enabled: false},
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n', '@vueuse/nuxt'],
+  icon: {
+    serverBundle: 'local',
+    localApiEndpoint: '/_nuxt_icon',
+    fallbackToApi: false,
+  },
   css: ['@/assets/css/main.css'],
   // No manualChunks for chart.js: naming it as one made Rollup merge it into the always-loaded
   // shared chunk, costing every route ~67 kB gzip. Default splitting isolates it correctly.
