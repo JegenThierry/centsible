@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.rule.RuleDTO
 import beer.thierry.centsible.api.model.rule.RuleForm
+import beer.thierry.centsible.api.model.rule.RulePreviewResult
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.rule.IRuleService
 import jakarta.validation.Valid
@@ -55,6 +56,13 @@ class RulesResource(private val ruleService: IRuleService) {
         if (deleted) log.info("Deleted rule id={} userId={}", id, user.id)
         return deleted.toDeleteResponse()
     }
+
+    @PostMapping("/preview")
+    fun preview(
+        @RequestBody form: RuleForm,
+        @AuthenticationPrincipal user: UserDTO,
+    ): RulePreviewResult =
+        ruleService.preview(user, form)
 
     @PostMapping("/{id}/apply")
     fun apply(

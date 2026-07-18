@@ -63,6 +63,12 @@
       "INCOME": "Revenu",
       "EXPENSE": "Dépense"
     },
+    "preview": {
+      "title": "Correspondances",
+      "matchCount": "{count} transaction(s) correspondante(s)",
+      "empty": "Aucune transaction ne correspond encore à ces conditions.",
+      "failed": "Aperçu indisponible."
+    },
     "toasts": {
       "createdTitle": "Règle créée",
       "createdBody": "La règle a été ajoutée.",

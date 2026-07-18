@@ -455,8 +455,26 @@ class GoCardlessProviderModuleTest {
         }
 
         assertTrue(ex.message!!.contains("1 of 2"))
-        assertTrue(ex.message!!.contains("2024-01-01"))
+        assertTrue(ex.message!!.contains("2023-12-25"))
         verify(client).fetchAccountTransactions(eqArg("ACC-2"), anyArg())
+    }
+
+    @Test
+    fun `importSince re-fetches an overlapping window before the cursor to catch late-posted rows`() {
+        val client = mock(GoCardlessHttpClient::class.java)
+        var captured: LocalDate? = null
+        `when`(client.fetchAccountTransactions(eqArg("ACC-1"), anyArg())).thenAnswer {
+            captured = it.getArgument<LocalDate>(1)
+            TransactionsResponse()
+        }
+        val module = newModule(client)
+
+        module.importSince(
+            ctx = ctx(config = mapOf("country" to "DE", "accountIds" to listOf("ACC-1"))),
+            cursor = "2024-01-10",
+        )
+
+        assertEquals(LocalDate.parse("2024-01-03"), captured)
     }
 
     @Test

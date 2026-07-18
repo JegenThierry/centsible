@@ -32,11 +32,11 @@ class ExportScheduleServiceTest {
 
     private val user = UserDTO(id = UUID.randomUUID())
 
-    /** Stubs repository.create and returns the next-run-at (arg index 4) it was called with. */
+    /** Stubs repository.create and returns the next-run-at (arg index 5) it was called with. */
     private fun captureNextRunOnCreate(): () -> LocalDate? {
         var captured: LocalDate? = null
-        `when`(repository.create(anyArg(), anyArg(), anyArg(), anyArg(), anyArg())).thenAnswer {
-            captured = it.getArgument<LocalDate>(4)
+        `when`(repository.create(anyArg(), anyArg(), anyArg(), anyArg(), anyArg(), anyArg())).thenAnswer {
+            captured = it.getArgument<LocalDate>(5)
             ExportScheduleDTO(id = UUID.randomUUID())
         }
         return { captured }

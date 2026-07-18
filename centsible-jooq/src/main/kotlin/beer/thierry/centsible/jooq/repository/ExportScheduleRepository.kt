@@ -27,6 +27,7 @@ class ExportScheduleRepository(private val dsl: DSLContext) : IExportScheduleRep
     override fun create(
         authenticatedUser: UserDTO,
         title: String,
+        type: ExportType,
         format: ExportFormat,
         frequency: Frequency,
         nextRunAt: LocalDate,
@@ -34,7 +35,7 @@ class ExportScheduleRepository(private val dsl: DSLContext) : IExportScheduleRep
         val now = OffsetDateTime.now()
         val id = dsl.insertInto(EXPORT_SCHEDULES)
             .set(EXPORT_SCHEDULES.USER_ID, authenticatedUser.id)
-            .set(EXPORT_SCHEDULES.TYPE, ExportType.TRANSACTIONS.toJooq())
+            .set(EXPORT_SCHEDULES.TYPE, type.toJooq())
             .set(EXPORT_SCHEDULES.FORMAT, format.name)
             .set(EXPORT_SCHEDULES.TITLE, title)
             .set(EXPORT_SCHEDULES.FREQUENCY, frequency.name)
@@ -54,12 +55,14 @@ class ExportScheduleRepository(private val dsl: DSLContext) : IExportScheduleRep
         authenticatedUser: UserDTO,
         id: UUID,
         title: String,
+        type: ExportType,
         format: ExportFormat,
         frequency: Frequency,
         active: Boolean,
     ): ExportScheduleDTO? {
         val updated = dsl.update(EXPORT_SCHEDULES)
             .set(EXPORT_SCHEDULES.TITLE, title)
+            .set(EXPORT_SCHEDULES.TYPE, type.toJooq())
             .set(EXPORT_SCHEDULES.FORMAT, format.name)
             .set(EXPORT_SCHEDULES.FREQUENCY, frequency.name)
             .set(EXPORT_SCHEDULES.ACTIVE, active)

@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetForm
 import beer.thierry.centsible.api.model.budget.BudgetPeriodType
 import beer.thierry.centsible.api.model.user.UserDTO
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.util.*
 
@@ -23,6 +24,21 @@ interface IBudgetRepository {
         periodType: BudgetPeriodType,
         excludeBudgetId: UUID? = null,
     ): Boolean
+
+    /**
+     * Average monthly spend per category over the [months] full calendar months ending the month before
+     * [asOf], as a budget-amount suggestion. Reuses the same transfer-excluded, split-aware expense sum as
+     * budget "spent". Categories with no spend are absent from the result.
+     */
+    fun suggestedAmounts(
+        authenticatedUser: UserDTO,
+        categoryIds: List<Long>,
+        months: Int,
+        asOf: YearMonth,
+    ): Map<Long, BigDecimal>
+
+    /** The category ids the user already has a [periodType] budget for, so bulk-create can skip them in one query. */
+    fun budgetedCategoryIds(authenticatedUser: UserDTO, periodType: BudgetPeriodType): Set<Long>
 
     fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO
     fun update(id: UUID, form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO

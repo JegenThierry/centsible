@@ -63,6 +63,12 @@
       "INCOME": "Income",
       "EXPENSE": "Expense"
     },
+    "preview": {
+      "title": "Matches",
+      "matchCount": "{count} transaction(s) match",
+      "empty": "No transactions match these conditions yet.",
+      "failed": "Preview unavailable."
+    },
     "toasts": {
       "createdTitle": "Rule created",
       "createdBody": "The rule has been added.",

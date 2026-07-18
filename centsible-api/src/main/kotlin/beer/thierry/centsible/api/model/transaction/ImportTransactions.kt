@@ -35,6 +35,8 @@ data class ImportTransactionRow(
     var type: CategoryType? = null,
 
     var currency: Currency? = null,
+
+    var categoryName: String? = null,
 )
 
 data class ImportTransactionsRequest(

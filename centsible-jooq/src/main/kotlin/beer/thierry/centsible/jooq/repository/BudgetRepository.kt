@@ -17,6 +17,7 @@ import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.YearMonth
@@ -134,6 +135,28 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         if (excludeBudgetId != null) condition = condition.and(BUDGETS.ID.ne(excludeBudgetId))
         return dsl.fetchExists(dsl.selectOne().from(BUDGETS).where(condition))
     }
+
+    override fun suggestedAmounts(
+        authenticatedUser: UserDTO,
+        categoryIds: List<Long>,
+        months: Int,
+        asOf: YearMonth,
+    ): Map<Long, BigDecimal> {
+        if (categoryIds.isEmpty() || months <= 0) return emptyMap()
+        val from = asOf.minusMonths(months.toLong()).atDay(1)
+        val to = asOf.minusMonths(1).atEndOfMonth()
+        val divisor = BigDecimal(months)
+        return sumByCategory(authenticatedUser, categoryIds, from, to)
+            .mapValues { (_, total) -> total.divide(divisor, 2, RoundingMode.HALF_UP) }
+    }
+
+    override fun budgetedCategoryIds(authenticatedUser: UserDTO, periodType: BudgetPeriodType): Set<Long> =
+        dsl.select(BUDGETS.CATEGORY_ID)
+            .from(BUDGETS)
+            .where(BUDGETS.USER_ID.eq(authenticatedUser.id).and(BUDGETS.PERIOD_TYPE.eq(periodType.name)))
+            .fetch(BUDGETS.CATEGORY_ID)
+            .filterNotNull()
+            .toSet()
 
     override fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO {
         val now = OffsetDateTime.now()

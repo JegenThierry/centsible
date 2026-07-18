@@ -11,3 +11,13 @@ export enum AccountType {
 }
 
 export const ACCOUNT_TYPES: AccountType[] = Object.values(AccountType);
+
+export const LIABILITY_TYPES: AccountType[] = [
+  AccountType.CREDIT_CARD,
+  AccountType.LOAN,
+  AccountType.MORTGAGE,
+];
+
+export function isLiability(type: AccountType | undefined): boolean {
+  return type != null && LIABILITY_TYPES.includes(type);
+}

@@ -3,6 +3,7 @@ import type {Budget, BudgetForm, BudgetPeriodType, BudgetRequest} from "~/models
 import BudgetFormFields from "~/components/_molecules/budgets/budget-form.vue";
 import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {useBudgetService} from "~/services/budget/budget-service";
+import {useBudgetsStore} from "~/stores/budgetsStore";
 import {useModalSubmit} from "~/composables/use-modal-submit";
 import {budgetSchema} from "~/utils/form-schemas";
 
@@ -21,6 +22,7 @@ const emit = defineEmits<{
 }>();
 
 const service = useBudgetService(useApi());
+const store = useBudgetsStore();
 const {t} = useI18n();
 
 const isEdit = computed(() => !!props.budget);
@@ -52,6 +54,10 @@ function snapshot() {
 
 watch(() => props.budget, () => {
   if (isOpen.value) syncForm();
+});
+
+onMounted(() => {
+  if (!isEdit.value) store.fetchSuggestions();
 });
 
 const {pending, submit} = useModalSubmit({
@@ -88,7 +94,9 @@ const {pending, submit} = useModalSubmit({
              :submit-label="t(isEdit ? 'budgets.edit.submit' : 'budgets.create.submit')"
              @submit="submit">
     <template #fields>
-      <BudgetFormFields v-model="form" :existing-combos="existingCombos"/>
+      <BudgetFormFields v-model="form"
+                        :existing-combos="existingCombos"
+                        :suggestions="isEdit ? [] : store.suggestions"/>
     </template>
   </FormModal>
 </template>

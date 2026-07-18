@@ -3,6 +3,9 @@ package beer.thierry.centsible.core.services.budget
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetForm
+import beer.thierry.centsible.api.model.budget.BudgetPeriodType
+import beer.thierry.centsible.api.model.budget.BudgetSuggestionDTO
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.ICategoriesRepository
@@ -10,8 +13,11 @@ import beer.thierry.centsible.api.services.budget.IBudgetService
 import beer.thierry.centsible.core.services.categories.requireOwnedClassification
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.util.*
+
+private const val SUGGESTION_MONTHS = 3
 
 @Service
 class BudgetService(
@@ -23,6 +29,30 @@ class BudgetService(
 
     override fun fetchAllForMonth(authenticatedUser: UserDTO, yearMonth: YearMonth): List<BudgetDTO> =
         repository.fetchAllWithSpentForMonth(authenticatedUser, yearMonth)
+
+    override fun suggestions(authenticatedUser: UserDTO): List<BudgetSuggestionDTO> =
+        positiveSuggestions(authenticatedUser).map { BudgetSuggestionDTO(it.key, it.value) }
+
+    override fun bulkCreateSuggested(authenticatedUser: UserDTO): List<BudgetDTO> {
+        val suggested = positiveSuggestions(authenticatedUser)
+        if (suggested.isEmpty()) return emptyList()
+        val covered = repository.budgetedCategoryIds(authenticatedUser, BudgetPeriodType.MONTHLY)
+        val created = suggested.filterKeys { it !in covered }.map { (categoryId, amount) ->
+            repository.create(
+                BudgetForm(categoryId = categoryId, amountLimit = amount, periodType = BudgetPeriodType.MONTHLY),
+                authenticatedUser,
+            )
+        }
+        log.info("Bulk-created {} budget(s) from suggestions userId={}", created.size, authenticatedUser.id)
+        return created
+    }
+
+    private fun positiveSuggestions(authenticatedUser: UserDTO): Map<Long, BigDecimal> {
+        val categoryIds = expenseCategoryIds(authenticatedUser)
+        if (categoryIds.isEmpty()) return emptyMap()
+        return repository.suggestedAmounts(authenticatedUser, categoryIds, SUGGESTION_MONTHS, YearMonth.now())
+            .filterValues { it.signum() > 0 }
+    }
 
     override fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO {
         assertCategoryOwned(authenticatedUser, form.categoryId)
@@ -64,4 +94,9 @@ class BudgetService(
     private fun assertCategoryOwned(authenticatedUser: UserDTO, categoryId: Long) {
         categoriesRepository.requireOwnedClassification(authenticatedUser, categoryId)
     }
+
+    private fun expenseCategoryIds(authenticatedUser: UserDTO): List<Long> =
+        categoriesRepository.fetchAllCategories(authenticatedUser)
+            .filter { it.type == CategoryType.EXPENSE }
+            .mapNotNull { it.id }
 }

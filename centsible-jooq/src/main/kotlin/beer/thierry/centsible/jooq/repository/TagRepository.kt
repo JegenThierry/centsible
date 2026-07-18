@@ -133,6 +133,27 @@ class TagRepository(private val dsl: DSLContext) : ITagRepository {
         return insert.onConflict(TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID).doNothing().execute()
     }
 
+    override fun removeTagsFromTransactions(
+        authenticatedUser: UserDTO,
+        transactionIds: Collection<UUID>,
+        tagIds: Collection<Long>,
+    ): Int {
+        if (transactionIds.isEmpty() || tagIds.isEmpty()) return 0
+        return dsl.deleteFrom(TRANSACTION_TAGS)
+            .where(
+                TRANSACTION_TAGS.TAG_ID.`in`(tagIds).and(
+                    TRANSACTION_TAGS.TRANSACTION_ID.`in`(
+                        dsl.select(TRANSACTIONS.ID).from(TRANSACTIONS)
+                            .where(
+                                TRANSACTIONS.ID.`in`(transactionIds)
+                                    .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id)))
+                            )
+                    )
+                )
+            )
+            .execute()
+    }
+
     private fun mapToDTO(record: Record): TagDTO =
         TagDTO(
             id = record[TAGS.ID],

@@ -201,6 +201,34 @@ class TransactionResource(private val transactionService: ITransactionService) {
         return BulkResult(affected)
     }
 
+    @PostMapping("/{accountId}/bulk-add-tags")
+    fun bulkAddTags(
+        @PathVariable accountId: UUID,
+        @Valid @RequestBody request: BulkTagsRequest,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): BulkResult {
+        val affected = transactionService.bulkAddTags(request.ids, request.tagIds, authenticatedUser)
+        log.info(
+            "Bulk-added tags accountId={} userId={} tagCount={} affected={}",
+            accountId, authenticatedUser.id, request.tagIds.size, affected,
+        )
+        return BulkResult(affected)
+    }
+
+    @PostMapping("/{accountId}/bulk-remove-tags")
+    fun bulkRemoveTags(
+        @PathVariable accountId: UUID,
+        @Valid @RequestBody request: BulkTagsRequest,
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): BulkResult {
+        val affected = transactionService.bulkRemoveTags(request.ids, request.tagIds, authenticatedUser)
+        log.info(
+            "Bulk-removed tags accountId={} userId={} tagCount={} affected={}",
+            accountId, authenticatedUser.id, request.tagIds.size, affected,
+        )
+        return BulkResult(affected)
+    }
+
     @PostMapping("/{accountId}/set-balance")
     fun createBalanceAdjustment(
         @PathVariable accountId: UUID,
@@ -225,4 +253,5 @@ class TransactionResource(private val transactionService: ITransactionService) {
 
 data class BulkIdsRequest(val ids: List<UUID> = emptyList())
 data class BulkCategorizeRequest(val ids: List<UUID> = emptyList(), val categoryId: Long = 0L)
+data class BulkTagsRequest(val ids: List<UUID> = emptyList(), val tagIds: List<Long> = emptyList())
 data class BulkResult(val affected: Int)

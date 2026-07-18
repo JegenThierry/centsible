@@ -56,12 +56,16 @@ object RuleMatching {
             context.accountId.toString().equals(condition.value, ignoreCase = true)
     }
 
-    /** A rule matches when (matchAll) all / (else) any of its conditions hold. No conditions never matches. */
-    fun ruleMatches(rule: RuleDTO, context: RuleContext): Boolean {
-        if (rule.conditions.isEmpty()) return false
-        return if (rule.matchAll) rule.conditions.all { conditionMatches(it, context) }
-        else rule.conditions.any { conditionMatches(it, context) }
+    /** Whether [conditions] hold for [context] under [matchAll] (all vs any). No conditions never matches. */
+    fun matches(matchAll: Boolean, conditions: List<RuleConditionDTO>, context: RuleContext): Boolean {
+        if (conditions.isEmpty()) return false
+        return if (matchAll) conditions.all { conditionMatches(it, context) }
+        else conditions.any { conditionMatches(it, context) }
     }
+
+    /** A rule matches when (matchAll) all / (else) any of its conditions hold. No conditions never matches. */
+    fun ruleMatches(rule: RuleDTO, context: RuleContext): Boolean =
+        matches(rule.matchAll, rule.conditions, context)
 
     /**
      * Evaluates [rules] (expected in priority order — highest first) against [context]. The first

@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import adze from 'adze'
-import type {Budget} from "~/models/budget/budget";
+import type {Budget, BudgetSuggestion} from "~/models/budget/budget";
 import {useBudgetService} from "~/services/budget/budget-service";
 import {createLatestRequestGate} from "~/utils/latest-request";
 
@@ -8,6 +8,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
   const service = useBudgetService(useApi());
   const items = ref<Budget[]>([]);
   const history = ref<{month: string; budgets: Budget[]}[]>([]);
+  const suggestions = ref<BudgetSuggestion[]>([]);
   const loading = ref(false);
   const error = ref(false);
   const historyLoading = ref(false);
@@ -58,9 +59,26 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     }
   }
 
+  /** Recent average monthly spend per expense category; failures degrade to no suggestions. */
+  async function fetchSuggestions(): Promise<BudgetSuggestion[]> {
+    try {
+      suggestions.value = await service.fetchSuggestions();
+    } catch (e) {
+      adze.ns('budgets').error('Failed to fetch budget suggestions', e);
+      suggestions.value = [];
+    }
+    return suggestions.value;
+  }
+
+  /** Creates a monthly budget for every unbudgeted expense category with positive suggested spend. */
+  function bulkCreateSuggested(): Promise<Budget[]> {
+    return service.bulkCreateSuggested();
+  }
+
   return {
     items,
     history,
+    suggestions,
     loading,
     error,
     historyLoading,
@@ -68,5 +86,7 @@ export const useBudgetsStore = defineStore('budgetsStore', () => {
     fetchCurrentMonth,
     fetchForMonth,
     fetchHistory,
+    fetchSuggestions,
+    bulkCreateSuggested,
   };
 });

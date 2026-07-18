@@ -173,10 +173,12 @@ class CsvFileParser : FileFormatParser {
             return null
         }
 
-        val description = descRaw.ifBlank { "(no description)" }.take(255)
+        val counterparty = cell(mapping.counterpartyColumn)
+        val description = descRaw.ifBlank { counterparty.orEmpty() }.ifBlank { "(no description)" }.take(255)
         val currency = Currency.parseOrNull(cell(mapping.currencyColumn))
+        val categoryName = cell(mapping.categoryColumn)
 
-        return importRow(amount, description, date, defaultCategoryId, currency)
+        return importRow(amount, description, date, defaultCategoryId, currency, categoryName)
     }
 
     private fun resolveAmount(

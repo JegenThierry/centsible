@@ -18,6 +18,10 @@
       "legend": "Nettovermögen",
       "empty": "Noch keine Daten. Erfasse ein paar Transaktionen und schau später wieder vorbei.",
       "drillHint": "Klicke auf einen Punkt für die Aufschlüsselung nach Konto",
+      "total": "Gesamtes Nettovermögen",
+      "assets": "Vermögenswerte",
+      "liabilities": "Verbindlichkeiten",
+      "net": "Netto",
       "breakdown": {
         "title": "Nettovermögen aufschlüsseln",
         "total": "Gesamt",

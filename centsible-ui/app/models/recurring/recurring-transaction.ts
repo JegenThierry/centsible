@@ -4,6 +4,7 @@ import type {Currency} from "~/models/budget-account/currency";
 export enum Frequency {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
+  BIWEEKLY = 'BIWEEKLY',
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
 }
@@ -11,6 +12,7 @@ export enum Frequency {
 export const FREQUENCY_LABELS: Record<Frequency, string> = {
   [Frequency.DAILY]: 'Daily',
   [Frequency.WEEKLY]: 'Weekly',
+  [Frequency.BIWEEKLY]: 'Every 2 weeks',
   [Frequency.MONTHLY]: 'Monthly',
   [Frequency.YEARLY]: 'Yearly',
 };

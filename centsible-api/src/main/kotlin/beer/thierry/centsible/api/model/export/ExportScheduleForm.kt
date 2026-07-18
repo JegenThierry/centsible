@@ -13,6 +13,8 @@ data class ExportScheduleForm(
     @field:NotNull(message = "{validation.export.schedule.format.required}")
     var format: ExportFormat = ExportFormat.PDF,
 
+    var type: ExportType = ExportType.TRANSACTIONS,
+
     @field:NotNull(message = "{validation.export.schedule.frequency.required}")
     var frequency: Frequency? = null,
 )
@@ -24,6 +26,8 @@ data class ExportScheduleUpdateForm(
 
     @field:NotNull(message = "{validation.export.schedule.format.required}")
     var format: ExportFormat = ExportFormat.PDF,
+
+    var type: ExportType = ExportType.TRANSACTIONS,
 
     @field:NotNull(message = "{validation.export.schedule.frequency.required}")
     var frequency: Frequency? = null,

@@ -1,3 +1,6 @@
+import type {CategoryType} from "~/models/category/category";
+import type {Currency} from "~/models/budget-account/currency";
+
 export interface ImportDetection {
   parserId: string;
   displayName: string;
@@ -47,6 +50,9 @@ export interface ImportTransactionRow {
   categoryId: number;
   description: string;
   transactionDate: string;
+  type?: CategoryType | null;
+  currency?: Currency | null;
+  categoryName?: string | null;
 }
 
 export interface ImportParseWarning {

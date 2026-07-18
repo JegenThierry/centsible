@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import adze from 'adze'
-import type {Rule, RuleForm} from "~/models/rule/rule";
+import type {Rule, RuleForm, RulePreviewResult} from "~/models/rule/rule";
 import {useRuleService} from "~/services/rule/rule-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
@@ -68,5 +68,9 @@ export const useRulesStore = defineStore('rulesStore', () => {
     }
   }
 
-  return {rules, pending, updateRules, createRule, updateRule, deleteRule, applyRule};
+  function previewRule(form: RuleForm): Promise<RulePreviewResult> {
+    return service.previewRule(form);
+  }
+
+  return {rules, pending, updateRules, createRule, updateRule, deleteRule, applyRule, previewRule};
 });

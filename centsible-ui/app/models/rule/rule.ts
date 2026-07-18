@@ -1,4 +1,4 @@
-import type {Category} from "~/models/category/category";
+import type {Category, CategoryType} from "~/models/category/category";
 import type {Tag} from "~/models/tag/tag";
 
 export type RuleField = 'DESCRIPTION' | 'AMOUNT' | 'DIRECTION' | 'ACCOUNT';
@@ -61,4 +61,15 @@ export interface RuleForm {
   priority: number;
   conditions: RuleConditionForm[];
   actions: RuleActionForm[];
+}
+
+export interface RulePreviewMatch {
+  description: string;
+  amount: number;
+  type: CategoryType;
+}
+
+export interface RulePreviewResult {
+  matchedCount: number;
+  sample: RulePreviewMatch[];
 }

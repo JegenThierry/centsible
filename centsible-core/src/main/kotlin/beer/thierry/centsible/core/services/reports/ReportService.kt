@@ -151,6 +151,7 @@ class ReportService(
                 accountId = acc.id,
                 accountName = acc.name,
                 currency = acc.currency,
+                type = acc.type,
                 balance = raw,
                 convertedBalance = rates.byAccount[acc.id]?.let { raw.multiply(it).setScale(2, RoundingMode.HALF_UP) },
                 targetCurrency = rates.target,

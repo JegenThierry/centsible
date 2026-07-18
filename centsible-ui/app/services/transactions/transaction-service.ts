@@ -113,6 +113,20 @@ export function useTransactionService(api: AxiosInstance) {
     return afterMutation(validateRequest<{ affected: number }>(response).affected);
   }
 
+  async function bulkAddTags(accountId: string, ids: string[], tagIds: number[]): Promise<number> {
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-add-tags`, {ids, tagIds});
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
+  }
+
+  async function bulkRemoveTags(accountId: string, ids: string[], tagIds: number[]): Promise<number> {
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-remove-tags`, {ids, tagIds});
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
+  }
+
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
     return afterMutation(validateRequest<Transaction>(response));
@@ -136,6 +150,8 @@ export function useTransactionService(api: AxiosInstance) {
     fetchTransfer,
     bulkDelete,
     bulkCategorize,
+    bulkAddTags,
+    bulkRemoveTags,
     aggregateByCategory,
     aggregateByMonth,
     aggregateByDay,

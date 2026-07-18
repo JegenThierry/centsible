@@ -59,6 +59,7 @@ export function useExportSchedules() {
   async function toggleActive(schedule: ExportSchedule) {
     await update(schedule.id, {
       title: schedule.title,
+      type: schedule.type,
       format: schedule.format,
       frequency: schedule.frequency,
       active: !schedule.active,

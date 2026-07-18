@@ -88,6 +88,7 @@ function advance(date: Date, freq: Frequency): Date {
   switch (freq) {
     case Frequency.DAILY: return addDays(date, 1);
     case Frequency.WEEKLY: return addWeeks(date, 1);
+    case Frequency.BIWEEKLY: return addWeeks(date, 2);
     case Frequency.MONTHLY: return addMonths(date, 1);
     case Frequency.YEARLY: return addYears(date, 1);
   }

@@ -95,6 +95,7 @@
         "description": "A recurring export of your transactions, emailed to you each period.",
         "nameLabel": "Name",
         "namePlaceholder": "Monthly statement",
+        "typeLabel": "Type",
         "formatLabel": "Format",
         "frequencyLabel": "Frequency",
         "hint": "Each run covers the previous period (monthly → last month) across all accounts and is emailed to you."

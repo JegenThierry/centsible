@@ -7,6 +7,8 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'recategorize'): void;
+  (e: 'add-tags'): void;
+  (e: 'remove-tags'): void;
   (e: 'delete'): void;
   (e: 'clear'): void;
 }>();
@@ -21,6 +23,12 @@ const {t} = useI18n();
     <div class="ml-auto flex gap-2">
       <AppButton color="primary" icon="i-lucide-tag" size="sm" variant="outline" @click="emit('recategorize')">
         {{ t('transactions.bulk.recategorize') }}
+      </AppButton>
+      <AppButton color="primary" icon="i-lucide-plus" size="sm" variant="outline" @click="emit('add-tags')">
+        {{ t('transactions.bulk.addTags') }}
+      </AppButton>
+      <AppButton color="primary" icon="i-lucide-minus" size="sm" variant="outline" @click="emit('remove-tags')">
+        {{ t('transactions.bulk.removeTags') }}
       </AppButton>
       <AppButton color="error" icon="i-lucide-trash" size="sm" variant="outline" @click="emit('delete')">
         {{ t('transactions.bulk.delete') }}

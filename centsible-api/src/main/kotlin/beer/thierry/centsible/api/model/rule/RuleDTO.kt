@@ -1,7 +1,9 @@
 package beer.thierry.centsible.api.model.rule
 
 import beer.thierry.centsible.api.model.category.CategoryDTO
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.tag.TagDTO
+import java.math.BigDecimal
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -77,4 +79,15 @@ data class RuleForm(
     @field:Valid
     @field:NotEmpty(message = "{validation.rule.actions.required}")
     var actions: List<RuleActionForm> = emptyList(),
+)
+
+data class RulePreviewMatch(
+    val description: String,
+    val amount: BigDecimal,
+    val type: CategoryType,
+)
+
+data class RulePreviewResult(
+    val matchedCount: Int,
+    val sample: List<RulePreviewMatch>,
 )

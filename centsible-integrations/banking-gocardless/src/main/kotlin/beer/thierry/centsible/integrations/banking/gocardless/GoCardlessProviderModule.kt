@@ -307,7 +307,7 @@ class GoCardlessProviderModule(
             )
             throw IllegalStateException(
                 "Transactions could not be fetched for $failedAccounts of ${accountIds.size} account(s); " +
-                    "keeping the sync cursor at $dateFrom so the window is retried instead of skipped"
+                    "not advancing the sync cursor so the window from $dateFrom is retried instead of skipped"
             )
         }
         log.info(
@@ -331,7 +331,7 @@ class GoCardlessProviderModule(
     private fun resolveDateFrom(cursor: String?, historicalDaysRaw: Any?): LocalDate {
         if (!cursor.isNullOrBlank()) {
             try {
-                return LocalDate.parse(cursor)
+                return LocalDate.parse(cursor).minusDays(REFETCH_OVERLAP_DAYS)
             } catch (_: DateTimeParseException) {
             }
         }
@@ -402,6 +402,7 @@ class GoCardlessProviderModule(
 
     companion object {
         private const val DEFAULT_HISTORICAL_DAYS = 90
+        private const val REFETCH_OVERLAP_DAYS = 7L
         private const val MAX_REMOTE_OPTIONS = 50
         private const val CONSENT_LIFETIME_SECONDS = 90L * 86400L
         private val CONSENT_OK_STATUSES = setOf("LN", "GC")

@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS recurring_transactions
     category_id BIGINT         NOT NULL REFERENCES categories (id),
     amount      DECIMAL(15, 2) NOT NULL CHECK (amount > 0),
     description TEXT           NOT NULL,
-    frequency   VARCHAR(10)    NOT NULL CHECK (frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')),
+    frequency   VARCHAR(10)    NOT NULL CHECK (frequency IN ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'YEARLY')),
     start_date  DATE           NOT NULL,
     end_date    DATE,
     next_run_at DATE           NOT NULL,

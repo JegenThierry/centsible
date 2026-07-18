@@ -1,6 +1,6 @@
 import type {AxiosInstance} from "axios";
 import {crudResource, validateRequest} from "~/composables/use-api";
-import type {Rule, RuleForm} from "~/models/rule/rule";
+import type {Rule, RuleForm, RulePreviewResult} from "~/models/rule/rule";
 
 export interface ApplyRuleResult {
   updated: number;
@@ -14,11 +14,17 @@ export function useRuleService(api: AxiosInstance) {
     return validateRequest<ApplyRuleResult>(await api.post<ApplyRuleResult>(`/rules/${id}/apply`, {}));
   }
 
+  /** Dry-runs [form] against the user's existing transactions; returns match count and a sample. */
+  async function previewRule(form: RuleForm): Promise<RulePreviewResult> {
+    return validateRequest<RulePreviewResult>(await api.post<RulePreviewResult>('/rules/preview', form));
+  }
+
   return {
     fetchRules: (): Promise<Rule[]> => resource.list(),
     createRule: (form: RuleForm): Promise<Rule> => resource.create(form),
     updateRule: (id: string, form: RuleForm): Promise<Rule> => resource.update(id, form),
     deleteRule: (id: string): Promise<void> => resource.remove(id),
     applyRule,
+    previewRule,
   };
 }

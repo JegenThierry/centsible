@@ -44,6 +44,7 @@ import java.time.LocalDate
 import java.util.*
 
 private const val UNCATEGORIZED_SYSTEM_KEY = "UNCATEGORIZED"
+private const val TRANSFER_MATCH_MAX_DAY_GAP = 3
 
 @Service
 class TransactionService(
@@ -403,6 +404,18 @@ class TransactionService(
         return updated
     }
 
+    @Transactional
+    override fun bulkAddTags(ids: List<UUID>, tagIds: List<Long>, authenticatedUser: UserDTO): Int {
+        if (ids.isEmpty() || tagIds.isEmpty()) return 0
+        return tagRepository.addTagsToTransactions(authenticatedUser, ids, tagIds)
+    }
+
+    @Transactional
+    override fun bulkRemoveTags(ids: List<UUID>, tagIds: List<Long>, authenticatedUser: UserDTO): Int {
+        if (ids.isEmpty() || tagIds.isEmpty()) return 0
+        return tagRepository.removeTagsFromTransactions(authenticatedUser, ids, tagIds)
+    }
+
     override fun aggregateByCategory(
         accountId: UUID, authenticatedUser: UserDTO, from: LocalDate, to: LocalDate
     ): List<CategoryAggregateDTO> =
@@ -436,19 +449,28 @@ class TransactionService(
             )
             val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
             val rules = if (fallbackCategoryId != null) ruleService.list(authenticatedUser) else emptyList()
-            val resolvedRows = rows.map { row ->
+            val mappedCategories = mappedCategoryIndex(rows, authenticatedUser)
+            val resolvedRows = ArrayList<ImportTransactionRow>(rows.size)
+            val tagIdsPerRow = ArrayList<Set<Long>>(rows.size)
+            rows.forEach { row ->
                 val classification = classifications[row.categoryId] ?: throw categoryNotFound(row.categoryId)
                 val type = resolveType(classification, row.type)
-                val categoryId = if (fallbackCategoryId != null && row.categoryId == fallbackCategoryId) {
-                    categoryViaRules(rules, row.description, row.amount, type, accountId, row.categoryId)
-                } else {
-                    row.categoryId
+                val mappedCategoryId = row.categoryName
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { mappedCategories[categoryKey(it, type)] }
+                val (resolvedRow, tagIds) = when {
+                    mappedCategoryId != null -> row.copy(categoryId = mappedCategoryId, type = type) to emptySet<Long>()
+                    fallbackCategoryId != null && row.categoryId == fallbackCategoryId ->
+                        ruleOutcome(rules, row.description, row.amount, type, accountId, fallbackCategoryId)
+                            .let { (categoryId, tags) -> row.copy(categoryId = categoryId, type = type) to tags }
+                    else -> row.copy(type = type) to emptySet<Long>()
                 }
-                row.copy(categoryId = categoryId, type = type)
+                resolvedRows.add(resolvedRow)
+                tagIdsPerRow.add(tagIds)
             }
 
             val hashes = resolvedRows.map { rowHash(accountId, it) }
-            val result = finishImport(accountId, resolvedRows, conversions, hashes, authenticatedUser)
+            val result = finishImport(accountId, resolvedRows, conversions, hashes, tagIdsPerRow, authenticatedUser)
 
             log.info(
                 "Imported transaction batch accountId={} userId={} totalRows={} inserted={} skippedDuplicates={}",
@@ -475,24 +497,30 @@ class TransactionService(
         val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
         val rules = ruleService.list(authenticatedUser)
         val priced = transactions.filter { it.amount.signum() != 0 }
-        val rows = priced.map { tx ->
+        val rows = ArrayList<ImportTransactionRow>(priced.size)
+        val tagIdsPerRow = ArrayList<Set<Long>>(priced.size)
+        priced.forEach { tx ->
             val type = if (tx.amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME
             val description = tx.description.ifBlank { tx.counterparty ?: "Imported transaction" }.take(255)
             val amount = tx.amount.abs()
-            ImportTransactionRow(
-                amount = amount,
-                categoryId = categoryViaRules(rules, description, amount, type, accountId, fallbackCategoryId),
-                description = description,
-                transactionDate = tx.occurredAt.toLocalDate(),
-                type = type,
-                currency = parseProviderCurrency(tx.currency),
+            val (categoryId, tagIds) = ruleOutcome(rules, description, amount, type, accountId, fallbackCategoryId)
+            rows.add(
+                ImportTransactionRow(
+                    amount = amount,
+                    categoryId = categoryId,
+                    description = description,
+                    transactionDate = tx.occurredAt.toLocalDate(),
+                    type = type,
+                    currency = parseProviderCurrency(tx.currency),
+                )
             )
+            tagIdsPerRow.add(tagIds)
         }
         val conversions = convertRows(rows, account.currency)
         val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
 
         return transactionTemplate.execute {
-            val result = finishImport(accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId)
+            val result = finishImport(accountId, rows, conversions, hashes, tagIdsPerRow, authenticatedUser, providerConnectionId)
 
             log.info(
                 "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
@@ -506,16 +534,34 @@ class TransactionService(
     private fun providerRowHash(providerConnectionId: UUID, externalId: String): String =
         sha256Hex("provider:$providerConnectionId:$externalId")
 
-    /** Rule-driven category for one import row, falling back to [fallbackCategoryId] when no rule matches. */
-    private fun categoryViaRules(
+    /** Full rule effects for one import row: the resolved category (falling back to [fallbackCategoryId]) and any tags to attach. */
+    private fun ruleOutcome(
         rules: List<RuleDTO>,
         description: String,
         amount: BigDecimal,
         type: CategoryType,
         accountId: UUID,
         fallbackCategoryId: Long,
-    ): Long =
-        RuleMatching.evaluate(rules, RuleContext(description, amount, type, accountId)).categoryId ?: fallbackCategoryId
+    ): Pair<Long, Set<Long>> {
+        val effects = RuleMatching.evaluate(rules, RuleContext(description, amount, type, accountId))
+        return (effects.categoryId ?: fallbackCategoryId) to effects.tagIds
+    }
+
+    /** Index of the user's categories keyed by "lowercased-name|TYPE" so a mapped CSV category column resolves to an id of the row's own type. */
+    private fun mappedCategoryIndex(
+        rows: List<ImportTransactionRow>,
+        authenticatedUser: UserDTO,
+    ): Map<String, Long> {
+        if (rows.all { it.categoryName.isNullOrBlank() }) return emptyMap()
+        return categoriesRepository.fetchAllCategories(authenticatedUser).mapNotNull { c ->
+            val id = c.id ?: return@mapNotNull null
+            val name = c.name?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val type = c.type ?: return@mapNotNull null
+            categoryKey(name, type) to id
+        }.toMap()
+    }
+
+    private fun categoryKey(name: String, type: CategoryType): String = "${name.trim().lowercase()}|${type.name}"
 
     /**
      * Shared import tail for [importBatch] and [importProviderTransactions]: persist the already-resolved
@@ -527,6 +573,7 @@ class TransactionService(
         rows: List<ImportTransactionRow>,
         conversions: List<ConversionResult>,
         hashes: List<String>,
+        tagIdsPerRow: List<Set<Long>>,
         authenticatedUser: UserDTO,
         providerConnectionId: UUID? = null,
     ): ImportResult {
@@ -537,10 +584,35 @@ class TransactionService(
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
             checkBudgetAlerts(authenticatedUser, rows.map { it.categoryId }.distinct())
         }
+        attachRuleTags(authenticatedUser, hashes, tagIdsPerRow, outcome.insertedIdsByHash)
+        if (outcome.insertedIdsByHash.isNotEmpty()) {
+            transactionRepository.linkDetectedTransfers(
+                accountId, outcome.insertedIdsByHash.values, TRANSFER_MATCH_MAX_DAY_GAP, authenticatedUser,
+            )
+        }
         return ImportResult(
             imported = outcome.insertedCount,
             skippedDuplicates = rows.size - outcome.insertedCount,
         )
+    }
+
+    private fun attachRuleTags(
+        authenticatedUser: UserDTO,
+        hashes: List<String>,
+        tagIdsPerRow: List<Set<Long>>,
+        insertedIdsByHash: Map<String, UUID>,
+    ) {
+        if (insertedIdsByHash.isEmpty()) return
+        val idsByTagSet = LinkedHashMap<Set<Long>, MutableList<UUID>>()
+        hashes.forEachIndexed { i, hash ->
+            val tagIds = tagIdsPerRow[i]
+            if (tagIds.isEmpty()) return@forEachIndexed
+            val id = insertedIdsByHash[hash] ?: return@forEachIndexed
+            idsByTagSet.getOrPut(tagIds) { mutableListOf() }.add(id)
+        }
+        idsByTagSet.forEach { (tagIds, ids) ->
+            tagRepository.addTagsToTransactions(authenticatedUser, ids, tagIds)
+        }
     }
 
     @Transactional

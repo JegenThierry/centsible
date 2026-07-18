@@ -55,6 +55,12 @@ interface ITransactionService {
     /** Reassigns [ids] to [categoryId] without touching balances; rejects system-managed target categories. Returns rows updated. */
     fun bulkUpdateCategory(accountId: UUID, ids: List<UUID>, categoryId: Long, authenticatedUser: UserDTO): Int
 
+    /** Adds [tagIds] to each of [ids] (user-owned) without touching balances. Returns tag links created. */
+    fun bulkAddTags(ids: List<UUID>, tagIds: List<Long>, authenticatedUser: UserDTO): Int
+
+    /** Removes [tagIds] from each of [ids] (user-owned) without touching balances. Returns tag links removed. */
+    fun bulkRemoveTags(ids: List<UUID>, tagIds: List<Long>, authenticatedUser: UserDTO): Int
+
     fun aggregateByCategory(
         accountId: UUID,
         authenticatedUser: UserDTO,

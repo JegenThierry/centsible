@@ -18,6 +18,10 @@
       "legend": "Patrimoine net",
       "empty": "Aucune donnée pour le moment. Ajoutez quelques transactions et revenez plus tard.",
       "drillHint": "Cliquez sur un point pour voir le détail par compte",
+      "total": "Patrimoine net total",
+      "assets": "Actifs",
+      "liabilities": "Passifs",
+      "net": "Net",
       "breakdown": {
         "title": "Détail du patrimoine net",
         "total": "Total",

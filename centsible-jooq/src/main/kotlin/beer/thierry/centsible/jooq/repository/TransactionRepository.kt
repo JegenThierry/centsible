@@ -22,16 +22,20 @@ import beer.thierry.centsible.api.repository.TransferLeg
 import beer.thierry.jooq.generated.tables.references.ACCOUNTS
 import beer.thierry.jooq.generated.tables.references.CATEGORIES
 import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
+import beer.thierry.jooq.generated.tables.references.TAGS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_SPLITS
 import beer.thierry.jooq.generated.tables.references.TRANSACTION_TAGS
 import org.jooq.DSLContext
 import org.jooq.Field
+import org.jooq.Query
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 import java.util.*
 
 @Repository
@@ -46,7 +50,34 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         var condition = baseCondition(accountId, authenticatedUser)
         filters.search?.takeIf { it.isNotBlank() }?.let { term ->
             val escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            condition = condition.and(TRANSACTIONS.DESCRIPTION.likeIgnoreCase("%$escaped%"))
+            val pattern = "%$escaped%"
+            var search = TRANSACTIONS.DESCRIPTION.likeIgnoreCase(pattern)
+                .or(CATEGORIES.NAME.likeIgnoreCase(pattern))
+                .or(
+                    DSL.exists(
+                        dsl.selectOne().from(TRANSACTION_TAGS)
+                            .join(TAGS).on(TAGS.ID.eq(TRANSACTION_TAGS.TAG_ID))
+                            .where(
+                                TRANSACTION_TAGS.TRANSACTION_ID.eq(TRANSACTIONS.ID)
+                                    .and(TAGS.NAME.likeIgnoreCase(pattern))
+                            )
+                    )
+                )
+                .or(
+                    DSL.exists(
+                        dsl.selectOne().from(TRANSACTION_SPLITS)
+                            .where(
+                                TRANSACTION_SPLITS.TRANSACTION_ID.eq(TRANSACTIONS.ID)
+                                    .and(TRANSACTION_SPLITS.NOTE.likeIgnoreCase(pattern))
+                            )
+                    )
+                )
+            term.trim().toBigDecimalOrNull()?.let { amount ->
+                search = search
+                    .or(TRANSACTIONS.AMOUNT.eq(amount))
+                    .or(TRANSACTIONS.ORIGINAL_AMOUNT.eq(amount))
+            }
+            condition = condition.and(search)
         }
         filters.categoryIds?.takeIf { it.isNotEmpty() }?.let { ids ->
             condition = condition.and(
@@ -506,7 +537,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             .onConflict(TRANSACTIONS.ACCOUNT_ID, TRANSACTIONS.IMPORT_HASH)
             .where(TRANSACTIONS.IMPORT_HASH.isNotNull)
             .doNothing()
-            .returning(TRANSACTIONS.TYPE, TRANSACTIONS.AMOUNT)
+            .returning(TRANSACTIONS.ID, TRANSACTIONS.IMPORT_HASH, TRANSACTIONS.TYPE, TRANSACTIONS.AMOUNT)
             .fetch()
 
         if (inserted.isEmpty()) return BatchImportOutcome(0, BigDecimal.ZERO)
@@ -517,8 +548,99 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             if (type == CategoryType.INCOME) amount else amount.negate()
         }
 
-        return BatchImportOutcome(insertedCount = inserted.size, netBalanceAdjustment = net)
+        val idsByHash = inserted.associate { rec ->
+            rec[TRANSACTIONS.IMPORT_HASH]!! to rec[TRANSACTIONS.ID]!!
+        }
+
+        return BatchImportOutcome(inserted.size, net, idsByHash)
     }
+
+    override fun linkDetectedTransfers(
+        accountId: UUID,
+        candidateIds: Collection<UUID>,
+        maxDayGap: Int,
+        authenticatedUser: UserDTO,
+    ): Int {
+        if (candidateIds.isEmpty()) return 0
+
+        val currency = dsl.select(ACCOUNTS.CURRENCY)
+            .from(ACCOUNTS)
+            .where(ACCOUNTS.ID.eq(accountId).and(ACCOUNTS.USER_ID.eq(authenticatedUser.id)))
+            .fetchOne(ACCOUNTS.CURRENCY) ?: return 0
+
+        val legs = dsl.select(
+            TRANSACTIONS.ID, TRANSACTIONS.AMOUNT, TRANSACTIONS.TYPE, TRANSACTIONS.TRANSACTION_DATE,
+        )
+            .from(TRANSACTIONS)
+            .where(
+                TRANSACTIONS.ID.`in`(candidateIds)
+                    .and(TRANSACTIONS.ACCOUNT_ID.eq(accountId))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
+            )
+            .fetch()
+        if (legs.isEmpty()) return 0
+
+        val legAmounts = legs.map { it[TRANSACTIONS.AMOUNT]!! }.toSet()
+        val windowStart = legs.minOf { it[TRANSACTIONS.TRANSACTION_DATE]!! }.minusDays(maxDayGap.toLong())
+        val windowEnd = legs.maxOf { it[TRANSACTIONS.TRANSACTION_DATE]!! }.plusDays(maxDayGap.toLong())
+
+        val candidates = dsl.select(
+            TRANSACTIONS.ID, TRANSACTIONS.AMOUNT, TRANSACTIONS.TYPE, TRANSACTIONS.TRANSACTION_DATE,
+        )
+            .from(TRANSACTIONS)
+            .join(ACCOUNTS).on(ACCOUNTS.ID.eq(TRANSACTIONS.ACCOUNT_ID))
+            .where(
+                ACCOUNTS.USER_ID.eq(authenticatedUser.id)
+                    .and(ACCOUNTS.ID.ne(accountId))
+                    .and(ACCOUNTS.CURRENCY.eq(currency))
+                    .and(TRANSACTIONS.TRANSFER_GROUP_ID.isNull)
+                    .and(TRANSACTIONS.AMOUNT.`in`(legAmounts))
+                    .and(TRANSACTIONS.TRANSACTION_DATE.between(windowStart, windowEnd))
+            )
+            .fetch()
+        if (candidates.isEmpty()) return 0
+
+        val outCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.TRANSFER_OUT) ?: return 0
+        val inCategoryId = dsl.findManagedCategoryId(ManagedCategoryNames.TRANSFER_IN) ?: return 0
+
+        val consumed = HashSet<UUID>()
+        val now = OffsetDateTime.now()
+        val updates = mutableListOf<Query>()
+
+        for (leg in legs) {
+            val legType = CategoryType.fromValue(leg[TRANSACTIONS.TYPE]!!)
+            val legAmount = leg[TRANSACTIONS.AMOUNT]!!
+            val legDate = leg[TRANSACTIONS.TRANSACTION_DATE]!!
+            val oppositeType = if (legType == CategoryType.EXPENSE) CategoryType.INCOME else CategoryType.EXPENSE
+
+            val matches = candidates.filter { c ->
+                c[TRANSACTIONS.ID]!! !in consumed &&
+                    CategoryType.fromValue(c[TRANSACTIONS.TYPE]!!) == oppositeType &&
+                    c[TRANSACTIONS.AMOUNT]!!.compareTo(legAmount) == 0 &&
+                    abs(ChronoUnit.DAYS.between(legDate, c[TRANSACTIONS.TRANSACTION_DATE]!!)) <= maxDayGap
+            }
+            if (matches.size != 1) continue
+
+            val matchId = matches.first()[TRANSACTIONS.ID]!!
+            consumed.add(matchId)
+
+            val legId = leg[TRANSACTIONS.ID]!!
+            val groupId = UUID.randomUUID()
+            val (expenseId, incomeId) = if (legType == CategoryType.EXPENSE) legId to matchId else matchId to legId
+            updates += transferLegUpdate(expenseId, groupId, outCategoryId, now)
+            updates += transferLegUpdate(incomeId, groupId, inCategoryId, now)
+        }
+        if (updates.isEmpty()) return 0
+        dsl.batch(updates).execute()
+        return updates.size / 2
+    }
+
+    private fun transferLegUpdate(id: UUID, groupId: UUID, categoryId: Long, now: OffsetDateTime): Query =
+        dsl.update(TRANSACTIONS)
+            .set(TRANSACTIONS.TRANSFER_GROUP_ID, groupId)
+            .set(TRANSACTIONS.CATEGORY_ID, categoryId)
+            .set(TRANSACTIONS.MODIFIED_AT, now)
+            .where(TRANSACTIONS.ID.eq(id))
 
     override fun fetchForRuleEvaluation(authenticatedUser: UserDTO): List<RuleCandidateTransaction> =
         dsl.select(

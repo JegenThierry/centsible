@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.UUID
 
 @Component
 class ExportScheduleMaterializer(
@@ -76,12 +77,11 @@ class ExportScheduleMaterializer(
         if (accounts.isEmpty()) return
 
         val (windowStart, windowEnd) = windowFor(frequency, nextRunAt)
-        val params = TransactionsExportParams(
-            accountIds = accounts.map { it.id },
-            fromDate = windowStart,
-            toDate = windowEnd,
-            categoryIds = emptyList(),
-        )
+        val params = paramsFor(schedule.type, accounts.map { it.id }, windowStart, windowEnd)
+        if (params == null) {
+            log.warn("Export schedule {} has type {} that cannot be scheduled; skipping", scheduleId, schedule.type)
+            return
+        }
         val payload = protoBuilder.build(
             user = user,
             params = params,
@@ -91,7 +91,7 @@ class ExportScheduleMaterializer(
         )
         exportService.create(
             user,
-            ExportType.TRANSACTIONS,
+            schedule.type,
             schedule.title,
             payload,
             listOf(PostProcessingType.SEND_EMAIL to emptyMap()),
@@ -108,9 +108,27 @@ class ExportScheduleMaterializer(
         val start = when (frequency) {
             Frequency.DAILY -> nextRunAt.minusDays(1)
             Frequency.WEEKLY -> nextRunAt.minusWeeks(1)
+            Frequency.BIWEEKLY -> nextRunAt.minusWeeks(2)
             Frequency.MONTHLY -> nextRunAt.minusMonths(1)
             Frequency.YEARLY -> nextRunAt.minusYears(1)
         }
         return start to end
+    }
+
+    private fun paramsFor(
+        type: ExportType,
+        accountIds: List<UUID>,
+        windowStart: LocalDate,
+        windowEnd: LocalDate,
+    ): ExportRequestParams? = when (type) {
+        ExportType.TRANSACTIONS -> TransactionsExportParams(
+            accountIds = accountIds,
+            fromDate = windowStart,
+            toDate = windowEnd,
+            categoryIds = emptyList(),
+        )
+        ExportType.LENDINGS_ALL -> LendingsAllExportParams(includeSettled = true)
+        ExportType.ACCOUNTS_SUMMARY -> AccountsSummaryExportParams(asOfDate = windowEnd)
+        ExportType.LENDINGS_PER_CONTACT -> null
     }
 }

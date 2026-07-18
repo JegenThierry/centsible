@@ -15,7 +15,14 @@
       "showHistory": "Show history",
       "historyHeading": "Past periods",
       "noBudgetsInPeriod": "No budgets defined for this period.",
-      "rolloverNote": "Includes {amount} carried over from last period."
+      "rolloverNote": "Includes {amount} carried over from last period.",
+      "bulkCreate": "Create from suggestions",
+      "bulkCreateToastTitle": "Budgets created.",
+      "bulkCreateToastBody": "{count} budget created from your recent spending. | {count} budgets created from your recent spending.",
+      "bulkCreateNoneTitle": "Nothing to create.",
+      "bulkCreateNoneBody": "Every expense category with recent spending already has a budget.",
+      "bulkCreateErrorTitle": "Budgets not created.",
+      "bulkCreateErrorBody": "Could not create budgets from suggestions. Please try again."
     },
     "summary": {
       "spent": "spent",
@@ -33,7 +40,8 @@
       "limitPlaceholder": "0.00",
       "periodLabel": "Period",
       "rolloverLabel": "Roll over unused amount",
-      "rolloverDescription": "If you stay under budget, the unused amount is added to the next period."
+      "rolloverDescription": "If you stay under budget, the unused amount is added to the next period.",
+      "suggestedHint": "Suggested: {amount} (3-mo avg)"
     },
     "periods": {
       "MONTHLY": "Monthly",

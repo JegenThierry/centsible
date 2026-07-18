@@ -63,6 +63,12 @@
       "INCOME": "Einnahme",
       "EXPENSE": "Ausgabe"
     },
+    "preview": {
+      "title": "Treffer",
+      "matchCount": "{count} Transaktion(en) passen",
+      "empty": "Noch keine Transaktion passt zu diesen Bedingungen.",
+      "failed": "Vorschau nicht verfügbar."
+    },
     "toasts": {
       "createdTitle": "Regel erstellt",
       "createdBody": "Die Regel wurde hinzugefügt.",

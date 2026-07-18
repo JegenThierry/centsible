@@ -26,6 +26,7 @@ const EditTransactionModal = defineAsyncComponent(() => import("~/components/_or
 const EditTransferModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transfer-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
+const BulkTagsModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-tags-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 const SplitIntoIousModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/split-into-ious-modal.vue"));
 const RecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/recurring-modal.vue"));
@@ -92,6 +93,8 @@ const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isBulkDeleteOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
+const isBulkTagsOpen = ref(false);
+const bulkTagsMode = ref<'add' | 'remove'>('add');
 const isSplitModalOpen = ref(false);
 const isRecurringModalOpen = ref(false);
 const recurringSeed = ref<RecurringTransactionForm>();
@@ -211,6 +214,26 @@ async function bulkCategorize(categoryId: number) {
     toasts.success(t('transactions.bulk.recategorizeToastTitle'), t('transactions.bulk.recategorizeToastBody', {count: ids.length}));
     clearSelection();
     await budgetAccountsStore.updateActiveAccount();
+    await loadTransactions(true);
+  } catch (e) {
+    toasts.error(t('transactions.bulk.errorTitle'), t('transactions.bulk.errorBody'));
+  }
+}
+
+function openBulkTags(mode: 'add' | 'remove') {
+  bulkTagsMode.value = mode;
+  isBulkTagsOpen.value = true;
+}
+
+async function applyBulkTags(mode: 'add' | 'remove', tagIds: number[]) {
+  const ids = Array.from(selectedIds.value);
+  if (ids.length === 0 || tagIds.length === 0 || !budgetAccountsStore.activeAccount) return;
+  const accountId = budgetAccountsStore.activeAccount.id;
+  try {
+    if (mode === 'add') await transactionService.bulkAddTags(accountId, ids, tagIds);
+    else await transactionService.bulkRemoveTags(accountId, ids, tagIds);
+    toasts.success(t(`transactions.bulk.${mode}TagsToastTitle`), t(`transactions.bulk.${mode}TagsToastBody`, {count: ids.length}));
+    clearSelection();
     await loadTransactions(true);
   } catch (e) {
     toasts.error(t('transactions.bulk.errorTitle'), t('transactions.bulk.errorBody'));
@@ -362,6 +385,8 @@ watch(
   <TransactionBulkActionBar v-if="selectedIds.size > 0"
                             :count="selectedIds.size"
                             @recategorize="isBulkCategorizeOpen = true"
+                            @add-tags="openBulkTags('add')"
+                            @remove-tags="openBulkTags('remove')"
                             @delete="isBulkDeleteOpen = true"
                             @clear="clearSelection"/>
 
@@ -417,6 +442,12 @@ watch(
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <BulkTagsModal v-if="isBulkTagsOpen"
+                 v-model:open="isBulkTagsOpen"
+                 :count="selectedIds.size"
+                 :mode="bulkTagsMode"
+                 @confirm="(tagIds) => applyBulkTags(bulkTagsMode, tagIds)"/>
 
   <ConfirmationModal v-if="isBulkDeleteOpen"
                      v-model:open="isBulkDeleteOpen"

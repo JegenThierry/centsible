@@ -18,6 +18,10 @@
       "legend": "Net worth",
       "empty": "No data yet. Add a few transactions and check back.",
       "drillHint": "Click a point for the per-account breakdown",
+      "total": "Total net worth",
+      "assets": "Assets",
+      "liabilities": "Liabilities",
+      "net": "Net",
       "breakdown": {
         "title": "Net worth breakdown",
         "total": "Total",

@@ -22,6 +22,9 @@ import ModalFooterActions from "~/components/_molecules/modals/modal-footer-acti
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import {useRulePreview} from "~/composables/use-rule-preview";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
+import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
 
 const props = defineProps<{
   rule?: Rule | null;
@@ -36,6 +39,7 @@ const categoriesStore = useCategoriesStore();
 const tagsStore = useTagsStore();
 const budgetAccountsStore = useBudgetAccountsStore();
 const {t} = useI18n();
+const defaultCurrency = useDefaultCurrency();
 
 const loading = ref(false);
 const isEdit = computed(() => !!props.rule);
@@ -143,11 +147,41 @@ function reset() {
   }
 }
 
+const canPreview = computed(() => state.conditions.some(c => String(c.value).trim().length > 0));
+
 const canSubmit = computed(() =>
   state.name.trim().length > 0
-  && state.conditions.some(c => String(c.value).trim().length > 0)
+  && canPreview.value
   && state.actions.some(a => (a.type === 'SET_CATEGORY' && a.categoryId != null) || (a.type === 'ADD_TAG' && a.tagId != null)),
 );
+
+function toRuleForm(): RuleForm {
+  const conditions: RuleConditionForm[] = state.conditions
+    .filter(c => String(c.value).trim().length > 0)
+    .map(c => ({field: c.field, operator: c.operator, value: String(c.value).trim()}));
+
+  const actions: RuleActionForm[] = state.actions
+    .filter(a => (a.type === 'SET_CATEGORY' && a.categoryId != null) || (a.type === 'ADD_TAG' && a.tagId != null))
+    .map(a => a.type === 'SET_CATEGORY'
+      ? {type: a.type, categoryId: a.categoryId}
+      : {type: a.type, tagId: a.tagId});
+
+  return {
+    name: state.name.trim(),
+    matchAll: state.matchAll,
+    enabled: state.enabled,
+    priority: Number(state.priority) || 0,
+    conditions,
+    actions,
+  };
+}
+
+const previewForm = computed<RuleForm>(() => toRuleForm());
+
+const {matchedCount, sample, loading: previewLoading, failed: previewFailed} = useRulePreview({
+  form: previewForm,
+  enabled: canPreview,
+});
 
 const {requestClose} = useModalDirtyGuard({
   isOpen,
@@ -164,26 +198,8 @@ watch(isOpen, async (open) => {
 });
 
 async function handleSave() {
-  const conditions: RuleConditionForm[] = state.conditions
-    .filter(c => String(c.value).trim().length > 0)
-    .map(c => ({field: c.field, operator: c.operator, value: String(c.value).trim()}));
-
-  const actions: RuleActionForm[] = state.actions
-    .filter(a => (a.type === 'SET_CATEGORY' && a.categoryId != null) || (a.type === 'ADD_TAG' && a.tagId != null))
-    .map(a => a.type === 'SET_CATEGORY'
-      ? {type: a.type, categoryId: a.categoryId}
-      : {type: a.type, tagId: a.tagId});
-
-  if (!state.name.trim() || conditions.length === 0 || actions.length === 0) return;
-
-  const form: RuleForm = {
-    name: state.name.trim(),
-    matchAll: state.matchAll,
-    enabled: state.enabled,
-    priority: Number(state.priority) || 0,
-    conditions,
-    actions,
-  };
+  const form = toRuleForm();
+  if (!form.name || form.conditions.length === 0 || form.actions.length === 0) return;
 
   loading.value = true;
   try {
@@ -279,6 +295,28 @@ async function handleSave() {
                        color="neutral" icon="i-lucide-x" size="xs" variant="ghost"
                        @click="removeAction(i)"/>
           </div>
+        </div>
+
+        <div v-if="canPreview" class="space-y-2 rounded-lg border border-default p-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-default">{{ t('rules.preview.title') }}</span>
+            <UIcon v-if="previewLoading" class="w-4 h-4 shrink-0 animate-spin text-muted" name="i-lucide-loader-circle"/>
+          </div>
+          <p v-if="previewFailed" class="text-xs text-error">{{ t('rules.preview.failed') }}</p>
+          <template v-else-if="matchedCount !== null">
+            <p v-if="matchedCount === 0" class="text-xs text-muted">{{ t('rules.preview.empty') }}</p>
+            <template v-else>
+              <p class="text-sm text-muted">{{ t('rules.preview.matchCount', {count: matchedCount}) }}</p>
+              <ul class="space-y-1">
+                <li v-for="(match, i) in sample"
+                    :key="`p-${i}`"
+                    class="flex items-center justify-between gap-3">
+                  <span class="min-w-0 flex-1 truncate text-sm text-default">{{ match.description }}</span>
+                  <TransactionAmount :amount="match.amount" :currency="defaultCurrency" :type="match.type"/>
+                </li>
+              </ul>
+            </template>
+          </template>
         </div>
 
         <div class="flex flex-wrap items-end gap-4">

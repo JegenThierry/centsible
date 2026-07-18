@@ -2,17 +2,20 @@
 import {MONEY_FIELD_MAX} from "~/utils/money";
 import adze from 'adze'
 import {type Category, CategoryType} from "~/models/category/category";
-import {BUDGET_PERIOD_TYPES, type BudgetForm, type BudgetPeriodType} from "~/models/budget/budget";
+import {BUDGET_PERIOD_TYPES, type BudgetForm, type BudgetPeriodType, type BudgetSuggestion} from "~/models/budget/budget";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import CategorySelect from "~/components/_atoms/inputs/category-select.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import AppCheckbox from "~/components/_atoms/ui/app-checkbox.vue";
 import {useCategoryService} from "~/services/category/category-service";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 
 const props = defineProps<{
   modelValue: BudgetForm;
   /** (category, period) pairs already budgeted — excluded from the picker to avoid a duplicate. */
   existingCombos?: Array<{categoryId: number; periodType: BudgetPeriodType}>;
+  /** Recent average monthly spend per category — used to prefill/hint the limit on create. */
+  suggestions?: BudgetSuggestion[];
 }>();
 
 const emit = defineEmits(['update:modelValue']);
@@ -21,6 +24,8 @@ const api = useApi();
 const categoryService = useCategoryService(api);
 const categories = ref<Category[]>([]);
 const {t} = useI18n();
+const currency = useDefaultCurrency();
+const localeTag = useLocaleTag();
 
 async function loadCategories() {
   try {
@@ -60,6 +65,26 @@ watch(() => form.value.periodType, (period) => {
   if (collides) form.value.category = undefined;
 });
 
+function suggestionFor(categoryId: number): number | undefined {
+  return (props.suggestions ?? []).find(s => s.categoryId === categoryId)?.suggestedAmount;
+}
+
+const suggestedAmount = computed(() => {
+  const id = form.value.category?.id;
+  return id === undefined ? undefined : suggestionFor(id);
+});
+
+const suggestedHint = computed(() =>
+  suggestedAmount.value === undefined
+    ? undefined
+    : t('budgets.form.suggestedHint', {amount: formatCurrency(suggestedAmount.value, currency.value, localeTag.value)}),
+);
+
+watch(() => form.value.category?.id, () => {
+  const suggested = suggestedAmount.value;
+  if (suggested !== undefined && !form.value.amountLimit) form.value.amountLimit = suggested;
+});
+
 onMounted(() => loadCategories());
 </script>
 
@@ -76,6 +101,7 @@ onMounted(() => loadCategories());
                :max="MONEY_FIELD_MAX"
                :min="0.01"
                :description="t('budgets.form.limitDescription')"
+               :hint="suggestedHint"
                :label="t('budgets.form.limitLabel')"
                :placeholder="t('budgets.form.limitPlaceholder')"
                required

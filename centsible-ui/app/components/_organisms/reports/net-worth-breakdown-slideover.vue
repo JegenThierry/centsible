@@ -4,6 +4,7 @@ import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-forma
 import FormattedDate from "~/components/_atoms/labels/formatted-date.vue";
 import LoadingAnimation from "~/components/_atoms/animations/loading-animation.vue";
 import type {AccountBalanceAtDate} from "~/models/reports/account-balance-at-date";
+import {isLiability} from "~/models/budget-account/account-type";
 import {useReportsStore} from "~/stores/reportsStore";
 
 const props = defineProps<{
@@ -18,7 +19,11 @@ const {t} = useI18n();
 const rows = ref<AccountBalanceAtDate[]>([]);
 const loading = ref(false);
 
-const total = computed(() => rows.value.reduce((sum, r) => sum + Number(r.convertedBalance ?? 0), 0));
+const assets = computed(() => rows.value.reduce((sum, r) =>
+  isLiability(r.type) ? sum : sum + Number(r.convertedBalance ?? 0), 0));
+const liabilities = computed(() => Math.abs(rows.value.reduce((sum, r) =>
+  isLiability(r.type) ? sum + Number(r.convertedBalance ?? 0) : sum, 0)));
+const net = computed(() => assets.value - liabilities.value);
 const displayCurrency = computed(() => rows.value[0]?.targetCurrency ?? rows.value[0]?.currency);
 
 async function load() {
@@ -67,13 +72,25 @@ watch(() => [isOpen.value, props.date], ([open]) => {
             {{ t('reports.netWorth.breakdown.empty') }}
           </div>
 
-          <div v-else class="flex items-center justify-between border-t border-default pt-3">
-            <span class="font-semibold">{{ t('reports.netWorth.breakdown.total') }}</span>
-            <span class="font-bold">
-              <BalanceNumberFormat v-if="displayCurrency"
-                                   :balance="total"
-                                   :currency="displayCurrency"/>
-            </span>
+          <div v-else class="border-t border-default pt-3 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">{{ t('reports.netWorth.assets') }}</span>
+              <span class="font-medium tabular-nums">
+                <BalanceNumberFormat v-if="displayCurrency" :balance="assets" :currency="displayCurrency"/>
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">{{ t('reports.netWorth.liabilities') }}</span>
+              <span class="font-medium tabular-nums">
+                <BalanceNumberFormat v-if="displayCurrency" :balance="liabilities" :currency="displayCurrency"/>
+              </span>
+            </div>
+            <div class="flex items-center justify-between border-t border-default pt-2">
+              <span class="font-semibold">{{ t('reports.netWorth.net') }}</span>
+              <span class="font-bold tabular-nums">
+                <BalanceNumberFormat v-if="displayCurrency" :balance="net" :currency="displayCurrency"/>
+              </span>
+            </div>
           </div>
         </template>
       </div>

@@ -4,6 +4,7 @@ import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.export.ExportScheduleDTO
 import beer.thierry.centsible.api.model.export.ExportScheduleForm
 import beer.thierry.centsible.api.model.export.ExportScheduleUpdateForm
+import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.model.recurring.Frequency
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.IExportScheduleRepository
@@ -26,10 +27,11 @@ class ExportScheduleService(
         repository.fetchAll(authenticatedUser)
 
     override fun create(authenticatedUser: UserDTO, form: ExportScheduleForm): ExportScheduleDTO {
+        assertSchedulable(form.type)
         val frequency = form.frequency
             ?: throw LocalizedException.BadRequest("error.export.schedule.frequencyRequired")
         val nextRunAt = initialNextRun(frequency, LocalDate.now())
-        val created = repository.create(authenticatedUser, form.title, form.format, frequency, nextRunAt)
+        val created = repository.create(authenticatedUser, form.title, form.type, form.format, frequency, nextRunAt)
         log.info(
             "Created export schedule id={} userId={} frequency={} format={} nextRunAt={}",
             created.id, authenticatedUser.id, frequency, form.format, nextRunAt,
@@ -38,9 +40,10 @@ class ExportScheduleService(
     }
 
     override fun update(authenticatedUser: UserDTO, id: UUID, form: ExportScheduleUpdateForm): ExportScheduleDTO? {
+        assertSchedulable(form.type)
         val frequency = form.frequency
             ?: throw LocalizedException.BadRequest("error.export.schedule.frequencyRequired")
-        return repository.update(authenticatedUser, id, form.title, form.format, frequency, form.active)
+        return repository.update(authenticatedUser, id, form.title, form.type, form.format, frequency, form.active)
     }
 
     override fun delete(authenticatedUser: UserDTO, id: UUID): Boolean =
@@ -59,7 +62,14 @@ class ExportScheduleService(
     private fun initialNextRun(frequency: Frequency, today: LocalDate): LocalDate = when (frequency) {
         Frequency.DAILY -> today.plusDays(1)
         Frequency.WEEKLY -> today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+        Frequency.BIWEEKLY -> today.with(TemporalAdjusters.next(DayOfWeek.MONDAY)).plusWeeks(1)
         Frequency.MONTHLY -> today.withDayOfMonth(1).plusMonths(1)
         Frequency.YEARLY -> LocalDate.of(today.year + 1, 1, 1)
+    }
+
+    private fun assertSchedulable(type: ExportType) {
+        if (type == ExportType.LENDINGS_PER_CONTACT) {
+            throw LocalizedException.BadRequest("error.export.schedule.typeNotSchedulable")
+        }
     }
 }

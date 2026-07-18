@@ -18,6 +18,7 @@ fun importRow(
     date: LocalDate,
     defaultCategoryId: Long,
     currency: Currency? = null,
+    categoryName: String? = null,
 ): ImportTransactionRow =
     ImportTransactionRow(
         amount = amount.abs(),
@@ -26,6 +27,7 @@ fun importRow(
         transactionDate = date,
         type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
         currency = currency,
+        categoryName = categoryName,
     )
 
 /**

@@ -24,3 +24,8 @@ data class BudgetDTO(
         fun periodKey(yearMonth: YearMonth): String = yearMonth.toString()
     }
 }
+
+data class BudgetSuggestionDTO(
+    val categoryId: Long,
+    val suggestedAmount: BigDecimal,
+)

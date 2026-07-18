@@ -54,6 +54,17 @@
       "deleteToastBody": "{count} transactions removed.",
       "recategorizeToastTitle": "Category updated",
       "recategorizeToastBody": "{count} transactions re-categorized.",
+      "addTags": "Add tags",
+      "removeTags": "Remove tags",
+      "addTagsTitle": "Add tags",
+      "addTagsBody": "Choose tags to add to {count} transactions.",
+      "removeTagsTitle": "Remove tags",
+      "removeTagsBody": "Choose tags to remove from {count} transactions.",
+      "tagsConfirm": "Apply",
+      "addTagsToastTitle": "Tags added",
+      "addTagsToastBody": "Tags added to {count} transactions.",
+      "removeTagsToastTitle": "Tags removed",
+      "removeTagsToastBody": "Tags removed from {count} transactions.",
       "errorTitle": "Bulk action failed",
       "errorBody": "The operation could not be completed. Please try again."
     },
@@ -316,6 +327,7 @@
       "frequency": {
         "DAILY": "Daily",
         "WEEKLY": "Weekly",
+        "BIWEEKLY": "Every 2 weeks",
         "MONTHLY": "Monthly",
         "YEARLY": "Yearly"
       },

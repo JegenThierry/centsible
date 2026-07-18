@@ -2,6 +2,7 @@ package beer.thierry.centsiblerest.resources
 
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetForm
+import beer.thierry.centsible.api.model.budget.BudgetSuggestionDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.budget.IBudgetService
 import jakarta.validation.Valid
@@ -25,6 +26,12 @@ class BudgetsResource(private val service: IBudgetService) {
     ): List<BudgetDTO> =
         service.fetchAllForMonth(authenticatedUser, month ?: YearMonth.now())
 
+    @GetMapping("/suggestions")
+    fun suggestions(
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): List<BudgetSuggestionDTO> =
+        service.suggestions(authenticatedUser)
+
     @PostMapping
     fun create(
         @Valid @RequestBody form: BudgetForm,
@@ -32,6 +39,15 @@ class BudgetsResource(private val service: IBudgetService) {
     ): BudgetDTO {
         val created = service.create(form, authenticatedUser)
         log.info("Created budget id={} userId={}", created.id, authenticatedUser.id)
+        return created
+    }
+
+    @PostMapping("/bulk-suggested")
+    fun bulkCreateSuggested(
+        @AuthenticationPrincipal authenticatedUser: UserDTO,
+    ): List<BudgetDTO> {
+        val created = service.bulkCreateSuggested(authenticatedUser)
+        log.info("Bulk-created {} budget(s) from suggestions userId={}", created.size, authenticatedUser.id)
         return created
     }
 

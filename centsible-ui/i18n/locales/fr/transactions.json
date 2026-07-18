@@ -54,6 +54,17 @@
       "deleteToastBody": "{count} transactions supprimées.",
       "recategorizeToastTitle": "Catégorie mise à jour",
       "recategorizeToastBody": "{count} transactions recatégorisées.",
+      "addTags": "Ajouter des étiquettes",
+      "removeTags": "Retirer des étiquettes",
+      "addTagsTitle": "Ajouter des étiquettes",
+      "addTagsBody": "Choisissez des étiquettes à ajouter à {count} transactions.",
+      "removeTagsTitle": "Retirer des étiquettes",
+      "removeTagsBody": "Choisissez des étiquettes à retirer de {count} transactions.",
+      "tagsConfirm": "Appliquer",
+      "addTagsToastTitle": "Étiquettes ajoutées",
+      "addTagsToastBody": "Étiquettes ajoutées à {count} transactions.",
+      "removeTagsToastTitle": "Étiquettes retirées",
+      "removeTagsToastBody": "Étiquettes retirées de {count} transactions.",
       "errorTitle": "Action en masse échouée",
       "errorBody": "L'opération n'a pas pu être effectuée. Veuillez réessayer."
     },
@@ -316,6 +327,7 @@
       "frequency": {
         "DAILY": "Quotidienne",
         "WEEKLY": "Hebdomadaire",
+        "BIWEEKLY": "Toutes les 2 semaines",
         "MONTHLY": "Mensuelle",
         "YEARLY": "Annuelle"
       },

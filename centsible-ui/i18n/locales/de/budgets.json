@@ -15,7 +15,14 @@
       "showHistory": "Verlauf anzeigen",
       "historyHeading": "Frühere Perioden",
       "noBudgetsInPeriod": "Keine Budgets in dieser Periode.",
-      "rolloverNote": "Enthält {amount} Übertrag aus der Vorperiode."
+      "rolloverNote": "Enthält {amount} Übertrag aus der Vorperiode.",
+      "bulkCreate": "Aus Vorschlägen erstellen",
+      "bulkCreateToastTitle": "Budgets erstellt.",
+      "bulkCreateToastBody": "{count} Budget aus deinen letzten Ausgaben erstellt. | {count} Budgets aus deinen letzten Ausgaben erstellt.",
+      "bulkCreateNoneTitle": "Nichts zu erstellen.",
+      "bulkCreateNoneBody": "Jede Ausgabenkategorie mit letzten Ausgaben hat bereits ein Budget.",
+      "bulkCreateErrorTitle": "Budgets nicht erstellt.",
+      "bulkCreateErrorBody": "Budgets konnten nicht aus Vorschlägen erstellt werden. Bitte versuche es erneut."
     },
     "summary": {
       "spent": "ausgegeben",
@@ -33,7 +40,8 @@
       "limitPlaceholder": "0,00",
       "periodLabel": "Periode",
       "rolloverLabel": "Nicht genutzten Betrag übertragen",
-      "rolloverDescription": "Wenn du unter Budget bleibst, wird der Restbetrag zur nächsten Periode hinzugefügt."
+      "rolloverDescription": "Wenn du unter Budget bleibst, wird der Restbetrag zur nächsten Periode hinzugefügt.",
+      "suggestedHint": "Vorschlag: {amount} (3-Mon.-Schnitt)"
     },
     "periods": {
       "MONTHLY": "Monatlich",
