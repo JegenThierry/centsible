@@ -45,7 +45,7 @@ val guavaVersion = libs.versions.guava.get()
 
 allprojects {
     group = "beer.thierry"
-    version = "0.7.4"
+    version = "0.8.0"
 
     repositories {
         mavenCentral()
