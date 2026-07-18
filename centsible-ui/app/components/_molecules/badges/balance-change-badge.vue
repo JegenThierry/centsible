@@ -19,7 +19,7 @@ const tone = computed(() => {
 
 <template>
   <UBadge :color="tone.color"
-          class="ml-1 mt-0.5 font-mono font-semibold"
+          class="ml-1 mt-0.5 tabular-nums font-semibold"
           size="sm"
           variant="subtle">
     <UIcon :name="tone.icon" class="mr-1 size-3.5"/>
