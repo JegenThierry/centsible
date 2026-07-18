@@ -24,3 +24,6 @@ ChartJS.register(
   Title,
   Tooltip,
 );
+
+ChartJS.defaults.font.family =
+  "'Inter Variable', ui-sans-serif, system-ui, sans-serif";

@@ -9,9 +9,7 @@ defineProps<{
 <template>
   <UCard class="mb-6" variant="soft">
     <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-      <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary">
-        <UIcon class="w-9 h-9" name="i-logos-nuxt-icon"/>
-      </div>
+      <img class="w-16 h-16 rounded-2xl" src="/brand/favicon.svg" alt=""/>
       <div class="flex-1">
         <div class="flex flex-wrap items-center gap-3">
           <h2 class="text-xl sm:text-2xl font-semibold text-highlighted">{{ info.name }}</h2>
