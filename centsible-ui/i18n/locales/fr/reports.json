@@ -2,7 +2,9 @@
   "reports": {
     "page": {
       "title": "Rapports",
-      "description": "Visualisez vos dépenses, vos revenus et votre patrimoine net dans le temps."
+      "description": "Visualisez vos dépenses, vos revenus et votre patrimoine net dans le temps.",
+      "partialErrorTitle": "Certains rapports n'ont pas pu être chargés",
+      "partialErrorBody": "Une partie de cette page n'a pas pu être chargée. Les rapports affichés ci-dessous peuvent être incomplets."
     },
     "ranges": {
       "3m": "3 derniers mois",
@@ -16,6 +18,10 @@
       "legend": "Patrimoine net",
       "empty": "Aucune donnée pour le moment. Ajoutez quelques transactions et revenez plus tard.",
       "drillHint": "Cliquez sur un point pour voir le détail par compte",
+      "total": "Patrimoine net total",
+      "assets": "Actifs",
+      "liabilities": "Passifs",
+      "net": "Net",
       "breakdown": {
         "title": "Détail du patrimoine net",
         "total": "Total",

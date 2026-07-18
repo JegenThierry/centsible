@@ -11,13 +11,11 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 import CardSkeleton from "~/components/_molecules/skeletons/card-skeleton.vue";
 import {useLoansStore} from "~/stores/loansStore";
-import {useUserStore} from "~/stores/userStore";
-import {Currency} from "~/models/budget-account/currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
 import {type Loan, type LoanStatus, loanStatus} from "~/models/loan/loan";
 
 const loansStore = useLoansStore();
-const userStore = useUserStore();
-const defaultCurrency = computed<Currency>(() => userStore.user?.defaultCurrency ?? Currency.EUR);
+const defaultCurrency = useDefaultCurrency();
 const {t} = useI18n();
 
 type Filter = 'all' | LoanStatus;

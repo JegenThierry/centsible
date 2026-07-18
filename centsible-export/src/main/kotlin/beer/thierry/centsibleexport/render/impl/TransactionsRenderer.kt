@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Locale
-import java.util.UUID
 
 @Component
 class TransactionsRenderer(
@@ -25,13 +24,7 @@ class TransactionsRenderer(
     override fun supports(): ExportType = ExportType.TRANSACTIONS
 
     override fun render(request: ExportRequest): RenderedExport {
-        require(request.hasTransactions()) { "ExportRequest missing transactions body" }
-        val body = request.transactions
-        val userId = UUID.fromString(request.meta.userId)
-        val accountIds = body.accountIdsList.map(UUID::fromString)
-        val fromDate = body.fromDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
-        val toDate = body.toDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
-        val categoryIds = body.categoryIdsList.toList()
+        val (userId, accountIds, fromDate, toDate, categoryIds) = request.transactionFilters()
 
         val transactions = data.fetchTransactionsCapped(
             userId, accountIds, fromDate, toDate, categoryIds, limits.maxTransactionRows,

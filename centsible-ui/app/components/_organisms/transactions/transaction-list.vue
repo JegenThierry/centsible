@@ -26,10 +26,11 @@ const EditTransactionModal = defineAsyncComponent(() => import("~/components/_or
 const EditTransferModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/edit-transfer-modal.vue"));
 const DeleteTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/delete-transaction-modal.vue"));
 const BulkCategorizeModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-categorize-modal.vue"));
+const BulkTagsModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/bulk-tags-modal.vue"));
 const CreateTransactionModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/create-transaction-modal.vue"));
 const SplitIntoIousModal = defineAsyncComponent(() => import("~/components/_organisms/transactions/modals/split-into-ious-modal.vue"));
 const RecurringModal = defineAsyncComponent(() => import("~/components/_organisms/recurring/modals/recurring-modal.vue"));
-const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/categories/modals/rule-modal.vue"));
+const RuleModal = defineAsyncComponent(() => import("~/components/_organisms/rules/modals/rule-modal.vue"));
 const ConfirmationModal = defineAsyncComponent(() => import("~/components/_organisms/modals/confirmation-modal.vue"));
 
 const api = useApi();
@@ -40,7 +41,6 @@ const currency = useActiveCurrency();
 const toasts = useToasts();
 const {t} = useI18n();
 
-// Assignable categories feed the inline row picker; load once for the whole list.
 onMounted(() => {
   if (categoriesStore.categories.length === 0) categoriesStore.updateCategories();
 });
@@ -58,7 +58,6 @@ function clearFilters() {
   filters.value = {sort: filters.value.sort ?? 'DATE_DESC'};
 }
 
-/** Applies a saved view's filters wholesale, replacing the active set. */
 function applySavedFilter(saved: TransactionFilters) {
   filters.value = {...saved};
 }
@@ -80,8 +79,6 @@ interface PendingDelete {
   committing?: boolean;
 }
 
-// Rows deleted optimistically but still inside their undo window — kept out of the list without
-// dropping them, so a background reload can't resurrect a row the server hasn't deleted yet.
 const pendingDeletes = ref<Map<string, PendingDelete>>(new Map());
 
 const visibleTransactions = computed(() =>
@@ -96,6 +93,8 @@ const isEditTransferModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isBulkDeleteOpen = ref(false);
 const isBulkCategorizeOpen = ref(false);
+const isBulkTagsOpen = ref(false);
+const bulkTagsMode = ref<'add' | 'remove'>('add');
 const isSplitModalOpen = ref(false);
 const isRecurringModalOpen = ref(false);
 const recurringSeed = ref<RecurringTransactionForm>();
@@ -221,7 +220,26 @@ async function bulkCategorize(categoryId: number) {
   }
 }
 
-/** Swaps a single row for a new object so the table re-renders just that badge (no full reload). */
+function openBulkTags(mode: 'add' | 'remove') {
+  bulkTagsMode.value = mode;
+  isBulkTagsOpen.value = true;
+}
+
+async function applyBulkTags(mode: 'add' | 'remove', tagIds: number[]) {
+  const ids = Array.from(selectedIds.value);
+  if (ids.length === 0 || tagIds.length === 0 || !budgetAccountsStore.activeAccount) return;
+  const accountId = budgetAccountsStore.activeAccount.id;
+  try {
+    if (mode === 'add') await transactionService.bulkAddTags(accountId, ids, tagIds);
+    else await transactionService.bulkRemoveTags(accountId, ids, tagIds);
+    toasts.success(t(`transactions.bulk.${mode}TagsToastTitle`), t(`transactions.bulk.${mode}TagsToastBody`, {count: ids.length}));
+    clearSelection();
+    await loadTransactions(true);
+  } catch (e) {
+    toasts.error(t('transactions.bulk.errorTitle'), t('transactions.bulk.errorBody'));
+  }
+}
+
 function patchCategory(id: string, category: Category) {
   transactions.value = transactions.value.map((tx) => (tx.id === id ? {...tx, category} : tx));
 }
@@ -256,7 +274,7 @@ function releasePending(id: string) {
 async function commitDelete(id: string) {
   const pending = pendingDeletes.value.get(id);
   if (!pending || pending.committing) return;
-  pending.committing = true; // guard against the timer and a flush racing to commit the same row
+  pending.committing = true;
   clearTimeout(pending.timer);
   try {
     await transactionService.deleteTransaction(pending.accountId, id);
@@ -304,8 +322,6 @@ function flushPendingDeletesOnUnload() {
   }
 }
 
-// `pagehide`, not `beforeunload`: it's the one teardown event that fires reliably on mobile and
-// with the bfcache. useEventListener unregisters it with the component.
 useEventListener('pagehide', flushPendingDeletesOnUnload);
 
 /** Transfers span two ledger rows and can't be cleanly restored — delete straight away, no undo. */
@@ -369,6 +385,8 @@ watch(
   <TransactionBulkActionBar v-if="selectedIds.size > 0"
                             :count="selectedIds.size"
                             @recategorize="isBulkCategorizeOpen = true"
+                            @add-tags="openBulkTags('add')"
+                            @remove-tags="openBulkTags('remove')"
                             @delete="isBulkDeleteOpen = true"
                             @clear="clearSelection"/>
 
@@ -424,6 +442,12 @@ watch(
                        v-model:open="isBulkCategorizeOpen"
                        :count="selectedIds.size"
                        @confirm="bulkCategorize"/>
+
+  <BulkTagsModal v-if="isBulkTagsOpen"
+                 v-model:open="isBulkTagsOpen"
+                 :count="selectedIds.size"
+                 :mode="bulkTagsMode"
+                 @confirm="(tagIds) => applyBulkTags(bulkTagsMode, tagIds)"/>
 
   <ConfirmationModal v-if="isBulkDeleteOpen"
                      v-model:open="isBulkDeleteOpen"

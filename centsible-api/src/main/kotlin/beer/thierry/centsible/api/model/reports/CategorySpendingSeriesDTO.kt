@@ -15,11 +15,6 @@ data class MonthlyCategoryAmountDTO(
     val amount: BigDecimal,
 )
 
-/**
- * One category's spend for one month on the accounts of a single currency, still in that currency.
- * Mirrors [CashFlowCurrencyPointDTO]: the aggregate carries its currency out of SQL so the caller can
- * convert before folding the rows into a [CategorySpendingSeriesDTO].
- */
 data class CategorySpendingCurrencyPointDTO(
     val categoryId: Long,
     val categoryName: String,

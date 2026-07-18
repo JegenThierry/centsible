@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/** CRUD for user tags. Authorization is enforced in the service layer (ADR-0003). */
 @RequestMapping("/api/tags")
 @RestController
 class TagsResource(
@@ -24,23 +23,23 @@ class TagsResource(
 ) {
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<TagDTO>> =
-        ResponseEntity.ok(service.fetchAll(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<TagDTO> =
+        service.fetchAll(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: TagForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<TagDTO> =
-        ResponseEntity.ok(service.create(user, form))
+    ): TagDTO =
+        service.create(user, form)
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,
         @Valid @RequestBody form: TagForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<TagDTO> =
-        ResponseEntity.ok(service.update(user, id, form))
+    ): TagDTO =
+        service.update(user, id, form)
 
     @DeleteMapping("/{id}")
     fun delete(

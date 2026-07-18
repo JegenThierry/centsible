@@ -3,10 +3,11 @@ import {useSavedFiltersStore} from "~/stores/savedFiltersStore";
 import type {TransactionFilters} from "~/models/transactions/transaction-filters";
 import {useToasts} from "~/services/toasts/toast-service";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
   filters: TransactionFilters;
-  /** Only offer to save when the current filters actually narrow the list. */
   canSave: boolean;
 }>();
 
@@ -46,7 +47,6 @@ function isActive(f: TransactionFilters): boolean {
 }
 
 function apply(filters: TransactionFilters) {
-  // Hand the parent its own copy so later edits don't mutate the stored view.
   emit('apply', {...filters});
 }
 
@@ -82,7 +82,7 @@ async function remove(id: number, name: string) {
 
 <template>
   <div v-if="store.savedFilters.length > 0 || canSave" class="flex flex-wrap items-center gap-2">
-    <UButton v-for="f in store.savedFilters"
+    <AppButton v-for="f in store.savedFilters"
              :key="f.id"
              :color="isActive(f.filters) ? 'primary' : 'neutral'"
              :variant="isActive(f.filters) ? 'solid' : 'soft'"
@@ -95,21 +95,21 @@ async function remove(id: number, name: string) {
                name="i-lucide-x"
                @click.stop="remove(f.id, f.name)"/>
       </template>
-    </UButton>
+    </AppButton>
 
-    <UButton v-if="canSave"
+    <AppButton v-if="canSave"
              color="neutral"
              icon="i-lucide-bookmark-plus"
              size="xs"
              variant="ghost"
              @click="openSave">
       {{ t('transactions.savedFilters.save') }}
-    </UButton>
+    </AppButton>
 
     <UModal v-model:open="saveOpen" :title="t('transactions.savedFilters.saveTitle')">
       <template #body>
         <UFormField :label="t('transactions.savedFilters.nameLabel')">
-          <UInput v-model="newName"
+          <AppInput v-model="newName"
                   :placeholder="t('transactions.savedFilters.namePlaceholder')"
                   autofocus
                   class="w-full"

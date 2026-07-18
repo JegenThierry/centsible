@@ -13,10 +13,9 @@ spring.datasource.password=<password>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # --- Connection pool ---
-# Hikari defaults to 10 connections and a 30s connection-timeout; those 10 are shared by every
-# Tomcat request thread plus the sync-orchestrator poller, so under load requests queue for 30s
-# and then cascade into 500s. Size the pool explicitly and fail fast instead.
+# Maximum datasource connections; sized explicitly so requests fail fast instead of queueing.
 spring.datasource.hikari.maximum-pool-size=${HIKARI_MAX_POOL_SIZE:20}
+# Milliseconds to wait for a pool connection before failing.
 spring.datasource.hikari.connection-timeout=${HIKARI_CONNECTION_TIMEOUT_MS:10000}
 
 # --- jOOQ ---
@@ -25,56 +24,46 @@ spring.jooq.sql-dialect=postgres
 # ============================================================================
 # Authentication & security
 # ============================================================================
-# JWT — generate a strong secret, e.g. https://jwtsecretkeygenerator.com/
+# JWT lifetime in milliseconds.
 jwt.expiration-ms=86400000
+# Base64-encoded JWT signing key, ≥256 bits (`openssl rand -base64 64`).
 jwt.secret=<Enter your token>
 
-# Skip the email-verification step on signup (development convenience).
+# Auto-confirms new registrations (dev only; rejected under the prod profile).
 skip.email.verification=true
 
-# Two-factor (TOTP) secret encryption at rest — required once any user enables 2FA.
+# Long random passphrase that encrypts each user's TOTP secret at rest.
 mfa.encryption-key=${MFA_ENCRYPTION_KEY:}
+# Hex string, ≥16 chars, for MFA encryption (`openssl rand -hex 16`).
 mfa.encryption-salt=${MFA_ENCRYPTION_SALT:}
 
-# CORS allow-list (comma-separated, no wildcards).
+# Comma-separated origin allowlist for the UI; no wildcards.
 cors.allowed-origins=http://localhost:3000
 
 # --- Reverse proxy / client IP ---
-# NATIVE hands X-Forwarded-* to Tomcat's RemoteIpValve, which walks X-Forwarded-For right-to-left,
-# drops the hops matching internal-proxies and uses the first one it doesn't trust as remoteAddr.
-# FRAMEWORK (Spring's ForwardedHeaderFilter) instead takes the *leftmost* XFF entry — a value the
-# client appends to, so any caller can forge it. AuthRateLimitFilter buckets per remoteAddr, so
-# under FRAMEWORK an attacker mints a fresh bucket per request. Boot registers the filter only for
-# `framework` and the valve only for `native`, so exactly one of the two is ever active.
+# `native` resolves the client IP via trusted proxies, `framework` trusts a client-forgeable header, `none` when nothing fronts the API.
 server.forward-headers-strategy=${SERVER_FORWARD_HEADERS_STRATEGY:native}
-# Proxy addresses whose X-Forwarded-* headers are trusted; CIDR list or regex. Boot's default covers
-# loopback and the RFC1918/CGNAT ranges Docker bridge networks sit on, which is what the compose
-# deployment needs. Override only if your proxy reaches the API from a public address — and list the
-# proxy alone, never a range that includes clients.
+# Proxy addresses whose `X-Forwarded-*` headers are trusted (CIDR list or regex); override only if your proxy reaches the API from a public address.
 # server.tomcat.remoteip.internal-proxies=192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8, 127.0.0.0/8
 
 # ============================================================================
 # Lifecycle
 # ============================================================================
-# Drain in-flight HTTP requests on SIGTERM instead of severing them (Spring's default is IMMEDIATE),
-# so redeploys don't 502 a multi-second upload/import/export-enqueue. In the Docker deployment these
-# are also injected via env in docker-compose.yml; keep the compose stop_grace_period above the
-# timeout so the JVM can finish draining before SIGKILL.
+# Drain in-flight requests on SIGTERM instead of severing them.
 server.shutdown=graceful
+# Maximum time to wait for in-flight work to drain before forcing shutdown.
 spring.lifecycle.timeout-per-shutdown-phase=20s
 
 # ============================================================================
 # Scheduling
 # ============================================================================
-# Four @Scheduled tasks (sync orchestrator, notification sweep, recurring transactions at 00:05,
-# export-schedule materializer at 00:15) share this pool; Spring's default single thread lets one
-# slow provider backfill delay or skip the crons behind it.
+# Thread-pool size shared by the `@Scheduled` tasks so a slow one can't block the rest.
 spring.task.scheduling.pool.size=${SCHEDULING_POOL_SIZE:4}
 
 # ============================================================================
 # Response compression
 # ============================================================================
-# Redundant if your reverse proxy already gzips — set to false in that case.
+# Gzip JSON responses; disable if the reverse proxy already compresses.
 server.compression.enabled=${SERVER_COMPRESSION_ENABLED:true}
 server.compression.mime-types=application/json
 server.compression.min-response-size=1024
@@ -88,18 +77,18 @@ management.endpoint.health.show-details=never
 # ============================================================================
 # Internationalization
 # ============================================================================
-# Validation/error messages and email copy resolve through the bundle named
-# `messages_{en,fr,de}.properties` on the classpath; the active locale comes from
-# Accept-Language (UI sends it on every request) or the user's stored preference.
+# Resource-bundle basename for localized validation/error messages and email copy.
 spring.messages.basename=messages
 spring.messages.encoding=UTF-8
 
 # ============================================================================
 # Transaction attachments
 # ============================================================================
-# Files are stored on disk under this directory, one subdir per user/transaction.
+# Directory where transaction attachments are stored on disk.
 attachments.directory=${ATTACHMENTS_DIRECTORY:./data/attachments}
+# Maximum size of a single uploaded attachment.
 spring.servlet.multipart.max-file-size=11MB
+# Maximum total size of a multipart upload request.
 spring.servlet.multipart.max-request-size=12MB
 
 # ============================================================================
@@ -107,32 +96,49 @@ spring.servlet.multipart.max-request-size=12MB
 # ============================================================================
 
 # --- Credentials at rest ---
+# Passphrase used to derive the AES-256 key that encrypts provider credentials at rest.
 integrations.encryption-key=${INTEGRATIONS_ENCRYPTION_KEY:}
+# Hex string, ≥16 chars, for integrations encryption (`openssl rand -hex 16`).
 integrations.encryption-salt=${INTEGRATIONS_ENCRYPTION_SALT:}
 
 # --- Sync orchestrator ---
+# How often the sync orchestrator polls (ms).
 integrations.sync.poll-interval-ms=${INTEGRATIONS_SYNC_POLL_INTERVAL_MS:300000}
+# How often a single connection is re-synced (s).
 integrations.sync.interval-seconds=${INTEGRATIONS_SYNC_INTERVAL_SECONDS:3600}
+# Lease TTL after which a stalled sync is reclaimable (s).
 integrations.sync.lease-timeout-seconds=${INTEGRATIONS_SYNC_LEASE_TIMEOUT_SECONDS:300}
 
 # --- OAuth redirect URLs ---
+# Public URL used to build OAuth redirect URIs; HTTPS in prod.
 integrations.base-url=${INTEGRATIONS_BASE_URL:}
+# Public UI URL for OAuth return redirects (defaults to the integrations base URL).
 integrations.ui-base-url=${INTEGRATIONS_UI_BASE_URL:${INTEGRATIONS_BASE_URL:}}
 
 # --- PayPal provider (per-user credentials come from the UI) ---
+# Show the PayPal provider in the UI.
 integrations.paypal.enabled=${INTEGRATIONS_PAYPAL_ENABLED:false}
+# Default PayPal environment shown to users (`live` or `sandbox`).
 integrations.paypal.default-environment=${INTEGRATIONS_PAYPAL_DEFAULT_ENVIRONMENT:live}
+# HTTP timeout for PayPal API calls (ms).
 integrations.paypal.http-timeout-ms=${INTEGRATIONS_PAYPAL_HTTP_TIMEOUT_MS:15000}
 
 # --- GoCardless Bank Account Data (EU banking under PSD2) ---
-# Operator-level secrets — required when integrations.banking-gocardless.enabled=true.
+# Show the EU banking (GoCardless) provider in the UI.
 integrations.banking-gocardless.enabled=${INTEGRATIONS_BANKING_GOCARDLESS_ENABLED:false}
+# GoCardless Bank Account Data `secret_id` (operator-level).
 integrations.banking-gocardless.secret-id=${INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID:}
+# GoCardless Bank Account Data `secret_key` (operator-level).
 integrations.banking-gocardless.secret-key=${INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY:}
+# GoCardless Bank Account Data API base URL.
 integrations.banking-gocardless.api-base=${INTEGRATIONS_BANKING_GOCARDLESS_API_BASE:https://bankaccountdata.gocardless.com/api/v2}
+# Minimum gap between syncs to respect GoCardless's rate cap (s).
 integrations.banking-gocardless.min-sync-interval-seconds=${INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS:21600}
 
 # --- Currency conversion (foreign-currency transactions) ---
+# Enable Frankfurter-backed currency conversion for foreign-currency transactions.
 fx.frankfurter.enabled=${FX_FRANKFURTER_ENABLED:true}
+# Frankfurter API base URL.
 fx.frankfurter.api-base=${FX_FRANKFURTER_API_BASE:https://api.frankfurter.dev}
+# Maximum age, in days, of an FX rate before it is considered stale.
 fx.stale-tolerance-days=${FX_STALE_TOLERANCE_DAYS:7}

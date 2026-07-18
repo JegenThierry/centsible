@@ -5,11 +5,14 @@ import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.rule.RuleActionForm
 import beer.thierry.centsible.api.model.rule.RuleActionType
 import beer.thierry.centsible.api.model.rule.RuleConditionForm
+import beer.thierry.centsible.api.model.rule.RuleConditionDTO
 import beer.thierry.centsible.api.model.rule.RuleContext
 import beer.thierry.centsible.api.model.rule.RuleDTO
 import beer.thierry.centsible.api.model.rule.RuleField
 import beer.thierry.centsible.api.model.rule.RuleForm
 import beer.thierry.centsible.api.model.rule.RuleMatching
+import beer.thierry.centsible.api.model.rule.RulePreviewMatch
+import beer.thierry.centsible.api.model.rule.RulePreviewResult
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.ICategoriesRepository
 import beer.thierry.centsible.api.repository.IRuleRepository
@@ -21,6 +24,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
+
+private const val PREVIEW_SAMPLE_LIMIT = 20
 
 @Service
 class RuleService(
@@ -77,6 +82,21 @@ class RuleService(
 
         log.info("Applied rule {} to {} existing transaction(s) userId={}", ruleId, touched.size, user.id)
         return touched.size
+    }
+
+    override fun preview(user: UserDTO, form: RuleForm): RulePreviewResult {
+        val conditions = form.conditions
+            .filter { it.value.isNotBlank() && it.operator in RuleMatching.VALID_OPERATORS.getValue(it.field) }
+            .map { RuleConditionDTO(field = it.field, operator = it.operator, value = it.value.trim()) }
+        if (conditions.isEmpty()) return RulePreviewResult(0, emptyList())
+
+        val matched = transactions.fetchForRuleEvaluation(user).filter { c ->
+            RuleMatching.matches(form.matchAll, conditions, RuleContext(c.description, c.amount, c.type, c.accountId))
+        }
+        return RulePreviewResult(
+            matchedCount = matched.size,
+            sample = matched.take(PREVIEW_SAMPLE_LIMIT).map { RulePreviewMatch(it.description, it.amount, it.type) },
+        )
     }
 
     private fun validateAndNormalize(user: UserDTO, form: RuleForm): RuleForm {

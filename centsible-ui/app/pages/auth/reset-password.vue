@@ -2,14 +2,7 @@
 import ResetPasswordCard from "~/components/_organisms/auth/reset-password-card.vue";
 
 definePageMeta({
-  middleware: [
-    () => {
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        return navigateTo('/accounts');
-      }
-    },
-  ],
+  middleware: ['guest-guard'],
 });
 
 const {t} = useI18n();

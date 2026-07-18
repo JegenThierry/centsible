@@ -3,7 +3,6 @@ package beer.thierry.centsible.core.services.reports
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetPeriodType
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.recurring.RecurringTransactionDTO
 import beer.thierry.centsible.api.model.reports.AccountBalanceAtDateDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualEntryDTO
 import beer.thierry.centsible.api.model.reports.BudgetVsActualPeriodDTO
@@ -23,6 +22,7 @@ import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.IReportService
+import beer.thierry.centsible.core.services.recurring.occurrenceDatesInWindow
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -89,12 +89,8 @@ class ReportService(
         val horizonEnd = today.plusMonths(months.toLong())
         val rates = ratesFor(authenticatedUser)
         val accounts = accountsRepository.fetchAllAccounts(authenticatedUser)
-        // Forecasting starts from the live net worth (current per-account balances), not the history.
         val startingTotal = totalOf(accounts.associate { it.id to it.balance }, rates)
 
-        // Every upcoming occurrence in [today, horizonEnd], converted to the default currency. Transfers
-        // are skipped (they net to zero across accounts); rules whose FX can't be resolved are excluded,
-        // mirroring how those accounts drop out of net worth.
         val occurrences = recurringRepository.fetchAll(authenticatedUser)
             .asSequence()
             .filter { it.active && !it.isTransfer }
@@ -106,7 +102,7 @@ class ReportService(
                     emptySequence()
                 } else {
                     val converted = amount.multiply(rate).setScale(2, RoundingMode.HALF_UP)
-                    occurrenceDatesInWindow(rule, today, horizonEnd).asSequence().map { date ->
+                    occurrenceDatesInWindow(rule, today, horizonEnd, MAX_FORECAST_OCCURRENCES).asSequence().map { date ->
                         ForecastOccurrenceDTO(
                             date = date,
                             description = rule.description ?: "",
@@ -121,8 +117,6 @@ class ReportService(
             .sortedBy { it.date }
             .toList()
 
-        // Step the running balance forward. Today stays anchored to the actual net worth; occurrences
-        // dated today fold into the running total but don't move the anchor point.
         val pointByDate = sortedMapOf(today to startingTotal)
         var running = startingTotal
         for (occ in occurrences) {
@@ -134,31 +128,10 @@ class ReportService(
                 pointByDate[occ.date] = running.setScale(2, RoundingMode.HALF_UP)
             }
         }
-        // Always extend the line to the horizon so the axis is stable even with no occurrences.
         pointByDate.putIfAbsent(horizonEnd, running.setScale(2, RoundingMode.HALF_UP))
 
         val points = pointByDate.map { (date, balance) -> NetWorthPointDTO(date = date, balance = balance) }
         return NetWorthForecastDTO(currency = rates.target, points = points, occurrences = occurrences)
-    }
-
-    /** Upcoming run dates within [windowStart, windowEnd], following the cadence from nextRunAt. */
-    private fun occurrenceDatesInWindow(
-        rule: RecurringTransactionDTO,
-        windowStart: LocalDate,
-        windowEnd: LocalDate,
-    ): List<LocalDate> {
-        val frequency = rule.frequency ?: return emptyList()
-        val hardEnd = rule.endDate
-        val dates = mutableListOf<LocalDate>()
-        var date = rule.nextRunAt ?: return emptyList()
-        var guard = 0
-        while (!date.isAfter(windowEnd) && guard < MAX_FORECAST_OCCURRENCES) {
-            if (hardEnd != null && date.isAfter(hardEnd)) break
-            if (!date.isBefore(windowStart)) dates += date
-            date = frequency.advance(date)
-            guard++
-        }
-        return dates
     }
 
     override fun fetchAccountBalancesOnDate(
@@ -178,6 +151,7 @@ class ReportService(
                 accountId = acc.id,
                 accountName = acc.name,
                 currency = acc.currency,
+                type = acc.type,
                 balance = raw,
                 convertedBalance = rates.byAccount[acc.id]?.let { raw.multiply(it).setScale(2, RoundingMode.HALF_UP) },
                 targetCurrency = rates.target,
@@ -292,7 +266,6 @@ class ReportService(
     private fun totalOf(balances: Map<UUID, BigDecimal>, rates: ConversionRates): BigDecimal =
         balances.entries
             .sumOf { (accountId, balance) ->
-                // Unknown account (e.g. since deleted) keeps face value; unresolvable FX is excluded.
                 when (val rate = rates.byAccount.getOrDefault(accountId, BigDecimal.ONE)) {
                     null -> BigDecimal.ZERO
                     else -> balance.multiply(rate)
@@ -301,7 +274,6 @@ class ReportService(
             .setScale(2, RoundingMode.HALF_UP)
 
     private companion object {
-        // Loop backstop for cadence stepping; comfortably covers daily rules over the 24-month cap.
         const val MAX_FORECAST_OCCURRENCES = 800
     }
 }

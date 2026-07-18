@@ -28,11 +28,6 @@ data class TransactionDTO(
     var splits: List<TransactionSplitDTO> = emptyList(),
 )
 
-/**
- * One slice of a split transaction: a portion of the parent transaction's amount attributed to a
- * distinct [category]. A transaction has either no splits (its own category is authoritative) or
- * two-or-more splits whose [amount]s sum to the transaction amount.
- */
 data class TransactionSplitDTO(
     var id: UUID? = null,
     var category: CategoryDTO = CategoryDTO(),

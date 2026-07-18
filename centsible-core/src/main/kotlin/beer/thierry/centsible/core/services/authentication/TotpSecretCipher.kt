@@ -5,16 +5,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-/**
- * Encrypts/decrypts the TOTP shared secret at rest with 256-bit AES-GCM (Spring Security Crypto's
- * Encryptors.stronger). The secret must be reversible — the server recomputes codes on every
- * challenge — so it is encrypted, never hashed. The key/salt come from env (MFA_ENCRYPTION_KEY /
- * MFA_ENCRYPTION_SALT) and must live outside the database; ProductionGuard fails the prod boot if
- * they are missing or left at their .env.example placeholders.
- *
- * Built lazily so a dev checkout with no 2FA users still boots; the first enrollment fails loudly
- * if the key is unset.
- */
 @Component
 class TotpSecretCipher(
     @Value("\${mfa.encryption-key:}") encryptionKey: String,

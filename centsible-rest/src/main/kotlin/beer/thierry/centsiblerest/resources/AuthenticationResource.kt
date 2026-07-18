@@ -9,7 +9,7 @@ import beer.thierry.centsible.api.model.auth.LoginResult
 import beer.thierry.centsible.api.model.auth.PasswordChangeRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetConfirmRequest
 import beer.thierry.centsible.api.model.auth.PasswordResetRequest
-import beer.thierry.centsible.api.model.auth.TotpChallengeRequest
+import beer.thierry.centsible.api.model.auth.TotpCodeRequest
 import beer.thierry.centsible.api.model.user.AccountDeletionRequest
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.authentication.IAuthService
@@ -59,7 +59,7 @@ class AuthenticationResource(
 
     @PostMapping("/2fa/challenge")
     fun twoFactorChallenge(
-        @Valid @RequestBody request: TotpChallengeRequest,
+        @Valid @RequestBody request: TotpCodeRequest,
         @CookieValue(name = PRE_AUTH_COOKIE_NAME, required = false) pendingToken: String?,
         response: HttpServletResponse,
     ): ResponseEntity<AuthResponse> {
@@ -83,7 +83,7 @@ class AuthenticationResource(
     fun register(
         @Valid @RequestBody form: AuthRegisterRequest,
         response: HttpServletResponse,
-    ): ResponseEntity<AuthResponse> {
+    ): AuthResponse {
         val authResult = try {
             authService.register(form)
         } catch (ex: RuntimeException) {
@@ -96,18 +96,18 @@ class AuthenticationResource(
             form.username,
             authResult.token.isBlank(),
         )
-        return ResponseEntity.ok(authResult)
+        return authResult
     }
 
     @GetMapping("/confirm")
-    fun confirm(@RequestParam token: String): ResponseEntity<String> {
+    fun confirm(@RequestParam token: String): String {
         val confirmed = authService.confirmRegistration(token)
         if (!confirmed) {
             log.warn("Registration confirmation rejected (invalid or expired token)")
             throw LocalizedException.BadRequest("error.auth.confirmInvalid")
         }
         log.info("Registration confirmation succeeded")
-        return ResponseEntity.ok("ok")
+        return "ok"
     }
 
     @PostMapping("/logout")
@@ -175,8 +175,8 @@ class AuthenticationResource(
     fun verify(
         @AuthenticationPrincipal authenticatedUser: UserDTO,
         response: HttpServletResponse,
-    ): ResponseEntity<String> {
-        if (userService.userExists(authenticatedUser.id)) return ResponseEntity.ok("ok")
+    ): String {
+        if (userService.userExists(authenticatedUser.id)) return "ok"
         authCookieIssuer.clear(response)
         log.warn("Verify failed: account no longer exists userId={}", authenticatedUser.id)
         throw LocalizedException.Unauthorized("error.auth.accountGone")

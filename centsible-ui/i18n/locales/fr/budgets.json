@@ -15,7 +15,14 @@
       "showHistory": "Afficher l'historique",
       "historyHeading": "Périodes passées",
       "noBudgetsInPeriod": "Aucun budget défini pour cette période.",
-      "rolloverNote": "Inclut {amount} reporté de la période précédente."
+      "rolloverNote": "Inclut {amount} reporté de la période précédente.",
+      "bulkCreate": "Créer depuis les suggestions",
+      "bulkCreateToastTitle": "Budgets créés.",
+      "bulkCreateToastBody": "{count} budget créé à partir de vos dépenses récentes. | {count} budgets créés à partir de vos dépenses récentes.",
+      "bulkCreateNoneTitle": "Rien à créer.",
+      "bulkCreateNoneBody": "Chaque catégorie de dépense avec des dépenses récentes a déjà un budget.",
+      "bulkCreateErrorTitle": "Budgets non créés.",
+      "bulkCreateErrorBody": "Impossible de créer les budgets à partir des suggestions. Veuillez réessayer."
     },
     "summary": {
       "spent": "dépensés",
@@ -33,7 +40,8 @@
       "limitPlaceholder": "0,00",
       "periodLabel": "Période",
       "rolloverLabel": "Reporter le montant non utilisé",
-      "rolloverDescription": "Si vous restez sous le budget, le montant non utilisé est ajouté à la période suivante."
+      "rolloverDescription": "Si vous restez sous le budget, le montant non utilisé est ajouté à la période suivante.",
+      "suggestedHint": "Suggéré : {amount} (moy. 3 mois)"
     },
     "periods": {
       "MONTHLY": "Mensuel",

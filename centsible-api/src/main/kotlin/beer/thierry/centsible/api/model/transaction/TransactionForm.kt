@@ -35,12 +35,6 @@ data class TransactionForm(
 
     var currency: Currency? = null,
 
-    /**
-     * Optional per-category breakdown. When non-empty the transaction is a split: the service
-     * validates there are at least two entries whose amounts sum to the (converted) transaction
-     * amount, all in non-managed categories matching the transaction type. When null/empty the
-     * transaction keeps a single category ([categoryId]).
-     */
     @field:Valid
     var splits: List<TransactionSplitForm>? = null,
 )

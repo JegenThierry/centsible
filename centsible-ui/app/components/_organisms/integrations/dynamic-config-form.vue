@@ -179,9 +179,6 @@ defineExpose({validate});
         </AppButton>
       </UFormField>
 
-      <!-- OAUTH_LAUNCH with no callback: skip rendering entirely. The connect-provider modal
-           handles OAuth via its footer button; rendering a disabled button here would be dead UI.
-           See dynamic-config-form fix #4. -->
       <template v-else-if="field.type === 'OAUTH_LAUNCH'"/>
 
       <PasswordInput v-else-if="field.secret"

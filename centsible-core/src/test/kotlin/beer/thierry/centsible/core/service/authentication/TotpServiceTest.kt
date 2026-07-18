@@ -27,8 +27,6 @@ import java.util.UUID
 @ExtendWith(MockitoExtension::class)
 class TotpServiceTest {
 
-    // Raw ArgumentMatchers.eq()/any() return null, which trips Kotlin's not-null assertion on
-    // non-null parameters — these helpers erase the platform type (same pattern as the sibling tests).
     private fun <T> anyArg(): T = org.mockito.ArgumentMatchers.any()
     private fun <T> eqArg(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
 

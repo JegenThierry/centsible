@@ -21,6 +21,8 @@ import CsvMappingEditor from "~/components/_organisms/transactions/modals/csv-ma
 import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
+import TransactionAmount from "~/components/_molecules/transactions/transaction-amount.vue";
+import {Currency} from "~/models/budget-account/currency";
 
 const isOpen = defineModel<boolean>('open', {required: true});
 
@@ -37,6 +39,8 @@ const accountsStore = useBudgetAccountsStore();
 const toasts = useToasts();
 const {toastError} = useApiErrors();
 const {t} = useI18n();
+
+const previewCurrency = computed(() => accountsStore.activeAccount?.currency ?? Currency.EUR);
 
 const step = ref<Step>('upload');
 const file = ref<File | null>(null);
@@ -365,7 +369,11 @@ async function commit() {
               <tr v-for="(row, i) in preview?.sample" :key="i" class="border-t border-muted">
                 <td class="p-2 tabular-nums">{{ row.transactionDate }}</td>
                 <td class="p-2 truncate max-w-[20rem]">{{ row.description }}</td>
-                <td class="p-2 text-right tabular-nums">{{ Number(row.amount).toFixed(2) }}</td>
+                <td class="p-2 text-right">
+                  <TransactionAmount :amount="Number(row.amount)"
+                                     :type="row.type ?? undefined"
+                                     :currency="row.currency ?? previewCurrency"/>
+                </td>
               </tr>
             </tbody>
           </table>

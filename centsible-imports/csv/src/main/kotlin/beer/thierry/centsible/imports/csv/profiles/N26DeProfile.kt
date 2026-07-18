@@ -3,18 +3,12 @@ package beer.thierry.centsible.imports.csv.profiles
 import beer.thierry.centsible.imports.core.CsvBankProfile
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.MatchScore
+import beer.thierry.centsible.imports.core.anyContains
+import beer.thierry.centsible.imports.core.anyEquals
+import beer.thierry.centsible.imports.core.normalizedHeader
 import org.springframework.stereotype.Component
 import java.util.Locale
 
-/**
- * N26 Germany CSV export. Sample header (as of v1):
- *   "Booking Date","Value Date","Partner Name","Partner Iban","Type","Payment Reference",
- *   "Account Name","Amount (EUR)","Original Amount","Original Currency","Exchange Rate"
- *
- * Single signed amount column; debits are NEGATIVE in N26 exports, so [debitsArePositive] is
- * false. Bump [version] if N26 changes the header — saved user mappings record this number so
- * the wizard can warn about format drift.
- */
 @Component
 class N26DeProfile : CsvBankProfile {
     override val id = "n26-de"
@@ -23,10 +17,10 @@ class N26DeProfile : CsvBankProfile {
     override val version = 1
 
     override fun matches(header: List<String>, sample: List<List<String>>): MatchScore {
-        val normalized = header.map { it.lowercase() }
-        val hasBookingDate = normalized.any { it.contains("booking date") || it == "buchungstag" }
-        val hasAmountEur = normalized.any { it.contains("amount (eur)") || it.contains("betrag (eur)") }
-        val hasPartner = normalized.any { it.contains("partner name") || it.contains("empfänger") }
+        val normalized = header.normalizedHeader()
+        val hasBookingDate = normalized.anyContains("booking date") || normalized.anyEquals("buchungstag")
+        val hasAmountEur = normalized.anyContains("amount (eur)") || normalized.anyContains("betrag (eur)")
+        val hasPartner = normalized.anyContains("partner name") || normalized.anyContains("empfänger")
         return when {
             hasBookingDate && hasAmountEur && hasPartner -> MatchScore.EXACT
             hasBookingDate && hasAmountEur -> MatchScore.STRONG

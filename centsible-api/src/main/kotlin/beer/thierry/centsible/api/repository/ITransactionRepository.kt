@@ -125,6 +125,19 @@ interface ITransactionRepository {
         providerConnectionId: UUID? = null,
     ): BatchImportOutcome
 
+    /**
+     * Links each freshly imported leg in [candidateIds] to an unlinked, opposite-direction, equal-amount
+     * transaction in another same-currency account of the user when exactly one such counter-leg exists
+     * within [maxDayGap] days, tagging both as a transfer (transfer group + Transfer in/out categories) so
+     * they stop double-counting as income and expense. Returns the number of pairs linked.
+     */
+    fun linkDetectedTransfers(
+        accountId: UUID,
+        candidateIds: Collection<UUID>,
+        maxDayGap: Int,
+        authenticatedUser: UserDTO,
+    ): Int
+
     /** Lightweight projection of the user's non-transfer, non-split transactions for in-memory rule evaluation. */
     fun fetchForRuleEvaluation(authenticatedUser: UserDTO): List<RuleCandidateTransaction>
 
@@ -154,6 +167,7 @@ interface ITransactionRepository {
 data class BatchImportOutcome(
     val insertedCount: Int,
     val netBalanceAdjustment: BigDecimal,
+    val insertedIdsByHash: Map<String, UUID> = emptyMap(),
 )
 
 data class TransferLeg(

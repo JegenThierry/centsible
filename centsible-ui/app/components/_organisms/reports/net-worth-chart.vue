@@ -2,6 +2,7 @@
 import type {NetWorthPoint} from "~/models/reports/net-worth-point";
 import type {Currency} from "~/models/budget-account/currency";
 import BalanceLineChart from "~/components/_molecules/charts/balance-line-chart.vue";
+import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import {useChartTheme} from "~/composables/use-chart-theme";
 
 const props = defineProps<{
@@ -17,15 +18,24 @@ const {t} = useI18n();
 const {primaryColor, withAlpha} = useChartTheme(() => props.currency);
 const lineColor = computed(() => primaryColor.value);
 const lineFillColor = computed(() => withAlpha(primaryColor.value, 0.12));
+const totalNetWorth = computed(() => props.points.at(-1)?.balance ?? 0);
 </script>
 
 <template>
   <UCard>
     <template #header>
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-highlighted">
-          {{ t('reports.netWorth.title') }}
-        </h3>
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="text-base font-semibold text-highlighted">
+            {{ t('reports.netWorth.title') }}
+          </h3>
+          <div v-if="props.points.length > 0" class="mt-2">
+            <p class="text-xs uppercase tracking-wide text-muted">{{ t('reports.netWorth.total') }}</p>
+            <p class="text-2xl font-semibold tabular-nums text-highlighted">
+              <BalanceNumberFormat :balance="totalNetWorth" :currency="currency"/>
+            </p>
+          </div>
+        </div>
         <p class="text-xs text-muted">{{ t('reports.netWorth.drillHint') }}</p>
       </div>
     </template>

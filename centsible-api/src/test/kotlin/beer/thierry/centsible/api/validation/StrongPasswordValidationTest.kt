@@ -6,10 +6,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-/**
- * Pins that the composed @StrongPassword reports the same per-rule message templates the separate
- * @NotBlank / @Size(max=72) / @Pattern annotations did, so the dedup is behaviour-preserving.
- */
 class StrongPasswordValidationTest {
 
     data class Holder(@field:StrongPassword val password: String)
@@ -39,7 +35,7 @@ class StrongPasswordValidationTest {
 
     @Test
     fun `over 72 characters fails only the size rule`() {
-        val long = "Aa1!" + "a".repeat(70) // 74 chars, otherwise satisfies the pattern
+        val long = "Aa1!" + "a".repeat(70)
         assertEquals(setOf("{validation.password.tooLong}"), templates(long))
     }
 }

@@ -5,7 +5,6 @@ import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.transactions.IAttachmentService
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -27,15 +26,15 @@ class AttachmentsResource(private val service: IAttachmentService) {
     fun list(
         @PathVariable transactionId: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<AttachmentDTO>> =
-        ResponseEntity.ok(service.list(user, transactionId))
+    ): List<AttachmentDTO> =
+        service.list(user, transactionId)
 
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @PathVariable transactionId: UUID,
         @RequestParam("file") file: MultipartFile,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<AttachmentDTO> {
+    ): AttachmentDTO {
         val (detected, bytes) = file.validateContentType(
             allowedTypes = ALLOWED_ATTACHMENT_TYPES,
             maxBytes = MAX_ATTACHMENT_BYTES,
@@ -46,7 +45,7 @@ class AttachmentsResource(private val service: IAttachmentService) {
             "Uploaded attachment id={} transactionId={} userId={} contentType={} sizeBytes={}",
             saved.id, transactionId, user.id, detected, file.size,
         )
-        return ResponseEntity.ok(saved)
+        return saved
     }
 
     @GetMapping("/{attachmentId}")
@@ -60,15 +59,14 @@ class AttachmentsResource(private val service: IAttachmentService) {
             download.stream.close()
             return ResponseEntity.notFound().build()
         }
-
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.parseMediaType(download.metadata.contentType)
-            contentLength = download.metadata.sizeBytes
-            set(HttpHeaders.CONTENT_DISPOSITION,
-                """inline; filename="${download.metadata.filename.replace("\"", "")}"""")
-            cacheControl = "no-store"
-        }
-        return ResponseEntity.ok().headers(headers).body(InputStreamResource(download.stream))
+        return fileDownload(
+            filename = download.metadata.filename,
+            contentType = MediaType.parseMediaType(download.metadata.contentType),
+            length = download.metadata.sizeBytes,
+            resource = InputStreamResource(download.stream),
+            inline = true,
+            cacheControl = "no-store",
+        )
     }
 
     @DeleteMapping("/{attachmentId}")
@@ -76,11 +74,11 @@ class AttachmentsResource(private val service: IAttachmentService) {
         @PathVariable transactionId: UUID,
         @PathVariable attachmentId: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<Void> =
-        if (service.delete(user, attachmentId)) {
-            log.info("Deleted attachment id={} transactionId={} userId={}", attachmentId, transactionId, user.id)
-            ResponseEntity.noContent().build()
-        } else ResponseEntity.notFound().build()
+    ): ResponseEntity<Void> {
+        val deleted = service.delete(user, attachmentId)
+        if (deleted) log.info("Deleted attachment id={} transactionId={} userId={}", attachmentId, transactionId, user.id)
+        return deleted.toDeleteResponse()
+    }
 
     private fun sanitiseFilename(name: String): String {
         val cleaned = name.replace(Regex("[\\r\\n\\t\\\\/]"), "_").trim()

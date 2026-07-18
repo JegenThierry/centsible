@@ -8,10 +8,10 @@ import {useLoansStore} from "~/stores/loansStore";
 import BalanceNumberFormat from "~/components/_atoms/labels/balance-number-format.vue";
 import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
+import AppInput from "~/components/_atoms/ui/app-input.vue";
 
 const props = defineProps<{
   transaction: Transaction;
-  // The table's display currency (transactions have no currency of their own).
   currency: Currency;
 }>();
 const isOpen = defineModel<boolean>('open', {required: true});
@@ -32,7 +32,6 @@ function blankRow(): ShareRow {
   return {mode: 'existing', contact: undefined, newName: '', amount: null};
 }
 
-// v-if in the parent remounts this on every open, so a fresh single row is the natural default.
 const shares = ref<ShareRow[]>([blankRow()]);
 
 onMounted(() => {
@@ -72,7 +71,6 @@ function toggleMode(share: ShareRow) {
 }
 
 function splitEvenly() {
-  // Split the bill evenly across everyone at the table — the people listed plus you.
   const perPerson = Math.round((total.value / (shares.value.length + 1)) * 100) / 100;
   shares.value = shares.value.map((s) => ({...s, amount: perPerson}));
 }
@@ -93,7 +91,6 @@ async function submit() {
     emit('created');
     isOpen.value = false;
   } catch {
-    // Toast is surfaced by the store.
   }
 }
 </script>
@@ -116,7 +113,7 @@ async function submit() {
           <p class="text-xs font-medium text-muted mb-2">{{ t('transactions.splitIous.owedBackTo') }}</p>
           <div class="space-y-2">
             <div v-for="(share, i) in shares" :key="i" class="flex items-center gap-2">
-              <UButton :icon="share.mode === 'existing' ? 'i-lucide-user-round-plus' : 'i-lucide-user-round-search'"
+              <AppButton :icon="share.mode === 'existing' ? 'i-lucide-user-round-plus' : 'i-lucide-user-round-search'"
                        color="neutral"
                        variant="ghost"
                        size="xs"
@@ -134,17 +131,17 @@ async function submit() {
                   <UIcon v-else class="w-4 h-4" name="i-lucide-user"/>
                 </template>
               </USelectMenu>
-              <UInput v-else
+              <AppInput v-else
                       v-model="share.newName"
                       class="flex-1 min-w-0"
                       :placeholder="t('transactions.splitIous.newNamePlaceholder')"/>
-              <UInput v-model.number="share.amount"
+              <AppInput v-model.number="share.amount"
                       type="number"
                       step="0.01"
                       min="0"
                       class="w-24 shrink-0"
                       :placeholder="t('transactions.splitIous.amountPlaceholder')"/>
-              <UButton icon="i-lucide-x"
+              <AppButton icon="i-lucide-x"
                        color="neutral"
                        variant="ghost"
                        size="xs"

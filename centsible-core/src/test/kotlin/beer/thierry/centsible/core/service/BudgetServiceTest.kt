@@ -3,6 +3,7 @@ package beer.thierry.centsible.core.service
 import beer.thierry.centsible.api.exceptions.LocalizedException
 import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budget.BudgetForm
+import beer.thierry.centsible.api.model.category.CategoryDTO
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.repository.CategoryClassification
@@ -99,5 +100,44 @@ class BudgetServiceTest {
         }
 
         verify(repository, never()).update(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `suggestions returns positive average spend for expense categories only`() {
+        `when`(categoriesRepository.fetchAllCategories(user)).thenReturn(
+            listOf(
+                CategoryDTO(id = 1L, type = CategoryType.EXPENSE),
+                CategoryDTO(id = 2L, type = CategoryType.EXPENSE),
+                CategoryDTO(id = 3L, type = CategoryType.INCOME),
+            )
+        )
+        `when`(repository.suggestedAmounts(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyInt(), anyArg()))
+            .thenReturn(mapOf(1L to BigDecimal("42.00"), 2L to BigDecimal.ZERO))
+
+        val result = service.suggestions(user)
+
+        assertEquals(1, result.size)
+        assertEquals(1L, result[0].categoryId)
+        assertEquals(BigDecimal("42.00"), result[0].suggestedAmount)
+    }
+
+    @Test
+    fun `bulkCreateSuggested skips covered and zero-spend categories`() {
+        `when`(categoriesRepository.fetchAllCategories(user)).thenReturn(
+            listOf(
+                CategoryDTO(id = 1L, type = CategoryType.EXPENSE),
+                CategoryDTO(id = 2L, type = CategoryType.EXPENSE),
+                CategoryDTO(id = 3L, type = CategoryType.EXPENSE),
+            )
+        )
+        `when`(repository.suggestedAmounts(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyInt(), anyArg()))
+            .thenReturn(mapOf(1L to BigDecimal("30.00"), 2L to BigDecimal("50.00"), 3L to BigDecimal.ZERO))
+        `when`(repository.budgetedCategoryIds(anyArg(), anyArg())).thenReturn(setOf(2L))
+        `when`(repository.create(anyArg(), anyArg())).thenReturn(BudgetDTO(id = UUID.randomUUID()))
+
+        val created = service.bulkCreateSuggested(user)
+
+        assertEquals(1, created.size)
+        verify(repository).create(anyArg(), anyArg())
     }
 }

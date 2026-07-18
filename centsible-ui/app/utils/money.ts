@@ -10,11 +10,6 @@ export const BALANCE_INPUT = {
   max: 9_999_999_999_999.99,
 } as const;
 
-/**
- * Upper bound for a single loan/budget/repayment money field (≈10M). Deliberately smaller than
- * {@link AMOUNT_INPUT}.max; single-sourced here because the same literal was repeated across every
- * loan/budget form input and its zod `.max(...)` rule.
- */
 export const MONEY_FIELD_MAX = 9_999_999.99;
 
 const currencyFormatter = useMemoize(

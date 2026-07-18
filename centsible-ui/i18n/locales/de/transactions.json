@@ -54,6 +54,17 @@
       "deleteToastBody": "{count} Transaktionen entfernt.",
       "recategorizeToastTitle": "Kategorie aktualisiert",
       "recategorizeToastBody": "{count} Transaktionen neu kategorisiert.",
+      "addTags": "Tags hinzufügen",
+      "removeTags": "Tags entfernen",
+      "addTagsTitle": "Tags hinzufügen",
+      "addTagsBody": "Wählen Sie Tags, die zu {count} Transaktionen hinzugefügt werden sollen.",
+      "removeTagsTitle": "Tags entfernen",
+      "removeTagsBody": "Wählen Sie Tags, die aus {count} Transaktionen entfernt werden sollen.",
+      "tagsConfirm": "Anwenden",
+      "addTagsToastTitle": "Tags hinzugefügt",
+      "addTagsToastBody": "Tags zu {count} Transaktionen hinzugefügt.",
+      "removeTagsToastTitle": "Tags entfernt",
+      "removeTagsToastBody": "Tags aus {count} Transaktionen entfernt.",
       "errorTitle": "Bulk-Aktion fehlgeschlagen",
       "errorBody": "Der Vorgang konnte nicht abgeschlossen werden. Bitte erneut versuchen."
     },
@@ -316,6 +327,7 @@
       "frequency": {
         "DAILY": "Täglich",
         "WEEKLY": "Wöchentlich",
+        "BIWEEKLY": "Alle 2 Wochen",
         "MONTHLY": "Monatlich",
         "YEARLY": "Jährlich"
       },

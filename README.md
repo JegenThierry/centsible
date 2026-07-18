@@ -232,21 +232,21 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 
 ### REST API
 
-| Variable                            | Description                                                                                                                                          | Default                          |
-|:------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------|
-| `JWT_SECRET`                        | Base64-encoded JWT signing key (≥256 bits — `openssl rand -base64 64`)                                                                               | —                                |
-| `JWT_EXPIRATION_MS`                 | JWT lifetime in ms                                                                                                                                   | `14400000` (4h)                  |
-| `APP_BASE_URL`                      | User-facing UI origin (used in confirmation email links). MUST be `https://…` in prod                                                                | `http://localhost:3000`          |
-| `SKIP_EMAIL_VERIFICATION`           | Auto-confirms new registrations (dev only — `ProductionGuard` rejects `true` under prod profile)                                                     | `false`                          |
-| `SPRING_PROFILES_ACTIVE`            | Set to `prod` for public deployments to activate `ProductionGuard` invariant checks                                                                  | empty                            |
-| `CORS_ALLOWED_ORIGINS`              | Comma-separated origin allowlist for the UI. Never use wildcards                                                                                     | `http://localhost:3000`          |
-| `REGISTRATION_ENABLED`              | Kill switch for `POST /api/auth/register`. Flip `true` to create your account, then back to `false`                                                  | `false`                          |
-| `ADMIN_ENABLED`                     | Kill switch for the admin area (`/api/admin` + the UI's Admin view). When `true`, `ADMIN_USERNAME` must be set (ProductionGuard enforces under prod)  | `false`                          |
-| `ADMIN_USERNAME`                    | Username of the account granted the admin view (list/delete users, resend verification emails). Changing it requires a restart                       | empty                            |
-| `AUTH_COOKIE_SECURE`                | Sets the `Secure` flag on the auth cookie. MUST be `true` in prod (ProductionGuard enforces under `prod` profile)                                    | `false`                          |
-| `AUTH_COOKIE_DOMAIN`                | Cookie `Domain` attribute. Set when UI and API share a parent domain                                                                                 | empty                            |
-| `SERVER_FORWARD_HEADERS_STRATEGY`   | `native` honours `X-Forwarded-*` via Tomcat's RemoteIpValve, resolving the client IP against the trusted `server.tomcat.remoteip.internal-proxies` ranges. `framework` takes the leftmost, client-forgeable `X-Forwarded-For` entry and makes the rate-limit IP spoofable. Use `none` if no proxy | `native`                         |
-| `JAVA_OPTS`                         | JVM options for the REST container                                                                                                                   | `-Xms128m -Xmx384m`              |
+| Variable                          | Description                                                                                                                           | Default                 |
+|:----------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
+| `JWT_SECRET`                      | Base64-encoded JWT signing key (≥256 bits — `openssl rand -base64 64`)                                                                | —                       |
+| `JWT_EXPIRATION_MS`               | JWT lifetime in ms                                                                                                                    | `14400000` (4h)         |
+| `APP_BASE_URL`                    | User-facing UI origin used in email links; must be `https://…` in prod                                                                | `http://localhost:3000` |
+| `SKIP_EMAIL_VERIFICATION`         | Auto-confirms new registrations (dev only; rejected under the prod profile)                                                           | `false`                 |
+| `SPRING_PROFILES_ACTIVE`          | Set to `prod` on public deployments to activate `ProductionGuard` invariant checks                                                    | empty                   |
+| `CORS_ALLOWED_ORIGINS`            | Comma-separated origin allowlist for the UI; no wildcards                                                                             | `http://localhost:3000` |
+| `REGISTRATION_ENABLED`            | Kill switch for `POST /api/auth/register`                                                                                             | `false`                 |
+| `ADMIN_ENABLED`                   | Kill switch for the admin area; when `true`, `ADMIN_USERNAME` must be set                                                             | `false`                 |
+| `ADMIN_USERNAME`                  | Account granted the admin view (list/delete users, resend verification emails)                                                        | empty                   |
+| `AUTH_COOKIE_SECURE`              | Sets the `Secure` flag on the auth cookie; must be `true` in prod                                                                     | `false`                 |
+| `AUTH_COOKIE_DOMAIN`              | Cookie `Domain` attribute; set when UI and API share a parent domain                                                                  | empty                   |
+| `SERVER_FORWARD_HEADERS_STRATEGY` | `native` resolves the client IP via trusted proxies, `framework` trusts a client-forgeable header, `none` when nothing fronts the API | `native`                |
+| `JAVA_OPTS`                       | JVM options for the REST container                                                                                                    | `-Xms128m -Xmx384m`     |
 
 ### Email (Resend)
 
@@ -259,21 +259,21 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 
 | Variable                       | Description                                                                                  | Default                |
 |:-------------------------------|:---------------------------------------------------------------------------------------------|:-----------------------|
-| `EXPORT_POLL_INTERVAL_MS`      | How often the worker polls for queued jobs (ms)                                              | `2000`                 |
-| `EXPORT_LEASE_TIMEOUT_SECONDS` | Worker lease TTL — jobs leased but not finished within this window are reclaimable by others | `300`                  |
-| `EXPORT_RENDER_TIMEOUT_MS`     | Playwright timeout for a single PDF render — a hung render fails the job instead of stalling the worker | `60000`                |
-| `EXPORT_JAVA_OPTS`             | JVM options for the export container                                                         | `-Xms256m -Xmx512m`    |
+| `EXPORT_POLL_INTERVAL_MS`      | How often the worker polls for queued jobs (ms)                              | `2000`              |
+| `EXPORT_LEASE_TIMEOUT_SECONDS` | Lease TTL after which an unfinished job is reclaimable by another worker (s) | `300`               |
+| `EXPORT_RENDER_TIMEOUT_MS`     | Playwright timeout for a single PDF render (ms)                              | `60000`             |
+| `EXPORT_JAVA_OPTS`             | JVM options for the export container                                         | `-Xms256m -Xmx512m` |
 
 ### Integrations (provider plugins — only required if storing third-party credentials)
 
 | Variable                              | Description                                                                                           | Default      |
 |:--------------------------------------|:------------------------------------------------------------------------------------------------------|:-------------|
-| `INTEGRATIONS_ENCRYPTION_KEY`         | Passphrase used to derive the AES-256 key that encrypts provider credentials at rest                  | empty        |
-| `INTEGRATIONS_ENCRYPTION_SALT`        | Hex string, ≥16 chars (`openssl rand -hex 16`)                                                        | empty        |
-| `INTEGRATIONS_SYNC_POLL_INTERVAL_MS`  | How often the sync orchestrator polls (ms)                                                            | `300000`     |
-| `INTEGRATIONS_SYNC_INTERVAL_SECONDS`  | How often a single connection is re-synced (s)                                                        | `3600`       |
-| `INTEGRATIONS_BASE_URL`               | Public URL used to build OAuth redirect URIs. Required for OAuth providers. HTTPS in prod.            | empty        |
-| `INTEGRATIONS_MANUAL_ENABLED`         | Toggle the built-in manual-entry provider                                                             | `true`       |
+| `INTEGRATIONS_ENCRYPTION_KEY`        | Passphrase used to derive the AES-256 key that encrypts provider credentials at rest | empty    |
+| `INTEGRATIONS_ENCRYPTION_SALT`       | Hex string, ≥16 chars (`openssl rand -hex 16`)                                       | empty    |
+| `INTEGRATIONS_SYNC_POLL_INTERVAL_MS` | How often the sync orchestrator polls (ms)                                           | `300000` |
+| `INTEGRATIONS_SYNC_INTERVAL_SECONDS` | How often a single connection is re-synced (s)                                       | `3600`   |
+| `INTEGRATIONS_BASE_URL`              | Public URL used to build OAuth redirect URIs; HTTPS in prod                          | empty    |
+| `INTEGRATIONS_MANUAL_ENABLED`        | Toggle the built-in manual-entry provider                                            | `true`   |
 
 #### PayPal
 
@@ -293,10 +293,10 @@ Connects any EU/EEA bank under PSD2. The operator registers ONE app at [bankacco
 
 | Variable                                                    | Description                                                             | Default      |
 |:------------------------------------------------------------|:------------------------------------------------------------------------|:-------------|
-| `INTEGRATIONS_BANKING_GOCARDLESS_ENABLED`                   | Show the EU banking provider in the UI                                  | `false`      |
-| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID`                 | GoCardless BAD `secret_id` (operator-level)                             | empty        |
-| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY`                | GoCardless BAD `secret_key` (operator-level)                            | empty        |
-| `INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS` | Minimum gap between syncs — respects GoCardless's 4 req/account/day cap | `21600` (6h) |
+| `INTEGRATIONS_BANKING_GOCARDLESS_ENABLED`                   | Show the EU banking provider in the UI                         | `false`      |
+| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID`                 | GoCardless BAD `secret_id` (operator-level)                    | empty        |
+| `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY`                | GoCardless BAD `secret_key` (operator-level)                   | empty        |
+| `INTEGRATIONS_BANKING_GOCARDLESS_MIN_SYNC_INTERVAL_SECONDS` | Minimum gap between syncs to respect GoCardless's rate cap (s) | `21600` (6h) |
 
 Set `INTEGRATIONS_BASE_URL=https://your.domain` and register the callback URL `https://your.domain/api/integrations/oauth/callback/banking-gocardless` in the GoCardless dashboard if required. PSD2 consent lasts 90 days, after which users must re-authorize (the UI surfaces a "Reconnect" CTA on expired connections).
 

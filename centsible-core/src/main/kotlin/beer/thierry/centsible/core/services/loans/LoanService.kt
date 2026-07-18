@@ -208,7 +208,6 @@ class LoanService(
         transactionId: UUID,
         form: SplitToLoansForm,
     ): List<LoanDTO> {
-        // fetchTransactionById is user-scoped and throws when the transaction is not the user's.
         val transaction = transactionRepository.fetchTransactionById(transactionId, authenticatedUser)
         if (transaction.type != CategoryType.EXPENSE) {
             throw LocalizedException.BadRequest("error.loan.split.notExpense")
@@ -222,7 +221,6 @@ class LoanService(
 
         val total = shares.fold(BigDecimal.ZERO) { acc, share -> acc.add(share.amount) }
         val transactionAmount = transaction.amount ?: BigDecimal.ZERO
-        // Shares may cover at most the whole bill; the leftover stays the user's own expense.
         if (total.signum() <= 0 || total > transactionAmount) {
             throw LocalizedException.BadRequest("error.loan.split.amountRange")
         }

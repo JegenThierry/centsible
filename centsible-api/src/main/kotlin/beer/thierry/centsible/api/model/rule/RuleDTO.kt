@@ -1,7 +1,9 @@
 package beer.thierry.centsible.api.model.rule
 
 import beer.thierry.centsible.api.model.category.CategoryDTO
+import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.tag.TagDTO
+import java.math.BigDecimal
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -12,7 +14,6 @@ import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 import java.util.UUID
 
-/** One match condition of a rule (e.g. DESCRIPTION CONTAINS "netflix", AMOUNT GTE "100"). */
 data class RuleConditionDTO(
     val id: UUID? = null,
     val field: RuleField,
@@ -20,7 +21,6 @@ data class RuleConditionDTO(
     val value: String,
 )
 
-/** One action of a rule. Exactly one of [category]/[tag] is set, matching [type]. */
 data class RuleActionDTO(
     val id: UUID? = null,
     val type: RuleActionType,
@@ -79,4 +79,15 @@ data class RuleForm(
     @field:Valid
     @field:NotEmpty(message = "{validation.rule.actions.required}")
     var actions: List<RuleActionForm> = emptyList(),
+)
+
+data class RulePreviewMatch(
+    val description: String,
+    val amount: BigDecimal,
+    val type: CategoryType,
+)
+
+data class RulePreviewResult(
+    val matchedCount: Int,
+    val sample: List<RulePreviewMatch>,
 )

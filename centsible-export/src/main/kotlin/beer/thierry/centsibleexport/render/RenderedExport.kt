@@ -1,6 +1,6 @@
 package beer.thierry.centsibleexport.render
 
 data class RenderedExport(
-    val pdf: ByteArray,
+    val bytes: ByteArray,
     val filename: String,
 )

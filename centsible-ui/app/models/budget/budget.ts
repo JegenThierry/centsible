@@ -31,6 +31,11 @@ export interface BudgetForm {
   rolloverEnabled: boolean;
 }
 
+export interface BudgetSuggestion {
+  categoryId: number;
+  suggestedAmount: number;
+}
+
 /** A budget's spendable limit including any carried-over rollover. */
 export function effectiveLimit(budget: Budget): number {
   return budget.amountLimit + (budget.rolloverAmount ?? 0);

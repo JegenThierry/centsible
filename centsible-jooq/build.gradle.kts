@@ -33,7 +33,7 @@ dependencies {
 
     implementation(libs.spring.boot.starter.jooq)
     implementation(libs.spring.security.crypto)
-    implementation(libs.jackson.databind)
+    implementation(libs.jackson3.databind)
     runtimeOnly(postgresqlDriver)
 
     jooqCodegen(postgresqlDriver)

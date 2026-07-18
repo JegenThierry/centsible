@@ -5,14 +5,13 @@ import {type Transaction, type TransactionForm} from "~/models/transactions/tran
 import {resolveSplitPayload, transactionType} from "~/utils/transaction";
 import {CategoryType} from "~/models/category/category";
 import {Currency} from "~/models/budget-account/currency";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import TransactionFormFields from "~/components/_molecules/transactions/transaction-form.vue";
 import TransactionAttachments from "~/components/_organisms/transactions/transaction-attachments.vue";
 import {useTransactionService} from "~/services/transactions/transaction-service";
 import {useTagService} from "~/services/tag/tag-service";
 import {useToasts} from "~/services/toasts/toast-service";
 import {useApiErrors} from "~/composables/use-api-errors";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {useRuleSuggestions} from "~/composables/use-rule-suggestions";
 import {todayIsoDate} from "~/utils/date";
 import {transactionSchema} from "~/utils/form-schemas";
@@ -45,7 +44,6 @@ const form = ref<TransactionForm>({
 });
 
 const loading = ref(false);
-const formId = useId();
 const activeCurrency = computed(() => budgetAccountsStore.activeAccount?.currency);
 
 const {
@@ -58,7 +56,6 @@ const {
   accountId: computed(() => budgetAccountsStore.activeAccount?.id),
 });
 
-// Same schema as the create modal's standard mode — see utils/form-schemas.
 const schema = transactionSchema(t);
 type Schema = z.output<typeof schema>;
 
@@ -77,15 +74,14 @@ function loadTransaction(transaction: Transaction) {
   };
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: () => {
-    loadTransaction(props.transaction);
-    resetRuleSuggestions();
-  },
-});
+function snapshot() {
+  return form.value;
+}
+
+function resetOnOpen() {
+  loadTransaction(props.transaction);
+  resetRuleSuggestions();
+}
 
 async function handleEdit(_event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
@@ -127,33 +123,31 @@ async function handleEdit(_event: FormSubmitEvent<Schema>) {
     loading.value = false;
   }
 }
-
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t('transactions.edit.description')"
-          :title="t('transactions.edit.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" @submit="handleEdit">
-        <TransactionFormFields v-model="form"
-                               :account-id="budgetAccountsStore.activeAccount?.id"
-                               :account-currency="activeCurrency"
-                               :disabled="loading"
-                               :rule-hint="ruleHint"
-                               @manual-category="markCategoryTouched"/>
-      </UForm>
+  <FormModal v-model="isOpen"
+             :description="t('transactions.edit.description')"
+             :title="t('transactions.edit.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="snapshot"
+             :on-reset-on-open="resetOnOpen"
+             :submit-label="t('transactions.edit.submit')"
+             @submit="handleEdit">
+    <template #fields>
+      <TransactionFormFields v-model="form"
+                             :account-id="budgetAccountsStore.activeAccount?.id"
+                             :account-currency="activeCurrency"
+                             :disabled="loading"
+                             :rule-hint="ruleHint"
+                             @manual-category="markCategoryTouched"/>
+    </template>
+    <template #body-after>
       <div class="mt-6 border-t border-default pt-4">
         <TransactionAttachments :transaction-id="transaction.id"/>
       </div>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t('transactions.edit.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

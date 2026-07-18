@@ -12,7 +12,6 @@ import {
   Tooltip,
 } from 'chart.js';
 
-/** Side-effect import for chart components. Not a Nuxt plugin: that would pull chart.js into every route's entry graph. */
 ChartJS.register(
   ArcElement,
   BarElement,

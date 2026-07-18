@@ -24,9 +24,6 @@ class PostProcessingWorker(
                 ppRepository.claimNextPending(workerProperties.id, workerProperties.leaseTimeoutSeconds)
             } ?: return
 
-            // Same poison-row cap as ExportJobWorker: a step only accumulates attempts by killing the JVM
-            // mid-execute (a send holds ~3x the PDF in heap while base64-encoding it), and without this
-            // it is re-leased forever, crash-looping the worker and starving every other user's emails.
             if (claimed.attemptCount > workerProperties.maxAttempts) {
                 log.error(
                     "Dead-lettering post-processing ppId={} jobId={} after {} attempts (max {})",
@@ -63,13 +60,13 @@ class PostProcessingWorker(
             try {
                 processors.forType(claimed.type).execute(job, pdf.bytes, pdf.filename, claimed.config)
                 ppRepository.markCompleted(claimed.id, workerProperties.id)
-                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                val elapsedMs = elapsedMsSince(startNanos)
                 log.info(
                     "Completed post-processing ppId={} type={} jobId={} elapsedMs={}",
                     claimed.id, claimed.type, claimed.exportJobId, elapsedMs,
                 )
             } catch (ex: Exception) {
-                val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+                val elapsedMs = elapsedMsSince(startNanos)
                 log.error(
                     "Failed post-processing ppId={} type={} jobId={} elapsedMs={}",
                     claimed.id, claimed.type, claimed.exportJobId, elapsedMs, ex,

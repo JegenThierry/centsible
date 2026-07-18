@@ -9,12 +9,6 @@ import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 import java.time.LocalDate
 
-/**
- * Balance-neutral edits to an existing loan. Deliberately excludes lent amount, account, currency and
- * the balance-affecting flag: changing those would require reversing/re-converting the linked
- * transaction, so they stay create-only (delete + recreate). When [interestRate] is set the service
- * recomputes [owedAmount] = lent * (1 + rate/100); otherwise [owedAmount] is taken as provided.
- */
 data class LoanUpdateForm(
     @field:NotBlank(message = "{validation.description.required}")
     @field:Size(min = 1, max = 255, message = "{validation.description.range}")

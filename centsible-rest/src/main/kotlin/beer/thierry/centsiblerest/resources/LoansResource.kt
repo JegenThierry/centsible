@@ -26,14 +26,13 @@ class LoansResource(private val loanService: ILoanService) {
     fun list(
         @RequestParam(required = false) contactId: UUID?,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<LoanDTO>> = ResponseEntity.ok(
+    ): List<LoanDTO> =
         contactId?.let { loanService.fetchLoansByContact(authenticatedUser, it) }
             ?: loanService.fetchAllLoans(authenticatedUser)
-    )
 
     @GetMapping("/outstanding")
-    fun outstanding(@AuthenticationPrincipal authenticatedUser: UserDTO): ResponseEntity<OutstandingTotalDTO> =
-        ResponseEntity.ok(loanService.totalOutstanding(authenticatedUser))
+    fun outstanding(@AuthenticationPrincipal authenticatedUser: UserDTO): OutstandingTotalDTO =
+        loanService.totalOutstanding(authenticatedUser)
 
     @GetMapping("/{id}")
     fun get(
@@ -48,10 +47,10 @@ class LoansResource(private val loanService: ILoanService) {
     fun create(
         @Valid @RequestBody form: LoanForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<LoanDTO> {
+    ): LoanDTO {
         val created = loanService.createLoan(authenticatedUser, form)
         log.info("Created loan id={} userId={}", created.id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     /** Splits an existing expense into one tracking-only IOU per share (money owed back to the user). */
@@ -60,10 +59,10 @@ class LoansResource(private val loanService: ILoanService) {
         @PathVariable transactionId: UUID,
         @Valid @RequestBody form: SplitToLoansForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<LoanDTO>> {
+    ): List<LoanDTO> {
         val created = loanService.splitTransactionIntoLoans(authenticatedUser, transactionId, form)
         log.info("Split transaction id={} into {} IOUs userId={}", transactionId, created.size, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @PutMapping("/{id}")
@@ -83,28 +82,26 @@ class LoansResource(private val loanService: ILoanService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
         val deleted = loanService.deleteLoan(authenticatedUser, id)
-        return if (deleted) {
-            log.info("Deleted loan id={} userId={}", id, authenticatedUser.id)
-            ResponseEntity.ok().build()
-        } else ResponseEntity.notFound().build()
+        if (deleted) log.info("Deleted loan id={} userId={}", id, authenticatedUser.id)
+        return deleted.toDeleteResponse()
     }
 
     @GetMapping("/{id}/repayments")
     fun listRepayments(
         @PathVariable id: UUID,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<List<RepaymentDTO>> =
-        ResponseEntity.ok(loanService.fetchRepayments(authenticatedUser, id))
+    ): List<RepaymentDTO> =
+        loanService.fetchRepayments(authenticatedUser, id)
 
     @PostMapping("/{id}/repayments")
     fun recordRepayment(
         @PathVariable id: UUID,
         @Valid @RequestBody form: RepaymentForm,
         @AuthenticationPrincipal authenticatedUser: UserDTO,
-    ): ResponseEntity<RepaymentDTO> {
+    ): RepaymentDTO {
         val created = loanService.recordRepayment(authenticatedUser, id, form)
         log.info("Recorded repayment id={} loanId={} userId={}", created.id, id, authenticatedUser.id)
-        return ResponseEntity.ok(created)
+        return created
     }
 
     @DeleteMapping("/{loanId}/repayments/{repaymentId}")
@@ -114,9 +111,7 @@ class LoansResource(private val loanService: ILoanService) {
         @AuthenticationPrincipal authenticatedUser: UserDTO,
     ): ResponseEntity<Void> {
         val deleted = loanService.deleteRepayment(authenticatedUser, loanId, repaymentId)
-        return if (deleted) {
-            log.info("Deleted repayment id={} loanId={} userId={}", repaymentId, loanId, authenticatedUser.id)
-            ResponseEntity.ok().build()
-        } else ResponseEntity.notFound().build()
+        if (deleted) log.info("Deleted repayment id={} loanId={} userId={}", repaymentId, loanId, authenticatedUser.id)
+        return deleted.toDeleteResponse()
     }
 }

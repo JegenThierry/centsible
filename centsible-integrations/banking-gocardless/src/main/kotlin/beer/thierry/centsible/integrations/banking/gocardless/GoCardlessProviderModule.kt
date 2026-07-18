@@ -23,7 +23,9 @@ import beer.thierry.centsible.api.services.integrations.OAuthCallbackResult
 import beer.thierry.centsible.api.services.integrations.ProviderModule
 import beer.thierry.centsible.integrations.banking.gocardless.GoCardlessHttpClient.Companion.PROVIDER
 import beer.thierry.centsible.integrations.support.firstNonBlank
+import beer.thierry.centsible.integrations.support.nonBlankString
 import beer.thierry.centsible.integrations.support.parseDateOnlyAtUtc
+import beer.thierry.centsible.integrations.support.requiredString
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.security.MessageDigest
@@ -35,7 +37,7 @@ import java.util.HexFormat
 
 class GoCardlessProviderModule(
     private val client: GoCardlessHttpClient,
-    @Suppress("unused") private val minSyncIntervalSeconds: Long,
+    override val minSyncIntervalSeconds: Long,
 ) : ProviderModule, IAccountProvider, ITransactionImporter, IOAuthFlowProvider, IRemoteOptionsProvider {
 
     private val log = LoggerFactory.getLogger(GoCardlessProviderModule::class.java)
@@ -83,10 +85,8 @@ class GoCardlessProviderModule(
     )
 
     override fun testConnection(ctx: ProviderContext) {
-        val country = ctx.config["country"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("country is required")
-        val institutionId = ctx.config["institutionId"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("institutionId is required")
+        val country = ctx.config.requiredString("country", "country")
+        val institutionId = ctx.config.requiredString("institutionId", "institutionId")
         if (country !in EEA_COUNTRY_CODES) {
             throw IllegalArgumentException("Unsupported country code: $country")
         }
@@ -97,7 +97,7 @@ class GoCardlessProviderModule(
 
     override fun fetchOptions(ctx: ProviderContext, request: RemoteOptionsRequest): List<SelectOption> {
         if (request.fieldName != "institutionId") return emptyList()
-        val country = request.values["country"]?.toString()?.takeIf { it.isNotBlank() } ?: return emptyList()
+        val country = request.values.nonBlankString("country") ?: return emptyList()
         val query = request.query?.trim()?.lowercase()
         val institutions = try {
             client.listInstitutions(country)
@@ -126,8 +126,7 @@ class GoCardlessProviderModule(
      * orchestrator writes before the user is redirected.
      */
     override fun buildAuthorizationUrl(request: OAuthStartRequest): OAuthAuthorizationStart {
-        val institutionId = request.config["institutionId"]?.toString()?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("institutionId is required")
+        val institutionId = request.config.requiredString("institutionId", "institutionId")
         val historicalDays = parseHistoricalDays(request.config["historicalDays"])
         log.info(
             "OAuth begin provider={} userId={} connectionId={} institutionId={}",
@@ -150,7 +149,7 @@ class GoCardlessProviderModule(
     }
 
     override fun completeAuthorization(request: OAuthCallbackRequest): OAuthCallbackResult {
-        val requisitionId = request.config["pendingRequisitionId"]?.toString()?.takeIf { it.isNotBlank() }
+        val requisitionId = request.config.nonBlankString("pendingRequisitionId")
             ?: run {
                 log.warn(
                     "OAuth callback for connection with no pending requisition provider={} userId={} connectionId={}",
@@ -308,7 +307,7 @@ class GoCardlessProviderModule(
             )
             throw IllegalStateException(
                 "Transactions could not be fetched for $failedAccounts of ${accountIds.size} account(s); " +
-                    "keeping the sync cursor at $dateFrom so the window is retried instead of skipped"
+                    "not advancing the sync cursor so the window from $dateFrom is retried instead of skipped"
             )
         }
         log.info(
@@ -332,7 +331,7 @@ class GoCardlessProviderModule(
     private fun resolveDateFrom(cursor: String?, historicalDaysRaw: Any?): LocalDate {
         if (!cursor.isNullOrBlank()) {
             try {
-                return LocalDate.parse(cursor)
+                return LocalDate.parse(cursor).minusDays(REFETCH_OVERLAP_DAYS)
             } catch (_: DateTimeParseException) {
             }
         }
@@ -403,11 +402,11 @@ class GoCardlessProviderModule(
 
     companion object {
         private const val DEFAULT_HISTORICAL_DAYS = 90
+        private const val REFETCH_OVERLAP_DAYS = 7L
         private const val MAX_REMOTE_OPTIONS = 50
         private const val CONSENT_LIFETIME_SECONDS = 90L * 86400L
         private val CONSENT_OK_STATUSES = setOf("LN", "GC")
 
-        /** ASCII unit separator: keeps fingerprint fields unambiguous; banks never send it. */
         private const val FINGERPRINT_SEPARATOR = "\u001F"
         private val EEA_COUNTRY_CODES = setOf(
             "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",

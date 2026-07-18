@@ -1,9 +1,11 @@
 package beer.thierry.centsible.imports.csv
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.ParseHints
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -38,6 +40,52 @@ class CsvFileParserTest {
         assertEquals(BigDecimal("3.50"), result.rows[0].amount)
         assertEquals(42L, result.rows[0].categoryId)
         assertEquals(BigDecimal("2500.00"), result.rows[1].amount)
+    }
+
+    @Test
+    fun `parses the mapped currency column so foreign rows convert instead of importing at account currency`() {
+        val csv = """
+            Date,Description,Amount,Currency
+            2026-01-15,Hotel,-120.00,USD
+            2026-01-16,Refund,50.00,usd
+        """.trimIndent().toByteArray()
+
+        val hints = ParseHints(
+            defaultCategoryId = 42L,
+            csvMapping = CsvColumnMapping(
+                dateColumn = 0,
+                descriptionColumn = 1,
+                amountColumn = 2,
+                currencyColumn = 3,
+                dateFormat = "yyyy-MM-dd",
+            ),
+        )
+
+        val result = parser.parse(csv, hints)
+
+        assertEquals(2, result.rows.size)
+        assertEquals(Currency.USD, result.rows[0].currency)
+        assertEquals(Currency.USD, result.rows[1].currency)
+    }
+
+    @Test
+    fun `leaves row currency null when no currency column is mapped`() {
+        val csv = "Date,Description,Amount\n2026-01-15,Coffee,-3.50".toByteArray()
+
+        val hints = ParseHints(
+            defaultCategoryId = 42L,
+            csvMapping = CsvColumnMapping(
+                dateColumn = 0,
+                descriptionColumn = 1,
+                amountColumn = 2,
+                dateFormat = "yyyy-MM-dd",
+            ),
+        )
+
+        val result = parser.parse(csv, hints)
+
+        assertEquals(1, result.rows.size)
+        assertNull(result.rows[0].currency)
     }
 
     @Test

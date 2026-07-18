@@ -7,7 +7,7 @@ import beer.thierry.centsible.api.services.imports.CsvDialectDTO
 import beer.thierry.centsible.api.services.imports.ImportMappingTemplateDTO
 import beer.thierry.centsible.api.services.imports.ImportMappingTemplateForm
 import beer.thierry.jooq.generated.tables.references.IMPORT_MAPPING_TEMPLATES
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record

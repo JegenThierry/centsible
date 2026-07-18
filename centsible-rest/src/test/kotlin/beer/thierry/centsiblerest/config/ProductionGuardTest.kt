@@ -82,7 +82,6 @@ class ProductionGuardTest {
     @Test
     fun `prod profile rejects empty secrets`() {
         val ex = assertThrows(IllegalArgumentException::class.java) {
-            // No secrets configured at all — the old behavior booted green and failed lazily.
             ProductionGuard(
                 environment = env(arrayOf("prod")),
                 skipEmailVerification = false,

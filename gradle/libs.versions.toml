@@ -34,8 +34,7 @@ spring-security-crypto = { module = "org.springframework.security:spring-securit
 spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+jackson3-databind = { module = "tools.jackson.core:jackson-databind" }
 jackson3-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 postgresql = { module = "org.postgresql:postgresql" }
 

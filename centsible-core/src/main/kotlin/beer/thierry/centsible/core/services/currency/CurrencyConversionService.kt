@@ -34,7 +34,6 @@ class CurrencyConversionService(
         val today = LocalDate.now()
         return requests.map { request ->
             if (request.from == to) return@map sameCurrency(request.amount, to, request.date)
-            // Keyed on the collapsed date, matching resolveRate's own minOf(date, today).
             val rate = rates.getOrPut(request.from to minOf(request.date, today)) {
                 resolveRate(request.from, to, request.date)
             }

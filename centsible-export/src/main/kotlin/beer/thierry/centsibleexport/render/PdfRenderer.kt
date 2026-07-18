@@ -1,6 +1,7 @@
 package beer.thierry.centsibleexport.render
 
 import beer.thierry.centsibleexport.config.BrowserPool
+import beer.thierry.centsibleexport.worker.elapsedMsSince
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.LoadState
 import com.microsoft.playwright.options.Margin
@@ -14,8 +15,6 @@ import java.io.StringWriter
 class PdfRenderer(
     private val pebbleEngine: PebbleEngine,
     private val browserPool: BrowserPool,
-    // Bounds setContent/waitForLoadState so a template that references an unreachable resource
-    // (NETWORKIDLE would otherwise block forever) cannot pin the shared scheduler thread past the lease.
     @param:Value("\${export.render.timeout-ms:60000}") private val renderTimeoutMs: Double,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -26,7 +25,7 @@ class PdfRenderer(
         val startNanos = System.nanoTime()
         try {
             val bytes = htmlToPdfBytes(renderHtml(template, context))
-            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            val elapsedMs = elapsedMsSince(startNanos)
             log.info("Rendered PDF template={} bytes={} elapsedMs={}", template, bytes.size, elapsedMs)
             return bytes
         } catch (ex: Exception) {

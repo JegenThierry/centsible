@@ -3,8 +3,8 @@ package beer.thierry.centsible.jooq.repository
 import beer.thierry.centsible.api.repository.IProviderConnectionAccountsRepository
 import beer.thierry.centsible.api.repository.ProviderConnectionAccountRecord
 import beer.thierry.jooq.generated.tables.references.PROVIDER_CONNECTION_ACCOUNTS
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record

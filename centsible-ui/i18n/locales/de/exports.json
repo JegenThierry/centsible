@@ -95,6 +95,7 @@
         "description": "Ein wiederkehrender Export deiner Transaktionen, der dir jede Periode per E-Mail zugeschickt wird.",
         "nameLabel": "Name",
         "namePlaceholder": "Monatlicher Kontoauszug",
+        "typeLabel": "Typ",
         "formatLabel": "Format",
         "frequencyLabel": "Häufigkeit",
         "hint": "Jede Ausführung deckt die vorherige Periode ab (monatlich → letzter Monat) über alle Konten und wird dir per E-Mail zugeschickt."

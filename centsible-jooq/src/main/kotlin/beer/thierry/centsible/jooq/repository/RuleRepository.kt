@@ -87,21 +87,21 @@ class RuleRepository(private val dsl: DSLContext) : IRuleRepository {
 
     private fun insertConditions(ruleId: UUID, form: RuleForm) {
         if (form.conditions.isEmpty()) return
-        var step = dsl.insertInto(
+        val step = dsl.insertInto(
             RULE_CONDITIONS,
             RULE_CONDITIONS.RULE_ID, RULE_CONDITIONS.FIELD, RULE_CONDITIONS.OPERATOR, RULE_CONDITIONS.VALUE,
         )
-        form.conditions.forEach { step = step.values(ruleId, it.field.value, it.operator.value, it.value.trim()) }
+        form.conditions.forEach { step.values(ruleId, it.field.value, it.operator.value, it.value.trim()) }
         step.execute()
     }
 
     private fun insertActions(ruleId: UUID, form: RuleForm) {
         if (form.actions.isEmpty()) return
-        var step = dsl.insertInto(
+        val step = dsl.insertInto(
             RULE_ACTIONS,
             RULE_ACTIONS.RULE_ID, RULE_ACTIONS.ACTION_TYPE, RULE_ACTIONS.CATEGORY_ID, RULE_ACTIONS.TAG_ID,
         )
-        form.actions.forEach { step = step.values(ruleId, it.type.value, it.categoryId, it.tagId) }
+        form.actions.forEach { step.values(ruleId, it.type.value, it.categoryId, it.tagId) }
         step.execute()
     }
 

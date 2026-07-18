@@ -95,6 +95,7 @@
         "description": "Un export récurrent de vos transactions, envoyé par e-mail à chaque période.",
         "nameLabel": "Nom",
         "namePlaceholder": "Relevé mensuel",
+        "typeLabel": "Type",
         "formatLabel": "Format",
         "frequencyLabel": "Fréquence",
         "hint": "Chaque exécution couvre la période précédente (mensuel → le mois dernier) sur tous les comptes et vous est envoyée par e-mail."

@@ -17,6 +17,7 @@ import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.YearMonth
@@ -25,11 +26,6 @@ import java.util.*
 @Repository
 class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
 
-    /**
-     * BUDGETS + joined CATEGORIES columns read by [mapToDTO], shared by both reads. Includes
-     * BUDGETS.CATEGORY_ID (needed by the spent-aggregation pass); it is a harmless unused extra
-     * column for the single-budget read.
-     */
     private val budgetProjection: Array<Field<*>> = arrayOf(
         BUDGETS.ID,
         BUDGETS.AMOUNT_LIMIT,
@@ -57,8 +53,6 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
             .fetch()
 
         val byType = rows.groupBy { parsePeriodType(it[BUDGETS.PERIOD_TYPE]) }
-        // Keyed by category *and* period type: a category may legally hold one budget per period type
-        // (uq_budgets_user_category_period), and each one is summed over its own window.
         val currentSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
         val previousSums = mutableMapOf<Pair<Long, BudgetPeriodType>, BigDecimal>()
 
@@ -97,8 +91,8 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         to: LocalDate,
     ): Map<Long, BigDecimal> {
         if (categoryIds.isEmpty()) return emptyMap()
-        val effectiveCategoryId = DSL.coalesce(TRANSACTION_SPLITS.CATEGORY_ID, TRANSACTIONS.CATEGORY_ID)
-        val effectiveAmount = DSL.coalesce(TRANSACTION_SPLITS.AMOUNT, TRANSACTIONS.AMOUNT)
+        val effectiveCategoryId = effectiveCategoryId()
+        val effectiveAmount = effectiveAmount()
         val categoryKey = effectiveCategoryId.`as`("category_id")
         val total = DSL.sum(effectiveAmount).`as`("total")
         return dsl.select(categoryKey, total)
@@ -141,6 +135,28 @@ class BudgetRepository(private val dsl: DSLContext) : IBudgetRepository {
         if (excludeBudgetId != null) condition = condition.and(BUDGETS.ID.ne(excludeBudgetId))
         return dsl.fetchExists(dsl.selectOne().from(BUDGETS).where(condition))
     }
+
+    override fun suggestedAmounts(
+        authenticatedUser: UserDTO,
+        categoryIds: List<Long>,
+        months: Int,
+        asOf: YearMonth,
+    ): Map<Long, BigDecimal> {
+        if (categoryIds.isEmpty() || months <= 0) return emptyMap()
+        val from = asOf.minusMonths(months.toLong()).atDay(1)
+        val to = asOf.minusMonths(1).atEndOfMonth()
+        val divisor = BigDecimal(months)
+        return sumByCategory(authenticatedUser, categoryIds, from, to)
+            .mapValues { (_, total) -> total.divide(divisor, 2, RoundingMode.HALF_UP) }
+    }
+
+    override fun budgetedCategoryIds(authenticatedUser: UserDTO, periodType: BudgetPeriodType): Set<Long> =
+        dsl.select(BUDGETS.CATEGORY_ID)
+            .from(BUDGETS)
+            .where(BUDGETS.USER_ID.eq(authenticatedUser.id).and(BUDGETS.PERIOD_TYPE.eq(periodType.name)))
+            .fetch(BUDGETS.CATEGORY_ID)
+            .filterNotNull()
+            .toSet()
 
     override fun create(form: BudgetForm, authenticatedUser: UserDTO): BudgetDTO {
         val now = OffsetDateTime.now()

@@ -1,26 +1,20 @@
 <script lang="ts" setup>
 import {z} from 'zod'
-import type {FormSubmitEvent} from '@nuxt/ui'
-import {Currency, currencyOptions} from "~/models/budget-account/currency";
+import {Currency, currencyIcon, currencyOptions} from "~/models/budget-account/currency";
 import {AccountType, ACCOUNT_TYPES} from "~/models/budget-account/account-type";
 import {useBudgetAccountService} from "~/services/budget-account/budget-account-service";
-import {useToasts} from "~/services/toasts/toast-service";
 import BaseInput from "~/components/_atoms/inputs/base-input.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
-import {useApiErrors} from "~/composables/use-api-errors";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
+import {useModalSubmit} from "~/composables/use-modal-submit";
 
 const emit = defineEmits<{
   (e: 'created'): void;
 }>();
 const accountService = useBudgetAccountService(useApi());
-const toast = useToasts();
-const {toastError} = useApiErrors();
 const {t} = useI18n();
 
 const isOpen = defineModel<boolean>({required: true})
-const loading = ref(false);
 
 const state = reactive<{
   name: string;
@@ -41,13 +35,6 @@ function resetState() {
   state.type = AccountType.CHECKING;
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => ({...state}),
-  onResetOnOpen: resetState,
-});
-
 const nameLabel = t('accounts.modals.create.fieldNameLabel');
 const balanceLabel = t('accounts.modals.create.fieldBalanceLabel');
 
@@ -64,91 +51,75 @@ const schema = z.object({
     }),
   ),
 })
-type Schema = z.output<typeof schema>
 
-const activeIcon = computed(() => currencyOptions.find(item => item.value === state.currency)?.icon)
+const activeIcon = computed(() => currencyIcon(state.currency))
 const typeOptions = computed(() => ACCOUNT_TYPES.map((value) => ({label: t(`accounts.types.${value}`), value})))
 
-function onValidationError() {
-  toast.error(t('accounts.modals.create.validationErrorTitle'), t('accounts.modals.create.validationErrorBody'));
-}
-
-async function onSubmit(_event: FormSubmitEvent<Schema>) {
-  const {name, initialBalance, currency, type} = state;
-  loading.value = true;
-  try {
-    const createdAccount = await accountService.createAccount({
-      name,
-      initialBalance: initialBalance as number,
-      currency,
-      type
-    })
-    toast.success(t('accounts.modals.create.toastSuccessTitle'), t('accounts.modals.create.toastSuccessBody', {name: createdAccount.name}));
-
-    isOpen.value = false;
-    navigateTo(`/${createdAccount.id}/dashboard`);
+const {pending, submit} = useModalSubmit({
+  open: isOpen,
+  action: () => accountService.createAccount({
+    name: state.name,
+    initialBalance: state.initialBalance as number,
+    currency: state.currency,
+    type: state.type,
+  }),
+  successTitle: t('accounts.modals.create.toastSuccessTitle'),
+  successBody: (account) => t('accounts.modals.create.toastSuccessBody', {name: account.name}),
+  errorTitle: t('accounts.modals.create.toastErrorTitle'),
+  errorBody: t('accounts.modals.create.toastErrorBody'),
+  onSuccess: (account) => {
+    navigateTo(`/${account.id}/dashboard`);
     emit('created');
-  } catch (error) {
-    toastError(error, t('accounts.modals.create.toastErrorTitle'), t('accounts.modals.create.toastErrorBody'));
-  } finally {
-    loading.value = false;
-  }
-}
+  },
+});
 </script>
 
 <template>
-  <UModal
-    :open="isOpen"
-    :close="{
-        color: 'primary',
-        variant: 'outline',
-        class: 'rounded-full',
-      }"
-    :description="t('accounts.modals.create.description')"
-    :title="t('accounts.modals.create.title')"
-    @update:open="requestClose"
-  >
-    <template #body>
-      <UForm id="account-form" :schema="schema" :state="state" class="space-y-4 py-2 flex flex-col" @submit="onSubmit" @error="onValidationError">
-        <BaseInput name="name"
-                   v-model="state.name"
-                   :max-length="100"
-                   autofocus
-                   :label="t('accounts.modals.create.fieldNameLabel')"
-                   :placeholder="t('accounts.modals.create.fieldNamePlaceholder')"
-                   required
-                   type="text"/>
+  <FormModal v-model="isOpen"
+             :description="t('accounts.modals.create.description')"
+             :title="t('accounts.modals.create.title')"
+             :schema="schema"
+             :state="state"
+             :loading="pending"
+             :get-snapshot="() => ({...state})"
+             :on-reset-on-open="resetState"
+             :submit-label="t('accounts.modals.create.submit')"
+             :validation-error-title="t('accounts.modals.create.validationErrorTitle')"
+             :validation-error-body="t('accounts.modals.create.validationErrorBody')"
+             @submit="submit">
+    <template #fields>
+      <BaseInput name="name"
+                 v-model="state.name"
+                 :max-length="100"
+                 autofocus
+                 :label="t('accounts.modals.create.fieldNameLabel')"
+                 :placeholder="t('accounts.modals.create.fieldNamePlaceholder')"
+                 required
+                 type="text"/>
 
-        <BaseInput name="initialBalance"
-                   v-model="state.initialBalance"
-                   :label="t('accounts.modals.create.fieldBalanceLabel')"
-                   :placeholder="t('accounts.modals.create.fieldBalancePlaceholder')"
-                   required
-                   type="number"/>
+      <BaseInput name="initialBalance"
+                 v-model="state.initialBalance"
+                 :label="t('accounts.modals.create.fieldBalanceLabel')"
+                 :placeholder="t('accounts.modals.create.fieldBalancePlaceholder')"
+                 required
+                 type="number"/>
 
-        <UFormField :label="t('accounts.modals.create.fieldCurrencyLabel')" name="currency" required>
-          <AppSelect v-model="state.currency"
-                   :icon="activeIcon"
-                   :items="currencyOptions"
-                   class="w-full"
-                   :placeholder="t('accounts.modals.create.fieldCurrencyPlaceholder')"
-                   required/>
-        </UFormField>
+      <UFormField :label="t('accounts.modals.create.fieldCurrencyLabel')" name="currency" required>
+        <AppSelect v-model="state.currency"
+                 :icon="activeIcon"
+                 :items="currencyOptions"
+                 class="w-full"
+                 :placeholder="t('accounts.modals.create.fieldCurrencyPlaceholder')"
+                 required/>
+      </UFormField>
 
-        <UFormField :label="t('accounts.modals.create.fieldTypeLabel')" name="type" required>
-          <AppSelect v-model="state.type"
-                   :items="typeOptions"
-                   class="w-full"
-                   :placeholder="t('accounts.modals.create.fieldTypePlaceholder')"
-                   required/>
-        </UFormField>
-      </UForm>
+      <UFormField :label="t('accounts.modals.create.fieldTypeLabel')" name="type" required>
+        <AppSelect v-model="state.type"
+                 :items="typeOptions"
+                 class="w-full"
+                 :placeholder="t('accounts.modals.create.fieldTypePlaceholder')"
+                 required/>
+      </UFormField>
     </template>
-    <template #footer>
-      <ModalFooterActions form="account-form"
-                          :loading="loading"
-                          :submit-label="t('accounts.modals.create.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

@@ -35,4 +35,11 @@ interface ITagRepository {
         transactionIds: Collection<UUID>,
         tagIds: Collection<Long>,
     ): Int
+
+    /** Removes [tagIds] from each of [transactionIds], scoped to the user's own transactions. Returns links removed. */
+    fun removeTagsFromTransactions(
+        authenticatedUser: UserDTO,
+        transactionIds: Collection<UUID>,
+        tagIds: Collection<Long>,
+    ): Int
 }

@@ -4,10 +4,11 @@ import beer.thierry.centsible.api.model.export.ExportJobDTO
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.account.IBudgetAccountService
 import beer.thierry.centsible.api.services.export.IExportService
+import beer.thierry.centsiblerest.resources.fileDownload
+import beer.thierry.centsiblerest.resources.toDeleteResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -35,7 +36,7 @@ class ExportResource(
     fun create(
         @Valid @RequestBody request: CreateExportRequest,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ExportJobDTO> {
+    ): ExportJobDTO {
         val params = requireNotNull(request.params) { "params is required" }
         val type = requireNotNull(request.type) { "type is required" }
         val title = requireNotNull(request.title) { "title is required" }
@@ -51,7 +52,7 @@ class ExportResource(
         }
         val job = exportService.create(user, type, title, payload, postProcessing)
         log.info("Created export job id={} type={} userId={}", job.id, type, user.id)
-        return ResponseEntity.ok(job)
+        return job
     }
 
     @GetMapping
@@ -59,8 +60,8 @@ class ExportResource(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "25") size: Int,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<ExportJobDTO>> =
-        ResponseEntity.ok(exportService.list(user, page, size))
+    ): List<ExportJobDTO> =
+        exportService.list(user, page, size)
 
     @GetMapping("/{jobId}")
     fun get(
@@ -77,11 +78,13 @@ class ExportResource(
         @AuthenticationPrincipal user: UserDTO,
     ): ResponseEntity<ByteArrayResource> {
         val pdf = exportService.download(user, jobId) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok()
-            .contentType(contentTypeFor(pdf.filename))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${pdf.filename}\"")
-            .contentLength(pdf.bytes.size.toLong())
-            .body(ByteArrayResource(pdf.bytes))
+        return fileDownload(
+            filename = pdf.filename,
+            contentType = contentTypeFor(pdf.filename),
+            length = pdf.bytes.size.toLong(),
+            resource = ByteArrayResource(pdf.bytes),
+            inline = false,
+        )
     }
 
     private fun contentTypeFor(filename: String): MediaType =
@@ -106,9 +109,9 @@ class ExportResource(
     fun delete(
         @PathVariable jobId: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<Void> =
-        if (exportService.delete(user, jobId)) {
-            log.info("Deleted export job id={} userId={}", jobId, user.id)
-            ResponseEntity.noContent().build()
-        } else ResponseEntity.notFound().build()
+    ): ResponseEntity<Void> {
+        val deleted = exportService.delete(user, jobId)
+        if (deleted) log.info("Deleted export job id={} userId={}", jobId, user.id)
+        return deleted.toDeleteResponse()
+    }
 }

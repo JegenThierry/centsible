@@ -1,0 +1,85 @@
+{
+  "rules": {
+    "page": {
+      "title": "Regeln",
+      "description": "Transaktionen automatisch kategorisieren und taggen"
+    },
+    "newRule": "Neue Regel",
+    "emptyTitle": "Noch keine Regeln",
+    "emptyDescription": "Erstelle eine Regel, um importierte, synchronisierte und bestehende Transaktionen automatisch zu kategorisieren und zu taggen.",
+    "entity": "Regel",
+    "applyAria": "Regel auf bestehende Transaktionen anwenden",
+    "editAria": "Regel bearbeiten",
+    "deleteAria": "Regel löschen",
+    "removeAria": "Entfernen",
+    "appliedTitle": "Regel angewendet",
+    "appliedBody": "{count} bestehende Transaktion(en) aktualisiert.",
+    "disabledBadge": "Deaktiviert",
+    "nameLabel": "Regelname",
+    "namePlaceholder": "z. B. Netflix-Abo",
+    "matchModeLabel": "Übereinstimmung",
+    "matchAll": "Alle Bedingungen",
+    "matchAny": "Beliebige Bedingung",
+    "conditionsLabel": "Bedingungen",
+    "addCondition": "Bedingung hinzufügen",
+    "noConditions": "Füge mindestens eine Bedingung hinzu.",
+    "actionsLabel": "Aktionen",
+    "addAction": "Aktion hinzufügen",
+    "noActions": "Füge mindestens eine Aktion hinzu.",
+    "priorityLabel": "Priorität",
+    "priorityDescription": "Regeln mit höherer Priorität bestimmen die Kategorie.",
+    "enabledLabel": "Aktiviert",
+    "valuePlaceholder": "z. B. Migros, Netflix, SBB",
+    "selectCategory": "Kategorie wählen",
+    "selectTag": "Tag wählen",
+    "selectAccount": "Konto wählen",
+    "selectDirection": "Typ wählen",
+    "createTitle": "Neue Regel",
+    "editTitle": "Regel bearbeiten",
+    "modalDescription": "Transaktionen, die deinen Bedingungen entsprechen, automatisch kategorisieren und taggen.",
+    "createSubmit": "Erstellen",
+    "editSubmit": "Speichern",
+    "field": {
+      "DESCRIPTION": "Beschreibung",
+      "AMOUNT": "Betrag",
+      "DIRECTION": "Typ",
+      "ACCOUNT": "Konto"
+    },
+    "operator": {
+      "CONTAINS": "enthält",
+      "EQUALS": "ist gleich",
+      "STARTS_WITH": "beginnt mit",
+      "GT": "größer als",
+      "GTE": "mindestens",
+      "LT": "kleiner als",
+      "LTE": "höchstens",
+      "IS": "ist"
+    },
+    "actionType": {
+      "SET_CATEGORY": "Kategorie setzen",
+      "ADD_TAG": "Tag hinzufügen"
+    },
+    "direction": {
+      "INCOME": "Einnahme",
+      "EXPENSE": "Ausgabe"
+    },
+    "preview": {
+      "title": "Treffer",
+      "matchCount": "{count} Transaktion(en) passen",
+      "empty": "Noch keine Transaktion passt zu diesen Bedingungen.",
+      "failed": "Vorschau nicht verfügbar."
+    },
+    "toasts": {
+      "createdTitle": "Regel erstellt",
+      "createdBody": "Die Regel wurde hinzugefügt.",
+      "updatedTitle": "Regel aktualisiert",
+      "updatedBody": "Die Regel wurde gespeichert.",
+      "fetchFailedTitle": "Regeln konnten nicht abgerufen werden",
+      "fetchFailedBody": "Die Regeln konnten nicht geladen werden.",
+      "createFailedTitle": "Regel konnte nicht erstellt werden",
+      "updateFailedTitle": "Regel konnte nicht aktualisiert werden",
+      "applyFailedTitle": "Regel konnte nicht angewendet werden",
+      "genericErrorBody": "Ein Fehler ist aufgetreten."
+    }
+  }
+}

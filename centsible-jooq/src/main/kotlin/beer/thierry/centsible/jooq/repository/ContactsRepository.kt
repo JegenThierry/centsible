@@ -17,7 +17,6 @@ import java.util.UUID
 @Repository
 class ContactsRepository(private val dsl: DSLContext) : IContactsRepository {
 
-    /** CONTACTS + left-joined CONTACT_BALANCES columns read by [mapToDTO]; shared by both reads. */
     private val contactProjection: Array<Field<*>> = arrayOf(
         CONTACTS.ID,
         CONTACTS.FIRST_NAME,

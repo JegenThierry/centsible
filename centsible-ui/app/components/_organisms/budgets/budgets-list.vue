@@ -11,7 +11,9 @@ import AppButton from "~/components/_atoms/ui/app-button.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
 const BudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/budget-modal.vue"));
 const DeleteBudgetModal = defineAsyncComponent(() => import("~/components/_organisms/budgets/modals/delete-budget-modal.vue"));
-import {useActiveCurrency} from "~/composables/use-active-currency";
+import {useDefaultCurrency} from "~/composables/use-default-currency";
+import {useToasts} from "~/services/toasts/toast-service";
+import {useApiErrors} from "~/composables/use-api-errors";
 import {format, parseISO, subMonths} from 'date-fns';
 import {formatMonthYearLabel} from "~/utils/date";
 
@@ -20,6 +22,8 @@ const MONTH_FMT = 'yyyy-MM';
 const store = useBudgetsStore();
 const {t} = useI18n();
 const localeTag = useLocaleTag();
+const toasts = useToasts();
+const {toastError} = useApiErrors();
 
 function monthLabel(m: string): string {
   return formatMonthYearLabel(m, localeTag.value);
@@ -34,7 +38,7 @@ const existingCombos = computed(() =>
   store.items.map((b) => ({categoryId: b.category.id, periodType: b.periodType})),
 );
 
-const currency = useActiveCurrency();
+const currency = useDefaultCurrency();
 
 function monthsBack(from: string, count: number): string {
   return format(subMonths(parseISO(`${from}-01`), count), MONTH_FMT);
@@ -72,6 +76,28 @@ async function refresh() {
   ]);
 }
 
+const bulkPending = ref(false);
+
+async function createFromSuggestions() {
+  bulkPending.value = true;
+  try {
+    const created = await store.bulkCreateSuggested();
+    if (created.length === 0) {
+      toasts.info(t('budgets.list.bulkCreateNoneTitle'), t('budgets.list.bulkCreateNoneBody'));
+      return;
+    }
+    await refresh();
+    toasts.success(
+      t('budgets.list.bulkCreateToastTitle'),
+      t('budgets.list.bulkCreateToastBody', {count: created.length}, created.length),
+    );
+  } catch (error) {
+    toastError(error, t('budgets.list.bulkCreateErrorTitle'), t('budgets.list.bulkCreateErrorBody'));
+  } finally {
+    bulkPending.value = false;
+  }
+}
+
 watch(selectedMonth, () => refresh());
 watch(showHistory, (open) => {
   if (open) store.fetchHistory(historyMonths.value);
@@ -98,6 +124,15 @@ onMounted(() => refresh());
                size="sm"
                @click="showHistory = !showHistory">
         {{ t('budgets.list.showHistory') }}
+      </AppButton>
+      <AppButton v-if="selectedMonth === currentMonth && store.items.length > 0"
+               color="neutral"
+               variant="soft"
+               icon="i-lucide-sparkles"
+               size="sm"
+               :loading="bulkPending"
+               @click="createFromSuggestions">
+        {{ t('budgets.list.bulkCreate') }}
       </AppButton>
     </div>
 
@@ -126,6 +161,15 @@ onMounted(() => refresh());
       <template #actions>
         <AppButton class="w-full sm:w-auto justify-center" @click="isCreateModalOpen = true">
           {{ t('budgets.list.emptyAction') }}
+        </AppButton>
+        <AppButton v-if="selectedMonth === currentMonth"
+                   class="w-full sm:w-auto justify-center"
+                   color="neutral"
+                   variant="soft"
+                   icon="i-lucide-sparkles"
+                   :loading="bulkPending"
+                   @click="createFromSuggestions">
+          {{ t('budgets.list.bulkCreate') }}
         </AppButton>
       </template>
     </AppEmptyState>

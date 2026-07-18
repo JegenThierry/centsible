@@ -5,18 +5,10 @@ import type {
   CreateBudgetAccountForm,
   UpdateBudgetAccountForm
 } from "~/models/budget-account/budget-account";
-import {validateRequest} from "~/composables/use-api";
+import {crudResource, validateRequest} from "~/composables/use-api";
 
 export function useBudgetAccountService(api: AxiosInstance) {
-  async function fetchAccounts(): Promise<BudgetAccount[]> {
-    const response = await api.get<BudgetAccount[]>('/budget-accounts');
-    return validateRequest<BudgetAccount[]>(response);
-  }
-
-  async function fetchAccount(id: string): Promise<BudgetAccount> {
-    const response = await api.get<BudgetAccount>(`/budget-accounts/${encodeURIComponent(id)}`);
-    return validateRequest<BudgetAccount>(response);
-  }
+  const resource = crudResource<BudgetAccount, string, CreateBudgetAccountForm, UpdateBudgetAccountForm>(api, '/budget-accounts');
 
   async function fetchSnapshots(id: string, startDate: string, endDate: string): Promise<BudgetAccountSnapshot[]> {
     const response = await api.get<BudgetAccountSnapshot[]>(`/budget-accounts/${encodeURIComponent(id)}/snapshots`, {
@@ -25,26 +17,12 @@ export function useBudgetAccountService(api: AxiosInstance) {
     return validateRequest<BudgetAccountSnapshot[]>(response);
   }
 
-  async function createAccount(createAccountForm: CreateBudgetAccountForm): Promise<BudgetAccount> {
-    const response = await api.post<BudgetAccount>('/budget-accounts', createAccountForm);
-    return validateRequest<BudgetAccount>(response);
-  }
-
-  async function updateAccount(id: string, updateAccountForm: UpdateBudgetAccountForm): Promise<BudgetAccount> {
-    const response = await api.put<BudgetAccount>(`/budget-accounts/${encodeURIComponent(id)}`, updateAccountForm);
-    return validateRequest<BudgetAccount>(response);
-  }
-
-  async function deleteAccount(id: string): Promise<void> {
-    await api.delete(`/budget-accounts/${encodeURIComponent(id)}`);
-  }
-
   return {
-    fetchAccounts,
-    fetchAccount,
+    fetchAccounts: (): Promise<BudgetAccount[]> => resource.list(),
+    fetchAccount: (id: string): Promise<BudgetAccount> => resource.get(id),
     fetchSnapshots,
-    createAccount,
-    updateAccount,
-    deleteAccount,
+    createAccount: (form: CreateBudgetAccountForm): Promise<BudgetAccount> => resource.create(form),
+    updateAccount: (id: string, form: UpdateBudgetAccountForm): Promise<BudgetAccount> => resource.update(id, form),
+    deleteAccount: (id: string): Promise<void> => resource.remove(id),
   }
 }

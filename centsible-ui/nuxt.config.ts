@@ -1,3 +1,17 @@
+// The per-feature locale files, loaded for every locale (explicit list, not a filesystem glob).
+const i18nFiles = [
+  'common.json', 'nav.json', 'auth.json', 'landing.json', 'accounts.json', 'transactions.json',
+  'budgets.json', 'categories.json', 'rules.json', 'tags.json', 'contacts.json', 'profile.json',
+  'exports.json', 'integrations.json', 'notifications.json', 'onboarding.json', 'reports.json',
+  'attachments.json', 'admin.json',
+];
+
+const i18nLocales = [
+  {code: 'en', name: 'English', language: 'en-US'},
+  {code: 'fr', name: 'Français', language: 'fr-FR'},
+  {code: 'de', name: 'Deutsch', language: 'de-DE'},
+].map(locale => ({...locale, files: i18nFiles.map(file => `${locale.code}/${file}`)}));
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: {enabled: false},
@@ -22,11 +36,7 @@ export default defineNuxtConfig({
   i18n: {
     strategy: 'no_prefix',
     defaultLocale: 'en',
-    locales: [
-      {code: 'en', name: 'English', language: 'en-US', files: ['en/common.json', 'en/nav.json', 'en/auth.json', 'en/landing.json', 'en/accounts.json', 'en/transactions.json', 'en/budgets.json', 'en/categories.json', 'en/contacts.json', 'en/profile.json', 'en/exports.json', 'en/integrations.json', 'en/notifications.json', 'en/onboarding.json', 'en/reports.json', 'en/attachments.json', 'en/admin.json']},
-      {code: 'fr', name: 'Français', language: 'fr-FR', files: ['fr/common.json', 'fr/nav.json', 'fr/auth.json', 'fr/landing.json', 'fr/accounts.json', 'fr/transactions.json', 'fr/budgets.json', 'fr/categories.json', 'fr/contacts.json', 'fr/profile.json', 'fr/exports.json', 'fr/integrations.json', 'fr/notifications.json', 'fr/onboarding.json', 'fr/reports.json', 'fr/attachments.json', 'fr/admin.json']},
-      {code: 'de', name: 'Deutsch', language: 'de-DE', files: ['de/common.json', 'de/nav.json', 'de/auth.json', 'de/landing.json', 'de/accounts.json', 'de/transactions.json', 'de/budgets.json', 'de/categories.json', 'de/contacts.json', 'de/profile.json', 'de/exports.json', 'de/integrations.json', 'de/notifications.json', 'de/onboarding.json', 'de/reports.json', 'de/attachments.json', 'de/admin.json']},
-    ],
+    locales: i18nLocales,
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'centsible_locale',

@@ -1,4 +1,5 @@
-import {ref, type Ref, watch} from 'vue'
+import {ref, type Ref} from 'vue'
+import {watchDeep} from '@vueuse/core'
 import adze from 'adze'
 import type {Transaction} from '~/models/transactions/transaction'
 import type {TransactionFilters} from '~/models/transactions/transaction-filters'
@@ -22,8 +23,6 @@ export function useTransactionList(
   const loadingMore = ref(false)
   const hasMore = ref(true)
   const error = ref(false)
-  // Monotonic token so a slow in-flight load can't clobber the results of a newer one
-  // (fast filter/search typing or quick account switches). Only the latest request applies.
   let requestToken = 0
 
   async function loadTransactions(reset = false) {
@@ -38,8 +37,6 @@ export function useTransactionList(
       loadingMore.value = true
     }
 
-    // Keep the currently rendered rows in place while a reset loads so the list
-    // doesn't flash empty on every committed filter change; they're replaced on arrival.
     const requestedPage = reset ? 1 : page.value
 
     try {
@@ -67,15 +64,9 @@ export function useTransactionList(
   }
 
   if (filters) {
-    watch(
-      () => {
-        const f = filters.value
-        return [f.search, f.sort, f.fromDate, f.toDate, f.type, f.amountMin, f.amountMax, (f.categoryIds ?? []).join(',')] as const
-      },
-      () => {
-        if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
-      },
-    )
+    watchDeep(filters, () => {
+      if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
+    })
   }
 
   return {

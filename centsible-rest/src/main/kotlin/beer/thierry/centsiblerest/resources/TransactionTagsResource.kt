@@ -4,7 +4,6 @@ import beer.thierry.centsible.api.model.tag.TagDTO
 import beer.thierry.centsible.api.model.tag.TransactionTagsForm
 import beer.thierry.centsible.api.model.user.UserDTO
 import beer.thierry.centsible.api.services.tag.ITagService
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -14,10 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-/**
- * Per-transaction tag assignment. Separate single-responsibility controller (ADR-0011) grouped under
- * the transaction path; ownership of both the transaction and the tags is enforced in the service.
- */
 @RequestMapping("/api/transactions/{transactionId}/tags")
 @RestController
 class TransactionTagsResource(
@@ -28,14 +23,14 @@ class TransactionTagsResource(
     fun list(
         @PathVariable transactionId: UUID,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<TagDTO>> =
-        ResponseEntity.ok(service.fetchTagsForTransaction(user, transactionId))
+    ): List<TagDTO> =
+        service.fetchTagsForTransaction(user, transactionId)
 
     @PutMapping
     fun set(
         @PathVariable transactionId: UUID,
         @RequestBody form: TransactionTagsForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<List<TagDTO>> =
-        ResponseEntity.ok(service.setTransactionTags(user, transactionId, form.tagIds))
+    ): List<TagDTO> =
+        service.setTransactionTags(user, transactionId, form.tagIds)
 }

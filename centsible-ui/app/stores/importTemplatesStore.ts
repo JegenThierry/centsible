@@ -1,12 +1,9 @@
 import {defineStore} from 'pinia';
 import adze from 'adze';
 import {useImportService} from '~/services/imports/import-service';
+import {upsertSortedByName} from '~/utils/upsert';
 import type {ImportMappingTemplate, ImportMappingTemplateForm} from '~/models/imports/imports';
 
-/**
- * User-saved CSV import profiles. Backs the "saved profiles" picker in the import wizard so a
- * recurring statement from the same bank can be re-imported without re-doing the column mapping.
- */
 export const useImportTemplatesStore = defineStore('importTemplatesStore', () => {
   const service = useImportService(useApi());
 
@@ -30,7 +27,7 @@ export const useImportTemplatesStore = defineStore('importTemplatesStore', () =>
     loading.value = true;
     try {
       const created = await service.createTemplate(form);
-      templates.value = [...templates.value, created].sort((a, b) => a.name.localeCompare(b.name));
+      upsertSortedByName(templates, created);
       return created;
     } finally {
       loading.value = false;

@@ -39,9 +39,7 @@ export default defineNuxtPlugin((nuxtApp) => {
           if (authStore.isAuthenticated) {
             authStore.setAuthenticated(false);
             useUserStore().clear();
-            // Only effective outside route middleware: while middleware is processing, navigateTo
-            // returns the route without navigating. Guards that await a request therefore re-check
-            // `isAuthenticated` after the await and own the redirect themselves.
+            resetAllStores();
             return navigateTo('/auth');
           }
         });

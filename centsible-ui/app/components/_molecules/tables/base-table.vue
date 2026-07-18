@@ -30,11 +30,8 @@ const {t} = useI18n();
 
 const tableRef = useTemplateRef<{ $el?: HTMLElement }>('tableRef');
 
-// Measured. UTable force-sizes rows to this and never measures the DOM, so a value below a row's
-// natural height drifts it out of sync with the scroll offset — re-measure before adding taller cells.
 const ROW_HEIGHT = 65;
 
-// Not computed: UTable reads both of these once, during setup.
 const virtualizeOptions = props.virtualize ? {estimateSize: ROW_HEIGHT} : false;
 const tableUi = {
   root: `rounded-lg overflow-x-auto ring ring-default bg-default${props.virtualize ? ' max-h-[70vh] overflow-y-auto' : ''}`,
@@ -43,7 +40,6 @@ const tableUi = {
 useInfiniteScroll(
   () => tableRef.value?.$el,
   () => emit('loadMore'),
-  // useScroll defaults throttle to 0, and its handler forces a layout read on every scroll event.
   {distance: 200, throttle: 100, canLoadMore: () => props.canLoadMore === true},
 );
 </script>

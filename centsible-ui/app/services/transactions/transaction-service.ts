@@ -58,7 +58,6 @@ export function useTransactionService(api: AxiosInstance) {
   function deleteTransactionOnUnload(accountId: string, transactionId: string): void {
     const url = `${api.defaults.baseURL ?? ''}/transactions/${encodeURIComponent(accountId)}/${encodeURIComponent(transactionId)}`;
     void fetch(url, {method: 'DELETE', credentials: 'include', keepalive: true}).catch(() => {
-      // The document is being torn down; there is no toast, no retry, and no logger left to reach.
     });
   }
 
@@ -114,6 +113,20 @@ export function useTransactionService(api: AxiosInstance) {
     return afterMutation(validateRequest<{ affected: number }>(response).affected);
   }
 
+  async function bulkAddTags(accountId: string, ids: string[], tagIds: number[]): Promise<number> {
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-add-tags`, {ids, tagIds});
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
+  }
+
+  async function bulkRemoveTags(accountId: string, ids: string[], tagIds: number[]): Promise<number> {
+    const response = await api.post<{
+      affected: number
+    }>(`/transactions/${encodeURIComponent(accountId)}/bulk-remove-tags`, {ids, tagIds});
+    return afterMutation(validateRequest<{ affected: number }>(response).affected);
+  }
+
   async function setAccountBalance(accountId: string, payload: SetBalanceRequest): Promise<Transaction> {
     const response = await api.post<Transaction>(`/transactions/${encodeURIComponent(accountId)}/set-balance`, payload,);
     return afterMutation(validateRequest<Transaction>(response));
@@ -137,6 +150,8 @@ export function useTransactionService(api: AxiosInstance) {
     fetchTransfer,
     bulkDelete,
     bulkCategorize,
+    bulkAddTags,
+    bulkRemoveTags,
     aggregateByCategory,
     aggregateByMonth,
     aggregateByDay,

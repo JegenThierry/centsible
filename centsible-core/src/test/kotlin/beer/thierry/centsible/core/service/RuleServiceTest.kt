@@ -110,6 +110,36 @@ class RuleServiceTest {
         assertThrows(LocalizedException::class.java) { service.applyToExisting(user, ruleId) }
     }
 
+    @Test
+    fun `preview counts matching transactions without mutating anything`() {
+        val accountId = UUID.randomUUID()
+        val coffeeShop = candidate(accountId, "Coffee shop", categoryId = 1L, managed = false)
+        val teaHouse = candidate(accountId, "Tea house", categoryId = 1L, managed = false)
+        val coffeeBeans = candidate(accountId, "Coffee beans", categoryId = 1L, managed = false)
+        `when`(transactions.fetchForRuleEvaluation(user)).thenReturn(listOf(coffeeShop, teaHouse, coffeeBeans))
+
+        val result = service.preview(
+            user,
+            RuleForm(name = "", conditions = listOf(descCondition("coffee")), actions = emptyList()),
+        )
+
+        assertEquals(2, result.matchedCount)
+        assertEquals(2, result.sample.size)
+        verify(transactions, never()).setCategoryForTransactions(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyLong())
+        verify(tags, never()).addTagsToTransactions(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `preview ignores blank conditions and never queries transactions`() {
+        val result = service.preview(
+            user,
+            RuleForm(name = "", conditions = listOf(descCondition("   ")), actions = emptyList()),
+        )
+
+        assertEquals(0, result.matchedCount)
+        verify(transactions, never()).fetchForRuleEvaluation(anyArg())
+    }
+
     private fun candidate(accountId: UUID, description: String, categoryId: Long, managed: Boolean) =
         RuleCandidateTransaction(
             id = UUID.randomUUID(),

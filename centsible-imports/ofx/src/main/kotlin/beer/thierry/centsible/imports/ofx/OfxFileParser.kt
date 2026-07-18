@@ -11,6 +11,7 @@ import beer.thierry.centsible.imports.core.requireDefaultCategoryId
 import com.webcohesion.ofx4j.OFXException
 import com.webcohesion.ofx4j.domain.data.ResponseEnvelope
 import com.webcohesion.ofx4j.domain.data.banking.BankingResponseMessageSet
+import com.webcohesion.ofx4j.domain.data.common.StatementResponse
 import com.webcohesion.ofx4j.domain.data.common.Transaction
 import com.webcohesion.ofx4j.domain.data.creditcard.CreditCardResponseMessageSet
 import com.webcohesion.ofx4j.io.AggregateUnmarshaller
@@ -20,15 +21,6 @@ import org.springframework.stereotype.Component
 import java.io.ByteArrayInputStream
 import java.time.ZoneOffset
 
-/**
- * Parses OFX 1.x (SGML) and 2.x (XML) bank- and credit-card statement files via ofx4j. The
- * library handles preamble stripping, SGML-vs-XML auto-detection, tag escaping, and date/amount
- * conversion; this parser only translates the OFX domain into [ImportTransactionRow].
- *
- * Times are normalised to UTC: OFX DTPOSTED is bank-local with an explicit offset, but we only
- * carry the calendar day forward, so collapsing to UTC keeps imports deterministic across
- * timezones rather than depending on the JVM default.
- */
 @Component
 class OfxFileParser : FileFormatParser {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -77,12 +69,8 @@ class OfxFileParser : FileFormatParser {
 
             for (set in envelope.messageSets) {
                 val statementResponses: List<StatementBlock> = when (set) {
-                    is BankingResponseMessageSet -> set.statementResponses.orEmpty()
-                        .mapNotNull { it.message }
-                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
-                    is CreditCardResponseMessageSet -> set.statementResponses.orEmpty()
-                        .mapNotNull { it.message }
-                        .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
+                    is BankingResponseMessageSet -> statementBlocks(set.statementResponses.orEmpty()) { it.message }
+                    is CreditCardResponseMessageSet -> statementBlocks(set.statementResponses.orEmpty()) { it.message }
                     else -> continue
                 }
                 for (block in statementResponses) {
@@ -128,6 +116,16 @@ class OfxFileParser : FileFormatParser {
 
         return importRow(amount, description, date, defaultCategoryId)
     }
+
+    /**
+     * Shared tail for the banking and credit-card arms of [parse]: unwrap each response's statement
+     * [message] (the two ofx4j wrapper types share no supertype, so the caller supplies the accessor)
+     * and project it onto a [StatementBlock]. Both statement messages extend [StatementResponse], so
+     * currency and transaction extraction are identical once the message is in hand.
+     */
+    private fun <T> statementBlocks(responses: List<T>, message: (T) -> StatementResponse?): List<StatementBlock> =
+        responses.mapNotNull(message)
+            .map { StatementBlock(it.currencyCode, it.transactionList?.transactions.orEmpty()) }
 
     private data class StatementBlock(
         val currencyCode: String?,

@@ -7,10 +7,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-/**
- * Pins that @SupportedCurrency accepts exactly the [Currency] enum codes (case-sensitively, as the
- * replaced `^(EUR|USD|…)$` regex did), so the supported list can't drift from the enum.
- */
 class SupportedCurrencyValidationTest {
 
     data class Holder(@field:SupportedCurrency val currency: String)

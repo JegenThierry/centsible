@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 
-/** A user-scoped, free-form label that can be attached to transactions (many-to-many). */
 data class TagDTO(
     var id: Long? = null,
     var name: String = "",
@@ -23,7 +22,6 @@ data class TagForm(
     var color: String = "#6b7280",
 )
 
-/** Request body for replacing the full tag set of a transaction. */
 data class TransactionTagsForm(
     var tagIds: List<Long> = emptyList(),
 )

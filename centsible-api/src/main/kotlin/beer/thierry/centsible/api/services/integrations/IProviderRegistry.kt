@@ -10,4 +10,5 @@ interface IProviderRegistry {
     fun listDescriptors(): List<ProviderDescriptor>
     fun getDescriptor(key: String): ProviderDescriptor?
     fun getModule(key: String): ProviderModule?
+    fun syncIntervalsByKey(): Map<String, Long>
 }

@@ -4,9 +4,8 @@ import {z} from 'zod'
 import type {FormSubmitEvent} from '@nuxt/ui'
 import type {Contact, ContactForm as ContactFormModel} from "~/models/contact/contact";
 import ContactForm from "~/components/_molecules/contacts/contact-form.vue";
-import ModalFooterActions from "~/components/_molecules/modals/modal-footer-actions.vue";
+import FormModal from "~/components/_molecules/modals/form-modal.vue";
 import {useContactsStore} from "~/stores/contactsStore";
-import {useModalDirtyGuard} from "~/composables/use-unsaved-changes-guard";
 import {contactSchema} from "~/utils/form-schemas";
 
 const props = defineProps<{
@@ -21,7 +20,6 @@ const {t} = useI18n();
 
 const form = ref<ContactFormModel>({firstName: '', lastName: ''});
 const loading = ref(false);
-const formId = useId();
 
 const schema = contactSchema(t);
 type Schema = z.output<typeof schema>
@@ -34,12 +32,12 @@ function syncForm() {
     : {firstName: '', lastName: ''};
 }
 
-const {requestClose} = useModalDirtyGuard({
-  isOpen,
-  loading,
-  getSnapshot: () => form.value,
-  onResetOnOpen: syncForm,
-});
+// Snapshot for FormModal's dirty guard; defined in script so `form.value` reads the ref, not the
+// template-unwrapped value.
+function snapshot() {
+  return form.value;
+}
+
 watch(() => props.contact, () => {
   if (isOpen.value) syncForm();
 });
@@ -63,21 +61,18 @@ async function handleSave(_event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UModal :open="isOpen"
-          :description="t(isEdit ? 'contacts.edit.description' : 'contacts.create.description')"
-          :title="t(isEdit ? 'contacts.edit.title' : 'contacts.create.title')"
-          @update:open="requestClose">
-    <template #body>
-      <UForm :id="formId" :schema="schema" :state="form" @submit="handleSave">
-        <ContactForm v-model="form"/>
-      </UForm>
+  <FormModal v-model="isOpen"
+             :description="t(isEdit ? 'contacts.edit.description' : 'contacts.create.description')"
+             :title="t(isEdit ? 'contacts.edit.title' : 'contacts.create.title')"
+             :schema="schema"
+             :state="form"
+             :loading="loading"
+             :get-snapshot="snapshot"
+             :on-reset-on-open="syncForm"
+             :submit-label="t(isEdit ? 'contacts.edit.submit' : 'contacts.create.submit')"
+             @submit="handleSave">
+    <template #fields>
+      <ContactForm v-model="form"/>
     </template>
-
-    <template #footer>
-      <ModalFooterActions :form="formId"
-                          :loading="loading"
-                          :submit-label="t(isEdit ? 'contacts.edit.submit' : 'contacts.create.submit')"
-                          @cancel="requestClose(false)"/>
-    </template>
-  </UModal>
+  </FormModal>
 </template>

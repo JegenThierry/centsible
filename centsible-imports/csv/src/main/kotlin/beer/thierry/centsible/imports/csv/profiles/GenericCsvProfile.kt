@@ -3,13 +3,11 @@ package beer.thierry.centsible.imports.csv.profiles
 import beer.thierry.centsible.imports.core.CsvBankProfile
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.MatchScore
+import beer.thierry.centsible.imports.core.anyContains
+import beer.thierry.centsible.imports.core.normalizedHeader
 import org.springframework.stereotype.Component
 import java.util.Locale
 
-/**
- * Catch-all profile that scores any CSV with a recognizable date/amount/description triad. Lets
- * the wizard prefill a reasonable mapping for banks we don't yet have a bespoke profile for.
- */
 @Component
 class GenericCsvProfile : CsvBankProfile {
     override val id = "generic"
@@ -18,10 +16,10 @@ class GenericCsvProfile : CsvBankProfile {
     override val version = 1
 
     override fun matches(header: List<String>, sample: List<List<String>>): MatchScore {
-        val normalized = header.map { it.lowercase() }
-        val hasDate = normalized.any { DATE_TERMS.any(it::contains) }
-        val hasAmount = normalized.any { AMOUNT_TERMS.any(it::contains) }
-        val hasDescription = normalized.any { DESCRIPTION_TERMS.any(it::contains) }
+        val normalized = header.normalizedHeader()
+        val hasDate = DATE_TERMS.any { normalized.anyContains(it) }
+        val hasAmount = AMOUNT_TERMS.any { normalized.anyContains(it) }
+        val hasDescription = DESCRIPTION_TERMS.any { normalized.anyContains(it) }
         if (hasDate && hasAmount && hasDescription) return MatchScore.WEAK
         return MatchScore.NO_MATCH
     }

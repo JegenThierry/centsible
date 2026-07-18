@@ -13,12 +13,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.UUID
 
-/**
- * Turns due [ExportScheduleDTO]s into ordinary export jobs. Lives in `rest` (not `core`) because it
- * reuses [ExportProtoBuilder] to serialize the payload — the same path [ExportResource] uses for
- * one-off exports — so a scheduled run is indistinguishable from a manual one to the worker.
- */
 @Component
 class ExportScheduleMaterializer(
     private val scheduleService: IExportScheduleService,
@@ -71,11 +67,7 @@ class ExportScheduleMaterializer(
             return
         }
 
-        // Advance once per pass: if several periods were missed the next daily tick picks up the rest.
         val advanceTo = frequency.advance(nextRunAt)
-        // Claim the run by advancing the schedule *before* enqueueing: fetchDue takes no lock, so this
-        // CAS is what stops a second rest instance on the same cron from emailing the user a duplicate
-        // export. A crash after this point costs the user one period rather than re-emailing every tick.
         if (!scheduleService.markRun(scheduleId, nextRunAt, advanceTo)) {
             log.debug("Export schedule {} already claimed for {}", scheduleId, nextRunAt)
             return
@@ -85,12 +77,11 @@ class ExportScheduleMaterializer(
         if (accounts.isEmpty()) return
 
         val (windowStart, windowEnd) = windowFor(frequency, nextRunAt)
-        val params = TransactionsExportParams(
-            accountIds = accounts.map { it.id },
-            fromDate = windowStart,
-            toDate = windowEnd,
-            categoryIds = emptyList(),
-        )
+        val params = paramsFor(schedule.type, accounts.map { it.id }, windowStart, windowEnd)
+        if (params == null) {
+            log.warn("Export schedule {} has type {} that cannot be scheduled; skipping", scheduleId, schedule.type)
+            return
+        }
         val payload = protoBuilder.build(
             user = user,
             params = params,
@@ -100,7 +91,7 @@ class ExportScheduleMaterializer(
         )
         exportService.create(
             user,
-            ExportType.TRANSACTIONS,
+            schedule.type,
             schedule.title,
             payload,
             listOf(PostProcessingType.SEND_EMAIL to emptyMap()),
@@ -117,9 +108,27 @@ class ExportScheduleMaterializer(
         val start = when (frequency) {
             Frequency.DAILY -> nextRunAt.minusDays(1)
             Frequency.WEEKLY -> nextRunAt.minusWeeks(1)
+            Frequency.BIWEEKLY -> nextRunAt.minusWeeks(2)
             Frequency.MONTHLY -> nextRunAt.minusMonths(1)
             Frequency.YEARLY -> nextRunAt.minusYears(1)
         }
         return start to end
+    }
+
+    private fun paramsFor(
+        type: ExportType,
+        accountIds: List<UUID>,
+        windowStart: LocalDate,
+        windowEnd: LocalDate,
+    ): ExportRequestParams? = when (type) {
+        ExportType.TRANSACTIONS -> TransactionsExportParams(
+            accountIds = accountIds,
+            fromDate = windowStart,
+            toDate = windowEnd,
+            categoryIds = emptyList(),
+        )
+        ExportType.LENDINGS_ALL -> LendingsAllExportParams(includeSettled = true)
+        ExportType.ACCOUNTS_SUMMARY -> AccountsSummaryExportParams(asOfDate = windowEnd)
+        ExportType.LENDINGS_PER_CONTACT -> null
     }
 }

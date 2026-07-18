@@ -14,8 +14,8 @@ dependencies {
     implementation(libs.spring.boot.starter.jooq)
 
     implementation(libs.kotlin.reflect)
-    implementation(libs.jackson.module.kotlin)
-    implementation(libs.jackson.databind)
+    implementation(libs.jackson3.module.kotlin)
+    implementation(libs.jackson3.databind)
     runtimeOnly(libs.postgresql)
 
     implementation(libs.pebble)

@@ -13,14 +13,8 @@ export interface Category {
   systemKey?: string | null;
 }
 
-export interface CategoryForm {
-  name: string;
-  icon: string;
-  color: string;
-  type: CategoryType;
-}
+export type CategoryForm = Pick<Category, 'name' | 'icon' | 'color' | 'type'>;
 
-/** Stable [systemKey] values for system categories, used to resolve them at runtime. */
 export const CategorySystemKey = {
   BalanceAdjustment: 'BALANCE_ADJUSTMENT',
 } as const;

@@ -17,11 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-/**
- * CRUD for user-saved CSV import profiles. Mounted under /api/imports so it groups with the import
- * wizard, but kept as its own single-responsibility controller (ADR-0011). Authorization lives in
- * the service/repository layer (ADR-0003); this controller only forwards the authenticated principal.
- */
 @RequestMapping("/api/imports/templates")
 @RestController
 class ImportMappingTemplatesResource(
@@ -29,23 +24,23 @@ class ImportMappingTemplatesResource(
 ) {
 
     @GetMapping
-    fun list(@AuthenticationPrincipal user: UserDTO): ResponseEntity<List<ImportMappingTemplateDTO>> =
-        ResponseEntity.ok(service.fetchAll(user))
+    fun list(@AuthenticationPrincipal user: UserDTO): List<ImportMappingTemplateDTO> =
+        service.fetchAll(user)
 
     @PostMapping
     fun create(
         @Valid @RequestBody form: ImportMappingTemplateForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ImportMappingTemplateDTO> =
-        ResponseEntity.ok(service.create(user, form))
+    ): ImportMappingTemplateDTO =
+        service.create(user, form)
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: UUID,
         @Valid @RequestBody form: ImportMappingTemplateForm,
         @AuthenticationPrincipal user: UserDTO,
-    ): ResponseEntity<ImportMappingTemplateDTO> =
-        ResponseEntity.ok(service.update(user, id, form))
+    ): ImportMappingTemplateDTO =
+        service.update(user, id, form)
 
     @DeleteMapping("/{id}")
     fun delete(

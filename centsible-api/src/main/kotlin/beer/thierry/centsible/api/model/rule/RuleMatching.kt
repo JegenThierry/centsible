@@ -4,10 +4,6 @@ import beer.thierry.centsible.api.model.category.CategoryType
 import java.math.BigDecimal
 import java.util.UUID
 
-/**
- * The transaction attributes a rule is evaluated against. [amount] is the absolute (unsigned)
- * amount — direction is carried by [type] — so an "AMOUNT > 100" condition reads naturally.
- */
 data class RuleContext(
     val description: String,
     val amount: BigDecimal,
@@ -15,7 +11,6 @@ data class RuleContext(
     val accountId: UUID,
 )
 
-/** Combined outcome of evaluating all of a user's rules against one transaction. */
 data class RuleEffects(
     val categoryId: Long? = null,
     val tagIds: Set<Long> = emptySet(),
@@ -23,13 +18,8 @@ data class RuleEffects(
     val hasEffect: Boolean get() = categoryId != null || tagIds.isNotEmpty()
 }
 
-/**
- * Pure, side-effect-free rule evaluation. Kept in the contract module so the service layer, the
- * import paths and unit tests all share one implementation (no SQL, no Spring).
- */
 object RuleMatching {
 
-    /** Operators legal for each field — the single source consulted by rule validation (and mirrored in the UI). */
     val VALID_OPERATORS: Map<RuleField, Set<RuleOperator>> = mapOf(
         RuleField.DESCRIPTION to setOf(RuleOperator.CONTAINS, RuleOperator.EQUALS, RuleOperator.STARTS_WITH),
         RuleField.AMOUNT to setOf(RuleOperator.GT, RuleOperator.GTE, RuleOperator.LT, RuleOperator.LTE, RuleOperator.EQUALS),
@@ -66,12 +56,16 @@ object RuleMatching {
             context.accountId.toString().equals(condition.value, ignoreCase = true)
     }
 
-    /** A rule matches when (matchAll) all / (else) any of its conditions hold. No conditions never matches. */
-    fun ruleMatches(rule: RuleDTO, context: RuleContext): Boolean {
-        if (rule.conditions.isEmpty()) return false
-        return if (rule.matchAll) rule.conditions.all { conditionMatches(it, context) }
-        else rule.conditions.any { conditionMatches(it, context) }
+    /** Whether [conditions] hold for [context] under [matchAll] (all vs any). No conditions never matches. */
+    fun matches(matchAll: Boolean, conditions: List<RuleConditionDTO>, context: RuleContext): Boolean {
+        if (conditions.isEmpty()) return false
+        return if (matchAll) conditions.all { conditionMatches(it, context) }
+        else conditions.any { conditionMatches(it, context) }
     }
+
+    /** A rule matches when (matchAll) all / (else) any of its conditions hold. No conditions never matches. */
+    fun ruleMatches(rule: RuleDTO, context: RuleContext): Boolean =
+        matches(rule.matchAll, rule.conditions, context)
 
     /**
      * Evaluates [rules] (expected in priority order — highest first) against [context]. The first

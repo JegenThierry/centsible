@@ -16,36 +16,6 @@ import org.springframework.stereotype.Service
 import java.net.URI
 import java.util.UUID
 
-/**
- * Orchestrates the OAuth2 authorization-code flow on the server side.
- *
- * **Why not `spring-boot-starter-oauth2-client`?** Spring Security's OAuth2 Client is built for
- * single-user-session OAuth login or for the host application to call APIs on behalf of an
- * authenticated principal. Its `ClientRegistration` is global (one per provider, baked into
- * config), `OAuth2AuthorizedClient` is keyed by `(principalName, registrationId)` so a user can
- * only hold one client per provider, and `OAuth2AuthorizedClientRepository` defaults to HTTP
- * session storage. None of those match centsible's multi-tenant, multi-connection model where a
- * user owns N connections per provider (e.g. two GoCardless connections to two different banks),
- * each carrying its own per-user credentials encrypted at rest, and where GoCardless's
- * non-standard requisition flow has no place in Spring Security's standard-grant abstractions.
- * User authentication for the application itself **does** use Spring Security
- * (`SecurityFilterChain`, `BCryptPasswordEncoder`, `Encryptors.stronger` for credential
- * encryption); the provider-integration flow is the only path that needs this custom
- * orchestration.
- *
- * State is a 22-char opaque token minted from [OAuthStateStore] and consumed atomically on
- * callback — this gives natural single-use replay protection without a shared HMAC key, and
- * stays short enough to live inside provider fields with strict length limits (e.g. GoCardless
- * `reference`).
- *
- * Defense-in-depth on callback: after consuming the state we re-fetch the connection scoped by
- * the state's userId and confirm its providerKey matches the callback path. A leaked state
- * cannot be replayed against a different connection or provider.
- *
- * Database writes are intentionally NOT wrapped in @Transactional — each persistence step is a
- * single-row update, and holding a JDBC connection across the outbound HTTP call to the bank
- * would saturate the pool under modest concurrency.
- */
 @Service
 class OAuthFlowService(
     private val registry: IProviderRegistry,

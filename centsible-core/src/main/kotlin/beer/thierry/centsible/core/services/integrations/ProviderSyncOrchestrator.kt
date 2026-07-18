@@ -20,20 +20,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.UUID
 
-/**
- * Polls for ACTIVE connections that are due for sync, dispatches each to the matching provider,
- * and updates the connection's sync metadata. Uses the same worker-claim pattern as the export
- * service so multiple rest instances can run safely.
- *
- * Per-connection behavior:
- *  1. Run OAuth token refresh via TokenRefreshGuard if the envelope is close to expiring.
- *  2. If the provider implements IAccountProvider, list external accounts and ensure each has
- *     a corresponding centsible accounts row, recording the mapping in provider_connection_accounts.
- *     Auto-create centsible accounts for external ids we have not seen before.
- *  3. If the provider implements ITransactionImporter, fetch new transactions since the last
- *     cursor and persist them via the transactions pipeline — routed to the mapped centsible
- *     account, deduped by the provider's external id, and tagged with the connection for provenance.
- */
 @Component
 class ProviderSyncOrchestrator(
     private val registry: IProviderRegistry,
@@ -56,8 +42,9 @@ class ProviderSyncOrchestrator(
     )
     fun pollOnce() {
         try {
-            val candidate = repository.claimNextDueForSync(workerId, leaseTimeoutSeconds, syncIntervalSeconds)
-                ?: return
+            val candidate = repository.claimNextDueForSync(
+                workerId, leaseTimeoutSeconds, syncIntervalSeconds, registry.syncIntervalsByKey(),
+            ) ?: return
             try {
                 runSync(candidate)
             } catch (e: Exception) {

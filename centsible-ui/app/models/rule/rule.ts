@@ -1,4 +1,4 @@
-import type {Category} from "~/models/category/category";
+import type {Category, CategoryType} from "~/models/category/category";
 import type {Tag} from "~/models/tag/tag";
 
 export type RuleField = 'DESCRIPTION' | 'AMOUNT' | 'DIRECTION' | 'ACCOUNT';
@@ -9,7 +9,6 @@ export const RULE_FIELDS: RuleField[] = ['DESCRIPTION', 'AMOUNT', 'DIRECTION', '
 export const RULE_ACTION_TYPES: RuleActionType[] = ['SET_CATEGORY', 'ADD_TAG'];
 export const DIRECTIONS = ['INCOME', 'EXPENSE'] as const;
 
-/** Operators valid for each field — mirrors the backend RuleService validation. */
 export const OPERATORS_BY_FIELD: Record<RuleField, RuleOperator[]> = {
   DESCRIPTION: ['CONTAINS', 'EQUALS', 'STARTS_WITH'],
   AMOUNT: ['GT', 'GTE', 'LT', 'LTE', 'EQUALS'],
@@ -62,4 +61,15 @@ export interface RuleForm {
   priority: number;
   conditions: RuleConditionForm[];
   actions: RuleActionForm[];
+}
+
+export interface RulePreviewMatch {
+  description: string;
+  amount: number;
+  type: CategoryType;
+}
+
+export interface RulePreviewResult {
+  matchedCount: number;
+  sample: RulePreviewMatch[];
 }

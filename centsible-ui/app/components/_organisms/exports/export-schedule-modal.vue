@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {ExportSchedule, ScheduleFrequency} from "~/models/export/export-schedule";
-import {SCHEDULE_FREQUENCIES} from "~/models/export/export-schedule";
-import type {ExportFormat} from "~/models/export/export-job";
+import {EXPORT_SCHEDULE_TYPES, SCHEDULE_FREQUENCIES} from "~/models/export/export-schedule";
+import type {ExportFormat, ExportType} from "~/models/export/export-job";
 import {EXPORT_FORMATS} from "~/models/export/export-job";
 import AppInput from "~/components/_atoms/ui/app-input.vue";
 import AppSelect from "~/components/_atoms/ui/app-select.vue";
@@ -9,6 +9,7 @@ import ModalFooterActions from "~/components/_molecules/modals/modal-footer-acti
 
 export interface ScheduleFormValue {
   title: string;
+  type: ExportType;
   format: ExportFormat;
   frequency: ScheduleFrequency;
   active: boolean;
@@ -24,6 +25,7 @@ const emit = defineEmits<{ (e: 'save', value: ScheduleFormValue): void }>();
 const {t} = useI18n();
 
 const title = ref(props.schedule?.title ?? '');
+const type = ref<ExportType>(props.schedule?.type ?? 'TRANSACTIONS');
 const format = ref<ExportFormat>(props.schedule?.format ?? 'PDF');
 const frequency = ref<ScheduleFrequency>(props.schedule?.frequency ?? 'MONTHLY');
 
@@ -31,6 +33,9 @@ const isEdit = computed(() => !!props.schedule);
 const canSubmit = computed(() => title.value.trim().length > 0);
 
 const formatOptions = EXPORT_FORMATS.map((value) => ({value, label: value}));
+const typeOptions = computed(() =>
+  EXPORT_SCHEDULE_TYPES.map((value) => ({value, label: t(`exports.types.${value}`)})),
+);
 const frequencyOptions = computed(() =>
   SCHEDULE_FREQUENCIES.map((value) => ({value, label: t(`exports.schedules.frequency.${value.toLowerCase()}`)})),
 );
@@ -39,6 +44,7 @@ function submit() {
   if (!canSubmit.value) return;
   emit('save', {
     title: title.value.trim(),
+    type: type.value,
     format: format.value,
     frequency: frequency.value,
     active: props.schedule?.active ?? true,
@@ -58,6 +64,13 @@ function submit() {
             {{ t('exports.schedules.form.nameLabel') }}
           </label>
           <AppInput v-model="title" :placeholder="t('exports.schedules.form.namePlaceholder')" class="w-full mt-1"/>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+            {{ t('exports.schedules.form.typeLabel') }}
+          </label>
+          <AppSelect v-model="type" :items="typeOptions" class="w-full mt-1" value-key="value"/>
         </div>
 
         <div class="grid grid-cols-2 gap-3">

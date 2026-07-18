@@ -35,10 +35,6 @@ class ExportJobWorker(
         val job = claimed.job
         val startNanos = System.nanoTime()
         log.info("Leased export job jobId={} type={} attempt={}", job.id, job.type, job.attemptCount)
-        // A render failure is marked FAILED below and never retried, so a job only accumulates
-        // attempts by killing the JVM mid-render (OOM/SIGKILL). Without this cap such a poison job
-        // is re-leased every lease-timeout forever, crash-looping the worker and starving every
-        // other user's exports.
         if (job.attemptCount > workerProperties.maxAttempts) {
             log.error(
                 "Dead-lettering export job jobId={} after {} attempts (max {})",
@@ -55,14 +51,14 @@ class ExportJobWorker(
             val request = ExportRequest.parseFrom(claimed.payload)
             val format = request.format.toModelFormat()
             val rendered = renderers.find(job.type, format).render(request)
-            jobRepository.markCompleted(job.id, workerProperties.id, rendered.pdf, rendered.filename)
-            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            jobRepository.markCompleted(job.id, workerProperties.id, rendered.bytes, rendered.filename)
+            val elapsedMs = elapsedMsSince(startNanos)
             log.info(
                 "Completed export job jobId={} format={} bytes={} elapsedMs={}",
-                job.id, format, rendered.pdf.size, elapsedMs,
+                job.id, format, rendered.bytes.size, elapsedMs,
             )
         } catch (ex: Exception) {
-            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
+            val elapsedMs = elapsedMsSince(startNanos)
             log.error("Failed export job jobId={} elapsedMs={}", job.id, elapsedMs, ex)
             jobRepository.markFailed(job.id, workerProperties.id, ex.failureReason())
         }

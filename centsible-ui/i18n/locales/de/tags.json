@@ -1,0 +1,25 @@
+{
+  "tags": {
+    "page": {
+      "title": "Tags",
+      "description": "Transaktionen mit wiederverwendbaren Tags organisieren"
+    },
+    "newTag": "Neuer Tag",
+    "nameLabel": "Name",
+    "namePlaceholder": "z. B. erstattungsfähig, Urlaub",
+    "colorLabel": "Farbe",
+    "emptyTitle": "Noch keine Tags",
+    "emptyDescription": "Erstelle Tags, um Transaktionen kategorieübergreifend zu kennzeichnen — z. B. erstattungsfähig oder eine Reise.",
+    "entity": "Tag",
+    "editAria": "Tag bearbeiten",
+    "deleteAria": "Tag löschen",
+    "toasts": {
+      "createdTitle": "Tag erstellt",
+      "createdBody": "{name} wurde hinzugefügt.",
+      "updatedTitle": "Tag aktualisiert",
+      "updatedBody": "{name} wurde gespeichert.",
+      "saveFailedTitle": "Tag konnte nicht gespeichert werden",
+      "saveFailedBody": "Der Tag konnte nicht gespeichert werden. Bitte versuche es erneut."
+    }
+  }
+}

@@ -88,6 +88,7 @@ function advance(date: Date, freq: Frequency): Date {
   switch (freq) {
     case Frequency.DAILY: return addDays(date, 1);
     case Frequency.WEEKLY: return addWeeks(date, 1);
+    case Frequency.BIWEEKLY: return addWeeks(date, 2);
     case Frequency.MONTHLY: return addMonths(date, 1);
     case Frequency.YEARLY: return addYears(date, 1);
   }
@@ -122,7 +123,6 @@ onMounted(() => {
                    :legend="t('transactions.recurring.form.modeLegend')"
                    orientation="horizontal"/>
 
-    <!-- Standard (single-account) fields -->
     <template v-if="!form.isTransfer">
       <CategorySelect name="category"
                       v-model="form.category"
@@ -148,7 +148,6 @@ onMounted(() => {
       </UFormField>
     </template>
 
-    <!-- Transfer fields -->
     <template v-else>
       <AccountSelect name="sourceAccountId"
                      v-model="sourceAccount"

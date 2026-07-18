@@ -31,7 +31,7 @@ function openEdit(schedule: ExportSchedule) {
 async function onSave(value: ScheduleFormValue) {
   const ok = editing.value
     ? await update(editing.value.id, value)
-    : await create({title: value.title, format: value.format, frequency: value.frequency});
+    : await create({title: value.title, type: value.type, format: value.format, frequency: value.frequency});
   if (ok) isModalOpen.value = false;
 }
 

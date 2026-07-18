@@ -28,8 +28,6 @@ class GlobalExceptionHandlerTest {
 
     private val handler = GlobalExceptionHandler(StaticMessageSource(), DataSize.ofMegabytes(11))
 
-    // A real ServletWebRequest always describes itself; the mock has to be told to, or the
-    // `details ?: request.getDescription(false)` fallback hands Kotlin a null platform value.
     private val request = mock(WebRequest::class.java).also {
         `when`(it.getDescription(false)).thenReturn("uri=/api/test")
     }
@@ -53,11 +51,11 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `illegal-state handler does not surface the raw exception message as the client message`() {
+    fun `illegal-state routed to the catch-all does not surface the raw exception message as the client message`() {
         val secret = "/var/lib/centsible/attachments/3f2c/secret.png: write failed"
         MDC.put(MDC_REQUEST_ID, "corr-456")
 
-        val response = handler.handleIllegalState(IllegalStateException(secret), request)
+        val response = handler.handleGlobalException(IllegalStateException(secret), request)
         val body = response.body!!
 
         assertEquals(500, response.statusCode.value())

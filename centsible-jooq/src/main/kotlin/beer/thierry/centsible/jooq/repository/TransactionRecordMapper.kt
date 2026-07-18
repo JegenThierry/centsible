@@ -9,14 +9,6 @@ import beer.thierry.jooq.generated.tables.references.TRANSACTIONS
 import org.jooq.Field
 import org.jooq.Record
 
-/**
- * Shared projection and mapping for `transactions ⨝ categories` rows.
- *
- * Repositories that produce [TransactionDTO]s should select [columns] (alongside
- * any extra fields they need) and pass each [Record] through [mapTransaction] —
- * or [mapTransactionOrNull] when the join is left-joined and the transaction may
- * be absent.
- */
 internal object TransactionRecordMapper {
 
     val columns: Array<Field<*>> = arrayOf(
@@ -59,7 +51,7 @@ internal object TransactionRecordMapper {
     fun mapTransactionOrNull(record: Record): TransactionDTO? =
         if (record[TRANSACTIONS.ID] != null) mapTransaction(record) else null
 
-    private fun mapCategory(record: Record) = CategoryDTO(
+    internal fun mapCategory(record: Record) = CategoryDTO(
         id = record[CATEGORIES.ID],
         name = record[CATEGORIES.NAME],
         icon = record[CATEGORIES.ICON],

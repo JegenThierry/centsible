@@ -3,15 +3,6 @@ package beer.thierry.centsible.core.services.crypto
 import org.springframework.security.crypto.encrypt.BytesEncryptor
 import org.springframework.security.crypto.encrypt.Encryptors
 
-/**
- * Shared 256-bit AES-GCM encryptor (Spring Security Crypto's [Encryptors.stronger]) built lazily
- * from an env-supplied key/salt pair. Lazy construction lets a dev checkout with no configured
- * secrets boot; the first encrypt/decrypt fails loudly with the caller-supplied messages.
- *
- * Each at-rest cipher (TOTP secrets, provider credentials, …) wraps one of these with its own
- * config keys and domain-specific (de)serialization, so the key/salt validation and lazy-build
- * convention live in exactly one place.
- */
 class LazyAesGcmEncryptor(
     private val key: String,
     private val salt: String,

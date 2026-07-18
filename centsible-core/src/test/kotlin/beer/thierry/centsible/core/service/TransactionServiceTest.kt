@@ -481,7 +481,6 @@ class TransactionServiceTest {
     fun `updateTransaction rejects a transfer leg edited as a normal transaction`() {
         val transactionId = UUID.randomUUID()
         val form = TransactionForm(BigDecimal("40.00"), 2L, "Salary", LocalDate.now())
-        // Stubbed leniently: without the transfer guard this edit would otherwise go through.
         lenient().`when`(categoriesRepository.fetchCategoryClassifications(user, listOf(2L)))
             .thenReturn(mapOf(2L to CategoryClassification(CategoryType.INCOME, false)))
         `when`(transactionRepository.fetchTransactionById(transactionId, user)).thenReturn(
@@ -566,6 +565,36 @@ class TransactionServiceTest {
         }
         verify(transactionRepository, never())
             .updateCategoryForTransactions(anyArg(), anyArg(), org.mockito.ArgumentMatchers.anyLong(), anyArg())
+    }
+
+    @Test
+    fun `bulkAddTags delegates to the tag repository and returns the link count`() {
+        val ids = listOf(UUID.randomUUID(), UUID.randomUUID())
+        `when`(tagRepository.addTagsToTransactions(user, ids, listOf(5L, 6L))).thenReturn(3)
+
+        val affected = service.bulkAddTags(ids, listOf(5L, 6L), user)
+
+        assertEquals(3, affected)
+        verify(tagRepository).addTagsToTransactions(user, ids, listOf(5L, 6L))
+    }
+
+    @Test
+    fun `bulkAddTags is a no-op when no tags are given`() {
+        val affected = service.bulkAddTags(listOf(UUID.randomUUID()), emptyList(), user)
+
+        assertEquals(0, affected)
+        verify(tagRepository, never()).addTagsToTransactions(anyArg(), anyArg(), anyArg())
+    }
+
+    @Test
+    fun `bulkRemoveTags delegates to the tag repository`() {
+        val ids = listOf(UUID.randomUUID())
+        `when`(tagRepository.removeTagsFromTransactions(user, ids, listOf(7L))).thenReturn(1)
+
+        val affected = service.bulkRemoveTags(ids, listOf(7L), user)
+
+        assertEquals(1, affected)
+        verify(tagRepository).removeTagsFromTransactions(user, ids, listOf(7L))
     }
 
     @Test

@@ -24,7 +24,7 @@ interface MonthGroup {
 const groups = computed<MonthGroup[]>(() => {
   const byMonth = new Map<string, MonthGroup>();
   for (const occ of props.occurrences ?? []) {
-    const key = occ.date.slice(0, 7); // YYYY-MM
+    const key = occ.date.slice(0, 7);
     let group = byMonth.get(key);
     if (!group) {
       group = {key, label: monthFmt.value.format(parseISO(occ.date)), items: []};
@@ -35,7 +35,6 @@ const groups = computed<MonthGroup[]>(() => {
   return [...byMonth.values()].sort((a, b) => a.key.localeCompare(b.key));
 });
 
-// Income reads as +amount, expense as −amount; direction drives the colour too.
 function signed(occ: ForecastOccurrence): number {
   return occ.type === 'INCOME' ? occ.amount : -occ.amount;
 }

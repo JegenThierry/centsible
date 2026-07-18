@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
-/** Hard-fails boot under the `prod` profile when a secret is left at its `.env.example` placeholder, is missing entirely, or unsafe config (insecure cookies, skipped email verification) is set. */
 @Component
 class ProductionGuard(
     private val environment: Environment,
@@ -51,8 +50,6 @@ class ProductionGuard(
                         "otherwise the admin area is switched on but nobody can reach it."
                 }
             }
-            // Force the lazy MFA cipher to build now so a malformed key/salt fails boot rather
-            // than the first 2FA enrollment (CredentialCipher already self-validates at boot).
             totpSecretCipher?.ensureReady()
         }
         if (skipEmailVerification) {

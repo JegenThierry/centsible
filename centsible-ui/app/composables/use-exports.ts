@@ -77,8 +77,6 @@ export function useExports() {
     }
   }
 
-  // Wired straight to a table event, so there is no caller to catch a rejection: rethrowing here
-  // just produced a second unhandled rejection on top of the toast.
   async function retrigger(jobId: string) {
     try {
       const updated = await service.retriggerExport(jobId);
@@ -107,8 +105,6 @@ export function useExports() {
     }
   }
 
-  // Nothing downstream catches this either (table event → here → axios), and a file cleaned up
-  // server-side or a 500 made the click do nothing at all except log an unhandled rejection.
   async function download(job: ExportJob) {
     try {
       await service.downloadExport(job.id, job.pdfFilename ?? undefined);

@@ -10,19 +10,13 @@ import beer.thierry.centsible.api.repository.IReportsRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
 import beer.thierry.centsible.api.services.reports.ISafeToSpendService
+import beer.thierry.centsible.core.services.recurring.occurrenceDatesInWindow
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.YearMonth
 
-/**
- * Deterministic discretionary-headroom calculator for the current month. Reuses the same
- * transfer-excluded aggregation the cash-flow report uses for booked actuals (ADR-0015), and projects
- * the remaining month from active, non-transfer recurring rules. Booked and upcoming amounts alike are
- * converted into the user's default currency with the shared report rates, so accounts and rules in
- * foreign currencies are never summed raw. No AI.
- */
 @Service
 class SafeToSpendService(
     private val reportsRepository: IReportsRepository,
@@ -49,8 +43,6 @@ class SafeToSpendService(
             if (!rule.active || rule.isTransfer) continue
             val amount = rule.amount ?: continue
             val type = rule.type ?: continue
-            // A rule's amount lands on its own account, so it converts at that account's rate; rules whose
-            // FX can't be resolved are excluded, mirroring the net-worth forecast.
             val rate = rule.accountId?.let { rates.byAccount[it] } ?: continue
             val occurrences = occurrencesInWindow(rule, today, monthEnd)
             if (occurrences == 0) continue
@@ -86,20 +78,7 @@ class SafeToSpendService(
         rule: RecurringTransactionDTO,
         windowStart: LocalDate,
         windowEnd: LocalDate,
-    ): Int {
-        val frequency = rule.frequency ?: return 0
-        val hardEnd = rule.endDate
-        var date = rule.nextRunAt ?: return 0
-        var count = 0
-        var guard = 0
-        while (!date.isAfter(windowEnd) && guard < MAX_OCCURRENCES) {
-            if (hardEnd != null && date.isAfter(hardEnd)) break
-            if (!date.isBefore(windowStart)) count++
-            date = frequency.advance(date)
-            guard++
-        }
-        return count
-    }
+    ): Int = occurrenceDatesInWindow(rule, windowStart, windowEnd, MAX_OCCURRENCES).size
 
     private companion object {
         const val MAX_OCCURRENCES = 400

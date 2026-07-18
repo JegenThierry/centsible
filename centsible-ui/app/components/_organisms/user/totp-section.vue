@@ -157,7 +157,6 @@ function downloadRecoveryCodes() {
       {{ t('common.actions.loading') }}
     </div>
 
-    <!-- Off: offer to enable -->
     <div v-else-if="step === 'disabled'" class="mt-4">
       <UAlert
         :title="t('profile.twoFactor.status.offTitle')"
@@ -170,7 +169,6 @@ function downloadRecoveryCodes() {
       </AppButton>
     </div>
 
-    <!-- Enrolling: show QR + secret + confirm code -->
     <div v-else-if="step === 'enrolling' && enrollment" class="mt-4 space-y-4">
       <p class="text-sm">{{ t('profile.twoFactor.enroll.scanInstruction') }}</p>
       <div class="flex justify-center bg-white p-4 rounded-lg w-fit mx-auto">
@@ -201,7 +199,6 @@ function downloadRecoveryCodes() {
       </UForm>
     </div>
 
-    <!-- Recovery codes (shown once) -->
     <div v-else-if="step === 'recovery'" class="mt-4 space-y-4">
       <UAlert
         :title="t('profile.twoFactor.recovery.title')"
@@ -230,7 +227,6 @@ function downloadRecoveryCodes() {
       </div>
     </div>
 
-    <!-- Regenerating recovery codes: requires a current code -->
     <div v-else-if="step === 'regenerating'" class="mt-4 space-y-4">
       <UAlert
         :title="t('profile.twoFactor.recovery.regenerateTitle')"
@@ -257,7 +253,6 @@ function downloadRecoveryCodes() {
       </UForm>
     </div>
 
-    <!-- On: show recovery-code status + offer regenerate, then disable (requires a code) -->
     <div v-else-if="step === 'enabled'" class="mt-4 space-y-4">
       <UAlert
         :title="t('profile.twoFactor.status.onTitle')"

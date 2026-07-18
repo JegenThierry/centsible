@@ -2,6 +2,7 @@ package beer.thierry.centsible.api.repository
 
 import beer.thierry.centsible.api.model.export.ExportFormat
 import beer.thierry.centsible.api.model.export.ExportScheduleDTO
+import beer.thierry.centsible.api.model.export.ExportType
 import beer.thierry.centsible.api.model.recurring.Frequency
 import beer.thierry.centsible.api.model.user.UserDTO
 import java.time.LocalDate
@@ -14,6 +15,7 @@ interface IExportScheduleRepository {
     fun create(
         authenticatedUser: UserDTO,
         title: String,
+        type: ExportType,
         format: ExportFormat,
         frequency: Frequency,
         nextRunAt: LocalDate,
@@ -23,6 +25,7 @@ interface IExportScheduleRepository {
         authenticatedUser: UserDTO,
         id: UUID,
         title: String,
+        type: ExportType,
         format: ExportFormat,
         frequency: Frequency,
         active: Boolean,

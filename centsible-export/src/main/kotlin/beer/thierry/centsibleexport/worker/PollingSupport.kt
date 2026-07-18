@@ -15,6 +15,8 @@ internal inline fun <T> Logger.claimOrLog(failureMessage: String, claim: () -> T
         null
     }
 
-/** Best-effort short description of an exception suitable for persisting as an error reason. */
 internal fun Throwable.failureReason(): String =
     message ?: this::class.qualifiedName ?: "unknown error"
+
+/** Milliseconds elapsed since a [System.nanoTime] reading, for timing log fields. */
+internal fun elapsedMsSince(startNanos: Long): Long = (System.nanoTime() - startNanos) / 1_000_000

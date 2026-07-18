@@ -104,8 +104,8 @@ class TagRepository(private val dsl: DSLContext) : ITagRepository {
 
         dsl.deleteFrom(TRANSACTION_TAGS).where(TRANSACTION_TAGS.TRANSACTION_ID.eq(transactionId)).execute()
         if (tagIds.isNotEmpty()) {
-            var insert = dsl.insertInto(TRANSACTION_TAGS, TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID)
-            tagIds.distinct().forEach { tagId -> insert = insert.values(transactionId, tagId) }
+            val insert = dsl.insertInto(TRANSACTION_TAGS, TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID)
+            tagIds.distinct().forEach { tagId -> insert.values(transactionId, tagId) }
             insert.execute()
         }
         return true
@@ -128,9 +128,30 @@ class TagRepository(private val dsl: DSLContext) : ITagRepository {
             .fetch(TAGS.ID)
         if (ownedTransactions.isEmpty() || ownedTags.isEmpty()) return 0
 
-        var insert = dsl.insertInto(TRANSACTION_TAGS, TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID)
-        ownedTransactions.forEach { txId -> ownedTags.forEach { tagId -> insert = insert.values(txId, tagId) } }
+        val insert = dsl.insertInto(TRANSACTION_TAGS, TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID)
+        ownedTransactions.forEach { txId -> ownedTags.forEach { tagId -> insert.values(txId, tagId) } }
         return insert.onConflict(TRANSACTION_TAGS.TRANSACTION_ID, TRANSACTION_TAGS.TAG_ID).doNothing().execute()
+    }
+
+    override fun removeTagsFromTransactions(
+        authenticatedUser: UserDTO,
+        transactionIds: Collection<UUID>,
+        tagIds: Collection<Long>,
+    ): Int {
+        if (transactionIds.isEmpty() || tagIds.isEmpty()) return 0
+        return dsl.deleteFrom(TRANSACTION_TAGS)
+            .where(
+                TRANSACTION_TAGS.TAG_ID.`in`(tagIds).and(
+                    TRANSACTION_TAGS.TRANSACTION_ID.`in`(
+                        dsl.select(TRANSACTIONS.ID).from(TRANSACTIONS)
+                            .where(
+                                TRANSACTIONS.ID.`in`(transactionIds)
+                                    .and(TRANSACTIONS.ACCOUNT_ID.`in`(dsl.accountsOwnedBy(authenticatedUser.id)))
+                            )
+                    )
+                )
+            )
+            .execute()
     }
 
     private fun mapToDTO(record: Record): TagDTO =

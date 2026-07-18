@@ -2,7 +2,9 @@
   "reports": {
     "page": {
       "title": "Reports",
-      "description": "Visualise your spending, income, and net worth over time."
+      "description": "Visualise your spending, income, and net worth over time.",
+      "partialErrorTitle": "Some reports couldn't be loaded",
+      "partialErrorBody": "Part of this page failed to load. The reports shown below may be incomplete."
     },
     "ranges": {
       "3m": "Last 3 months",
@@ -16,6 +18,10 @@
       "legend": "Net worth",
       "empty": "No data yet. Add a few transactions and check back.",
       "drillHint": "Click a point for the per-account breakdown",
+      "total": "Total net worth",
+      "assets": "Assets",
+      "liabilities": "Liabilities",
+      "net": "Net",
       "breakdown": {
         "title": "Net worth breakdown",
         "total": "Total",

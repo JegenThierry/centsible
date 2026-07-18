@@ -9,6 +9,27 @@ import java.time.Duration
 const val AUTH_COOKIE_NAME = "auth_token"
 const val PRE_AUTH_COOKIE_NAME = "pre_auth"
 
+/**
+ * Builds a hardened `Set-Cookie` value shared by both issuers below: always HttpOnly + SameSite=Strict,
+ * with `secure`/`domain` applied in exactly one place. Only the name, path and max-age vary per issuer.
+ */
+private fun buildSetCookie(
+    name: String,
+    value: String,
+    path: String,
+    maxAge: Duration,
+    secure: Boolean,
+    domain: String,
+): String = ResponseCookie.from(name, value)
+    .httpOnly(true)
+    .secure(secure)
+    .sameSite("Strict")
+    .path(path)
+    .maxAge(maxAge)
+    .also { if (domain.isNotBlank()) it.domain(domain) }
+    .build()
+    .toString()
+
 @Component
 class AuthCookieIssuer(
     @Value("\${jwt.expiration-ms}") private val jwtExpirationMs: Long,
@@ -16,52 +37,32 @@ class AuthCookieIssuer(
     @Value("\${auth.cookie.domain:}") private val cookieDomain: String,
 ) {
     fun issue(response: HttpServletResponse, token: String) {
-        val cookie = baseBuilder(token)
-            .maxAge(Duration.ofMillis(jwtExpirationMs))
-            .build()
-        response.addHeader("Set-Cookie", cookie.toString())
+        response.addHeader("Set-Cookie", cookie(token, Duration.ofMillis(jwtExpirationMs)))
     }
 
     fun clear(response: HttpServletResponse) {
-        val cookie = baseBuilder("")
-            .maxAge(Duration.ZERO)
-            .build()
-        response.addHeader("Set-Cookie", cookie.toString())
+        response.addHeader("Set-Cookie", cookie("", Duration.ZERO))
     }
 
-    private fun baseBuilder(value: String) = ResponseCookie.from(AUTH_COOKIE_NAME, value)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite("Strict")
-        .path("/")
-        .also { if (cookieDomain.isNotBlank()) it.domain(cookieDomain) }
+    private fun cookie(value: String, maxAge: Duration) =
+        buildSetCookie(AUTH_COOKIE_NAME, value, "/", maxAge, cookieSecure, cookieDomain)
 }
 
-/**
- * Issues the short-lived pre-auth cookie that bridges password-verify and the TOTP challenge.
- * Distinct from the real session cookie: a different name, a path scoped to the auth endpoints,
- * and a 5-minute lifetime. It carries no authority of its own — the JwtAuthenticationFilter never
- * reads it — so it can never stand in for a real JWT.
- */
 @Component
 class PreAuthCookieIssuer(
     @Value("\${auth.cookie.secure:false}") private val cookieSecure: Boolean,
     @Value("\${auth.cookie.domain:}") private val cookieDomain: String,
 ) {
     fun issue(response: HttpServletResponse, token: String) {
-        response.addHeader("Set-Cookie", baseBuilder(token).maxAge(PENDING_TTL).build().toString())
+        response.addHeader("Set-Cookie", cookie(token, PENDING_TTL))
     }
 
     fun clear(response: HttpServletResponse) {
-        response.addHeader("Set-Cookie", baseBuilder("").maxAge(Duration.ZERO).build().toString())
+        response.addHeader("Set-Cookie", cookie("", Duration.ZERO))
     }
 
-    private fun baseBuilder(value: String) = ResponseCookie.from(PRE_AUTH_COOKIE_NAME, value)
-        .httpOnly(true)
-        .secure(cookieSecure)
-        .sameSite("Strict")
-        .path("/api/auth")
-        .also { if (cookieDomain.isNotBlank()) it.domain(cookieDomain) }
+    private fun cookie(value: String, maxAge: Duration) =
+        buildSetCookie(PRE_AUTH_COOKIE_NAME, value, "/api/auth", maxAge, cookieSecure, cookieDomain)
 
     private companion object {
         val PENDING_TTL: Duration = Duration.ofMinutes(5)

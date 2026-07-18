@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
 import adze from 'adze'
 import {useSavedFilterService} from "~/services/transactions/saved-filter-service";
+import {upsertSortedByName} from "~/utils/upsert";
 import type {SavedFilter, SavedFilterForm} from "~/models/transactions/saved-filter";
 
 export const useSavedFiltersStore = defineStore('savedFiltersStore', () => {
@@ -31,7 +32,7 @@ export const useSavedFiltersStore = defineStore('savedFiltersStore', () => {
     loading.value = true;
     try {
       const created = await service.create(form);
-      savedFilters.value = [...savedFilters.value, created].sort((a, b) => a.name.localeCompare(b.name));
+      upsertSortedByName(savedFilters, created);
       return created;
     } finally {
       loading.value = false;

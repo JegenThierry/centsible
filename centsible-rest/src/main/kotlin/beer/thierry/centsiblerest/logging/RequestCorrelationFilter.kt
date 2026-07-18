@@ -15,13 +15,6 @@ const val MDC_REQUEST_ID = "requestId"
 const val MDC_METHOD = "method"
 const val MDC_PATH = "path"
 
-/**
- * Populates per-request MDC keys before any other filter runs. Pairs with
- * [UserContextMdcFilter] which adds `userId` after Spring Security has authenticated.
- *
- * Runs at HIGHEST_PRECEDENCE so the request id is visible in every downstream log line —
- * including security filters that may reject the request before it reaches the dispatcher.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class RequestCorrelationFilter : OncePerRequestFilter() {

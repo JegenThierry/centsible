@@ -19,10 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * TOTP two-factor enrollment and management for the signed-in user. All endpoints require
- * authentication (the login-challenge step lives on /api/auth/2fa/challenge, which runs pre-auth).
- */
 @RequestMapping("/api/auth/2fa")
 @RestController
 class TotpResource(
@@ -33,21 +29,21 @@ class TotpResource(
     private val log = LoggerFactory.getLogger(TotpResource::class.java)
 
     @GetMapping("/status")
-    fun status(@AuthenticationPrincipal user: UserDTO): ResponseEntity<TotpStatusDTO> =
-        ResponseEntity.ok(totpService.status(user.id))
+    fun status(@AuthenticationPrincipal user: UserDTO): TotpStatusDTO =
+        totpService.status(user.id)
 
     @PostMapping("/enroll")
-    fun enroll(@AuthenticationPrincipal user: UserDTO): ResponseEntity<TotpEnrollmentDTO> {
+    fun enroll(@AuthenticationPrincipal user: UserDTO): TotpEnrollmentDTO {
         log.info("TOTP enrollment requested userId={}", user.id)
-        return ResponseEntity.ok(totpService.beginEnrollment(user.id, user.email))
+        return totpService.beginEnrollment(user.id, user.email)
     }
 
     @PostMapping("/confirm")
     fun confirm(
         @AuthenticationPrincipal user: UserDTO,
         @Valid @RequestBody request: TotpCodeRequest,
-    ): ResponseEntity<RecoveryCodesDTO> =
-        ResponseEntity.ok(totpService.confirmEnrollment(user.id, request.code))
+    ): RecoveryCodesDTO =
+        totpService.confirmEnrollment(user.id, request.code)
 
     @PostMapping("/enroll/cancel")
     fun cancelEnroll(@AuthenticationPrincipal user: UserDTO): ResponseEntity<Void> {
@@ -60,9 +56,9 @@ class TotpResource(
     fun regenerateRecoveryCodes(
         @AuthenticationPrincipal user: UserDTO,
         @Valid @RequestBody request: TotpCodeRequest,
-    ): ResponseEntity<RecoveryCodesDTO> {
+    ): RecoveryCodesDTO {
         log.info("Recovery-code regeneration requested userId={}", user.id)
-        return ResponseEntity.ok(totpService.regenerateRecoveryCodes(user.id, request.code))
+        return totpService.regenerateRecoveryCodes(user.id, request.code)
     }
 
     @PostMapping("/disable")
