@@ -27,20 +27,11 @@ const items = computed(() => {
     );
   }
 
-  const planChildren: any[] = [
-    {label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'},
-  ];
+  primary.push({label: t('nav.sidebar.budgets'), to: '/budgets', icon: 'i-lucide-piggy-bank', target: '_self'});
   if (accountId) {
-    planChildren.push({label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'});
+    primary.push({label: t('nav.sidebar.recurring'), to: `/${accountId}/recurring`, icon: 'i-lucide-repeat', target: '_self'});
   }
-  planChildren.push({label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'});
-
-  primary.push({
-    label: t('nav.sidebar.plan'),
-    icon: 'i-lucide-target',
-    defaultOpen: true,
-    children: planChildren,
-  });
+  primary.push({label: t('nav.sidebar.loans'), to: '/loans', icon: 'i-lucide-hand-coins', target: '_self'});
 
   const manage: any[] = [
     {label: t('nav.sidebar.sections.manage'), type: 'label'},
