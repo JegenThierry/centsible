@@ -32,4 +32,7 @@ class ProviderRegistry(modules: List<ProviderModule>) : IProviderRegistry {
     override fun getDescriptor(key: String): ProviderDescriptor? = byKey[key]?.descriptor
 
     override fun getModule(key: String): ProviderModule? = byKey[key]
+
+    override fun syncIntervalsByKey(): Map<String, Long> =
+        byKey.filterValues { it.minSyncIntervalSeconds > 0 }.mapValues { it.value.minSyncIntervalSeconds }
 }

@@ -19,6 +19,8 @@ import beer.thierry.centsible.api.model.integrations.TransactionImportPage
 interface ProviderModule {
     val descriptor: ProviderDescriptor
 
+    val minSyncIntervalSeconds: Long get() = 0L
+
     /**
      * Lightweight reachability check executed when a user creates or edits a connection.
      * Should not perform a full sync. Default: no-op (provider accepts any config).

@@ -45,6 +45,7 @@ interface IProviderConnectionsRepository {
         workerId: String,
         leaseTimeoutSeconds: Long,
         syncIntervalSeconds: Long,
+        providerIntervalsSeconds: Map<String, Long> = emptyMap(),
     ): ProviderSyncCandidate?
 
     /** Releases the worker lease, clears the error, and stores [cursor] for the next incremental sync. */

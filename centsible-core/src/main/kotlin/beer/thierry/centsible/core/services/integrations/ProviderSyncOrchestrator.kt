@@ -42,8 +42,9 @@ class ProviderSyncOrchestrator(
     )
     fun pollOnce() {
         try {
-            val candidate = repository.claimNextDueForSync(workerId, leaseTimeoutSeconds, syncIntervalSeconds)
-                ?: return
+            val candidate = repository.claimNextDueForSync(
+                workerId, leaseTimeoutSeconds, syncIntervalSeconds, registry.syncIntervalsByKey(),
+            ) ?: return
             try {
                 runSync(candidate)
             } catch (e: Exception) {

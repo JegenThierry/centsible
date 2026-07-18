@@ -1,5 +1,6 @@
 package beer.thierry.centsible.imports.core
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import org.slf4j.Logger
@@ -11,13 +12,20 @@ import java.time.LocalDate
  * its sign selects EXPENSE (negative) vs INCOME. Shared by every file-format parser so the
  * amount / [CategoryType] convention lives in one place.
  */
-fun importRow(amount: BigDecimal, description: String, date: LocalDate, defaultCategoryId: Long): ImportTransactionRow =
+fun importRow(
+    amount: BigDecimal,
+    description: String,
+    date: LocalDate,
+    defaultCategoryId: Long,
+    currency: Currency? = null,
+): ImportTransactionRow =
     ImportTransactionRow(
         amount = amount.abs(),
         categoryId = defaultCategoryId,
         description = description,
         transactionDate = date,
         type = if (amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME,
+        currency = currency,
     )
 
 /**

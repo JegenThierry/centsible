@@ -8,9 +8,11 @@ import beer.thierry.centsible.api.repository.ProviderSyncCandidate
 import beer.thierry.jooq.generated.tables.references.PROVIDER_CONNECTIONS
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.ObjectMapper
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
@@ -112,26 +114,35 @@ class ProviderConnectionsRepository(
         workerId: String,
         leaseTimeoutSeconds: Long,
         syncIntervalSeconds: Long,
+        providerIntervalsSeconds: Map<String, Long>,
     ): ProviderSyncCandidate? {
         val now = OffsetDateTime.now()
-        val syncCutoff = now.minusSeconds(syncIntervalSeconds)
         val leaseCutoff = now.minusSeconds(leaseTimeoutSeconds)
+
+        fun dueBy(cutoff: OffsetDateTime): Condition =
+            PROVIDER_CONNECTIONS.LAST_SYNC_AT.isNull.or(PROVIDER_CONNECTIONS.LAST_SYNC_AT.lt(cutoff))
+                .and(PROVIDER_CONNECTIONS.LAST_ERROR.isNull.or(PROVIDER_CONNECTIONS.MODIFIED_AT.lt(cutoff)))
+
+        val overridden = providerIntervalsSeconds.filterValues { it > syncIntervalSeconds }
+        val dueClause = if (overridden.isEmpty()) {
+            dueBy(now.minusSeconds(syncIntervalSeconds))
+        } else {
+            val perProvider = overridden.map { (key, seconds) ->
+                PROVIDER_CONNECTIONS.PROVIDER_KEY.eq(key).and(dueBy(now.minusSeconds(seconds)))
+            }
+            val everyoneElse = PROVIDER_CONNECTIONS.PROVIDER_KEY.notIn(overridden.keys)
+                .and(dueBy(now.minusSeconds(syncIntervalSeconds)))
+            DSL.or(perProvider + everyoneElse)
+        }
 
         val candidate = dsl.select(PROVIDER_CONNECTIONS.ID)
             .from(PROVIDER_CONNECTIONS)
             .where(
                 PROVIDER_CONNECTIONS.STATUS.eq(JooqStatus.ACTIVE)
-                    .and(
-                        PROVIDER_CONNECTIONS.LAST_SYNC_AT.isNull
-                            .or(PROVIDER_CONNECTIONS.LAST_SYNC_AT.lt(syncCutoff))
-                    )
+                    .and(dueClause)
                     .and(
                         PROVIDER_CONNECTIONS.LOCKED_AT.isNull
                             .or(PROVIDER_CONNECTIONS.LOCKED_AT.lt(leaseCutoff))
-                    )
-                    .and(
-                        PROVIDER_CONNECTIONS.LAST_ERROR.isNull
-                            .or(PROVIDER_CONNECTIONS.MODIFIED_AT.lt(syncCutoff))
                     )
             )
             .orderBy(PROVIDER_CONNECTIONS.LAST_SYNC_AT.asc().nullsFirst())

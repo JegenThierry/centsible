@@ -77,6 +77,11 @@ class GoCardlessProviderModuleTest {
     }
 
     @Test
+    fun `exposes its configured minimum sync interval so the orchestrator can rate-limit it`() {
+        assertEquals(3600L, newModule().minSyncIntervalSeconds)
+    }
+
+    @Test
     fun `testConnection accepts a valid country and institution`() {
         newModule().testConnection(ctx())
     }

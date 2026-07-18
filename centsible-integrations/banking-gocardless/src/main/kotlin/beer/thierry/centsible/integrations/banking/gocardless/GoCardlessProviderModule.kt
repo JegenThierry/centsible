@@ -37,7 +37,7 @@ import java.util.HexFormat
 
 class GoCardlessProviderModule(
     private val client: GoCardlessHttpClient,
-    @Suppress("unused") private val minSyncIntervalSeconds: Long,
+    override val minSyncIntervalSeconds: Long,
 ) : ProviderModule, IAccountProvider, ITransactionImporter, IOAuthFlowProvider, IRemoteOptionsProvider {
 
     private val log = LoggerFactory.getLogger(GoCardlessProviderModule::class.java)

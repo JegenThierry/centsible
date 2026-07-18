@@ -1,4 +1,5 @@
-import {ref, type Ref, watch} from 'vue'
+import {ref, type Ref} from 'vue'
+import {watchDeep} from '@vueuse/core'
 import adze from 'adze'
 import type {Transaction} from '~/models/transactions/transaction'
 import type {TransactionFilters} from '~/models/transactions/transaction-filters'
@@ -63,15 +64,9 @@ export function useTransactionList(
   }
 
   if (filters) {
-    watch(
-      () => {
-        const f = filters.value
-        return [f.search, f.sort, f.fromDate, f.toDate, f.type, f.amountMin, f.amountMax, (f.categoryIds ?? []).join(',')] as const
-      },
-      () => {
-        if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
-      },
-    )
+    watchDeep(filters, () => {
+      if (budgetAccountsStore.activeAccount?.id) loadTransactions(true)
+    })
   }
 
   return {

@@ -1,5 +1,6 @@
 package beer.thierry.centsible.imports.csv
 
+import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
 import beer.thierry.centsible.imports.core.CsvColumnMapping
 import beer.thierry.centsible.imports.core.CsvDialect
@@ -173,8 +174,9 @@ class CsvFileParser : FileFormatParser {
         }
 
         val description = descRaw.ifBlank { "(no description)" }.take(255)
+        val currency = Currency.parseOrNull(cell(mapping.currencyColumn))
 
-        return importRow(amount, description, date, defaultCategoryId)
+        return importRow(amount, description, date, defaultCategoryId, currency)
     }
 
     private fun resolveAmount(
