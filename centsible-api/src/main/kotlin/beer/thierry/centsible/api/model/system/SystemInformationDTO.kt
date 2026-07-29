@@ -7,6 +7,5 @@ data class SystemInformationDTO(
     val version: String = "",
     val description: String? = null,
     val license: String? = null,
-    val repository: String? = null,
     val releasedAt: LocalDate? = null,
 )

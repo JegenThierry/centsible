@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import AboutSectionHeader from "~/components/_molecules/about/about-section-header.vue";
 import AboutResourceLink from "~/components/_molecules/about/about-resource-link.vue";
-
-const props = defineProps<{
-  repository: string;
-}>();
+import {REPOSITORY_URL} from "~/models/constants";
 
 const {t} = useI18n();
 
@@ -12,20 +9,20 @@ const resources = computed(() => [
   {
     label: t('landing.about.resources.sourceLabel'),
     description: t('landing.about.resources.sourceDescription'),
-    icon: 'i-simple-icons-codeberg',
-    to: props.repository,
+    icon: 'i-simple-icons-github',
+    to: REPOSITORY_URL,
   },
   {
     label: t('landing.about.resources.bugLabel'),
     description: t('landing.about.resources.bugDescription'),
     icon: 'i-lucide-bug',
-    to: `${props.repository}/issues`,
+    to: `${REPOSITORY_URL}/issues`,
   },
   {
     label: t('landing.about.resources.activityLabel'),
     description: t('landing.about.resources.activityDescription'),
     icon: 'i-lucide-activity',
-    to: `${props.repository}/activity`,
+    to: `${REPOSITORY_URL}/activity`,
   },
   {
     label: t('landing.about.resources.donateLabel'),

@@ -100,11 +100,6 @@ open class SystemInformation(
     val LICENSE: TableField<SystemInformationRecord, String?> = createField(DSL.name("license"), SQLDataType.VARCHAR(50), this, "")
 
     /**
-     * The column <code>public.system_information.repository</code>.
-     */
-    val REPOSITORY: TableField<SystemInformationRecord, String?> = createField(DSL.name("repository"), SQLDataType.CLOB, this, "")
-
-    /**
      * The column <code>public.system_information.released_at</code>.
      */
     val RELEASED_AT: TableField<SystemInformationRecord, LocalDate?> = createField(DSL.name("released_at"), SQLDataType.LOCALDATE, this, "")

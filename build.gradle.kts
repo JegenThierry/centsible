@@ -6,12 +6,6 @@ plugins {
     alias(libs.plugins.dependency.check)
 }
 
-// OWASP Dependency-Check. Run `./gradlew dependencyCheckAggregate` — walks every
-// subproject's resolved dependencies and writes reports to build/reports/dependency-check/.
-// First run downloads the NVD feed (slow); supply an NVD API key
-// (https://nvd.nist.gov/developers/request-an-api-key) to lift the anonymous rate limit.
-// Resolution order: -PnvdApiKey=… > ~/.gradle/gradle.properties (nvdApiKey=…) > NVD_API_KEY env var.
-// Opt-in policy gate: `-PdependencyCheckFailOnCvss=7.0` to fail the build on High+ CVSS.
 dependencyCheck {
     formats = listOf("HTML", "JSON")
     outputDirectory = layout.buildDirectory.dir("reports/dependency-check").get().asFile.absolutePath
