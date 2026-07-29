@@ -1,7 +1,3 @@
--- Allow the BIWEEKLY recurrence/schedule cadence (every two weeks) on both the recurring
--- transaction templates and the export schedules, which share the Frequency enum. The existing
--- CHECK constraints were defined inline, so their names are auto-generated; drop whichever CHECK
--- currently guards each frequency column by definition, then re-add the widened list.
 DO $$
 DECLARE
     c record;

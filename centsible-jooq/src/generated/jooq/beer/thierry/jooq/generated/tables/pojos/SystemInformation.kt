@@ -19,7 +19,6 @@ data class SystemInformation(
     val version: String? = null,
     val description: String? = null,
     val license: String? = null,
-    val repository: String? = null,
     val releasedAt: LocalDate? = null,
     val createdAt: OffsetDateTime? = null,
     val modifiedAt: OffsetDateTime? = null
@@ -63,12 +62,6 @@ data class SystemInformation(
         }
         else if (this.license != o.license)
             return false
-        if (this.repository == null) {
-            if (o.repository != null)
-                return false
-        }
-        else if (this.repository != o.repository)
-            return false
         if (this.releasedAt == null) {
             if (o.releasedAt != null)
                 return false
@@ -98,7 +91,6 @@ data class SystemInformation(
         result = prime * result + (if (this.version == null) 0 else this.version.hashCode())
         result = prime * result + (if (this.description == null) 0 else this.description.hashCode())
         result = prime * result + (if (this.license == null) 0 else this.license.hashCode())
-        result = prime * result + (if (this.repository == null) 0 else this.repository.hashCode())
         result = prime * result + (if (this.releasedAt == null) 0 else this.releasedAt.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.modifiedAt == null) 0 else this.modifiedAt.hashCode())
@@ -113,7 +105,6 @@ data class SystemInformation(
         sb.append(", ").append(version)
         sb.append(", ").append(description)
         sb.append(", ").append(license)
-        sb.append(", ").append(repository)
         sb.append(", ").append(releasedAt)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)

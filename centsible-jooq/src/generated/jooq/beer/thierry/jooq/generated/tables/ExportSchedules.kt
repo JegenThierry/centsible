@@ -189,7 +189,7 @@ open class ExportSchedules(
         get(): UsersPath = users()
     override fun getChecks(): List<Check<ExportSchedulesRecord>> = listOf(
         Internal.createCheck(this, DSL.name("export_schedules_format_check"), "(((format)::text = ANY ((ARRAY['PDF'::character varying, 'CSV'::character varying, 'JSON'::character varying])::text[])))", true),
-        Internal.createCheck(this, DSL.name("export_schedules_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true)
+        Internal.createCheck(this, DSL.name("export_schedules_frequency_check"), "(((frequency)::text = ANY ((ARRAY['DAILY'::character varying, 'WEEKLY'::character varying, 'BIWEEKLY'::character varying, 'MONTHLY'::character varying, 'YEARLY'::character varying])::text[])))", true)
     )
     override fun `as`(alias: String): ExportSchedules = ExportSchedules(DSL.name(alias), this)
     override fun `as`(alias: Name): ExportSchedules = ExportSchedules(alias, this)

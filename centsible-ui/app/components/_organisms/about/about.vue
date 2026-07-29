@@ -34,7 +34,7 @@ onMounted(async () => {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <AboutReleaseDetails :info="info"/>
         <AboutTechStack/>
-        <AboutResources v-if="info.repository" class="lg:col-span-2" :repository="info.repository"/>
+        <AboutResources class="lg:col-span-2"/>
       </div>
 
       <p class="mt-8 text-center text-xs text-muted">© {{ new Date().getFullYear() }} {{ info.name }}</p>

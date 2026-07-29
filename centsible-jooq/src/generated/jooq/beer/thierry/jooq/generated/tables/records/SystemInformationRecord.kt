@@ -39,21 +39,17 @@ open class SystemInformationRecord() : UpdatableRecordImpl<SystemInformationReco
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
 
-    open var repository: String?
-        set(value): Unit = set(5, value)
-        get(): String? = get(5) as String?
-
     open var releasedAt: LocalDate?
-        set(value): Unit = set(6, value)
-        get(): LocalDate? = get(6) as LocalDate?
+        set(value): Unit = set(5, value)
+        get(): LocalDate? = get(5) as LocalDate?
 
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(7, value)
-        get(): OffsetDateTime? = get(7) as OffsetDateTime?
+        set(value): Unit = set(6, value)
+        get(): OffsetDateTime? = get(6) as OffsetDateTime?
 
     open var modifiedAt: OffsetDateTime?
-        set(value): Unit = set(8, value)
-        get(): OffsetDateTime? = get(8) as OffsetDateTime?
+        set(value): Unit = set(7, value)
+        get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -64,13 +60,12 @@ open class SystemInformationRecord() : UpdatableRecordImpl<SystemInformationReco
     /**
      * Create a detached, initialised SystemInformationRecord
      */
-    constructor(id: Int? = null, name: String? = null, version: String? = null, description: String? = null, license: String? = null, repository: String? = null, releasedAt: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
+    constructor(id: Int? = null, name: String? = null, version: String? = null, description: String? = null, license: String? = null, releasedAt: LocalDate? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.name = name
         this.version = version
         this.description = description
         this.license = license
-        this.repository = repository
         this.releasedAt = releasedAt
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
@@ -87,7 +82,6 @@ open class SystemInformationRecord() : UpdatableRecordImpl<SystemInformationReco
             this.version = value.version
             this.description = value.description
             this.license = value.license
-            this.repository = value.repository
             this.releasedAt = value.releasedAt
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
