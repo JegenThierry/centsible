@@ -165,6 +165,14 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.centsible-api.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.centsible-api.entrypoints=websecure"
+      - "traefik.http.routers.centsible-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.centsible-api.loadbalancer.server.port=8080"
+
     networks:
       - centsible-net
       - proxy-net
@@ -279,6 +287,14 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.centsible.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.centsible.entrypoints=websecure"
+      - "traefik.http.routers.centsible.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.centsible.loadbalancer.server.port=3000"
+
     networks:
       - centsible-net
       - proxy-net
@@ -287,7 +303,7 @@ networks:
   centsible-net:
     driver: bridge
   proxy-net:
-    name: ${PROXY_NETWORK:-nginx-proxy-manager_default}
+    name: ${PROXY_NETWORK:-traefik-network}
     external: true
 
 volumes:
