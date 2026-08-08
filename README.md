@@ -79,7 +79,7 @@ In addition, two cross-cutting modules support the export pipeline:
 
 **Deployment:**
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
-- A reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) to terminate TLS — see [Installation and Deployment](#installation-and-deployment).
+- A reverse proxy of your choice see [Installation and Deployment](#installation-and-deployment).
 
 **Local development** (run directly, not via Docker):
 - [JDK 21](https://adoptium.net/) for the backend.
@@ -96,9 +96,9 @@ Copy `.env.example` to `.env` and adjust values. The full set of variables (with
 
 Docker Compose is used for **deployment only** — there is no Docker-based dev mode (see [Local development](#local-development)). The stack runs behind a reverse proxy: **no application ports are published to the host**, and the UI and API are reached by service name over a shared external Docker network.
 
-1. **Identify (or create) the reverse-proxy network.** `docker-compose.yml` attaches `centsible-ui` and `centsible-rest` to an *external* network named by `PROXY_NETWORK` (default `nginx-proxy-manager_default`). It must already exist — your proxy stack usually creates it (`docker network ls` to find it) — or create a dedicated one and point `PROXY_NETWORK` at it:
+1. **Identify (or create) the reverse-proxy network.** `docker-compose.yml` attaches `centsible-ui` and `centsible-rest` to an *external* network named by `PROXY_NETWORK`. It must already exist:
    ```bash
-   docker network create proxy-net   # then set PROXY_NETWORK=proxy-net in .env
+   docker network create proxy-net
    ```
 2. **Configure `.env`** (copy from `.env.example`; see [Configuration](#configuration)). `POSTGRES_PASSWORD` and `JWT_SECRET` are **required** — the stack refuses to start if either is unset.
 3. **Build and start:**
@@ -108,12 +108,12 @@ Docker Compose is used for **deployment only** — there is no Docker-based dev 
 
 This starts PostgreSQL, a one-shot migration runner, the REST API, the export worker, and the UI. Postgres and the export worker stay internal to `centsible-net`; only `centsible-rest:8080` and `centsible-ui:3000` are reachable, and only by the reverse proxy over `proxy-net`.
 
-The reverse proxy (nginx-proxy-manager, Caddy, Traefik, …) terminates TLS and forwards to `centsible-ui:3000` and `centsible-rest:8080`, passing `X-Forwarded-Proto: https`, `X-Forwarded-Host` and `X-Forwarded-For` (the REST service trusts these via `SERVER_FORWARD_HEADERS_STRATEGY=native`, which also derives the rate limiter's client IP from the last hop it doesn't trust rather than the forgeable leftmost one). Pick one topology in your proxy config:
+The reverse proxy terminates TLS and forwards to `centsible-ui:3000` and `centsible-rest:8080`, passing `X-Forwarded-Proto: https`, `X-Forwarded-Host` and `X-Forwarded-For` (the REST service trusts these via `SERVER_FORWARD_HEADERS_STRATEGY=native`, which also derives the rate limiter's client IP from the last hop it doesn't trust rather than the forgeable leftmost one). Pick one topology in your proxy config:
 
-| Topology | Proxy routing | `.env` values |
-|:---|:---|:---|
-| Two subdomains | `app.example.com → centsible-ui:3000`<br/>`api.example.com → centsible-rest:8080` | `APP_BASE_URL=https://app.example.com`<br/>`CORS_ALLOWED_ORIGINS=https://app.example.com`<br/>`AUTH_COOKIE_DOMAIN=.example.com`<br/>`NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
-| Single host, path-based | `example.com/api/* → centsible-rest:8080`<br/>`example.com/* → centsible-ui:3000` | `APP_BASE_URL=https://example.com`<br/>`CORS_ALLOWED_ORIGINS=https://example.com`<br/>`AUTH_COOKIE_DOMAIN=`<br/>`NUXT_PUBLIC_API_BASE=/api` |
+| Topology                | Proxy routing                                                                     | `.env` values                                                                                                                                                                          |
+|:------------------------|:----------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Two subdomains          | `app.example.com → centsible-ui:3000`<br/>`api.example.com → centsible-rest:8080` | `APP_BASE_URL=https://app.example.com`<br/>`CORS_ALLOWED_ORIGINS=https://app.example.com`<br/>`AUTH_COOKIE_DOMAIN=.example.com`<br/>`NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
+| Single host, path-based | `example.com/api/* → centsible-rest:8080`<br/>`example.com/* → centsible-ui:3000` | `APP_BASE_URL=https://example.com`<br/>`CORS_ALLOWED_ORIGINS=https://example.com`<br/>`AUTH_COOKIE_DOMAIN=`<br/>`NUXT_PUBLIC_API_BASE=/api`                                            |
 
 Either way, `AUTH_COOKIE_SECURE=true` and `SPRING_PROFILES_ACTIVE=prod` must be set (ProductionGuard enforces this; both are the defaults in `.env.example`).
 
@@ -257,8 +257,8 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 
 ### Export worker
 
-| Variable                       | Description                                                                                  | Default                |
-|:-------------------------------|:---------------------------------------------------------------------------------------------|:-----------------------|
+| Variable                       | Description                                                                  | Default             |
+|:-------------------------------|:-----------------------------------------------------------------------------|:--------------------|
 | `EXPORT_POLL_INTERVAL_MS`      | How often the worker polls for queued jobs (ms)                              | `2000`              |
 | `EXPORT_LEASE_TIMEOUT_SECONDS` | Lease TTL after which an unfinished job is reclaimable by another worker (s) | `300`               |
 | `EXPORT_RENDER_TIMEOUT_MS`     | Playwright timeout for a single PDF render (ms)                              | `60000`             |
@@ -266,8 +266,8 @@ Each create-request stores the returned id in a Bruno runtime variable (e.g. `ac
 
 ### Integrations (provider plugins — only required if storing third-party credentials)
 
-| Variable                              | Description                                                                                           | Default      |
-|:--------------------------------------|:------------------------------------------------------------------------------------------------------|:-------------|
+| Variable                             | Description                                                                          | Default  |
+|:-------------------------------------|:-------------------------------------------------------------------------------------|:---------|
 | `INTEGRATIONS_ENCRYPTION_KEY`        | Passphrase used to derive the AES-256 key that encrypts provider credentials at rest | empty    |
 | `INTEGRATIONS_ENCRYPTION_SALT`       | Hex string, ≥16 chars (`openssl rand -hex 16`)                                       | empty    |
 | `INTEGRATIONS_SYNC_POLL_INTERVAL_MS` | How often the sync orchestrator polls (ms)                                           | `300000` |
@@ -291,8 +291,8 @@ To use: each user creates a REST API app at [developer.paypal.com](https://devel
 
 Connects any EU/EEA bank under PSD2. The operator registers ONE app at [bankaccountdata.gocardless.com](https://bankaccountdata.gocardless.com) and shares the secrets across all users on this instance. End users only authorize bank consent through the OAuth flow.
 
-| Variable                                                    | Description                                                             | Default      |
-|:------------------------------------------------------------|:------------------------------------------------------------------------|:-------------|
+| Variable                                                    | Description                                                    | Default      |
+|:------------------------------------------------------------|:---------------------------------------------------------------|:-------------|
 | `INTEGRATIONS_BANKING_GOCARDLESS_ENABLED`                   | Show the EU banking provider in the UI                         | `false`      |
 | `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_ID`                 | GoCardless BAD `secret_id` (operator-level)                    | empty        |
 | `INTEGRATIONS_BANKING_GOCARDLESS_SECRET_KEY`                | GoCardless BAD `secret_key` (operator-level)                   | empty        |
