@@ -46,7 +46,6 @@ const items = computed(() => {
     {label: t('nav.sidebar.sections.data'), type: 'label'},
     {label: t('nav.sidebar.exports'), to: '/exports', icon: 'i-lucide-file-text', target: '_self'},
     {label: t('nav.sidebar.documents'), to: '/attachments', icon: 'i-lucide-paperclip', target: '_self'},
-    {label: t('nav.sidebar.integrations'), to: '/integrations', icon: 'i-lucide-plug', target: '_self'},
   ];
 
   if (!userStore.user?.admin) return [primary, manage, data];

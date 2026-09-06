@@ -67,7 +67,6 @@ class SecurityConfig(
                 authorize("/api/setup", permitAll)
                 authorize("/api/setup/**", permitAll)
                 authorize("/api/system", permitAll)
-                authorize("/api/integrations/oauth/callback/**", permitAll)
                 authorize(EndpointRequest.to("health"), permitAll)
                 authorize("/api/admin/**", hasRole("ADMIN"))
                 authorize(anyRequest, authenticated)

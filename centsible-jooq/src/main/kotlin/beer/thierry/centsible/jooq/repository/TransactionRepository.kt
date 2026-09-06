@@ -499,7 +499,6 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
         conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
-        providerConnectionId: UUID?,
     ): BatchImportOutcome {
         require(rows.size == hashes.size) { "rows and hashes must have equal length" }
         require(rows.size == conversions.size) { "rows and conversions must have equal length" }
@@ -518,7 +517,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
             TRANSACTIONS.DESCRIPTION, TRANSACTIONS.TRANSACTION_DATE, TRANSACTIONS.TYPE,
             TRANSACTIONS.ORIGINAL_AMOUNT, TRANSACTIONS.ORIGINAL_CURRENCY,
             TRANSACTIONS.EXCHANGE_RATE, TRANSACTIONS.RATE_DATE,
-            TRANSACTIONS.IMPORT_HASH, TRANSACTIONS.PROVIDER_CONNECTION_ID,
+            TRANSACTIONS.IMPORT_HASH,
             TRANSACTIONS.CREATED_AT, TRANSACTIONS.MODIFIED_AT,
         )
         rows.forEachIndexed { i, row ->
@@ -528,7 +527,7 @@ class TransactionRepository(private val dsl: DSLContext) : ITransactionRepositor
                 accountId, row.categoryId, conversion.convertedAmount,
                 row.description, row.transactionDate, row.type!!.value,
                 fx.originalAmount, fx.originalCurrency, fx.rate, fx.rateDate,
-                hashes[i], providerConnectionId,
+                hashes[i],
                 now, now,
             )
         }

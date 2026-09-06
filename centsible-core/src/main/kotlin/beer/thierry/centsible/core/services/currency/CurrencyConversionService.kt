@@ -6,9 +6,7 @@ import beer.thierry.centsible.api.model.currency.ConversionRequest
 import beer.thierry.centsible.api.model.currency.ConversionResult
 import beer.thierry.centsible.api.repository.IExchangeRateRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
-import beer.thierry.centsible.api.services.integrations.IExchangeRateProvider
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -18,7 +16,6 @@ import java.time.LocalDate
 @Service
 class CurrencyConversionService(
     private val exchangeRateRepository: IExchangeRateRepository,
-    private val exchangeRateProviders: ObjectProvider<IExchangeRateProvider>,
     @param:Value("\${fx.stale-tolerance-days:7}") private val staleToleranceDays: Long,
 ) : ICurrencyConversionService {
 
@@ -77,32 +74,13 @@ class CurrencyConversionService(
     }
 
     private fun fetchAndCache(from: Currency, to: Currency, date: LocalDate): ResolvedRate {
-        val provider = exchangeRateProviders.ifAvailable
-        if (provider != null) {
-            try {
-                val fetched = provider.fetchRate(from, to, date)
-                exchangeRateRepository.upsert(from, to, fetched.rate, fetched.rateDate, provider.source)
-                return ResolvedRate(fetched.rate, fetched.rateDate)
-            } catch (e: LocalizedException) {
-                throw e
-            } catch (e: Exception) {
-                log.warn("FX provider failed for {}->{} @{}; trying cached fallback", from, to, date, e)
-            }
-        } else {
-            log.warn("No FX rate provider configured; cannot fetch {}->{} @{}", from, to, date)
-        }
-
         val fallback = exchangeRateRepository.findLatestOnOrBefore(from, to, date)
         if (fallback != null && !fallback.rateDate.isBefore(date.minusDays(staleToleranceDays))) {
             log.warn("Using stale cached FX rate {}->{} from {} for {}", from, to, fallback.rateDate, date)
             return ResolvedRate(fallback.rate, fallback.rateDate)
         }
 
-        throw if (provider == null) {
-            LocalizedException.BadRequest("error.fx.providerUnavailable", from.name, to.name)
-        } else {
-            LocalizedException.BadRequest("error.fx.rateUnavailable", from.name, to.name, date.toString())
-        }
+        throw LocalizedException.BadRequest("error.fx.rateUnavailable", from.name, to.name, date.toString())
     }
 
     private data class ResolvedRate(val rate: BigDecimal, val rateDate: LocalDate)

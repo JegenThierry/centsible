@@ -122,7 +122,6 @@ interface ITransactionRepository {
         conversions: List<ConversionResult>,
         hashes: List<String>,
         authenticatedUser: UserDTO,
-        providerConnectionId: UUID? = null,
     ): BatchImportOutcome
 
     /**

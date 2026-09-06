@@ -44,7 +44,6 @@ const groups = computed(() => {
     {label: t('nav.sidebar.contacts'), icon: 'i-lucide-users', onSelect: () => go('/contacts')},
     {label: t('nav.sidebar.exports'), icon: 'i-lucide-file-text', onSelect: () => go('/exports')},
     {label: t('nav.sidebar.documents'), icon: 'i-lucide-paperclip', onSelect: () => go('/attachments')},
-    {label: t('nav.sidebar.integrations'), icon: 'i-lucide-plug', onSelect: () => go('/integrations')},
   );
 
   const accountItems = accountStore.availableAccounts.map(a => ({

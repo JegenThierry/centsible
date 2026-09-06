@@ -75,9 +75,6 @@ subprojects {
             freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
         }
     }
-
-    // `test` runs only DB-free unit tests (what CI runs); Postgres-backed tests are tagged
-    // `integration` and run via `./gradlew integrationTest` against a local database.
     tasks.withType<Test>().matching { it.name != "integrationTest" }.configureEach {
         useJUnitPlatform {
             excludeTags("integration")

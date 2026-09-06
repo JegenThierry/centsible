@@ -3,16 +3,6 @@
 
     <suppress>
         <notes><![CDATA[
-            beer.thierry:paypal is this project's own integration submodule (centsible-integrations:paypal),
-            not the public PayPal SDK. Version 0.3.0 happens to collide with an old paypal/paypal-* npm
-            package CPE. The CVEs are from 2013 against a Node.js library we don't ship.
-        ]]></notes>
-        <packageUrl regex="true">^pkg:maven/beer\.thierry/paypal@.*$</packageUrl>
-        <cpe>cpe:/a:paypal:paypal</cpe>
-    </suppress>
-
-    <suppress>
-        <notes><![CDATA[
             com.google.devtools.ksp:symbol-processing-api is the Kotlin Symbol Processing API,
             not the Processing IDE/language (processing.org). CVE-2018-1000840 is an XXE in the
             Processing IDE, which is unrelated to KSP.

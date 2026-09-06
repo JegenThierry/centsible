@@ -9,16 +9,6 @@ dependencies {
     implementation(project(":centsible-api"))
     implementation(project(":centsible-proto"))
 
-    // Integration provider modules. To remove a provider, delete its line — nothing else changes.
-    // Each provider module pulls :centsible-integrations:support transitively for shared HTTP +
-    // string helpers; no need to declare it here.
-    implementation(project(":centsible-integrations:manual"))
-    implementation(project(":centsible-integrations:paypal"))
-    implementation(project(":centsible-integrations:banking-gocardless"))
-    implementation(project(":centsible-integrations:fx-frankfurter"))
-
-    // File-import modules. Core defines the SPI; format sub-modules (csv, ofx, ...) register
-    // themselves via Spring component scanning. To remove a format, delete its line.
     implementation(project(":centsible-imports:core"))
     implementation(project(":centsible-imports:csv"))
     implementation(project(":centsible-imports:ofx"))

@@ -7,7 +7,6 @@ import beer.thierry.centsible.api.model.rule.RuleContext
 import beer.thierry.centsible.api.model.rule.RuleDTO
 import beer.thierry.centsible.api.model.rule.RuleMatching
 import beer.thierry.centsible.api.model.currency.ConversionResult
-import beer.thierry.centsible.api.model.integrations.ImportedTransactionDTO
 import beer.thierry.centsible.api.model.transaction.CategoryAggregateDTO
 import beer.thierry.centsible.api.model.transaction.ImportResult
 import beer.thierry.centsible.api.model.transaction.ImportTransactionRow
@@ -480,60 +479,6 @@ class TransactionService(
         }
     }
 
-    override fun importProviderTransactions(
-        accountId: UUID,
-        providerConnectionId: UUID,
-        transactions: List<ImportedTransactionDTO>,
-        authenticatedUser: UserDTO,
-    ): ImportResult {
-        if (transactions.isEmpty()) return ImportResult(0, 0)
-
-        val fallbackCategoryId = categoriesRepository.fetchSystemCategoryByKey(UNCATEGORIZED_SYSTEM_KEY)?.id
-        if (fallbackCategoryId == null) {
-            log.error("Cannot persist synced transactions: '{}' system category is missing", UNCATEGORIZED_SYSTEM_KEY)
-            return ImportResult(0, 0)
-        }
-
-        val account = accountRepository.fetchAccountById(accountId, authenticatedUser)
-        val rules = ruleService.list(authenticatedUser)
-        val priced = transactions.filter { it.amount.signum() != 0 }
-        val rows = ArrayList<ImportTransactionRow>(priced.size)
-        val tagIdsPerRow = ArrayList<Set<Long>>(priced.size)
-        priced.forEach { tx ->
-            val type = if (tx.amount.signum() < 0) CategoryType.EXPENSE else CategoryType.INCOME
-            val description = tx.description.ifBlank { tx.counterparty ?: "Imported transaction" }.take(255)
-            val amount = tx.amount.abs()
-            val (categoryId, tagIds) = ruleOutcome(rules, description, amount, type, accountId, fallbackCategoryId)
-            rows.add(
-                ImportTransactionRow(
-                    amount = amount,
-                    categoryId = categoryId,
-                    description = description,
-                    transactionDate = tx.occurredAt.toLocalDate(),
-                    type = type,
-                    currency = parseProviderCurrency(tx.currency),
-                )
-            )
-            tagIdsPerRow.add(tagIds)
-        }
-        val conversions = convertRows(rows, account.currency)
-        val hashes = priced.map { providerRowHash(providerConnectionId, it.externalId) }
-
-        return transactionTemplate.execute {
-            val result = finishImport(accountId, rows, conversions, hashes, tagIdsPerRow, authenticatedUser, providerConnectionId)
-
-            log.info(
-                "Imported provider batch accountId={} connectionId={} userId={} fetched={} inserted={} skippedDuplicates={}",
-                accountId, providerConnectionId, authenticatedUser.id, transactions.size,
-                result.imported, result.skippedDuplicates,
-            )
-            result
-        }
-    }
-
-    private fun providerRowHash(providerConnectionId: UUID, externalId: String): String =
-        sha256Hex("provider:$providerConnectionId:$externalId")
-
     /** Full rule effects for one import row: the resolved category (falling back to [fallbackCategoryId]) and any tags to attach. */
     private fun ruleOutcome(
         rules: List<RuleDTO>,
@@ -564,7 +509,7 @@ class TransactionService(
     private fun categoryKey(name: String, type: CategoryType): String = "${name.trim().lowercase()}|${type.name}"
 
     /**
-     * Shared import tail for [importBatch] and [importProviderTransactions]: persist the already-resolved
+     * Shared import tail for [importBatch]: persist the already-resolved
      * [rows], apply the net balance delta and re-check budget alerts only when it actually moved, then
      * package the insert/skip counts. Callers own their row-building and their own structured log line.
      */
@@ -575,10 +520,9 @@ class TransactionService(
         hashes: List<String>,
         tagIdsPerRow: List<Set<Long>>,
         authenticatedUser: UserDTO,
-        providerConnectionId: UUID? = null,
     ): ImportResult {
         val outcome = transactionRepository.importBatch(
-            accountId, rows, conversions, hashes, authenticatedUser, providerConnectionId
+            accountId, rows, conversions, hashes, authenticatedUser
         )
         if (outcome.netBalanceAdjustment.signum() != 0) {
             accountRepository.updateBalance(accountId, outcome.netBalanceAdjustment, authenticatedUser)
@@ -666,13 +610,6 @@ class TransactionService(
             rows.map { ConversionRequest(it.amount, it.currency ?: accountCurrency, it.transactionDate) },
             accountCurrency,
         )
-
-    private fun parseProviderCurrency(code: String?): Currency? =
-        Currency.parseOrNull(code).also { parsed ->
-            if (parsed == null && !code.isNullOrBlank()) {
-                log.warn("Unknown provider currency '{}'; defaulting to account currency", code.trim())
-            }
-        }
 
     /** Outcome of [prepareTransaction]: the validated splits (null when single-category) and the resolved form. */
     private data class PreparedTransaction(
