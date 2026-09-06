@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AboutSectionHeader from "~/components/_molecules/about/about-section-header.vue";
 import AboutResourceLink from "~/components/_molecules/about/about-resource-link.vue";
-import {REPOSITORY_URL} from "~/models/constants";
+import {Repository} from "~/models/constants";
 
 const {t} = useI18n();
 
@@ -9,20 +9,20 @@ const resources = computed(() => [
   {
     label: t('landing.about.resources.sourceLabel'),
     description: t('landing.about.resources.sourceDescription'),
-    icon: 'i-simple-icons-github',
-    to: REPOSITORY_URL,
+    icon: Repository.ICON,
+    to: Repository.URL,
   },
   {
     label: t('landing.about.resources.bugLabel'),
     description: t('landing.about.resources.bugDescription'),
     icon: 'i-lucide-bug',
-    to: `${REPOSITORY_URL}/issues`,
+    to: `${Repository.URL}/issues`,
   },
   {
     label: t('landing.about.resources.activityLabel'),
     description: t('landing.about.resources.activityDescription'),
     icon: 'i-lucide-activity',
-    to: `${REPOSITORY_URL}/activity`,
+    to: `${Repository.URL}/activity`,
   },
   {
     label: t('landing.about.resources.donateLabel'),
