@@ -25,7 +25,7 @@ names make the layered architecture invisible and slow every change.
 
 **Domains run parallel across every layer.** A domain (`transactions`, `budget`,
 `account`, `categories`, `categorization`, `contacts`, `loans`, `recurring`, `reports`,
-`notifications`, `imports`, `integrations`, `users`, `authentication`, `email`,
+`notifications`, `imports`, `users`, `authentication`, `email`,
 `export`, `system`) appears as the **same package name** in `api`, `core`, and as a
 matching folder under `centsible-ui/app/{models,services,stores}/`.
 

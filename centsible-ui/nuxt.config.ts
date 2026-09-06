@@ -1,8 +1,7 @@
-// The per-feature locale files, loaded for every locale (explicit list, not a filesystem glob).
 const i18nFiles = [
   'common.json', 'nav.json', 'auth.json', 'landing.json', 'accounts.json', 'transactions.json',
   'budgets.json', 'categories.json', 'rules.json', 'tags.json', 'contacts.json', 'profile.json',
-  'exports.json', 'integrations.json', 'notifications.json', 'onboarding.json', 'reports.json',
+  'exports.json', 'notifications.json', 'onboarding.json', 'reports.json',
   'attachments.json', 'admin.json',
 ];
 

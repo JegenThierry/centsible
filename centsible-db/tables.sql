@@ -30,15 +30,7 @@ $$
                 'FAILED'
                 );
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'provider_connection_status') THEN
-            CREATE TYPE provider_connection_status AS ENUM (
-                'NEW',
-                'ACTIVE',
-                'ERROR',
-                'REVOKED'
-                );
-        END IF;
-    END
+        END
 $$;
 
 
@@ -109,32 +101,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_categories_system_key
     WHERE user_id IS NULL AND system_key IS NOT NULL;
 
 
-CREATE TABLE IF NOT EXISTS provider_connections
-(
-    id               UUID PRIMARY KEY                    DEFAULT gen_random_uuid(),
-    user_id          UUID                       NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    provider_key     TEXT                       NOT NULL,
-    display_name     TEXT                       NOT NULL,
-    status           provider_connection_status NOT NULL DEFAULT 'NEW',
-    config           JSONB                      NOT NULL DEFAULT '{}'::jsonb,
-    credentials      BYTEA,
-    last_sync_at     TIMESTAMPTZ,
-    last_sync_cursor TEXT,
-    last_error       TEXT,
-    attempt_count    INTEGER                    NOT NULL DEFAULT 0,
-    locked_at        TIMESTAMPTZ,
-    locked_by        TEXT,
-    created_at       TIMESTAMPTZ                NOT NULL DEFAULT now(),
-    modified_at      TIMESTAMPTZ                NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_provider_connections_user
-    ON provider_connections (user_id);
-CREATE INDEX IF NOT EXISTS idx_provider_connections_claimable
-    ON provider_connections (status, last_sync_at)
-    WHERE status = 'ACTIVE';
-
-
 CREATE TABLE IF NOT EXISTS recurring_transactions
 (
     id          UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
@@ -171,7 +137,6 @@ CREATE TABLE IF NOT EXISTS transactions
     recurring_transaction_id UUID           REFERENCES recurring_transactions (id) ON DELETE SET NULL,
     import_hash              VARCHAR(64),
     type                     VARCHAR(10)    NOT NULL,
-    provider_connection_id   UUID           REFERENCES provider_connections (id) ON DELETE SET NULL,
     original_amount          DECIMAL(15, 2),
     original_currency        VARCHAR(3),
     exchange_rate            NUMERIC(20, 10),
@@ -187,9 +152,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_transactions_account_import_hash
     ON transactions (account_id, import_hash)
     WHERE import_hash IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_transactions_account_type ON transactions (account_id, type);
-CREATE INDEX IF NOT EXISTS idx_transactions_provider_connection_id
-    ON transactions (provider_connection_id)
-    WHERE provider_connection_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_transactions_account_date
     ON transactions (account_id, transaction_date, id);
 
@@ -385,23 +347,6 @@ CREATE INDEX IF NOT EXISTS idx_export_post_processing_claimable
     WHERE status IN ('PENDING', 'IN_PROGRESS');
 CREATE INDEX IF NOT EXISTS idx_export_post_processing_job
     ON export_post_processing (export_job_id);
-
-
-CREATE TABLE IF NOT EXISTS provider_connection_accounts
-(
-    id                     UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    provider_connection_id UUID        NOT NULL REFERENCES provider_connections (id) ON DELETE CASCADE,
-    account_id             UUID        REFERENCES accounts (id) ON DELETE SET NULL,
-    external_account_id    TEXT        NOT NULL,
-    external_metadata      JSONB       NOT NULL DEFAULT '{}'::jsonb,
-    created_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
-    modified_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (provider_connection_id, external_account_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_pca_account_id
-    ON provider_connection_accounts (account_id)
-    WHERE account_id IS NOT NULL;
 
 
 CREATE TABLE IF NOT EXISTS import_mapping_templates

@@ -17,7 +17,6 @@ import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
 import beer.thierry.centsible.api.repository.INotificationRepository
-import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
@@ -49,7 +48,6 @@ class NotificationServiceTest {
     @Mock private lateinit var loans: ILoansRepository
     @Mock private lateinit var recurring: IRecurringTransactionRepository
     @Mock private lateinit var accounts: IBudgetAccountsRepository
-    @Mock private lateinit var connections: IProviderConnectionsRepository
     @Mock private lateinit var currencyConversionService: ICurrencyConversionService
 
     @InjectMocks

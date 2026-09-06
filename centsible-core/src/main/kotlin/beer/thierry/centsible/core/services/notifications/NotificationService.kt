@@ -4,7 +4,6 @@ import beer.thierry.centsible.api.model.budget.BudgetDTO
 import beer.thierry.centsible.api.model.budgetaccount.BudgetAccountDTO
 import beer.thierry.centsible.api.model.budgetaccount.Currency
 import beer.thierry.centsible.api.model.category.CategoryType
-import beer.thierry.centsible.api.model.integrations.ProviderConnectionStatus
 import beer.thierry.centsible.api.model.notification.NotificationDTO
 import beer.thierry.centsible.api.model.notification.NotificationSettingsDTO
 import beer.thierry.centsible.api.model.notification.NotificationType
@@ -14,7 +13,6 @@ import beer.thierry.centsible.api.repository.IBudgetAccountsRepository
 import beer.thierry.centsible.api.repository.IBudgetRepository
 import beer.thierry.centsible.api.repository.ILoansRepository
 import beer.thierry.centsible.api.repository.INotificationRepository
-import beer.thierry.centsible.api.repository.IProviderConnectionsRepository
 import beer.thierry.centsible.api.repository.IRecurringTransactionRepository
 import beer.thierry.centsible.api.repository.IUserRepository
 import beer.thierry.centsible.api.services.currency.ICurrencyConversionService
@@ -24,18 +22,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 private val THRESHOLD = BigDecimal("0.85")
 private val EXCEEDED = BigDecimal("1.00")
 private const val PACE_MIN_DAYS = 4
-
-private const val CONSENT_EXPIRY_LEAD_DAYS = 7L
 
 private const val PROJECTED_SHORTFALL_HORIZON_DAYS = 30L
 
@@ -49,7 +42,6 @@ class NotificationService(
     private val loans: ILoansRepository,
     private val recurring: IRecurringTransactionRepository,
     private val accounts: IBudgetAccountsRepository,
-    private val connections: IProviderConnectionsRepository,
     private val currencyConversionService: ICurrencyConversionService,
 ) : INotificationService {
 
@@ -106,51 +98,6 @@ class NotificationService(
         evaluateLowBalance(user, settings, userAccounts, null)
         evaluateProjectedShortfall(user, settings, recurringRules, userAccounts)
         evaluateBudgetPacing(user, settings)
-        evaluateConsentExpiry(user)
-    }
-
-    override fun maybeRaiseSyncFailure(user: UserDTO, connectionId: UUID, provider: String, error: String?) {
-        emitIfNew(
-            user,
-            NotificationType.SYNC_FAILED,
-            dedupKey = "sync-fail:$connectionId:${LocalDate.now()}",
-            title = "Bank sync failed",
-            body = "Automatic sync for your $provider connection failed${error?.let { ": $it" } ?: ""}. Centsible will keep retrying.",
-            extras = mapOf(
-                "connectionId" to connectionId.toString(),
-                "provider" to provider,
-                "error" to (error ?: ""),
-            ),
-        )
-    }
-
-    /** Warns before a bank/provider consent lapses so the user can re-authorize before syncs break. */
-    private fun evaluateConsentExpiry(user: UserDTO) {
-        val today = LocalDate.now()
-        for (connection in connections.fetchAll(user)) {
-            if (connection.status == ProviderConnectionStatus.REVOKED) continue
-            val expiresAt = parseInstant(connection.config["consentExpiresAt"]) ?: continue
-            val expiryDate = LocalDate.ofInstant(expiresAt, ZoneOffset.UTC)
-            val daysUntil = ChronoUnit.DAYS.between(today, expiryDate)
-            if (daysUntil < 0 || daysUntil > CONSENT_EXPIRY_LEAD_DAYS) continue
-            emitIfNew(
-                user,
-                NotificationType.CONSENT_EXPIRING,
-                dedupKey = "consent:${connection.id}:$expiryDate",
-                title = "Bank connection expiring soon",
-                body = "Access for your ${connection.displayName} connection expires on $expiryDate. Reconnect it to keep syncing.",
-                extras = mapOf(
-                    "connectionId" to connection.id.toString(),
-                    "provider" to connection.providerKey,
-                    "expiresAt" to expiryDate.toString(),
-                ),
-            )
-        }
-    }
-
-    private fun parseInstant(raw: Any?): Instant? {
-        val text = raw as? String ?: return null
-        return runCatching { Instant.parse(text) }.getOrNull()
     }
 
     private fun evaluateLargeTransaction(

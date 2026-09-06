@@ -36,10 +36,6 @@ class AuthRateLimitFilter(private val objectMapper: ObjectMapper) : OncePerReque
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI ?: return true
         if (uri in RATE_LIMITED_PATHS) return false
-        if (uri.startsWith("/api/integrations/oauth/")) return false
-        if (uri.endsWith("/sync") && uri.startsWith("/api/integrations/connections/")) return false
-        if (uri.endsWith("/oauth/start") && uri.startsWith("/api/integrations/connections/")) return false
-        if (uri.startsWith("/api/integrations/providers/") && uri.contains("/options/")) return false
         return true
     }
 

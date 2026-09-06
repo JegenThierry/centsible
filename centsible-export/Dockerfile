@@ -16,7 +16,6 @@ COPY centsible-export/build.gradle.kts ./centsible-export/
 COPY centsible-imports/core/build.gradle.kts ./centsible-imports/core/
 COPY centsible-imports/csv/build.gradle.kts ./centsible-imports/csv/
 COPY centsible-imports/ofx/build.gradle.kts ./centsible-imports/ofx/
-COPY centsible-integrations ./centsible-integrations
 
 RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
     sh ./gradlew :centsible-export:dependencies --no-daemon --quiet || true

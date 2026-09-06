@@ -17,8 +17,6 @@ class ProductionGuardTest {
     /** A guard with every secret set to a realistic non-placeholder value; override one to test it. */
     private fun prodGuard(
         jwtSecret: String = "a-freshly-generated-long-base64-secret",
-        encryptionKey: String = "a-real-strong-passphrase",
-        encryptionSalt: String = "00112233445566778899aabbccddeeff",
         mfaEncryptionKey: String = "another-real-strong-passphrase",
         mfaEncryptionSalt: String = "ffeeddccbbaa99887766554433221100",
         datasourcePassword: String = "an-actual-strong-db-password",
@@ -29,8 +27,6 @@ class ProductionGuardTest {
         skipEmailVerification = false,
         cookieSecure = true,
         jwtSecret = jwtSecret,
-        encryptionKey = encryptionKey,
-        encryptionSalt = encryptionSalt,
         mfaEncryptionKey = mfaEncryptionKey,
         mfaEncryptionSalt = mfaEncryptionSalt,
         datasourcePassword = datasourcePassword,
@@ -100,20 +96,6 @@ class ProductionGuardTest {
     }
 
     @Test
-    fun `prod profile rejects the committed env-example encryption key`() {
-        val guard = prodGuard(encryptionKey = "change_me_long_random_passphrase")
-        val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
-        assert(ex.message!!.contains("INTEGRATIONS_ENCRYPTION_KEY"))
-    }
-
-    @Test
-    fun `prod profile rejects the committed env-example encryption salt`() {
-        val guard = prodGuard(encryptionSalt = "deadbeefcafebabe1234567890abcdef")
-        val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
-        assert(ex.message!!.contains("INTEGRATIONS_ENCRYPTION_SALT"))
-    }
-
-    @Test
     fun `prod profile rejects the committed env-example jwt secret`() {
         val guard = prodGuard(jwtSecret = "your-secret-here")
         val ex = assertThrows(IllegalArgumentException::class.java) { guard.assertSafeProduction() }
@@ -134,8 +116,6 @@ class ProductionGuardTest {
             skipEmailVerification = false,
             cookieSecure = false,
             jwtSecret = "your-secret-here",
-            encryptionKey = "change_me_long_random_passphrase",
-            encryptionSalt = "deadbeefcafebabe1234567890abcdef",
             datasourcePassword = "change_me_super_strong_password",
         ).assertSafeProduction()
     }
