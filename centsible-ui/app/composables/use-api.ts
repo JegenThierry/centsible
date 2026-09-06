@@ -70,8 +70,6 @@ export async function postMultipart<T>(
   for (const [key, value] of Object.entries(fields)) {
     form.append(key, value);
   }
-  const response = await api.post<T>(url, form, {
-    headers: {'Content-Type': 'multipart/form-data'},
-  });
+  const response = await api.post<T>(url, form);
   return validateRequest<T>(response);
 }
