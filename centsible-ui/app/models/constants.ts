@@ -1,1 +1,5 @@
-export const REPOSITORY_URL = "https://github.com/JegenThierry/centsible";
+export const Repository = {
+  URL: 'https://codeberg.org/thierryjegen/centsible',
+  ICON: 'i-simple-icons-codeberg',
+};
+

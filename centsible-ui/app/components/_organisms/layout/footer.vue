@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue";
 import AppButton from "~/components/_atoms/ui/app-button.vue";
-import {REPOSITORY_URL} from "~/models/constants";
+import {Repository} from "~/models/constants";
 
 const {t} = useI18n();
 
@@ -13,7 +13,7 @@ const items = computed<NavigationMenuItem[]>(() => [
   },
   {
     label: t('nav.footer.activity'),
-    to: `${REPOSITORY_URL}/activity`,
+    to: `${Repository.URL}/activity`,
     target: '_blank'
   }
 ]);
@@ -54,9 +54,9 @@ const items = computed<NavigationMenuItem[]>(() => [
 
       <AppButton :aria-label="t('nav.footer.codeberg')"
                color="neutral"
-               icon="i-simple-icons-github"
+               :icon="Repository.ICON"
                target="_blank"
-               to="https://github.com/JegenThierry"
+               :to="Repository.URL"
                variant="ghost"/>
     </template>
   </UFooter>
